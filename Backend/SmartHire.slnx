@@ -1,2 +1,10 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SmartHire.Application/SmartHire.Application.csproj" />
+    <Project Path="src/SmartHire.Domain/SmartHire.Domain.csproj" />
+    <Project Path="src/SmartHire.Infrastructure/SmartHire.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/SmartHire.API/">
+    <Project Path="src/SmartHire.API/SmartHire.Api.csproj" />
+  </Folder>
 </Solution>
