@@ -45,7 +45,7 @@ Manifest ghim `dotnet-ef` phiên bản `10.0.12`, đồng bộ với EF Core tro
 
 Compose hiện dùng PostgreSQL 16 kèm `pgvector`; phiên bản 16 đáp ứng yêu cầu PostgreSQL 16 trở lên. PostgreSQL 18.4 cài trực tiếp trên máy bạn là instance riêng, không được dùng ở cấu hình Compose này.
 
-Tạo `.env` cá nhân từ file mẫu.
+Tạo `.env` và `appsettings.json` cá nhân từ file mẫu.
 
 Git Bash:
 
@@ -57,6 +57,20 @@ PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
+```
+
+Git Bash:
+
+```
+cd ../Backend/src/SmartHire.API
+cp appsettings.Development.json appsettings.json
+```
+
+Powershell:
+
+```
+Copy-Item appsettings.Development.json appsettings.json
+
 ```
 
 Mở `.env` và thay `POSTGRES_PASSWORD=your_password` bằng mật khẩu riêng postgres ở local vừa tạo. Giữ các giá trị sau như mẫu nếu chưa có lý do đổi:

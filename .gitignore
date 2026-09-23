@@ -11,7 +11,6 @@
 *.sln.docstates
 *.env
 !*.env.example
-appsettings.Development.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -89,6 +88,11 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 .artifacts/
+# Ignore all appsettings files
+appsettings*.json
+
+# Allow Development settings
+!appsettings.Development.json
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
