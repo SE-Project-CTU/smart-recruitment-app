@@ -1,9 +1,12 @@
 using SmartHire.Infrastructure;
-
+using NLog.Web;
 var builder = WebApplication.CreateBuilder(args);
 // Đăng ký Infrastructure
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Cấu hình Logging
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 // Add services to the container.
 
 builder.Services.AddControllers();
