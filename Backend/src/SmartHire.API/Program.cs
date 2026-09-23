@@ -1,4 +1,8 @@
+using SmartHire.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
+// Đăng ký Infrastructure
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add services to the container.
 
