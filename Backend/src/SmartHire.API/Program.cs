@@ -1,5 +1,7 @@
 using SmartHire.Infrastructure;
 using NLog.Web;
+using Hangfire;
+using Hangfire.PostgreSql;
 var builder = WebApplication.CreateBuilder(args);
 // Đăng ký Infrastructure
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -7,6 +9,18 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Cấu hình Logging
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
+
+// Đăng ký Hangfire
+var hangfireConnection =
+    builder.Configuration.GetConnectionString("HangfireConnection")
+    ?? throw new InvalidOperationException(
+        "Connection string 'HangfireConnection' was not configured.");
+
+builder.Services.AddHangfire(configuration =>
+    configuration.UsePostgreSqlStorage(options =>
+        options.UseNpgsqlConnection(hangfireConnection)));
+
+builder.Services.AddHangfireServer();
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -24,6 +38,7 @@ if (app.Environment.IsDevelopment())
     {
         options.DocumentPath = "/openapi/v1.json";
     });
+    app.UseHangfireDashboard("/hangfire");
 }
 
 app.UseHttpsRedirection();
