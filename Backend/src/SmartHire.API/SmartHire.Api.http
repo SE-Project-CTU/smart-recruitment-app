@@ -1,0 +1,6 @@
+@SmartHire.Api_HostAddress = http://localhost:5190
+
+GET {{SmartHire.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
