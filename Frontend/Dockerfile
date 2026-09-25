@@ -1,33 +1,33 @@
+# syntax=docker/dockerfile:1
+
 ARG NODE_VERSION=20.18.0
 ARG PNPM_VERSION=9.15.0
 
-#######
-# Base stage
-FROM node:${NODE_VERSION}-alpine AS base
+# ==========================================
+# STAGE 1: BUILD
+# ==========================================
+FROM node:${NODE_VERSION}-alpine AS build
 
 WORKDIR /usr/src/app
 
-RUN --mount=type=cache,target=/root/.npm \
-    npm install -g pnpm@${PNPM_VERSION}
-
-# Build stage
-FROM base AS build
+RUN npm install -g pnpm@${PNPM_VERSION}
 
 ARG VITE_API_BASE_URL=http://localhost:5190
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
-# Cài đặt đầy đủ dependencies
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
-    --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --force
 
 COPY . .
 RUN pnpm run build
 
-# Final stage
+# ==========================================
+# STAGE 2: PRODUCTION WEBSERVER (NGINX)
+# ==========================================
 FROM nginx:alpine AS final
 
+# Cấu hình Nginx cơ bản hỗ trợ Client-side Routing (React/Vite)
 RUN echo 'server { \
     listen 80; \
     location / { \
@@ -39,7 +39,6 @@ RUN echo 'server { \
 
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
 
-# Expose cổng 80 của Nginx
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
