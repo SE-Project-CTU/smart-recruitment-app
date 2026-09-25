@@ -89,6 +89,8 @@ pnpm install
 
 ## 4. Cấu hình biến môi trường
 
+(Có thể bỏ qua vì đã gán sẵn biến VITE_API_BASE_URL=http://localhost:5190 kèm theo trong Docker)
+
 Tạo file `.env` từ file mẫu `.env.example`.
 
 ### Windows PowerShell

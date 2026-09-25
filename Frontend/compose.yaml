@@ -11,8 +11,12 @@ services:
   server:
     build:
       context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:5190
     ports:
-      - 5173:5173
+      - 5173:80
+    restart: always
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
