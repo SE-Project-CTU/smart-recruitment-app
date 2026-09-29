@@ -88,8 +88,6 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 .artifacts/
-# Ignore all appsettings files
-appsettings*.json
 
 # Allow Development settings
 !appsettings.Development.json

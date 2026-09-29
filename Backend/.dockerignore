@@ -1,0 +1,14 @@
+# Exclude build artifacts that contain Windows-specific paths.
+# Without this, dotnet publish --no-restore inside the Linux container
+# fails because obj/project.assets.json references
+# 'C:\Program Files (x86)\Microsoft Visual Studio\Shared\NuGetPackages'
+# which does not exist on the container's filesystem.
+
+**/obj/
+**/bin/
+
+# Also exclude local secrets / dev config that must not enter the image
+**/.env
+**/*.user
+**/*.suo
+**/.vs/

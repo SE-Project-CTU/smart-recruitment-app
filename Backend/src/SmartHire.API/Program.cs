@@ -1,9 +1,14 @@
+using Microsoft.EntityFrameworkCore;
 using SmartHire.Infrastructure;
+using SmartHire.Infrastructure.Persistence;
 using NLog.Web;
 using Hangfire;
+using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
+
 var builder = WebApplication.CreateBuilder(args);
-// Đăng ký Infrastructure
+
+// Đăng ký Infrastructure (EF Core, pgvector)
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Cấu hình Logging
@@ -21,25 +26,31 @@ builder.Services.AddHangfire(configuration =>
         options.UseNpgsqlConnection(hangfireConnection)));
 
 builder.Services.AddHangfireServer();
-// Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// ── Auto-migrate: áp dụng tất cả migration pending khi khởi động ──
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
-
-    app.UseSwaggerUi(options =>
-    {
-        options.DocumentPath = "/openapi/v1.json";
-    });
-    app.UseHangfireDashboard("/hangfire");
+    var db = scope.ServiceProvider.GetRequiredService<SmartHireDbContext>();
+    db.Database.Migrate();
 }
+
+// ── OpenAPI / Swagger UI ──
+app.MapOpenApi();
+app.UseSwaggerUi(options =>
+{
+    options.DocumentPath = "/openapi/v1.json";
+});
+
+// ── Hangfire Dashboard ──
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = Array.Empty<IDashboardAuthorizationFilter>()
+});
 
 app.UseHttpsRedirection();
 
@@ -48,3 +59,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
