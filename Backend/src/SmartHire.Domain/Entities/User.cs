@@ -17,5 +17,8 @@ public class User {
     
     public ICollection<UserRole> UserRoles { get; private set; } = new List<UserRole>();
     
+    public ICollection<RefreshToken> RefreshTokens { get; private set; }
+        = new List<RefreshToken>();
+    
     private User() { }
 }
