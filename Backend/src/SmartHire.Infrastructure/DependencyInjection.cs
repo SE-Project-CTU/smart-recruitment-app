@@ -20,7 +20,9 @@ public static class DependencyInjection
         services.AddDbContext<SmartHireDbContext>(options =>
             options.UseNpgsql(
                 connectionString,
-                npgsql => npgsql.UseVector()));
+                npgsql => npgsql.UseVector())
+                .UseSnakeCaseNamingConvention()
+            );
 
         return services;
     }
