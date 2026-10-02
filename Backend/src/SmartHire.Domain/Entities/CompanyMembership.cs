@@ -17,5 +17,11 @@ public class CompanyMembership {
     public DateTimeOffset JoinedAt { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     
+    public ICollection<CompanyInvitation> SendCompanyInvitations { get; private set; }
+        = new List<CompanyInvitation>();
+    
+    public ICollection<CompanyJoinRequest> ReviewedCompanyJoinRequests { get; private set; }
+        = new List<CompanyJoinRequest>();
+    
     private CompanyMembership() { }
 }

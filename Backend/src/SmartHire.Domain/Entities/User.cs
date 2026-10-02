@@ -23,5 +23,12 @@ public class User {
     public ICollection<CompanyMembership> CompanyMemberships { get; private set; }
         = new List<CompanyMembership>();
     
+    public ICollection<CompanyJoinRequest> SendCompanyRequests { get; private set; }
+        = new List<CompanyJoinRequest>();
+    
+    public ICollection<CompanyInvitation> ReceiveCompanyInvitations { get; private set; }
+        = new List<CompanyInvitation>();
+    
+    
     private User() { }
 }

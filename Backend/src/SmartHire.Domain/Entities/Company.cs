@@ -23,5 +23,11 @@ public class Company {
     public ICollection<CompanyMembership> Memberships { get; private set; }
         = new List<CompanyMembership>();
     
-    private Company() {}
+    public ICollection<CompanyJoinRequest> JoinRequests { get; private set; }
+        = new List<CompanyJoinRequest>();
+    
+    public ICollection<CompanyInvitation> Invitations { get; private set; }
+        = new List<CompanyInvitation>();
+    
+    private Company() { }
 }

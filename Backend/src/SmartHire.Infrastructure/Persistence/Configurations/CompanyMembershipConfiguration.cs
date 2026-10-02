@@ -7,6 +7,7 @@ namespace SmartHire.Infrastructure.Persistence.Configurations;
 public class CompanyMembershipConfiguration : IEntityTypeConfiguration<CompanyMembership> {
     public void Configure(EntityTypeBuilder<CompanyMembership> builder) {
         builder.HasKey(x => x.Id);
+        builder.HasAlternateKey(x => new { x.CompanyId, x.UserId });
         
         builder.Property(x => x.Id)
             .HasDefaultValueSql("gen_random_uuid()")
@@ -14,9 +15,6 @@ public class CompanyMembershipConfiguration : IEntityTypeConfiguration<CompanyMe
         
         builder.Property(x => x.Status).HasConversion<string>();
         builder.Property(x => x.Role).HasConversion<string>();
-        
-        builder.HasIndex(x => new { x.CompanyId, x.UserId })
-            .IsUnique();
         
         builder.HasOne(x => x.Company)
             .WithMany(x => x.Memberships)
