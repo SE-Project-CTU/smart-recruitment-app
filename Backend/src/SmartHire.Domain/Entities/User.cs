@@ -20,5 +20,8 @@ public class User {
     public ICollection<RefreshToken> RefreshTokens { get; private set; }
         = new List<RefreshToken>();
     
+    public ICollection<CompanyMembership> CompanyMemberships { get; private set; }
+        = new List<CompanyMembership>();
+    
     private User() { }
 }

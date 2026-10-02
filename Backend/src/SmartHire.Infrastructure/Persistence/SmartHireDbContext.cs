@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence;
@@ -14,6 +15,8 @@ public sealed class SmartHireDbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CompanyMembership> CompanyMemberships => Set<CompanyMembership>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
