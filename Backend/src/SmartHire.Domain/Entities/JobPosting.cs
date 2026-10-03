@@ -23,6 +23,9 @@ public class JobPosting {
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     
+    public ICollection<JobSkill> JobSkills { get; private set; } 
+        = new List<JobSkill>();
+    
     private JobPosting() { }
     
     public JobPosting(Guid companyId, Guid createdBy, string title, string description, int vacancies) {
