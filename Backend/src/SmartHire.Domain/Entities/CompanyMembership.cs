@@ -23,5 +23,8 @@ public class CompanyMembership {
     public ICollection<CompanyJoinRequest> ReviewedCompanyJoinRequests { get; private set; }
         = new List<CompanyJoinRequest>();
     
+    public ICollection<JobPosting> CreatedJobPostings { get; private set; }
+        = new List<JobPosting>();
+    
     private CompanyMembership() { }
 }

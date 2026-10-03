@@ -10,4 +10,7 @@ public class Province {
     
     public ICollection<Ward> Wards { get; private set; }
         = new List<Ward>();
+    
+    public ICollection<JobPosting> JobPostings { get; private set; }
+        = new List<JobPosting>();
 }

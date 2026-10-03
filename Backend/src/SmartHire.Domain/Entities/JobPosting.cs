@@ -6,19 +6,40 @@ public class JobPosting {
     public Guid Id { get; private set; }
     
     public Guid CompanyId { get; private set; }
+    public Company Company { get; private set; } = null!;
+    
     public Guid CreatedBy { get; private set; }
+    public CompanyMembership CreatedByMembership { get; private set; } = null!;
     
     public string Title { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
+    
+    public Guid ProvinceId { get; private set; }
+    public Province Province { get; private set; } = null!;
+    
+    public Guid? WardId { get; private set; }
+    public Ward? Ward { get; private set; }
     
     public int Vacancies { get; private set; }
     
     public decimal? SalaryMin { get; private set; }
     public decimal? SalaryMax { get; private set; }
-    public bool SalaryNegotiable { get; private set; }
+    public bool SalaryNegotiable { get; private set; } = false;
     
     public DateTimeOffset? Deadline { get; private set; }
     public JobPostingStatus Status { get; private set; }
+    
+    public string? DetailedLocation { get; private set; }
+    
+    public int? ExperienceYears { get; private set; }
+    public JobLevel? JobLevel { get; private set; }
+    public string? EducationLevel { get; private set; }
+    
+    public WorkMode WorkMode { get; private set; }
+    public JobType JobType { get; private set; }
+    
+    public string Requirements { get; private set; } = string.Empty;
+    public string Benefits { get; private set; } = string.Empty;
     
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }

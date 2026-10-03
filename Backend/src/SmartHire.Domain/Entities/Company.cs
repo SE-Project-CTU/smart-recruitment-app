@@ -32,5 +32,9 @@ public class Company {
     public ICollection<CompanyFollow> Followers { get; private set; }
         = new List<CompanyFollow>();
     
+    public ICollection<JobPosting> JobPostings { get; private set; }
+        = new List<JobPosting>();
+    
+    
     private Company() { }
 }

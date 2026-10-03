@@ -26,18 +26,12 @@ public sealed class SmartHireDbContext
     public DbSet<Industry> Industries => Set<Industry>();
     public DbSet<Skill> Skills => Set<Skill>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
+    public DbSet<JobPosting> JobPostings => Set<JobPosting>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
         
         modelBuilder.HasPostgresExtension("vector");
-        
-        modelBuilder.Entity<JobPosting>(entity => {
-            entity.HasKey(x => x.Id);
-            
-            entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()")
-                .ValueGeneratedOnAdd();
-        });
         
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
