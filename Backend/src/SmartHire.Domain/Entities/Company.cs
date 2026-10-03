@@ -29,5 +29,8 @@ public class Company {
     public ICollection<CompanyInvitation> Invitations { get; private set; }
         = new List<CompanyInvitation>();
     
+    public ICollection<CompanyFollow> Followers { get; private set; }
+        = new List<CompanyFollow>();
+    
     private Company() { }
 }

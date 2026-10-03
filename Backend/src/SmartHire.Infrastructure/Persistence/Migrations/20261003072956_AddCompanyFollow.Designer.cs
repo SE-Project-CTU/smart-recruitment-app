@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartHire.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SmartHire.Infrastructure.Persistence;
 namespace SmartHire.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SmartHireDbContext))]
-    partial class SmartHireDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261003072956_AddCompanyFollow")]
+    partial class AddCompanyFollow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -495,7 +498,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasOne("SmartHire.Domain.Entities.User", "Invitee")
                         .WithMany("ReceiveCompanyInvitations")
                         .HasForeignKey("InviteeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_company_invitations_users_invitee_id");
 
@@ -503,7 +506,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .WithMany("SendCompanyInvitations")
                         .HasForeignKey("CompanyId", "InviterId")
                         .HasPrincipalKey("CompanyId", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_company_invitations_company_memberships_company_id_inviter_");
 
@@ -526,7 +529,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasOne("SmartHire.Domain.Entities.User", "User")
                         .WithMany("SendCompanyRequests")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_company_join_requests_users_user_id");
 
@@ -534,7 +537,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .WithMany("ReviewedCompanyJoinRequests")
                         .HasForeignKey("CompanyId", "ReviewedBy")
                         .HasPrincipalKey("CompanyId", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_company_join_requests_company_memberships_company_id_review");
 
                     b.Navigation("Company");

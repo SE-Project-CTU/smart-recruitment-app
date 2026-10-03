@@ -19,6 +19,7 @@ public sealed class SmartHireDbContext
     public DbSet<CompanyMembership> CompanyMemberships => Set<CompanyMembership>();
     public DbSet<CompanyInvitation> CompanyInvitations => Set<CompanyInvitation>();
     public DbSet<CompanyJoinRequest> CompanyJoinRequests => Set<CompanyJoinRequest>();
+    public DbSet<CompanyFollow> CompanyFollows => Set<CompanyFollow>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);

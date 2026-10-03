@@ -24,12 +24,12 @@ public class CompanyInvitationConfiguration : IEntityTypeConfiguration<CompanyIn
             .WithMany(x => x.SendCompanyInvitations)
             .HasForeignKey(x => new {x.CompanyId, x.InviterId})
             .HasPrincipalKey(x => new {x.CompanyId, x.UserId})
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasOne(x => x.Invitee)
             .WithMany(x => x.ReceiveCompanyInvitations)
             .HasForeignKey(x => x.InviteeId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasIndex(x => x.InviteeId);
     }

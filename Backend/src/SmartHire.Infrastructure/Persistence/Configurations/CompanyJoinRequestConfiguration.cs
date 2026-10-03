@@ -23,13 +23,13 @@ public class CompanyJoinRequestConfiguration : IEntityTypeConfiguration<CompanyJ
         builder.HasOne(x => x.User)
             .WithMany(x => x.SendCompanyRequests)
             .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasOne(x => x.Reviewer)
             .WithMany(x => x.ReviewedCompanyJoinRequests)
             .HasForeignKey(x => new { x.CompanyId, x.ReviewedBy })
             .HasPrincipalKey(x => new {x.CompanyId, x.UserId})
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasIndex(x => x.UserId);
     }
