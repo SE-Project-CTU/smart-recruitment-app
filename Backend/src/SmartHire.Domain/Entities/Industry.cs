@@ -11,5 +11,8 @@ public class Industry {
     public string Name { get; private set; } = string.Empty;
     public bool IsActive { get; private set; }
     
+    public ICollection<JobIndustry> JobIndustries { get; private set; }
+        = new List<JobIndustry>();
+    
     private Industry() { }
 }

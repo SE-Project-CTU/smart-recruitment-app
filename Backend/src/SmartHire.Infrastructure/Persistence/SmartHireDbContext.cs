@@ -27,6 +27,7 @@ public sealed class SmartHireDbContext
     public DbSet<Skill> Skills => Set<Skill>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
     public DbSet<JobPosting> JobPostings => Set<JobPosting>();
+    public DbSet<JobIndustry> JobIndustries => Set<JobIndustry>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);

@@ -47,6 +47,9 @@ public class JobPosting {
     public ICollection<JobSkill> JobSkills { get; private set; } 
         = new List<JobSkill>();
     
+    public ICollection<JobIndustry> JobIndustries { get; private set; }
+        = new List<JobIndustry>();
+    
     private JobPosting() { }
     
     public JobPosting(Guid companyId, Guid createdBy, string title, string description, int vacancies) {
