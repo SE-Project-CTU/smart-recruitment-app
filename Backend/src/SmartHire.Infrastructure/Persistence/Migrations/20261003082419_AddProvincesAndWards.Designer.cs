@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartHire.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SmartHire.Infrastructure.Persistence;
 namespace SmartHire.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SmartHireDbContext))]
-    partial class SmartHireDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261003082419_AddProvincesAndWards")]
+    partial class AddProvincesAndWards
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -255,65 +258,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_company_memberships_user_id");
 
                     b.ToTable("company_memberships", (string)null);
-                });
-
-            modelBuilder.Entity("SmartHire.Domain.Entities.Industry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("group_id");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_industries");
-
-                    b.HasIndex("GroupId")
-                        .HasDatabaseName("ix_industries_group_id");
-
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasDatabaseName("ix_industries_name");
-
-                    b.ToTable("industries", (string)null);
-                });
-
-            modelBuilder.Entity("SmartHire.Domain.Entities.IndustryGroup", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_industry_groups");
-
-                    b.ToTable("industry_groups", (string)null);
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.JobPosting", b =>
@@ -687,18 +631,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SmartHire.Domain.Entities.Industry", b =>
-                {
-                    b.HasOne("SmartHire.Domain.Entities.IndustryGroup", "Group")
-                        .WithMany("Industries")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_industries_industry_groups_group_id");
-
-                    b.Navigation("Group");
-                });
-
             modelBuilder.Entity("SmartHire.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("SmartHire.Domain.Entities.User", "User")
@@ -760,11 +692,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("ReviewedCompanyJoinRequests");
 
                     b.Navigation("SendCompanyInvitations");
-                });
-
-            modelBuilder.Entity("SmartHire.Domain.Entities.IndustryGroup", b =>
-                {
-                    b.Navigation("Industries");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.Province", b =>
