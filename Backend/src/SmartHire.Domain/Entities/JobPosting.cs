@@ -50,6 +50,8 @@ public class JobPosting {
     public ICollection<JobIndustry> JobIndustries { get; private set; }
         = new List<JobIndustry>();
     
+    public JobEmbedding? Embedding { get; private set; }
+    
     private JobPosting() { }
     
     public JobPosting(Guid companyId, Guid createdBy, string title, string description, int vacancies) {
