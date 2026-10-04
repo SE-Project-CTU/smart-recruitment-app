@@ -25,9 +25,6 @@ public class CvTemplateConfiguration : IEntityTypeConfiguration<CvTemplate> {
         builder.Property(x => x.Description)
             .HasColumnType("text");
         
-        builder.Property(x => x.ThumbnailUrl)
-            .HasMaxLength(1000);
-        
         builder.Property(x => x.Version)
             .HasMaxLength(50);
         
@@ -42,5 +39,10 @@ public class CvTemplateConfiguration : IEntityTypeConfiguration<CvTemplate> {
         
         builder.Property(x => x.Language)
             .HasCvLanguageCodeConversion();
+        
+        builder.HasOne(x => x.ThumbnailFile)
+            .WithOne(x => x.CvTemplate)
+            .HasForeignKey<CvTemplate>(x => x.ThumbnailFileId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

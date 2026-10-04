@@ -25,8 +25,11 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company> {
         builder.Property(x => x.Address).HasMaxLength(500);
         builder.Property(x => x.Website).HasMaxLength(500);
         builder.Property(x => x.Description).HasColumnType("text");
-        builder.Property(x => x.LogoUrl).HasMaxLength(1000);
-        
         builder.HasIndex(x => x.TaxCode).IsUnique();
+        
+        builder.HasOne(x => x.LogoFile)
+            .WithOne(x => x.LogoCompany)
+            .HasForeignKey<Company>(x => x.LogoFileId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

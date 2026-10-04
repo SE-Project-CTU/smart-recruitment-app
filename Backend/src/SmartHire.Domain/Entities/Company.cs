@@ -12,7 +12,8 @@ public class Company {
     public string? Address { get; private set; }
     public string? Website { get; private set; }
     public string? Description { get; private set; }
-    public string? LogoUrl { get; private set; }
+    public Guid? LogoFileId { get; private set; }
+    public MediaFile? LogoFile { get; private set; }
     
     public CompanyVerificationStatus VerificationStatus { get; private set; }
     public DateTimeOffset? VerifiedAt { get; private set; }

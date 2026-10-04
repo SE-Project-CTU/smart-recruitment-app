@@ -10,5 +10,10 @@ public class MediaFile {
     public long FileSize { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
+    public User? AvatarUser { get; private set; }
+    public Company? LogoCompany { get; private set; }
+    public CvTemplate? CvTemplate { get; private set; }
+    public Application? UploadedCvApplication { get; private set; }
+
     private MediaFile() { }
 }

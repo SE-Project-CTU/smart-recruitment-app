@@ -9,7 +9,8 @@ public class User {
     public string? Phone { get; private set; }
     public string PasswordHash { get; private set; } = string.Empty;
     public string FullName { get; private set; } = string.Empty;
-    public string? AvatarUrl { get; private set; }
+    public Guid? AvatarFileId { get; private set; }
+    public MediaFile? AvatarFile { get; private set; }
     public UserStatus Status { get; private set; }
     
     public DateTimeOffset CreatedAt { get; private set; }

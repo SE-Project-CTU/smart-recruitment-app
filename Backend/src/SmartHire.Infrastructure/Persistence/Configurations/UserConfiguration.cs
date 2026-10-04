@@ -28,5 +28,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
             .HasConversion<string>();
         
         builder.HasIndex(x => x.Phone).IsUnique();
+
+        builder.HasOne(x => x.AvatarFile)
+            .WithOne(x => x.AvatarUser)
+            .HasForeignKey<User>(x => x.AvatarFileId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

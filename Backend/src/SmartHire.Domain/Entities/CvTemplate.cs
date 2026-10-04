@@ -9,7 +9,8 @@ public class CvTemplate {
     public string Code { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
-    public string ThumbnailUrl { get; private set; } = string.Empty;
+    public Guid ThumbnailFileId { get; private set; }
+    public MediaFile ThumbnailFile { get; private set; } = null!;
     public string Version { get; private set; } = string.Empty;
     
     // JSONB
