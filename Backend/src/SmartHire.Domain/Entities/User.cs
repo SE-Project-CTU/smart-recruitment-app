@@ -32,6 +32,8 @@ public class User {
     public ICollection<CompanyFollow> CompanyFollows { get; private set; }
         = new List<CompanyFollow>();
     
+    public ICollection<Cv> Cvs { get; private set; } 
+        = new List<Cv>();
     
     private User() { }
 }

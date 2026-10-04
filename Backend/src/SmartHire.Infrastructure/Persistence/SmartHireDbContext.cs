@@ -29,6 +29,10 @@ public sealed class SmartHireDbContext
     public DbSet<JobPosting> JobPostings => Set<JobPosting>();
     public DbSet<JobIndustry> JobIndustries => Set<JobIndustry>();
     public DbSet<JobEmbedding> JobEmbeddings => Set<JobEmbedding>();
+    public DbSet<CvTemplate> CvTemplates => Set<CvTemplate>();
+    public DbSet<Cv> Cvs => Set<Cv>();
+    public DbSet<CvVersion> CvVersions => Set<CvVersion>();
+    public DbSet<CvEmbedding> CvEmbeddings => Set<CvEmbedding>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
