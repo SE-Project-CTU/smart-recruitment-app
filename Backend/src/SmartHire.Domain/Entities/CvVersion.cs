@@ -20,6 +20,10 @@ public class CvVersion {
     public int VersionNumber { get; private set; }
     
     public DateTimeOffset CreatedAt { get; private set; }
+
+    public CvEmbedding? Embedding { get; private set; }
+    public ICollection<Application> Applications { get; private set; } = new List<Application>();
+    public ICollection<AiMatchResult> AiMatchResults { get; private set; } = new List<AiMatchResult>();
     
     private CvVersion() { }
 }

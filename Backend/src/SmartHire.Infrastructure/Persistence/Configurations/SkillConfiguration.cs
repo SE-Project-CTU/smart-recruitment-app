@@ -17,5 +17,6 @@ public class SkillConfiguration : IEntityTypeConfiguration<Skill> {
             .HasMaxLength(150);
         
         builder.HasIndex(x => x.Name);
+        builder.HasIndex(x => x.Name).IsUnique();
     }
 }

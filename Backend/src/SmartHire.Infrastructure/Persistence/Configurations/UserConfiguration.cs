@@ -26,5 +26,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
         
         builder.Property(x => x.Status)
             .HasConversion<string>();
+        
+        builder.HasIndex(x => x.Phone).IsUnique();
     }
 }

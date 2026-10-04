@@ -51,6 +51,9 @@ public class JobPosting {
         = new List<JobIndustry>();
     
     public JobEmbedding? Embedding { get; private set; }
+
+    public ICollection<Application> Applications { get; private set; } = new List<Application>();
+    public ICollection<JobRecommendation> Recommendations { get; private set; } = new List<JobRecommendation>();
     
     private JobPosting() { }
     

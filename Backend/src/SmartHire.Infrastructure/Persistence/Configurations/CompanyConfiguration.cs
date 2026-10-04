@@ -24,7 +24,9 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company> {
         builder.Property(x => x.Phone).HasMaxLength(30);
         builder.Property(x => x.Address).HasMaxLength(500);
         builder.Property(x => x.Website).HasMaxLength(500);
-        builder.Property(x => x.Description).HasMaxLength(1000);
+        builder.Property(x => x.Description).HasColumnType("text");
         builder.Property(x => x.LogoUrl).HasMaxLength(1000);
+        
+        builder.HasIndex(x => x.TaxCode).IsUnique();
     }
 }
