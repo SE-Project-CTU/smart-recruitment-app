@@ -1,5 +1,7 @@
 ﻿namespace SmartHire.Application.Common.Errors;
 
-public class AppErrorDetail {
-    
-}
+public sealed record AppErrorDetail(
+    string Field,
+    string Reason,
+    string Message
+);

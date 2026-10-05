@@ -5,6 +5,7 @@ using NLog.Web;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
+using SmartHire.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,26 +30,26 @@ builder.Services.AddHangfireServer();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 var app = builder.Build();
 
+// ── Use App exception and middleware
+app.UseExceptionHandler();
+app.UseMiddleware<CorrelationIdMiddleware>();
+
 // ── Auto-migrate: áp dụng tất cả migration pending khi khởi động ──
-using (var scope = app.Services.CreateScope())
-{
+using (var scope = app.Services.CreateScope()) {
     var db = scope.ServiceProvider.GetRequiredService<SmartHireDbContext>();
     db.Database.Migrate();
 }
 
 // ── OpenAPI / Swagger UI ──
 app.MapOpenApi();
-app.UseSwaggerUi(options =>
-{
-    options.DocumentPath = "/openapi/v1.json";
-});
+app.UseSwaggerUi(options => { options.DocumentPath = "/openapi/v1.json"; });
 
 // ── Hangfire Dashboard ──
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
+app.UseHangfireDashboard("/hangfire", new DashboardOptions {
     Authorization = Array.Empty<IDashboardAuthorizationFilter>()
 });
 
@@ -59,4 +60,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
