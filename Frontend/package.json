@@ -20,6 +20,7 @@
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
     "axios": "^1.20.0",
+    "clsx": "^2.1.1",
     "dotenv": "^18.0.3",
     "lucide-react": "^1.47.0",
     "react": "^19.2.8",
