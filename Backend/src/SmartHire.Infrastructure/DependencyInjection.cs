@@ -6,22 +6,25 @@ using SmartHire.Infrastructure.Persistence;
 
 namespace SmartHire.Infrastructure;
 
-public static class DependencyInjection
-{
+public static class DependencyInjection {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
-    {
+        IConfiguration configuration) {
         var connectionString =
             configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' was not configured.");
-
+        
         services.AddDbContext<SmartHireDbContext>(options =>
             options.UseNpgsql(
-                connectionString,
-                npgsql => npgsql.UseVector()));
-
+                    connectionString,
+                    npgsql => {
+                        npgsql.UseVector();
+                        npgsql.MigrationsAssembly("SmartHire.Infrastructure");
+                    })
+                .UseSnakeCaseNamingConvention()
+        );
+        
         return services;
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using SmartHire.Infrastructure.Persistence;
 namespace SmartHire.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SmartHireDbContext))]
-    partial class SmartHireDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261004154700_AddApplicationAiAndMediaEntities")]
+    partial class AddApplicationAiAndMediaEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,7 +90,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("cover_letter");
 
-                    b.Property<Guid?>("CvVersionId")
+                    b.Property<Guid>("CvVersionId")
                         .HasColumnType("uuid")
                         .HasColumnName("cv_version_id");
 
@@ -105,9 +108,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<Guid?>("UploadedCvFileId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("uploaded_cv_file_id");
+                    b.Property<string>("UploadedCvUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("uploaded_cv_url");
 
                     b.HasKey("Id")
                         .HasName("pk_applications");
@@ -121,14 +125,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("JobId")
                         .HasDatabaseName("ix_applications_job_id");
 
-                    b.HasIndex("UploadedCvFileId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_applications_uploaded_cv_file_id");
-
-                    b.ToTable("applications", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_applications_exactly_one_cv_source", "(cv_version_id IS NOT NULL) <> (uploaded_cv_file_id IS NOT NULL)");
-                        });
+                    b.ToTable("applications", (string)null);
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.ApplicationStatusHistory", b =>
@@ -200,9 +197,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(320)")
                         .HasColumnName("email");
 
-                    b.Property<Guid?>("LogoFileId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("logo_file_id");
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("logo_url");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -242,10 +240,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_companies");
-
-                    b.HasIndex("LogoFileId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_companies_logo_file_id");
 
                     b.HasIndex("TaxCode")
                         .IsUnique()
@@ -570,9 +564,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
-                    b.Property<Guid>("ThumbnailFileId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("thumbnail_file_id");
+                    b.Property<string>("ThumbnailUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("thumbnail_url");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -590,10 +586,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("Code")
                         .IsUnique()
                         .HasDatabaseName("ix_cv_templates_code");
-
-                    b.HasIndex("ThumbnailFileId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_cv_templates_thumbnail_file_id");
 
                     b.ToTable("cv_templates", (string)null);
                 });
@@ -1128,9 +1120,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid?>("AvatarFileId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("avatar_file_id");
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("avatar_url");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1168,10 +1160,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_users");
-
-                    b.HasIndex("AvatarFileId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_avatar_file_id");
 
                     b.HasIndex("Email")
                         .IsUnique()
@@ -1270,6 +1258,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .WithMany("Applications")
                         .HasForeignKey("CvVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_applications_cv_versions_cv_version_id");
 
                     b.HasOne("SmartHire.Domain.Entities.JobPosting", "Job")
@@ -1279,19 +1268,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_applications_job_postings_job_id");
 
-                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "UploadedCvFile")
-                        .WithOne("UploadedCvApplication")
-                        .HasForeignKey("SmartHire.Domain.Entities.Application", "UploadedCvFileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_applications_media_files_uploaded_cv_file_id");
-
                     b.Navigation("Candidate");
 
                     b.Navigation("CvVersion");
 
                     b.Navigation("Job");
-
-                    b.Navigation("UploadedCvFile");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.ApplicationStatusHistory", b =>
@@ -1313,17 +1294,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("Application");
 
                     b.Navigation("ChangedByUser");
-                });
-
-            modelBuilder.Entity("SmartHire.Domain.Entities.Company", b =>
-                {
-                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "LogoFile")
-                        .WithOne("LogoCompany")
-                        .HasForeignKey("SmartHire.Domain.Entities.Company", "LogoFileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_companies_media_files_logo_file_id");
-
-                    b.Navigation("LogoFile");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.CompanyFollow", b =>
@@ -1460,18 +1430,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_cv_embeddings_cv_versions_cv_version_id");
 
                     b.Navigation("CvVersion");
-                });
-
-            modelBuilder.Entity("SmartHire.Domain.Entities.CvTemplate", b =>
-                {
-                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "ThumbnailFile")
-                        .WithOne("CvTemplate")
-                        .HasForeignKey("SmartHire.Domain.Entities.CvTemplate", "ThumbnailFileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_cv_templates_media_files_thumbnail_file_id");
-
-                    b.Navigation("ThumbnailFile");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.CvVersion", b =>
@@ -1645,17 +1603,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SmartHire.Domain.Entities.User", b =>
-                {
-                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "AvatarFile")
-                        .WithOne("AvatarUser")
-                        .HasForeignKey("SmartHire.Domain.Entities.User", "AvatarFileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_users_media_files_avatar_file_id");
-
-                    b.Navigation("AvatarFile");
-                });
-
             modelBuilder.Entity("SmartHire.Domain.Entities.UserRole", b =>
                 {
                     b.HasOne("SmartHire.Domain.Entities.Role", "Role")
@@ -1760,17 +1707,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("JobSkills");
 
                     b.Navigation("Recommendations");
-                });
-
-            modelBuilder.Entity("SmartHire.Domain.Entities.MediaFile", b =>
-                {
-                    b.Navigation("AvatarUser");
-
-                    b.Navigation("CvTemplate");
-
-                    b.Navigation("LogoCompany");
-
-                    b.Navigation("UploadedCvApplication");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.Province", b =>
