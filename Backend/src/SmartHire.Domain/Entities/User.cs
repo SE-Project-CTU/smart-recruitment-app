@@ -36,7 +36,7 @@ public class User {
     public ICollection<Cv> Cvs { get; private set; } 
         = new List<Cv>();
 
-    public ICollection<Application> Applications { get; private set; } = new List<Application>();
+    public ICollection<JobApplication> Applications { get; private set; } = new List<JobApplication>();
     public ICollection<ApplicationStatusHistory> ChangedApplicationStatuses { get; private set; } = new List<ApplicationStatusHistory>();
     public ICollection<JobRecommendation> JobRecommendations { get; private set; } = new List<JobRecommendation>();
     public ICollection<MediaFile> MediaFiles { get; private set; } = new List<MediaFile>();

@@ -13,7 +13,7 @@ public class MediaFile {
     public User? AvatarUser { get; private set; }
     public Company? LogoCompany { get; private set; }
     public CvTemplate? CvTemplate { get; private set; }
-    public Application? UploadedCvApplication { get; private set; }
+    public JobApplication? UploadedCvApplication { get; private set; }
 
     private MediaFile() { }
 }

@@ -33,7 +33,7 @@ public sealed class SmartHireDbContext
     public DbSet<Cv> Cvs => Set<Cv>();
     public DbSet<CvVersion> CvVersions => Set<CvVersion>();
     public DbSet<CvEmbedding> CvEmbeddings => Set<CvEmbedding>();
-    public DbSet<Application> Applications => Set<Application>();
+    public DbSet<JobApplication> Applications => Set<JobApplication>();
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();
     public DbSet<AiMatchResult> AiMatchResults => Set<AiMatchResult>();
     public DbSet<JobRecommendation> JobRecommendations => Set<JobRecommendation>();

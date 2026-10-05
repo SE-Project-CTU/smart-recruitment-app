@@ -5,7 +5,7 @@ namespace SmartHire.Domain.Entities;
 public class ApplicationStatusHistory {
     public Guid Id { get; private set; }
     public Guid ApplicationId { get; private set; }
-    public Application Application { get; private set; } = null!;
+    public JobApplication Application { get; private set; } = null!;
     public ApplicationStatus Status { get; private set; }
     public Guid ChangedBy { get; private set; }
     public User ChangedByUser { get; private set; } = null!;
