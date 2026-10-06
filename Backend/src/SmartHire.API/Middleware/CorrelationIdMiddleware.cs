@@ -8,6 +8,11 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next) {
     private const string HeaderName = "X-Correlation-ID";
     
     public async Task InvokeAsync(HttpContext context) {
+        if (!context.Request.Path.StartsWithSegments("/api")) {
+            await next(context);
+            return;
+        }
+        
         var rawValue = context.Request.Headers[HeaderName].ToString();
         
         if (!Guid.TryParse(rawValue, out var correlationId)) {
