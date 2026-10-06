@@ -86,10 +86,45 @@ const HeroSection = () => {
   );
 };
 
+const NumberProof = () => {
+  return <div>Numberrrr</div>;
+};
+
+const Features = () => {
+  return <div>Featuresss</div>;
+};
+
+const CVTemplate = () => {
+  return <div>CVtemplateee</div>;
+};
+
+const HitDifferent = () => {
+  return <div>HitDiffecternt</div>;
+};
+
+const Testimonial = () => {
+  return <div>Testimonial</div>;
+};
+
+const CTA = () => {
+  return <div>Testimonial</div>;
+};
+
+const Footer = () => {
+  return <div>footer</div>;
+};
+
 function LandingPage() {
   return (
     <div className="w-full bg-bg">
       <HeroSection />
+      <NumberProof />
+      <Features />
+      <CVTemplate />
+      <HitDifferent />
+      <Testimonial />
+      <CTA />
+      <Footer />
     </div>
   );
 }
