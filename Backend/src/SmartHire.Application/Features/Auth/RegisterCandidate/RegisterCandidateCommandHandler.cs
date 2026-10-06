@@ -28,11 +28,11 @@ public sealed class RegisterCandidateCommandHandler
     
     public async Task<RegisterCandidateResult> Handle(RegisterCandidateCommand request,
         CancellationToken cancellationToken) {
-        var email = request.Email.Trim().ToLowerInvariant();
-        var phone = string.IsNullOrWhiteSpace(request.Phone)
-            ? null
-            : request.Phone.Trim();
-        var fullName = request.FullName.Trim();
+        request = RegisterCandidateCommandValidator.ValidateAndNormalize(request);
+
+        var email = request.Email;
+        var phone = request.Phone;
+        var fullName = request.FullName;
         
         if (await _users.EmailExistsAsync(email, cancellationToken)) {
             throw new AppException(
@@ -56,7 +56,9 @@ public sealed class RegisterCandidateCommandHandler
         );
         
         if (candidateRole is null) {
-            throw new InvalidOperationException(
+            throw new AppException(
+                AppErrorKind.NotFound,
+                CommonErrorCodes.CandidateRoleNotFound,
                 "Required role 'Candidate' was not found."
             );
         }
@@ -73,19 +75,22 @@ public sealed class RegisterCandidateCommandHandler
         
         return await _unitOfWork.ExecuteInTransactionAsync(
             async transactionToken => {
-                await _users.AddAsync(user, cancellationToken);
+                await _users.AddAsync(user, transactionToken);
                 
-                await _users.SaveChangeAsync(cancellationToken);
+                await _users.SaveChangeAsync(transactionToken);
                 
                 user.AssignRole(candidateRole);
                 
-                await _users.SaveChangeAsync(cancellationToken);
+                await _users.SaveChangeAsync(transactionToken);
                 
                 return new RegisterCandidateResult(
                     user.Id,
                     user.Email,
                     user.Phone,
-                    user.FullName
+                    user.FullName,
+                    new[] { candidateRole.Name },
+                    user.Status.ToString(),
+                    user.CreatedAt
                 );
             },
             cancellationToken

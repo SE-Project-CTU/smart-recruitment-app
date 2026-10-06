@@ -6,8 +6,14 @@ using NLog.Web;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using SmartHire.Api;
+using SmartHire.Api.Contracts.Errors;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
+using SmartHire.Application.Common.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +36,8 @@ builder.Services.AddHangfire(configuration =>
 
 builder.Services.AddHangfireServer();
 
-builder.Services.AddControllers();
+builder.Services.AddApiServices();
+
 builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();

@@ -1,8 +1,8 @@
 ﻿namespace SmartHire.Api.Contracts.Requests;
 
 public sealed record RegisterCandidateRequest(
-    string Email,
+    string? Email,
     string? Phone,
-    string Password,
-    string FullName
+    string? Password,
+    string? FullName
 );
