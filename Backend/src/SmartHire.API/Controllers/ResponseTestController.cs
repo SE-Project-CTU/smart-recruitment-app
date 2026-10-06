@@ -10,6 +10,11 @@ namespace SmartHire.Api.Controllers;
 [Route("api/v1/exception-test")]
 public sealed class ResponseTestController : ControllerBase {
     private const string TestExceptionCode = "TEST_EXCEPTION";
+    private readonly ApiResponseFactory _responseFactory;
+    
+    public ResponseTestController(ApiResponseFactory responseFactory) {
+        _responseFactory = responseFactory;
+    }
     
     /// <summary>
     /// Returns a sample success response with the request's correlation ID.
@@ -18,11 +23,10 @@ public sealed class ResponseTestController : ControllerBase {
     public IActionResult Success() {
         var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();
         
-        return Ok(ApiResponseFactory.Success(
+        return Ok(_responseFactory.Success(
             data: new {
                 message = "The success endpoint is working."
-            },
-            correlationId
+            }
         ));
     }
     
@@ -46,7 +50,7 @@ public sealed class ResponseTestController : ControllerBase {
     public IActionResult SuccessWithPagination() {
         var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();
         
-        return Ok(ApiResponseFactory.Paged(
+        return Ok(_responseFactory.Paged(
             new[] {
                 new {
                     message = "The success endpoint is working."
@@ -54,8 +58,7 @@ public sealed class ResponseTestController : ControllerBase {
             },
             0,
             10,
-            20,
-            correlationId
+            20
         ));
     }
 }

@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using SmartHire.Application;
 using SmartHire.Infrastructure;
 using SmartHire.Infrastructure.Persistence;
 using NLog.Web;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
+using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +34,11 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddApplication();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ApiResponseFactory>();
 
 var app = builder.Build();
 

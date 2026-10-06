@@ -1,8 +1,12 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Pgvector.EntityFrameworkCore;
+using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Abstractions.Security;
 using SmartHire.Infrastructure.Persistence;
+using SmartHire.Infrastructure.Persistence.Repositories;
+using SmartHire.Infrastructure.Security;
 
 namespace SmartHire.Infrastructure;
 
@@ -24,6 +28,11 @@ public static class DependencyInjection {
                     })
                 .UseSnakeCaseNamingConvention()
         );
+        
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
+        services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
         return services;
     }

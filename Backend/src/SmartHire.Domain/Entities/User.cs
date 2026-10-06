@@ -33,13 +33,81 @@ public class User {
     public ICollection<CompanyFollow> CompanyFollows { get; private set; }
         = new List<CompanyFollow>();
     
-    public ICollection<Cv> Cvs { get; private set; } 
+    public ICollection<Cv> Cvs { get; private set; }
         = new List<Cv>();
-
+    
     public ICollection<JobApplication> Applications { get; private set; } = new List<JobApplication>();
-    public ICollection<ApplicationStatusHistory> ChangedApplicationStatuses { get; private set; } = new List<ApplicationStatusHistory>();
+    
+    public ICollection<ApplicationStatusHistory> ChangedApplicationStatuses { get; private set; } =
+        new List<ApplicationStatusHistory>();
+    
     public ICollection<JobRecommendation> JobRecommendations { get; private set; } = new List<JobRecommendation>();
     public ICollection<MediaFile> MediaFiles { get; private set; } = new List<MediaFile>();
     
     private User() { }
+    
+    public static User Create(
+        string email,
+        string? phone,
+        string passwordHash,
+        string fullName,
+        DateTimeOffset now
+    ) {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new ArgumentException("Password hash is required.", nameof(passwordHash));
+        
+        if (string.IsNullOrWhiteSpace(fullName))
+            throw new ArgumentException("Full name is required.", nameof(fullName));
+        
+        return new User {
+            Email = email.Trim().ToLowerInvariant(),
+            Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim(),
+            PasswordHash = passwordHash,
+            FullName = fullName.Trim(),
+            Status = UserStatus.Active,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+    }
+    
+    public void UpdateProfile(
+        string fullName,
+        string? phone,
+        DateTimeOffset now
+    ) {
+        if (string.IsNullOrWhiteSpace(fullName)) {
+            throw new ArgumentException("Full name is required.", nameof(fullName));
+        }
+        
+        FullName = fullName.Trim();
+        Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+        UpdatedAt = now;
+    }
+    
+    public void ChangePasswordHash(
+        string newPasswordHash,
+        DateTimeOffset now
+    ) {
+        if (string.IsNullOrWhiteSpace(newPasswordHash)) {
+            throw new ArgumentException("Password hash is required.", nameof(newPasswordHash));
+        }
+        
+        PasswordHash = newPasswordHash;
+        UpdatedAt = now;
+    }
+    
+    public void AssignRole(Role role) {
+        if (string.IsNullOrWhiteSpace(role.Name)) {
+            throw new ArgumentException("Role name is required.", nameof(role));
+        }
+        
+        if (UserRoles.Any(x => x.RoleId == role.Id)) {
+            return;
+        }
+        
+        UserRoles.Add(new UserRole(Id, role.Id));
+    }
 }
