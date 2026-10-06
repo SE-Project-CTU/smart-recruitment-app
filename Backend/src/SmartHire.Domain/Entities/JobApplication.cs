@@ -2,7 +2,7 @@ using SmartHire.Domain.Enums;
 
 namespace SmartHire.Domain.Entities;
 
-public class Application {
+public class JobApplication {
     public Guid Id { get; private set; }
     public Guid JobId { get; private set; }
     public JobPosting Job { get; private set; } = null!;
@@ -19,5 +19,8 @@ public class Application {
     public ICollection<ApplicationStatusHistory> StatusHistories { get; private set; } = new List<ApplicationStatusHistory>();
     public AiMatchResult? AiMatchResult { get; private set; }
 
-    private Application() { }
+    /// <summary>
+    /// Initializes a job application for Entity Framework Core materialization.
+    /// </summary>
+    private JobApplication() { }
 }

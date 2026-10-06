@@ -4,8 +4,12 @@ using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Configurations;
 
-public class ApplicationConfiguration : IEntityTypeConfiguration<Application> {
-    public void Configure(EntityTypeBuilder<Application> builder) {
+public class ApplicationConfiguration : IEntityTypeConfiguration<JobApplication> {
+    /// <summary>
+    /// Configures job application properties, relationships, and the constraint requiring exactly one CV source.
+    /// </summary>
+    /// <param name="builder">The builder for the job application entity mapping.</param>
+    public void Configure(EntityTypeBuilder<JobApplication> builder) {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()").ValueGeneratedOnAdd();
         builder.Property(x => x.CoverLetter);
@@ -30,7 +34,7 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application> {
         
         builder.HasOne(x => x.UploadedCvFile)
             .WithOne(x => x.UploadedCvApplication)
-            .HasForeignKey<Application>(x => x.UploadedCvFileId)
+            .HasForeignKey<JobApplication>(x => x.UploadedCvFileId)
             .OnDelete(DeleteBehavior.Restrict);
         
         builder.ToTable(table => table.HasCheckConstraint(

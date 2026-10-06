@@ -52,7 +52,7 @@ public class JobPosting {
     
     public JobEmbedding? Embedding { get; private set; }
 
-    public ICollection<Application> Applications { get; private set; } = new List<Application>();
+    public ICollection<JobApplication> Applications { get; private set; } = new List<JobApplication>();
     public ICollection<JobRecommendation> Recommendations { get; private set; } = new List<JobRecommendation>();
     
     private JobPosting() { }
