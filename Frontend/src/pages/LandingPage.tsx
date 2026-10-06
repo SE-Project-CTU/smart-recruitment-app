@@ -3,12 +3,22 @@ import Elipse from "@/assets/images/decoration/Ellipse 1.svg";
 import Rectangle_1 from "@/assets/images/decoration/Rectangle 1.svg";
 import Rectangle_2 from "@/assets/images/decoration/Rectangle 2.svg";
 import Rectangle_3 from "@/assets/images/decoration/Rectangle 3.svg";
+import CandidateMatching from "@/assets/images/decoration/Candidate matching panel.svg";
 import Button from "@/components/Button";
 import TextType from "@/components/external/TextType";
+import CountUp from "@/components/external/CountUp";
+import SlidingLogoMarquee from "@/components/lightswind/sliding-logo-marquee";
+import { logoItems } from "@/constants/logoItems";
+import {
+  BuildingComplexIcon,
+  ChartBarStackedIcon,
+  FileTextIcon,
+  LightbulbIcon,
+} from "lucide-react";
 
 const HeroSection = () => {
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center overflow-bg-bg pt-28 pb-16 lg:pt-32">
+    <section className="relative w-full min-h-screen flex items-center bg-bg-white-blue justify-center overflow-bg-bg pt-28 pb-16 lg:pt-32 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-350">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-60">
           <div className="w-full lg:w-1/2 flex flex-col gap-6 lg:gap-8 z-10 text-center lg:text-left">
@@ -87,11 +97,157 @@ const HeroSection = () => {
 };
 
 const NumberProof = () => {
-  return <div>Numberrrr</div>;
+  return (
+    <section className="flex items-center justify-center flex-col bg-primary-dark w-full h-fit py-20  px-5 md:px-40">
+      <div className="flex items-center justify-between w-full mb-12">
+        <p className="text-white font-semibold">SmartHire By The Numbers</p>
+        <Button text="Tìm hiểu thêm" type="outline" />
+      </div>
+      <div className="grid grid-cols-2 grid-rows-2 md:grid-rows-1 md:grid-cols-4 gap-10 text-white w-full">
+        <div className="flex flex-col gap-2">
+          <span className="font-bold text-4xl md:text-5xl lg:text-6xl">
+            <CountUp from={0} to={500} onStart={undefined} onEnd={undefined} />
+            K+
+          </span>
+          <span className="text-stone-300 text-xs md:text-sm lg:text-lg">
+            Ứng viên tin dùng & tạo CV chuẩn ATS mỗi tháng{" "}
+          </span>
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="font-bold text-4xl md:text-5xl lg:text-6xl ">
+            <CountUp
+              from={0}
+              to={10000}
+              separator=","
+              onStart={undefined}
+              onEnd={undefined}
+              className="text-secondary"
+            />
+            +
+          </span>
+          <span className="text-stone-300 text-xs md:text-sm lg:text-lg">
+            Doanh nghiệp hàng đầu đăng tin tuyển dụng
+          </span>
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="font-bold text-4xl md:text-5xl lg:text-6xl">
+            <CountUp from={0} to={94} onStart={undefined} onEnd={undefined} />%
+          </span>
+          <span className="text-stone-300 text-xs md:text-sm lg:text-lg">
+            Tỷ lệ hồ sơ vượt qua hệ thống quét lọc ATS tự động
+          </span>
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="font-bold text-4xl md:text-5xl lg:text-6xl">
+            <CountUp
+              from={0}
+              to={200}
+              onStart={undefined}
+              onEnd={undefined}
+              className="text-secondary"
+            />
+            <span className="text-secondary">M</span>+
+          </span>
+          <span className="text-stone-300 text-xs md:text-sm lg:text-lg">
+            Lượt tương tác và kết nối hồ sơ nghề nghiệp thành công
+          </span>
+        </div>
+      </div>
+      <div className="h-px w-full bg-border/70 my-10"></div>
+      <span className="text-center font-semibold text-stone-300 mb-6 uppercase text-sm">
+        Được tin dùng bởi các tập đoàn và doanh nghiệp hàng đầu
+      </span>
+      <SlidingLogoMarquee items={logoItems} speed={5} />
+    </section>
+  );
 };
 
 const Features = () => {
-  return <div>Featuresss</div>;
+  return (
+    <div className="bg-bg py-16 md:py-30 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+      <div className="space-y-4 text-center max-w-4xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-text-main">
+          Quy Trình & Tính Năng Vượt Trội
+        </h1>
+        <p className="text-text-muted text-sm sm:text-base leading-relaxed text-center">
+          Hệ sinh thái thông minh giúp sàng lọc ứng viên chính xác, tối ưu CV
+          vượt chuẩn ATS và rút ngắn 70% thời gian tuyển dụng.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center justify-items-center">
+        <div className="w-full space-y-12 order-1 lg:order-1 flex flex-col items-center lg:items-end">
+          <div className="bg-primary rounded-2xl flex p-6 gap-4 w-full max-w-md shadow-md">
+            <div className="p-4 rounded-xl bg-secondary/20 shrink-0 w-fit h-fit">
+              <FileTextIcon className="text-secondary w-6 h-6" />
+            </div>
+            <div className="text-white">
+              <h2 className="font-semibold text-lg mb-1">Tối Ưu CV Bằng AI</h2>
+              <p className="text-stone-200 text-sm leading-relaxed">
+                Tự động chuẩn hóa cấu trúc ATS, tối ưu từ khóa và chấm điểm hồ
+                sơ theo thời gian thực.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-status-active rounded-2xl flex p-6 gap-4 w-full max-w-md shadow-md">
+            <div className="p-4 rounded-xl bg-[#88d7fb] shrink-0 w-fit h-fit">
+              <BuildingComplexIcon className="text-primary w-6 h-6" />
+            </div>
+            <div className="text-primary">
+              <h2 className="font-semibold text-lg mb-1">
+                Đăng Tuyển Không Giới Hạn
+              </h2>
+              <p className="text-primary/90 text-sm leading-relaxed">
+                Mô hình mở không giới hạn chỉ tiêu tin tuyển dụng, giúp doanh
+                nghiệp tiết kiệm đến 70% ngân sách nhân sự.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full order-3 lg:order-2 flex justify-center py-4 lg:py-0">
+          <img
+            src={CandidateMatching}
+            alt="Candidate Matching"
+            className="w-full max-w-xs sm:max-w-sm lg:max-w-md h-auto object-contain drop-shadow-xl"
+          />
+        </div>
+
+        <div className="w-full space-y-12 order-4 lg:order-3 flex flex-col items-center lg:items-start">
+          <div className="bg-[#fbbf24] rounded-2xl flex p-6 gap-4 w-full max-w-md shadow-md">
+            <div className="p-4 rounded-xl bg-[#fdd97c] shrink-0 w-fit h-fit">
+              <LightbulbIcon className="text-[#78350f] w-6 h-6" />
+            </div>
+            <div className="text-[#78350f]">
+              <h2 className="font-semibold text-lg mb-1">
+                Ghép Đôi Thông Minh
+              </h2>
+              <p className="text-[#78350f]/90 text-sm leading-relaxed">
+                Thuật toán AI độc quyền khớp đúng kỹ năng, mức lương kỳ vọng và
+                môi trường văn hóa doanh nghiệp.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-[#0284c7] rounded-2xl flex p-6 gap-4 w-full max-w-md shadow-md">
+            <div className="p-4 rounded-xl bg-[#359dd2] shrink-0 w-fit h-fit">
+              <ChartBarStackedIcon className="text-white w-6 h-6" />
+            </div>
+            <div className="text-white">
+              <h2 className="font-semibold text-lg mb-1">
+                Phân Tích Dữ Liệu Thời Gian Thực
+              </h2>
+              <p className="text-stone-200 text-sm leading-relaxed">
+                Báo cáo thị trường lương, chỉ số năng lực theo ngành và tiến độ
+                tuyển dụng trực quan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const CVTemplate = () => {

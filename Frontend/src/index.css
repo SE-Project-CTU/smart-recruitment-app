@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap");
-@import 'tailwindcss';
+@import "tailwindcss";
 @plugin 'lightswind/plugin';
 @plugin "@tailwindcss/typography";
 
@@ -65,4 +65,8 @@ body {
 
 .btn-secondary {
   @apply text-sm text-primary rounded-full py-2 px-4 ring-1 ring-inset ring-primary hover:bg-secondary-light/40 hover:ring-primary-dark hover:text-primary-dark;
+}
+
+.btn-outline {
+  @apply text-sm text-white rounded-full py-2 px-4 ring-1 ring-inset ring-white hover:bg-white hover:ring-primary-dark hover:text-primary-dark;
 }
