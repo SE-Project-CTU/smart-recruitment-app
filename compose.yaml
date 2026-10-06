@@ -1,0 +1,83 @@
+# Root compose.yaml — Chạy toàn bộ stack SmartHire bằng 1 lệnh:
+#   docker compose --env-file Backend/.env up --build
+#
+# Đọc biến môi trường từ Backend/.env (file đã dùng cho workflow local).
+# Không cần tạo file .env riêng ở thư mục này.
+
+name: smarthire
+
+services:
+
+  # ──────────────────────────────────────────
+  # 1. DATABASE — PostgreSQL 16 + pgvector
+  # ──────────────────────────────────────────
+  db:
+    image: pgvector/pgvector:0.8.6-pg16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-smarthire_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-smarthire_app}
+      # POSTGRES_PASSWORD không có default — phải có trong Backend/.env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong Backend/.env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Không expose port ra host trong stack này (API kết nối nội bộ qua tên service "db")
+    # Nếu muốn debug DB từ host: bỏ comment dòng dưới
+    ports:
+       - "127.0.0.1:5433:5432"
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ──────────────────────────────────────────
+  # 2. BACKEND — ASP.NET Core 10 API
+  # ──────────────────────────────────────────
+  api:
+    build:
+      # context = Backend/ (một cấp cao hơn) vì SmartHire.slnx nằm ở Backend/, không phải Backend/src/
+      context: ./Backend
+      dockerfile: src/SmartHire.API/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Connection strings inject qua env var, ghi đè User Secrets (chỉ dùng dev local)
+      # "db" ở đây là tên service Docker phía trên, không phải "localhost"
+      ConnectionStrings__DefaultConnection: >-
+        Host=db;Port=5432;
+        Database=${POSTGRES_DB};
+        Username=${POSTGRES_USER};
+        Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__HangfireConnection: >-
+        Host=db;Port=5432;
+        Database=${POSTGRES_DB};
+        Username=${POSTGRES_USER};
+        Password=${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-5190}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────
+  # 3. FRONTEND — React/Vite + Nginx
+  # ──────────────────────────────────────────
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        # URL này phải là địa chỉ mà TRÌNH DUYỆT người dùng có thể gọi tới,
+        # không phải tên service nội bộ Docker (vì JS chạy trên browser, không trong container)
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5190}
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
