@@ -70,3 +70,7 @@ body {
 .btn-outline {
   @apply text-sm text-white rounded-full py-2 px-4 ring-1 ring-inset ring-white hover:bg-white hover:ring-primary-dark hover:text-primary-dark;
 }
+
+.section-title {
+  @apply text-3xl lg:text-5xl font-bold tracking-tight text-text-main;
+}

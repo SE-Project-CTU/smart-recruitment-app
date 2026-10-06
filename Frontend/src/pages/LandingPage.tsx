@@ -8,13 +8,15 @@ import Button from "@/components/Button";
 import TextType from "@/components/external/TextType";
 import CountUp from "@/components/external/CountUp";
 import SlidingLogoMarquee from "@/components/lightswind/sliding-logo-marquee";
-import { logoItems } from "@/constants/logoItems";
+import { imageSlide, logoItems } from "@/constants/LandingpageConsts";
 import {
   BuildingComplexIcon,
   ChartBarStackedIcon,
   FileTextIcon,
   LightbulbIcon,
 } from "lucide-react";
+import CoolSlideGallery from "@/components/lightswind/cool-slide-gallery";
+import { useEffect, useState } from "react";
 
 const HeroSection = () => {
   return (
@@ -166,9 +168,7 @@ const Features = () => {
   return (
     <div className="bg-bg py-16 md:py-30 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
       <div className="space-y-4 text-center max-w-4xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-text-main">
-          Quy Trình & Tính Năng Vượt Trội
-        </h1>
+        <h1 className="section-title">Tính Năng Vượt Trội</h1>
         <p className="text-text-muted text-sm sm:text-base leading-relaxed text-center">
           Hệ sinh thái thông minh giúp sàng lọc ứng viên chính xác, tối ưu CV
           vượt chuẩn ATS và rút ngắn 70% thời gian tuyển dụng.
@@ -251,7 +251,45 @@ const Features = () => {
 };
 
 const CVTemplate = () => {
-  return <div>CVtemplateee</div>;
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 1024;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      setIsDesktop(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleMediaChange);
+    return () => mediaQuery.removeEventListener("change", handleMediaChange);
+  }, []);
+
+  const cardWidth = isDesktop ? 443 : 354;
+  const cardHeight = isDesktop ? 625 : 500;
+  return (
+    <div className="bg-bg-white-blue overflow-hidden flex flex-col py-16 md:py-30  px-4 sm:px-6 lg:px-8 gap-8 md:gap-20">
+      <div className="space-y-4">
+        <Button
+          type="secondary"
+          text="Bộ sưu tập mẫu CV"
+          className="text-xs!"
+        />
+        <h1 className="section-title">Thư Viện CV Chuẩn Khổng Lồ</h1>
+      </div>
+
+      <CoolSlideGallery
+        slides={imageSlide}
+        autoplay
+        cardWidth={cardWidth}
+        cardHeight={cardHeight}
+      />
+    </div>
+  );
 };
 
 const HitDifferent = () => {

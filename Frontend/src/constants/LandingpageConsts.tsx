@@ -51,6 +51,39 @@ const baseLogoItems = [
   },
 ];
 
+export const imageSlide = [
+  {
+    src: "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-senior-_B1tfBFEAUgALBAgBBl0MD1wECQBQAQFQAwIAAw44ec.webp?t=1756265781&color=000000&template_name=senior_v2&lang=vi",
+    title: "test",
+    subtitle: "test",
+    badge: "testtt",
+  },
+  {
+    src: "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-tieu-chuan-it-kinh-nghiem-_AwMBBgcFDlZRVAYCWQwLUgBVB1ACUlQAAlsHUg57b4.webp?t=1763723169&color=F6F6F6&template_name=default_junior&lang=vi",
+    title: "test",
+    subtitle: "test",
+    badge: "testtt",
+  },
+  {
+    src: "https://www.topcv.vn/v4/image/cv-template/screenshots/thumbs/cv-template-thumbnails-v1.4/vi/senior_2.webp?v=3.5&lang=vi",
+    title: "test",
+    subtitle: "test",
+    badge: "testtt",
+  },
+  {
+    src: "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-toi-gian-2-_BQIFVQdWDgNUDgJXVlcNCw0KDwxSV1ZTVFAJBge3ff.webp?t=1762145812&color=263A4D&template_name=minimalism_v2&lang=vi",
+    title: "test",
+    subtitle: "test",
+    badge: "testtt",
+  },
+  {
+    src: "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-clarity-_A1QFA1EGBwJXUVcACgcPAA1RVAVcUlcBBwYEAg90e5.webp?t=1751514549&color=2E2E2E&template_name=clarity&lang=vi",
+    title: "test",
+    subtitle: "test",
+    badge: "testtt",
+  },
+];
+
 export const logoItems = [
   ...baseLogoItems.map((item) => ({ ...item, id: `${item.id}-1` })),
   ...baseLogoItems.map((item) => ({ ...item, id: `${item.id}-2` })),
