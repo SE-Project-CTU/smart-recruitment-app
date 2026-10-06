@@ -3,10 +3,21 @@ using SmartHire.Application.Common.Exceptions;
 
 namespace SmartHire.Api.Middleware;
 
+/// <summary>
+/// Validates and propagates correlation IDs for requests under the /api path.
+/// </summary>
+/// <param name="next">The next delegate in the request pipeline.</param>
 public sealed class CorrelationIdMiddleware(RequestDelegate next) {
     public const string ItemKey = "CorrelationId";
     private const string HeaderName = "X-Correlation-ID";
     
+    /// <summary>
+    /// Validates the API request's correlation header, stores its normalized UUID, and invokes the next delegate.
+    /// Requests outside /api pass through without correlation validation.
+    /// </summary>
+    /// <param name="context">The HTTP context containing the request and response.</param>
+    /// <returns>A task representing execution of the remaining request pipeline.</returns>
+    /// <exception cref="AppException">An API request has a missing or invalid X-Correlation-ID header.</exception>
     public async Task InvokeAsync(HttpContext context) {
         if (!context.Request.Path.StartsWithSegments("/api")) {
             await next(context);

@@ -5,6 +5,10 @@ using SmartHire.Domain.Entities;
 namespace SmartHire.Infrastructure.Persistence.Configurations;
 
 public class ApplicationConfiguration : IEntityTypeConfiguration<JobApplication> {
+    /// <summary>
+    /// Configures job application properties, relationships, and the constraint requiring exactly one CV source.
+    /// </summary>
+    /// <param name="builder">The builder for the job application entity mapping.</param>
     public void Configure(EntityTypeBuilder<JobApplication> builder) {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()").ValueGeneratedOnAdd();

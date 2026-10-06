@@ -11,6 +11,9 @@ namespace SmartHire.Api.Controllers;
 public sealed class ResponseTestController : ControllerBase {
     private const string TestExceptionCode = "TEST_EXCEPTION";
     
+    /// <summary>
+    /// Returns a sample success response with the request's correlation ID.
+    /// </summary>
     [HttpGet("success")]
     public IActionResult Success() {
         var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();
@@ -23,6 +26,10 @@ public sealed class ResponseTestController : ControllerBase {
         ));
     }
     
+    /// <summary>
+    /// Throws a deliberate conflict exception with sample data to exercise error handling.
+    /// </summary>
+    /// <exception cref="AppException{TData}">Always thrown to demonstrate a conflict response.</exception>
     [HttpGet("failure")]
     public IActionResult Failure() {
         throw new AppException<TestExceptionData>(
@@ -32,6 +39,9 @@ public sealed class ResponseTestController : ControllerBase {
             new TestExceptionData("The exception middleware handled this response."));
     }
     
+    /// <summary>
+    /// Returns a sample first page with pagination metadata and the request's correlation ID.
+    /// </summary>
     [HttpGet("pagination")]
     public IActionResult SuccessWithPagination() {
         var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();

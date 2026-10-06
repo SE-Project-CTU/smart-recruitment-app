@@ -19,5 +19,8 @@ public class JobApplication {
     public ICollection<ApplicationStatusHistory> StatusHistories { get; private set; } = new List<ApplicationStatusHistory>();
     public AiMatchResult? AiMatchResult { get; private set; }
 
+    /// <summary>
+    /// Initializes a job application for Entity Framework Core materialization.
+    /// </summary>
     private JobApplication() { }
 }
