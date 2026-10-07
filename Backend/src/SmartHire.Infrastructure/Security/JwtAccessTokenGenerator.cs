@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SmartHire.Application.Abstractions.Security;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
@@ -10,16 +11,8 @@ namespace SmartHire.Infrastructure.Security;
 public sealed class JwtAccessTokenGenerator : IAccessTokenGenerator {
     private readonly JwtOptions _jwtOptions;
     
-    public JwtAccessTokenGenerator(JwtOptions jwtOptions) {
-        _jwtOptions = jwtOptions;
-        
-        if (string.IsNullOrWhiteSpace(jwtOptions.Issuer) ||
-            string.IsNullOrWhiteSpace(jwtOptions.Audience) ||
-            Encoding.UTF8.GetByteCount(jwtOptions.SigningKey) < 32 ||
-            jwtOptions.AccessTokenLifetimeMinutes <= 0
-           ) {
-            throw new InvalidOperationException("JWT settings are missing or invalid.");
-        }
+    public JwtAccessTokenGenerator(IOptions<JwtOptions> jwtOptions) {
+        _jwtOptions = jwtOptions.Value;
     }
     
     public GeneratedAccessToken Generate(

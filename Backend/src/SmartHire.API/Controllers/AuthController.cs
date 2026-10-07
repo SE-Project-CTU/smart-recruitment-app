@@ -107,7 +107,7 @@ public sealed class AuthController : ControllerBase {
         CancellationToken cancellationToken
     ) {
         var result = await _sender.Send(
-            new RefreshCommand(request.RefreshToken),
+            new RefreshCommand(request?.RefreshToken),
             cancellationToken
         );
         

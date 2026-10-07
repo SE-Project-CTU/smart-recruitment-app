@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Options;
 using SmartHire.Application.Abstractions.Security;
 
 namespace SmartHire.Infrastructure.Security;
@@ -7,14 +8,8 @@ namespace SmartHire.Infrastructure.Security;
 public class RefreshTokenGenerator : IRefreshTokenGenerator {
     private readonly JwtOptions _jwtOptions;
     
-    public RefreshTokenGenerator(JwtOptions jwtOptions) {
-        _jwtOptions = jwtOptions;
-        
-        if (_jwtOptions.RefreshTokenLifetimeDays <= 0) {
-            throw new InvalidOperationException(
-                "JWT refresh-token lifetime must be greater than zero."
-            );
-        }
+    public RefreshTokenGenerator(IOptions<JwtOptions> jwtOptions) {
+        _jwtOptions = jwtOptions.Value;
     }
     
     public GeneratedRefreshToken Generate(DateTimeOffset now) {

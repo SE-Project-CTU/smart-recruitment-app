@@ -78,27 +78,25 @@ public sealed class AccountController : ControllerBase {
         
         return Ok(_responseFactory.Success(result));
     }
-
+    
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword(
         [FromBody] ChangePasswordRequest? request,
-        CancellationToken cancellationToken)
-    {
-        if (request is null)
-        {
+        CancellationToken cancellationToken) {
+        if (request is null) {
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.InvalidRequestBody,
                 "Request body is required.");
         }
-
+        
         await _sender.Send(
             new ChangePasswordCommand(
                 request.CurrentPassword,
                 request.NewPassword,
                 request.RevokeAllSessions),
             cancellationToken);
-
+        
         return NoContent();
     }
 }
