@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
@@ -21,8 +22,6 @@ public sealed class ResponseTestController : ControllerBase {
     /// </summary>
     [HttpGet("success")]
     public IActionResult Success() {
-        var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();
-        
         return Ok(_responseFactory.Success(
             data: new {
                 message = "The success endpoint is working."
@@ -46,10 +45,9 @@ public sealed class ResponseTestController : ControllerBase {
     /// <summary>
     /// Returns a sample first page with pagination metadata and the request's correlation ID.
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("pagination")]
     public IActionResult SuccessWithPagination() {
-        var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();
-        
         return Ok(_responseFactory.Paged(
             new[] {
                 new {
@@ -59,6 +57,15 @@ public sealed class ResponseTestController : ControllerBase {
             0,
             10,
             20
+        ));
+    }
+    
+    [HttpGet("protected")]
+    public IActionResult ProtectedEndpoint() {
+        return Ok(_responseFactory.Success(
+            data: new {
+                message = "The protected endpoint is working."
+            }
         ));
     }
 }

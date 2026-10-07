@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Requests;
 using SmartHire.Api.Factories;
@@ -11,6 +12,7 @@ using SmartHire.Application.Features.Auth.RegisterRecruiter;
 
 namespace SmartHire.Api.Controllers;
 
+[AllowAnonymous]
 [ApiController]
 [Route("api/v1/[controller]")]
 public sealed class AuthController : ControllerBase {
