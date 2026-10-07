@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
-import Button from "./Button";
 
 const headerItems = [
   { title: "Việc làm", href: "/" },
@@ -49,11 +48,11 @@ function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Link to={"/sign-in"}>
-            <Button type="secondary" text="Đăng nhập" />
+          <Link to="/sign-in" className="btn btn-secondary">
+            Đăng nhập
           </Link>
-          <Link to={"/sign-up"}>
-            <Button type="primary" text="Đăng ký ngay" />
+          <Link to="/sign-up" className="btn btn-primary">
+            Đăng ký ngay
           </Link>
         </div>
 
@@ -84,11 +83,19 @@ function Header() {
           <div className="my-5 border-t border-border" />
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link to={"/sign-in"}>
-              <Button type="secondary" text="Đăng nhập" />
+            <Link
+              to="/sign-in"
+              onClick={() => setIsOpen(false)}
+              className="btn btn-secondary"
+            >
+              Đăng nhập
             </Link>
-            <Link to={"/sign-up"}>
-              <Button type="primary" text="Đăng ký ngay" />
+            <Link
+              to="/sign-up"
+              onClick={() => setIsOpen(false)}
+              className="btn btn-primary"
+            >
+              Đăng ký ngay
             </Link>
           </div>
         </div>
