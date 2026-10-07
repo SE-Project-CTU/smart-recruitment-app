@@ -44,7 +44,6 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddApplication();
 
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ApiResponseFactory>();
 
 builder.Services.AddJwtBearerAuthentication(builder.Configuration);

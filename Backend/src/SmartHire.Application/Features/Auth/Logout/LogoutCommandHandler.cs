@@ -7,28 +7,39 @@ using SmartHire.Application.Common.Exceptions;
 namespace SmartHire.Application.Features.Auth.Logout;
 
 public class LogoutCommandHandler : IRequestHandler<LogoutCommand> {
+    private readonly ICurrentUser _currentUser;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IUnitOfWork _unitOfWork;
     
     public LogoutCommandHandler(
+        ICurrentUser currentUser,
         IRefreshTokenGenerator refreshTokenGenerator,
         IRefreshTokenRepository refreshTokenRepository,
         IUnitOfWork unitOfWork
     ) {
+        _currentUser = currentUser;
         _refreshTokenGenerator = refreshTokenGenerator;
         _refreshTokenRepository = refreshTokenRepository;
         _unitOfWork = unitOfWork;
     }
     
     public async Task Handle(LogoutCommand request, CancellationToken cancellationToken) {
+        if (_currentUser.UserId is not Guid userId) {
+            throw new AppException(
+                AppErrorKind.Unauthorized,
+                AuthErrorCodes.InvalidAccessToken,
+                "The access token does not contain a valid user id."
+            );
+        }
+        
         var now = DateTimeOffset.UtcNow;
         
         await _unitOfWork.ExecuteInTransactionAsync(
             async ct => {
                 if (request.AllSessions) {
                     await _refreshTokenRepository
-                        .RevokeAllUnrevokedByUserIdAsync(request.UserId, now, ct);
+                        .RevokeAllUnrevokedByUserIdAsync(userId, now, ct);
                     
                     return true;
                 }
@@ -51,7 +62,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand> {
                         "Refresh token was not found.");
                 }
                 
-                if (token.UserId != request.UserId) {
+                if (token.UserId != userId) {
                     throw new AppException(
                         AppErrorKind.Forbidden,
                         AuthErrorCodes.RefreshTokenNotOwned,

@@ -1,4 +1,5 @@
-﻿using SmartHire.Domain.Entities;
+﻿using SmartHire.Application.Abstractions.Persistence.ReadModels;
+using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Abstractions.Persistence;
 
@@ -24,4 +25,6 @@ public interface IUserRepository {
         string normalizedEmail,
         CancellationToken cancellationToken
     );
+    
+    Task<CurrentAccountData?> GetCurrentAccountAsync(Guid userId, CancellationToken cancellationToken);
 }

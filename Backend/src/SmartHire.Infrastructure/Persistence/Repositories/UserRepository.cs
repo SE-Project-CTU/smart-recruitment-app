@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -41,5 +42,26 @@ public sealed class UserRepository : IUserRepository {
                 user => user.Email == normalizedEmail,
                 cancellationToken
             );
+    }
+    
+    public Task<CurrentAccountData?> GetCurrentAccountAsync(Guid userId, CancellationToken cancellationToken) {
+        return _dbContext.Users
+            .Where(user => user.Id == userId)
+            .Select(user => new CurrentAccountData(
+                user.Id,
+                user.Email,
+                user.Phone,
+                user.FullName,
+                user.AvatarFile == null
+                    ? null
+                    : user.AvatarFile.FileUrl,
+                user.UserRoles
+                    .Select(userRole => userRole.Role.Name)
+                    .ToList(),
+                user.Status,
+                user.CreatedAt,
+                user.UpdatedAt
+            ))
+            .SingleOrDefaultAsync(cancellationToken);
     }
 }

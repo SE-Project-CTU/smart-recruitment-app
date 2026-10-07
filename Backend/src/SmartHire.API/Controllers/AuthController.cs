@@ -120,19 +120,8 @@ public sealed class AuthController : ControllerBase {
         [FromBody] LogoutRequest? request,
         CancellationToken cancellationToken
     ) {
-        var subject = User.FindFirstValue("sub")
-                      ?? User.FindFirstValue(ClaimTypes.Name);
-        if (!Guid.TryParse(subject, out var userId)) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id."
-            );
-        }
-        
         await _sender.Send(
             new LogoutCommand(
-                userId,
                 request?.RefreshToken,
                 request?.AllSessions ?? false),
             cancellationToken

@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using SmartHire.Api.Contracts.Errors;
 using SmartHire.Api.Middleware;
+using SmartHire.Api.Services;
+using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Infrastructure.Security;
 
@@ -79,6 +81,9 @@ public static class DependencyInjection {
             });
         
         services.AddAuthorization();
+        
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUser, HttpCurrentUser>();
         
         return services;
     }

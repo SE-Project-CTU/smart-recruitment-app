@@ -12,4 +12,5 @@ public static class AuthErrorCodes {
     public const string RefreshTokenNotOwned = "AUTH_REFRESH_TOKEN_NOT_OWNED";
     public const string LogoutTargetRequired = "AUTH_LOGOUT_TARGET_REQUIRED";
     public const string InvalidAccessToken = "AUTH_INVALID_ACCESS_TOKEN";
+    public const string CurrentAccountNotFound = "AUTH_CURRENT_ACCOUNT_NOT_FOUND";
 }
