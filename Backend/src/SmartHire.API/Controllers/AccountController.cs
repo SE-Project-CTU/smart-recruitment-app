@@ -7,6 +7,7 @@ using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Account.GetCurrentAccount;
+using SmartHire.Application.Features.Account.ChangePassword;
 using SmartHire.Application.Features.Account.UpdateCurrentAccount;
 
 namespace SmartHire.Api.Controllers;
@@ -76,5 +77,28 @@ public sealed class AccountController : ControllerBase {
         var result = await _sender.Send(command, cancellationToken);
         
         return Ok(_responseFactory.Success(result));
+    }
+
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordRequest? request,
+        CancellationToken cancellationToken)
+    {
+        if (request is null)
+        {
+            throw new AppException(
+                AppErrorKind.BadRequest,
+                CommonErrorCodes.InvalidRequestBody,
+                "Request body is required.");
+        }
+
+        await _sender.Send(
+            new ChangePasswordCommand(
+                request.CurrentPassword,
+                request.NewPassword,
+                request.RevokeAllSessions),
+            cancellationToken);
+
+        return NoContent();
     }
 }

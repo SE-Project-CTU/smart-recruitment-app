@@ -6,6 +6,7 @@ public static class AuthErrorCodes {
     public const string CandidateRoleNotFound = "AUTH_CANDIDATE_ROLE_NOT_FOUND";
     public const string RecruiterRoleNotFound = "AUTH_RECRUITER_ROLE_NOT_FOUND";
     public const string InvalidCredentials = "AUTH_INVALID_CREDENTIALS";
+    public const string CurrentPasswordInvalid = "CURRENT_PASSWORD_INVALID";
     public const string AccountNotAllowed = "AUTH_ACCOUNT_NOTALLOWED";
     public const string InvalidRefreshToken = "AUTH_INVALID_REFRESH_TOKEN";
     public const string RefreshTokenNotFound = "AUTH_REFRESH_TOKEN_NOT_FOUND";

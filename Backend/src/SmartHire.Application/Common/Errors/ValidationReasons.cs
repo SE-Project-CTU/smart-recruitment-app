@@ -7,4 +7,5 @@ public static class ValidationReasons
     public const string MinLength = "MIN_LENGTH";
     public const string MaxLength = "MAX_LENGTH";
     public const string NotAllowed = "NOT_ALLOWED";
+    public const string MustDiffer = "MUST_DIFFER";
 }
