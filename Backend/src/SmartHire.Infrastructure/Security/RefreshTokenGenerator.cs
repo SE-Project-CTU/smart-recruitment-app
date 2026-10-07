@@ -27,11 +27,13 @@ public class RefreshTokenGenerator : IRefreshTokenGenerator {
         
         var value = $"rt_{tokenBody}";
         
-        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
-        var hash = Convert.ToHexString(hashBytes);
-        
         var expiresAt = now.AddDays(_jwtOptions.RefreshTokenLifetimeDays);
         
-        return new GeneratedRefreshToken(value, hash, expiresAt);
+        return new GeneratedRefreshToken(value, Hash(value), expiresAt);
+    }
+    
+    public string Hash(string token) {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(hashBytes);
     }
 }

@@ -1,18 +1,20 @@
 ﻿using MediatR;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Requests;
 using SmartHire.Api.Factories;
-using SmartHire.Api.Middleware;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Auth.Login;
+using SmartHire.Application.Features.Auth.Logout;
+using SmartHire.Application.Features.Auth.Refresh;
 using SmartHire.Application.Features.Auth.RegisterCandidate;
 using SmartHire.Application.Features.Auth.RegisterRecruiter;
 
 namespace SmartHire.Api.Controllers;
 
-[AllowAnonymous]
 [ApiController]
 [Route("api/v1/[controller]")]
 public sealed class AuthController : ControllerBase {
@@ -27,6 +29,7 @@ public sealed class AuthController : ControllerBase {
         _responseFactory = responseFactory;
     }
     
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> RegisterCandidate(
         [FromBody] RegisterCandidateRequest? request,
@@ -56,6 +59,7 @@ public sealed class AuthController : ControllerBase {
         return StatusCode(StatusCodes.Status201Created, response);
     }
     
+    [AllowAnonymous]
     [HttpPost("register/recruiter")]
     public async Task<IActionResult> RegisterRecruiter(
         [FromBody] RegisterRecruiterRequest? request,
@@ -82,6 +86,7 @@ public sealed class AuthController : ControllerBase {
         return StatusCode(StatusCodes.Status201Created, response);
     }
     
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request,
@@ -93,5 +98,46 @@ public sealed class AuthController : ControllerBase {
         );
         
         return Ok(_responseFactory.Success(result));
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(
+        [FromBody] RefreshRequest? request,
+        CancellationToken cancellationToken
+    ) {
+        var result = await _sender.Send(
+            new RefreshCommand(request.RefreshToken),
+            cancellationToken
+        );
+        
+        return Ok(_responseFactory.Success(result));
+    }
+    
+    [Authorize(Roles = RoleNames.Candidate + "," + RoleNames.Recruiter + "," + RoleNames.Admin)]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(
+        [FromBody] LogoutRequest? request,
+        CancellationToken cancellationToken
+    ) {
+        var subject = User.FindFirstValue("sub")
+                      ?? User.FindFirstValue(ClaimTypes.Name);
+        if (!Guid.TryParse(subject, out var userId)) {
+            throw new AppException(
+                AppErrorKind.Unauthorized,
+                AuthErrorCodes.InvalidAccessToken,
+                "The access token does not contain a valid user id."
+            );
+        }
+        
+        await _sender.Send(
+            new LogoutCommand(
+                userId,
+                request?.RefreshToken,
+                request?.AllSessions ?? false),
+            cancellationToken
+        );
+        
+        return NoContent();
     }
 }

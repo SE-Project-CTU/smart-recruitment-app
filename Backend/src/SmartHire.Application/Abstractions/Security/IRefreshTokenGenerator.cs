@@ -8,4 +8,5 @@ public sealed record GeneratedRefreshToken(
 
 public interface IRefreshTokenGenerator {
     GeneratedRefreshToken Generate(DateTimeOffset now);
+    string Hash(string token);
 }
