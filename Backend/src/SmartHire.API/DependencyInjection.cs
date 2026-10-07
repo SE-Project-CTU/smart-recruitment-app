@@ -1,9 +1,14 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 using SmartHire.Api.Contracts.Errors;
 using SmartHire.Api.Middleware;
 using SmartHire.Application.Common.Errors;
+using SmartHire.Infrastructure.Security;
 
 namespace SmartHire.Api;
 
@@ -38,6 +43,42 @@ public static class DependencyInjection {
                     };
                 };
             });
+        
+        return services;
+    }
+    
+    public static IServiceCollection AddJwtBearerAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration
+    ) {
+        var jwt = new JwtOptions();
+        configuration.GetSection(JwtOptions.SectionName).Bind(jwt);
+        
+        var keyBytes = Encoding.UTF8.GetBytes(jwt.SigningKey);
+        
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options => {
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters = new TokenValidationParameters {
+                    ValidateIssuer = true,
+                    ValidIssuer = jwt.Issuer,
+                    
+                    ValidateAudience = true,
+                    ValidAudience = jwt.Audience,
+                    
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+                    
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromSeconds(30),
+                    
+                    NameClaimType = JwtRegisteredClaimNames.Name,
+                    RoleClaimType = "role"
+                };
+            });
+        
+        services.AddAuthorization();
         
         return services;
     }

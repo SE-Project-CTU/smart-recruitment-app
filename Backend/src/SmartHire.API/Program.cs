@@ -47,6 +47,8 @@ builder.Services.AddApplication();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ApiResponseFactory>();
 
+builder.Services.AddJwtBearerAuthentication(builder.Configuration);
+
 var app = builder.Build();
 
 // ── Use App exception and middleware
@@ -70,6 +72,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions {
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

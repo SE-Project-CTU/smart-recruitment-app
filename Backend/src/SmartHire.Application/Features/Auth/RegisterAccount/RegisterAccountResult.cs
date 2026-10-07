@@ -1,8 +1,6 @@
-﻿using SmartHire.Domain.Enums;
+namespace SmartHire.Application.Features.Auth.RegisterAccount;
 
-namespace SmartHire.Application.Features.Auth.RegisterCandidate;
-
-public sealed record RegisterCandidateResult(
+public sealed record RegisterAccountResult(
     Guid Id,
     string Email,
     string? Phone,

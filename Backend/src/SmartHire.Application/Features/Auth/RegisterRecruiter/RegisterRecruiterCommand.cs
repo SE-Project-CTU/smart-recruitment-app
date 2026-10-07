@@ -1,10 +1,9 @@
-﻿using MediatR;
-
+using MediatR;
 using SmartHire.Application.Features.Auth.RegisterAccount;
 
-namespace SmartHire.Application.Features.Auth.RegisterCandidate;
+namespace SmartHire.Application.Features.Auth.RegisterRecruiter;
 
-public sealed record RegisterCandidateCommand(
+public sealed record RegisterRecruiterCommand(
     string Email,
     string? Phone,
     string Password,

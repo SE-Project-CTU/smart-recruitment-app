@@ -8,5 +8,4 @@ public static class CommonErrorCodes {
     public const string InvalidPageSize = "INVALID_PAGE_SIZE";
     public const string ValidationError = "VALIDATION_ERROR";
     public const string InvalidRequestBody = "INVALID_REQUEST_BODY";
-    public const string CandidateRoleNotFound = "CANDIDATE_ROLE_NOT_FOUND";
 }

@@ -34,6 +34,15 @@ public static class DependencyInjection {
         services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
+        var jwtOptions = new JwtOptions();
+        configuration.GetSection(JwtOptions.SectionName).Bind(jwtOptions);
+        
+        services.AddSingleton(jwtOptions);
+        services.AddSingleton<IAccessTokenGenerator, JwtAccessTokenGenerator>();
+        
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
+        
         return services;
     }
 }

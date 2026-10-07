@@ -28,4 +28,8 @@ public class EfUnitOfWork : IUnitOfWork {
             throw;
         }
     }
+    
+    public Task SaveChangesAsync(CancellationToken cancellationToken) {
+        return _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

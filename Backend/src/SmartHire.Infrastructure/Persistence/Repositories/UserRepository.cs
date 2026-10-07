@@ -32,4 +32,14 @@ public sealed class UserRepository : IUserRepository {
     public Task SaveChangeAsync(CancellationToken cancellationToken) {
         return _dbContext.SaveChangesAsync(cancellationToken);
     }
+    
+    public async Task<User?> GetByEmailWithRolesAsync(string normalizedEmail, CancellationToken cancellationToken) {
+        return await _dbContext.Users
+            .Include(user => user.UserRoles)
+            .ThenInclude(userRole => userRole.Role)
+            .SingleOrDefaultAsync(
+                user => user.Email == normalizedEmail,
+                cancellationToken
+            );
+    }
 }

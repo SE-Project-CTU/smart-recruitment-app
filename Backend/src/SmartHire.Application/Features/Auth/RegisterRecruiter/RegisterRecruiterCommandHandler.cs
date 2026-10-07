@@ -1,20 +1,20 @@
-﻿using MediatR;
+using MediatR;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Auth.RegisterAccount;
 
-namespace SmartHire.Application.Features.Auth.RegisterCandidate;
+namespace SmartHire.Application.Features.Auth.RegisterRecruiter;
 
-public sealed class RegisterCandidateCommandHandler(
+public sealed class RegisterRecruiterCommandHandler(
     RegisterAccountWorkflow workflow
-) : IRequestHandler<RegisterCandidateCommand, RegisterAccountResult> {
+) : IRequestHandler<RegisterRecruiterCommand, RegisterAccountResult> {
     public Task<RegisterAccountResult> Handle(
-        RegisterCandidateCommand request,
+        RegisterRecruiterCommand request,
         CancellationToken cancellationToken
     ) => workflow.RegisterAsync(
         request.Email,
         request.Phone,
         request.Password,
         request.FullName,
-        roleName: RoleNames.Candidate,
+        roleName: RoleNames.Recruiter,
         cancellationToken);
 }

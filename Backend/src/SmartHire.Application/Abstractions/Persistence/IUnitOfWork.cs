@@ -5,4 +5,6 @@ public interface IUnitOfWork {
         Func<CancellationToken, Task<T>> func,
         CancellationToken cancellationToken
     );
+    
+    Task SaveChangesAsync(CancellationToken cancellationToken);
 }
