@@ -64,4 +64,23 @@ public sealed class UserRepository : IUserRepository {
             ))
             .SingleOrDefaultAsync(cancellationToken);
     }
+    
+    public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken) {
+        return _dbContext.Users.SingleOrDefaultAsync(
+            user => user.Id == userId,
+            cancellationToken
+        );
+    }
+    
+    public Task<bool> PhoneExistsForOtherUserAsync(
+        string normalizedPhone,
+        Guid currentUserId,
+        CancellationToken cancellationToken
+    ) {
+        return _dbContext.Users.AnyAsync(
+            user => user.Id != currentUserId &&
+                    user.Phone == normalizedPhone,
+            cancellationToken
+        );
+    }
 }

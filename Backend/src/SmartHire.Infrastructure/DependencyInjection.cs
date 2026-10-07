@@ -43,6 +43,8 @@ public static class DependencyInjection {
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
         
+        services.AddScoped<IMediaFileRepository, MediaFileRepository>();
+        
         return services;
     }
 }

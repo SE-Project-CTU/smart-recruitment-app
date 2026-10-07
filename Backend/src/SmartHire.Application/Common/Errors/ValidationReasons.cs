@@ -6,4 +6,5 @@ public static class ValidationReasons
     public const string InvalidFormat = "INVALID_FORMAT";
     public const string MinLength = "MIN_LENGTH";
     public const string MaxLength = "MAX_LENGTH";
+    public const string NotAllowed = "NOT_ALLOWED";
 }

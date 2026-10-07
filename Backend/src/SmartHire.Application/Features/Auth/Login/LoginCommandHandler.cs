@@ -4,6 +4,7 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Auth.RegisterAccount;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -36,10 +37,24 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
     
     
     public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken) {
-        var email = request.Email.Trim().ToLowerInvariant();
-        var user = await _userRepository.GetByEmailWithRolesAsync(email, cancellationToken);
+        var validationDetails = new List<AppErrorDetail>();
+        var email = UserFieldValidator.NormalizeEmail(request.Email, validationDetails);
+        var password = UserFieldValidator.ValidatePassword(
+            request.Password,
+            validationDetails,
+            minimumLength: null);
+
+        if (validationDetails.Count > 0) {
+            throw new AppException(
+                AppErrorKind.Validation,
+                CommonErrorCodes.ValidationError,
+                "Request contains invalid fields.",
+                validationDetails);
+        }
+
+        var user = await _userRepository.GetByEmailWithRolesAsync(email!, cancellationToken);
         
-        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash)) {
+        if (user is null || !_passwordHasher.Verify(password!, user.PasswordHash)) {
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidCredentials,

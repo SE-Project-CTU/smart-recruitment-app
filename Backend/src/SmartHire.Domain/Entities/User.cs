@@ -86,7 +86,7 @@ public class User {
         Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
         UpdatedAt = now;
     }
-    
+
     public void ChangePasswordHash(
         string newPasswordHash,
         DateTimeOffset now
@@ -109,5 +109,13 @@ public class User {
         }
         
         UserRoles.Add(new UserRole(Id, role.Id));
+    }
+    
+    public void SetAvatarFileId(
+        Guid? avatarFileId,
+        DateTimeOffset now
+    ) {
+        AvatarFileId = avatarFileId;
+        UpdatedAt = now;
     }
 }

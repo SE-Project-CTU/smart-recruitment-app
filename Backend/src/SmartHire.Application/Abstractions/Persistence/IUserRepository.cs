@@ -27,4 +27,15 @@ public interface IUserRepository {
     );
     
     Task<CurrentAccountData?> GetCurrentAccountAsync(Guid userId, CancellationToken cancellationToken);
+    
+    Task<User?> GetByIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken
+    );
+    
+    Task<bool> PhoneExistsForOtherUserAsync(
+        string normalizedPhone,
+        Guid currentUserId,
+        CancellationToken cancellationToken
+    );
 }
