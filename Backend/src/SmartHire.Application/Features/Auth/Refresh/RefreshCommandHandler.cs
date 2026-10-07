@@ -38,38 +38,50 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
         var now = DateTimeOffset.UtcNow;
         var tokenHash = _refreshTokenGenerator.Hash(request.RefreshToken);
         
-        return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
-                var oldToken = await _refreshTokenRepository.GetByHashAsync(tokenHash, ct);
-                
-                if (
-                    oldToken is null ||
-                    oldToken.RevokedAt is not null ||
-                    oldToken.ExpiresAt <= now
-                ) {
-                    throw new AppException(
-                        AppErrorKind.Unauthorized,
-                        AuthErrorCodes.InvalidRefreshToken,
-                        "Refresh token is invalid or expired."
-                    );
-                }
-                
-                if (oldToken.UserStatus != UserStatus.Active) {
-                    throw new AppException(
-                        AppErrorKind.Forbidden,
-                        AuthErrorCodes.AccountNotAllowed,
-                        "Account is forbidden."
-                    );
-                }
-                
+        var oldToken = await _refreshTokenRepository.GetByHashAsync(tokenHash, cancellationToken);
+        
+        if (
+            oldToken is null ||
+            oldToken.ExpiresAt <= now
+        ) {
+            throw new AppException(
+                AppErrorKind.Unauthorized,
+                AuthErrorCodes.InvalidRefreshToken,
+                "Refresh token is invalid or expired."
+            );
+        }
+        
+        if (oldToken.RevokedAt is not null) {
+            await _refreshTokenRepository.RevokeAllUnrevokedByUserIdAsync(oldToken.UserId, now, cancellationToken);
+            
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            
+            throw new AppException(
+                AppErrorKind.Unauthorized,
+                AuthErrorCodes.InvalidRefreshToken,
+                "Security alert: Refresh token reuse detected. All sessions have been revoked."
+            );
+        }
+        
+        if (oldToken.UserStatus != UserStatus.Active) {
+            throw new AppException(
+                AppErrorKind.Forbidden,
+                AuthErrorCodes.AccountNotAllowed,
+                "Account is forbidden."
+            );
+        }
+        
+        bool isConcurrentReplayDetected = false;
+        RefreshResult? result = null;
+        
+        result = await _unitOfWork.ExecuteInTransactionAsync(async ct => {
                 var revoked = await _refreshTokenRepository.TryRevokeForRefreshAsync(
                     oldToken.Id, now, ct
                 );
                 
                 if (!revoked) {
-                    throw new AppException(
-                        AppErrorKind.Unauthorized,
-                        AuthErrorCodes.InvalidRefreshToken,
-                        "Refresh token is invalid or expired.");
+                    isConcurrentReplayDetected = true;
+                    return null!;
                 }
                 
                 var accessToken = _accessTokenGenerator.Generate(
@@ -91,7 +103,7 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
                 await _refreshTokenRepository.AddAsync(newRefreshTokenEntity, ct);
                 await _unitOfWork.SaveChangesAsync(ct);
                 
-                var expiresIn = Math.Max(0, (int)(accessToken.ExpiresAt - now).TotalMilliseconds);
+                var expiresIn = Math.Max(0, (int)(accessToken.ExpiresAt - now).TotalSeconds);
                 
                 return new RefreshResult(
                     AccessToken: accessToken.Value,
@@ -102,5 +114,18 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
                 );
             }, cancellationToken
         );
+        
+        if (isConcurrentReplayDetected) {
+            await _refreshTokenRepository.RevokeAllUnrevokedByUserIdAsync(oldToken.UserId, now, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken); // 🟢 GHI VĨNH VIỄN VÀO DB
+            
+            throw new AppException(
+                AppErrorKind.Unauthorized,
+                AuthErrorCodes.InvalidRefreshToken,
+                "Security alert: Concurrent token replay detected. All sessions have been revoked."
+            );
+        }
+        
+        return result;
     }
 }

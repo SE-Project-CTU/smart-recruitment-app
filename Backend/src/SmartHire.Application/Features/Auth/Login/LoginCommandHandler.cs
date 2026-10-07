@@ -95,7 +95,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
                 
                 await _unitOfWork.SaveChangesAsync(transactionToken);
                 
-                var expiresIn = Math.Max(0, (int)(accessToken.ExpiresAt - now).TotalMilliseconds);
+                var expiresIn = Math.Max(0, (int)(accessToken.ExpiresAt - now).TotalSeconds);
                 
                 return new LoginResult(
                     AccessToken: accessToken.Value,
