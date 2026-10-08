@@ -13,8 +13,8 @@ const baseLogoItems = [
     id: "2",
     content: (
       <img
-        src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg"
-        alt="Amazon"
+        src="https://vectorjungal.com/files/preview/1280x417/11722413140pede41toujup4lyxcujeadimugv0hckoehvvje1mkv5tdxrn2ykfm4niuu8rizng6b4jha4ajhdpjcdjfqhtksoyrlz3hiifvplz.png"
+        alt="SpaceX"
         className="h-10 w-auto object-contain transition-all"
       />
     ),
@@ -43,9 +43,9 @@ const baseLogoItems = [
     id: "5",
     content: (
       <img
-        src="https://upload.wikimedia.org/wikipedia/commons/0/01/LinkedIn_Logo.svg"
+        src="https://cdn.svglogos.dev/logos/linkedin.svg"
         alt="LinkedIn"
-        className="h-10 w-auto object-contain transition-all"
+        className="h-10 w-auto rounded-md bg-white object-contain p-1 transition-all"
       />
     ),
   },
