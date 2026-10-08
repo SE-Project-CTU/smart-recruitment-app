@@ -5,7 +5,9 @@ using SmartHire.Application.Common.Exceptions;
 
 namespace SmartHire.Api.Factories;
 
-public static class ApiResponseFactory {
+public sealed class ApiResponseFactory(
+    IHttpContextAccessor httpContextAccessor
+) {
     /// <summary>
     /// Wraps response data with empty metadata and a correlation ID.
     /// </summary>
@@ -13,10 +15,17 @@ public static class ApiResponseFactory {
     /// <param name="data">The response payload.</param>
     /// <param name="correlationId">The identifier associated with the request.</param>
     /// <returns>A success response containing the supplied data.</returns>
-    public static ApiResponse<TData, EmptyMeta> Success<TData>(
-        TData data,
-        string correlationId
-    ) => new(data, new EmptyMeta(), correlationId);
+    public ApiResponse<TData, EmptyMeta> Success<TData>(
+        TData data
+    ) {
+        var correlationId = GetCorrelationId();
+        
+        return new(
+            data,
+            new EmptyMeta(),
+            correlationId
+        );
+    }
     
     /// <summary>
     /// Wraps a page of items with pagination metadata and a correlation ID.
@@ -29,13 +38,14 @@ public static class ApiResponseFactory {
     /// <param name="correlationId">The identifier associated with the request.</param>
     /// <returns>A response with the items, page counts, and navigation flags.</returns>
     /// <exception cref="AppException">The page index is negative or the page size is less than one.</exception>
-    public static ApiResponse<IReadOnlyList<TItem>, PaginationMeta> Paged<TItem>(
+    public ApiResponse<IReadOnlyList<TItem>, PaginationMeta> Paged<TItem>(
         IReadOnlyList<TItem> items,
         int page,
         int pageSize,
-        int totalItems,
-        string correlationId
+        int totalItems
     ) {
+        var correlationId = GetCorrelationId();
+        
         if (page < 0) {
             throw new AppException(
                 AppErrorKind.BadRequest,
@@ -66,5 +76,17 @@ public static class ApiResponseFactory {
             meta,
             correlationId
         );
+    }
+    
+    private string GetCorrelationId() {
+        var context = httpContextAccessor.HttpContext
+                      ?? throw new InvalidOperationException(
+                          "No active HTTP request is available."
+                      );
+        
+        return context.Items[Middleware.CorrelationIdMiddleware.ItemKey]?.ToString()
+               ?? throw new InvalidOperationException(
+                   "Correlation ID was not set by the middleware."
+               );
     }
 }

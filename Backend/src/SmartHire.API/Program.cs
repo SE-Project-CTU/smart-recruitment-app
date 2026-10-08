@@ -1,11 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using SmartHire.Application;
 using SmartHire.Infrastructure;
 using SmartHire.Infrastructure.Persistence;
 using NLog.Web;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using SmartHire.Api;
+using SmartHire.Api.Contracts.Errors;
+using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
+using SmartHire.Application.Common.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,10 +36,17 @@ builder.Services.AddHangfire(configuration =>
 
 builder.Services.AddHangfireServer();
 
-builder.Services.AddControllers();
+builder.Services.AddApiServices();
+
 builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddApplication();
+
+builder.Services.AddScoped<ApiResponseFactory>();
+
+builder.Services.AddJwtBearerAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -56,8 +71,9 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions {
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireAuthorization();
 
 app.Run();
