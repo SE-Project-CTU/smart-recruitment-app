@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.IdentityModel.JsonWebTokens;
 using SmartHire.Application.Abstractions.Security;
 
@@ -22,4 +22,17 @@ public class HttpCurrentUser : ICurrentUser {
                 : null;
         }
     }
-}
+
+    public IReadOnlyList<string> Roles {
+        get {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user is null) return [];
+
+            return user.FindAll("role")
+                .Concat(user.FindAll(ClaimTypes.Role))
+                .Select(c => c.Value)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+    }
+}
