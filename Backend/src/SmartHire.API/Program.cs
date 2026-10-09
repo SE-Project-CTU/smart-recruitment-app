@@ -6,16 +6,16 @@ using NLog.Web;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
+using DotNetEnv;
 using SmartHire.Api;
-using SmartHire.Api.Contracts.Errors;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
-using SmartHire.Application.Common.Errors;
+
+Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddEnvironmentVariables();
 
 // Đăng ký Infrastructure (EF Core, pgvector)
 builder.Services.AddInfrastructure(builder.Configuration);
