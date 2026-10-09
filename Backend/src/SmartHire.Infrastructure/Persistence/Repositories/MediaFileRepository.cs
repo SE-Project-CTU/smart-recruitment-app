@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Domain.Entities;
 
@@ -16,4 +16,13 @@ public class MediaFileRepository : IMediaFileRepository {
             .AsNoTracking()
             .SingleOrDefaultAsync(file => file.Id == fileId, cancellationToken);
     }
+
+    public async Task AddAsync(MediaFile mediaFile, CancellationToken cancellationToken) {
+        await _dbContext.MediaFiles.AddAsync(mediaFile, cancellationToken);
+    }
+
+    public void Delete(MediaFile mediaFile) {
+        _dbContext.MediaFiles.Remove(mediaFile);
+    }
 }
+

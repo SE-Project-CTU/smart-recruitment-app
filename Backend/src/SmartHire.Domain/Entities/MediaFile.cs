@@ -8,6 +8,7 @@ public class MediaFile {
     public string FileUrl { get; private set; } = string.Empty;
     public string FileType { get; private set; } = string.Empty;
     public long FileSize { get; private set; }
+    public string PublicId { get; private set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; private set; }
 
     public User? AvatarUser { get; private set; }
@@ -16,4 +17,23 @@ public class MediaFile {
     public JobApplication? UploadedCvApplication { get; private set; }
 
     private MediaFile() { }
+
+    public static MediaFile Create(
+        Guid ownerId,
+        string fileName,
+        string fileUrl,
+        string fileType,
+        long fileSize,
+        string publicId) {
+        return new MediaFile {
+            Id = Guid.NewGuid(),
+            OwnerId = ownerId,
+            FileName = fileName,
+            FileUrl = fileUrl,
+            FileType = fileType,
+            FileSize = fileSize,
+            PublicId = publicId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
 }
