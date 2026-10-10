@@ -1,38 +1,115 @@
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Office } from "@/assets/images/decoration";
 import { SmartHire_default } from "@/assets/images/logo";
 import Button from "@/components/Button";
-import { Lock, UserRound } from "lucide-react";
-import { Link } from "react-router-dom";
+import { AlertCircle, Lock, UserRound } from "lucide-react";
+import { Eye, EyeOff } from "lucide";
+import { authService } from "@/services/authService";
+import { useAuthStore } from "@/stores/authStore";
+import { MorphIcon } from "morphicons/react";
 
 function SignIn() {
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setErrorMessage("Vui lòng nhập địa chỉ email.");
+      return;
+    }
+
+    if (!password) {
+      setErrorMessage("Vui lòng nhập mật khẩu.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await authService.login({
+        email: trimmedEmail,
+        password,
+      });
+
+      if (response && response.data) {
+        setAuth(response.data);
+        navigate("/", { replace: true });
+      } else {
+        setErrorMessage("Không nhận được dữ liệu xác thực từ hệ thống.");
+      }
+    } catch (err: unknown) {
+      console.error("SignIn error:", err);
+
+      let message = "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
+      if (typeof err === "object" && err !== null) {
+        const errorObj = err as Record<string, unknown>;
+        if (typeof errorObj.message === "string") {
+          message = errorObj.message;
+        } else if (typeof errorObj.detail === "string") {
+          message = errorObj.detail;
+        } else if (typeof errorObj.title === "string") {
+          message = errorObj.title;
+        }
+      }
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="mx-auto flex min-h-screen flex-col gap-6 bg-surface p-4 font-sans md:max-w-[90%] md:p-6 xl:flex-row">
       <div className="flex w-full flex-col gap-6 xl:w-1/2">
         <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-8 shadow-sm md:p-12 lg:px-24">
           <div className="mb-10 flex items-center gap-2">
-            <img src={SmartHire_default} />
+            <Link to="/">
+              <img src={SmartHire_default} alt="SmartHire Logo" />
+            </Link>
           </div>
 
           <h1 className="text-text mb-4 text-center text-3xl font-bold md:text-4xl">
             Say hello to SmartHire!
           </h1>
-          <p className="mb-10 max-w-sm text-center text-sm leading-relaxed text-text-muted md:text-base">
+          <p className="mb-8 max-w-sm text-center text-sm leading-relaxed text-text-muted md:text-base">
             Chào mừng bạn đến với hệ sinh thái tuyển dụng tất cả trong một, tạm
             biệt cách làm truyền thống phức tạp
           </p>
 
+          {/* Alert error message if any */}
+          {errorMessage && (
+            <div className="mb-6 flex w-full max-w-md items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 transition-all">
+              <AlertCircle size={18} className="shrink-0" />
+              <span className="flex-1">{errorMessage}</span>
+            </div>
+          )}
+
           <form
             className="flex w-full max-w-md flex-col gap-5"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleSubmit}
           >
             <div className="relative flex items-center">
               <span className="absolute left-5 text-text-muted">
-                <UserRound />
+                <UserRound size={18} />
               </span>
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="text-text w-full rounded-full border-none bg-white py-4 pr-6 pl-14 text-sm shadow-sm transition-all outline-none focus:ring-2 focus:ring-primary/50"
+                disabled={isLoading}
+                required
+                className="text-text w-full rounded-full border-none bg-white py-4 pr-6 pl-14 text-sm shadow-sm transition-all outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-gray-100"
               />
             </div>
 
@@ -41,10 +118,23 @@ function SignIn() {
                 <Lock size={18} />
               </span>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="text-text w-full rounded-full border-none bg-white py-4 pr-6 pl-14 text-sm shadow-sm transition-all outline-none focus:ring-2 focus:ring-primary/50"
+                disabled={isLoading}
+                required
+                className="text-text w-full rounded-full border-none bg-white py-4 pr-12 pl-14 text-sm shadow-sm transition-all outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-gray-100"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+                className="hover:text-text absolute right-5 cursor-pointer text-text-muted transition-colors"
+                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                <MorphIcon icon={showPassword ? EyeOff : Eye} />
+              </button>
             </div>
 
             <div className="-mt-2 flex justify-end">
@@ -57,12 +147,16 @@ function SignIn() {
             </div>
 
             <Button
+              htmlType="submit"
               text="Đăng nhập"
+              isLoading={isLoading}
               className="py-4! text-base! font-medium!"
             />
+
             <button
               type="button"
-              className="text-text flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-white py-4 font-medium shadow-sm transition-all hover:bg-gray-50"
+              disabled={isLoading}
+              className="text-text flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-white py-4 font-medium shadow-sm transition-all hover:bg-gray-50 disabled:opacity-50"
             >
               Đăng nhập Google
             </button>
@@ -71,7 +165,7 @@ function SignIn() {
           <div className="mt-8 text-xs text-text-muted md:text-sm">
             Bạn là người mới?{" "}
             <Link
-              to={"sign-up"}
+              to="/sign-up"
               className="text-text font-bold transition-colors hover:text-primary"
             >
               Đăng ký tài khoản
