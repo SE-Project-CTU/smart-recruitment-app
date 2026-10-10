@@ -1,0 +1,57 @@
+name: SmartHire Backend CI/CD
+
+on:
+  push:
+    branches: ["setup/84-cicd-pipeline-deployment-automation", "main"]
+    paths:
+      - "src/**"
+      - ./Backend/src/SmartHire.API/Dockerfile
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  database-migration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install EF Core Tool
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Apply EF Core Migrations
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.SUPABASE_MIGRATION_CONN }}
+        run: dotnet ef database update --project src/SmartHire.Infrastructure --startup-project src/SmartHire.API
+
+  build-and-deploy:
+    needs: database-migration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Backend/src/SmartHire.API/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/smart-recruitment-api:latest
+
+      - name: Trigger Render Service Deploy
+        run: |
+          echo "Triggering Render service deploy..."
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
