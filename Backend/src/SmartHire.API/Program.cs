@@ -38,7 +38,18 @@ builder.Services.AddHangfireServer();
 
 builder.Services.AddApiServices();
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => {
+    options.AddOperationTransformer((operation, context, cancellationToken) => {
+        operation.Parameters ??= new List<Microsoft.OpenApi.IOpenApiParameter>();
+        operation.Parameters.Add(new Microsoft.OpenApi.OpenApiParameter {
+            Name = "X-Correlation-ID",
+            In = Microsoft.OpenApi.ParameterLocation.Header,
+            Required = true,
+            Description = "Correlation ID (UUID format, ví dụ: 550e8400-e29b-41d4-a716-446655440000)"
+        });
+        return Task.CompletedTask;
+    });
+});
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 

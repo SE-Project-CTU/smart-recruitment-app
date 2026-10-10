@@ -4,9 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Abstractions.Storage;
 using SmartHire.Infrastructure.Persistence;
 using SmartHire.Infrastructure.Persistence.Repositories;
 using SmartHire.Infrastructure.Security;
+using SmartHire.Infrastructure.Storage;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -45,10 +47,15 @@ public static class DependencyInjection {
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
         
         services.AddScoped<IMediaFileRepository, MediaFileRepository>();
+
+        // --- Cloudinary ---
+        services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
+
+        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         
         return services;
     }
-    
+
     public static IServiceCollection AddJwtBearerAuthentication(
         this IServiceCollection services,
         IConfiguration configuration) {
