@@ -5,7 +5,7 @@ import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
 
 const headerItems = [
   { title: "Việc làm", href: "/" },
-  { title: "Tạo CV", href: "/" },
+  { title: "Tạo CV", href: "/sign-in" },
   { title: "Blog nghề nghiệp", href: "/" },
   { title: "Liên hệ", href: "/" },
   { title: "FAQs", href: "/" },

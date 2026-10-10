@@ -27,8 +27,10 @@ import {
 import { useEffect, useState } from "react";
 import TestimonialCard from "@/components/TestimonialCard";
 import { testimonialData } from "@/constants/mockData";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
     <section className="overflow-bg-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg-white-blue pt-28 pb-16 lg:pt-32">
       <div className="container mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
@@ -68,6 +70,9 @@ const HeroSection = () => {
               <Button
                 text="Bắt đầu ngay"
                 className="w-fit! px-8! py-4! text-xl!"
+                onClick={() => {
+                  navigate("/sign-in");
+                }}
               />
             </div>
           </div>
