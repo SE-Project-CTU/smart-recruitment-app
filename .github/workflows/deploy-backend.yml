@@ -25,7 +25,7 @@ jobs:
         run: dotnet tool install --global dotnet-ef
 
       - name: Restore NuGet Packages
-        run: dotnet restore ./Backend/src/SmartHire.Infrastructure/SmartHire.Infrastructure.csproj
+        run: dotnet restore ./Backend
 
       - name: Apply EF Core Migrations
         env:
