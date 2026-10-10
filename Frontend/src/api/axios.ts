@@ -12,8 +12,12 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   (reqConfig) => {
     const token = localStorage.getItem("token");
-    if (token && reqConfig.headers) {
-      reqConfig.headers.Authorization = `Bearer ${token}`;
+    if (reqConfig.headers) {
+      reqConfig.headers["X-Correlation-ID"] =
+        "550e8400-e29b-41d4-a716-446655440000";
+      if (token) {
+        reqConfig.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return reqConfig;
   },
