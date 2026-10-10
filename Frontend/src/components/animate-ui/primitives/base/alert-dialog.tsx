@@ -4,8 +4,8 @@ import * as React from 'react';
 import { AlertDialog as AlertDialogPrimitive } from '@base-ui-components/react/alert-dialog';
 import { AnimatePresence, motion, type HTMLMotionProps } from 'motion/react';
 
-import { useControlledState } from 'src/hooks/use-controlled-state';
-import { getStrictContext } from 'src/lib/get-strict-context';
+import { useControlledState } from '@/hooks/use-controlled-state';
+import { getStrictContext } from '@/lib/get-strict-context';
 
 type AlertDialogContextType = {
   isOpen: boolean;

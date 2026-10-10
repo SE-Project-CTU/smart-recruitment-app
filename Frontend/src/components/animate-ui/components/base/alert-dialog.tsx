@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import {
   AlertDialog as AlertDialogPrimitive,
   AlertDialogPopup as AlertDialogPopupPrimitive,
@@ -20,9 +18,9 @@ import {
   type AlertDialogTriggerProps as AlertDialogTriggerPrimitiveProps,
   type AlertDialogBackdropProps as AlertDialogBackdropPrimitiveProps,
   type AlertDialogCloseProps as AlertDialogClosePrimitiveProps,
-} from 'src/components/external/animate-ui/primitives/base/alert-dialog';
-import { buttonVariants } from 'src/components/external/animate-ui/components/buttons/button';
-import { cn } from 'src/lib/utils';
+} from "@/components/animate-ui/primitives/base/alert-dialog";
+import { buttonVariants } from "@/components/animate-ui/components/buttons/button";
+import { cn } from "@/lib/utils";
 
 type AlertDialogProps = AlertDialogPrimitiveProps;
 
@@ -44,7 +42,7 @@ function AlertDialogBackdrop({
 }: AlertDialogBackdropProps) {
   return (
     <AlertDialogBackdropPrimitive
-      className={cn('fixed inset-0 z-50 bg-black/50', className)}
+      className={cn("fixed inset-0 z-50 bg-black/50", className)}
       {...props}
     />
   );
@@ -58,7 +56,7 @@ function AlertDialogPopup({ className, ...props }: AlertDialogPopupProps) {
       <AlertDialogBackdrop />
       <AlertDialogPopupPrimitive
         className={cn(
-          'bg-background fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg sm:max-w-lg',
+          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg sm:max-w-lg",
           className,
         )}
         {...props}
@@ -72,7 +70,7 @@ type AlertDialogHeaderProps = AlertDialogHeaderPrimitiveProps;
 function AlertDialogHeader({ className, ...props }: AlertDialogHeaderProps) {
   return (
     <AlertDialogHeaderPrimitive
-      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
       {...props}
     />
   );
@@ -84,7 +82,7 @@ function AlertDialogFooter({ className, ...props }: AlertDialogFooterProps) {
   return (
     <AlertDialogFooterPrimitive
       className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
         className,
       )}
       {...props}
@@ -97,7 +95,7 @@ type AlertDialogTitleProps = AlertDialogTitlePrimitiveProps;
 function AlertDialogTitle({ className, ...props }: AlertDialogTitleProps) {
   return (
     <AlertDialogTitlePrimitive
-      className={cn('text-lg font-semibold', className)}
+      className={cn("text-lg font-semibold", className)}
       {...props}
     />
   );
@@ -111,7 +109,7 @@ function AlertDialogDescription({
 }: AlertDialogDescriptionProps) {
   return (
     <AlertDialogDescriptionPrimitive
-      className={cn('text-muted-foreground text-sm', className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   );
@@ -133,7 +131,7 @@ type AlertDialogCancelProps = AlertDialogClosePrimitiveProps;
 function AlertDialogCancel({ className, ...props }: AlertDialogCancelProps) {
   return (
     <AlertDialogClosePrimitive
-      className={cn(buttonVariants({ variant: 'outline' }), className)}
+      className={cn(buttonVariants({ variant: "outline" }), className)}
       {...props}
     />
   );

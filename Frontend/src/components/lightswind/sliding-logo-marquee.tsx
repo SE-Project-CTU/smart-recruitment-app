@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useMemo } from "react";
+import React, { useRef, useState } from "react";
 // Import your actual utility
 import { cn } from "@/lib/utils"; // Assuming this is your actual path
 import { Pause, Play } from "lucide-react";
@@ -55,9 +55,6 @@ export function SlidingLogoMarquee({
 }: SlidingLogoMarqueeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
-
-  // CORE FIX: Duplicating the items for a seamless loop
-  const duplicatedItems = useMemo(() => [...items, ...items], [items]);
 
   const handleItemClick = (item: SlidingLogoMarqueeItem) => {
     if (item.href) {
