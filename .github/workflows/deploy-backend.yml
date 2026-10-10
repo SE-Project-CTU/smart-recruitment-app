@@ -46,7 +46,8 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=high
+          command: test
+          args: --file=Backend/SmartHire.slnx --severity-threshold=high
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
