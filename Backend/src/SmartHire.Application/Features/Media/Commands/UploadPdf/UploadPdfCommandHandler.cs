@@ -79,13 +79,18 @@ public sealed class UploadPdfCommandHandler
                     "File binary signature does not match PDF format (%PDF-).")]);
         }
 
+        // Chuẩn hóa tên tệp luôn có phần mở rộng .pdf
+        var sanitizedFileName = Path.GetExtension(request.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase)
+            ? request.FileName
+            : Path.ChangeExtension(request.FileName, ".pdf");
+
         // Upload lên storage
         FileUploadResult uploadResult;
         try {
             uploadResult = await _storageService.UploadAsync(
                 request.FileStream,
-                request.FileName,
-                request.ContentType,
+                sanitizedFileName,
+                AllowedPdfMimeType,
                 folder: "documents",
                 cancellationToken);
         } catch (Exception ex) {
@@ -97,9 +102,9 @@ public sealed class UploadPdfCommandHandler
 
         var mediaFile = MediaFile.Create(
             ownerId: userId,
-            fileName: request.FileName,
+            fileName: sanitizedFileName,
             fileUrl: uploadResult.FileUrl,
-            fileType: request.ContentType,
+            fileType: AllowedPdfMimeType,
             fileSize: request.FileSize,
             publicId: uploadResult.PublicId);
 

@@ -68,7 +68,8 @@ public sealed class UploadImageCommandHandler
         }
 
         // Validate Magic Bytes
-        if (!FileSignatureValidator.IsValidImage(request.FileStream)) {
+        var detectedContentType = FileSignatureValidator.DetectImageContentType(request.FileStream);
+        if (detectedContentType is null) {
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.ValidationError,
@@ -79,13 +80,32 @@ public sealed class UploadImageCommandHandler
                     "File binary signature does not match allowed image formats.")]);
         }
 
+        // Tự động chuẩn hóa
+        var actualContentType = detectedContentType;
+        var currentExtension = Path.GetExtension(request.FileName).ToLowerInvariant();
+        var isExtensionCompatible = actualContentType switch {
+            "image/jpeg" => currentExtension is ".jpg" or ".jpeg",
+            "image/png" => currentExtension is ".png",
+            "image/webp" => currentExtension is ".webp",
+            _ => false
+        };
+
+        var sanitizedFileName = isExtensionCompatible
+            ? request.FileName
+            : Path.ChangeExtension(request.FileName, actualContentType switch {
+                "image/jpeg" => ".jpg",
+                "image/png" => ".png",
+                "image/webp" => ".webp",
+                _ => currentExtension
+            });
+
         // Upload lên storage
         FileUploadResult uploadResult;
         try {
             uploadResult = await _storageService.UploadAsync(
                 request.FileStream,
-                request.FileName,
-                request.ContentType,
+                sanitizedFileName,
+                actualContentType,
                 folder: "images",
                 cancellationToken);
         } catch (Exception ex) {
@@ -95,12 +115,12 @@ public sealed class UploadImageCommandHandler
                 "Failed to upload image to storage. " + ex.Message);
         }
 
-        // Lưu metadata vào DB
+        // Lưu metadata vào DB với actualContentType và sanitizedFileName
         var mediaFile = MediaFile.Create(
             ownerId: userId,
-            fileName: request.FileName,
+            fileName: sanitizedFileName,
             fileUrl: uploadResult.FileUrl,
-            fileType: request.ContentType,
+            fileType: actualContentType,
             fileSize: request.FileSize,
             publicId: uploadResult.PublicId);
 
