@@ -27,7 +27,7 @@ jobs:
       - name: Apply EF Core Migrations
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.SUPABASE_MIGRATION_CONN }}
-        run: dotnet ef database update --project src/SmartHire.Infrastructure --startup-project src/SmartHire.API
+        run: dotnet ef database update --project ./Backend/src/SmartHire.Infrastructure --startup-project ./Backend/src/SmartHire.API
 
   build-and-deploy:
     needs: database-migration
