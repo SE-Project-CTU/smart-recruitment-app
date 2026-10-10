@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
@@ -10,19 +11,21 @@ namespace SmartHire.Api.Controllers;
 [Route("api/v1/exception-test")]
 public sealed class ResponseTestController : ControllerBase {
     private const string TestExceptionCode = "TEST_EXCEPTION";
+    private readonly ApiResponseFactory _responseFactory;
+    
+    public ResponseTestController(ApiResponseFactory responseFactory) {
+        _responseFactory = responseFactory;
+    }
     
     /// <summary>
     /// Returns a sample success response with the request's correlation ID.
     /// </summary>
     [HttpGet("success")]
     public IActionResult Success() {
-        var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();
-        
-        return Ok(ApiResponseFactory.Success(
+        return Ok(_responseFactory.Success(
             data: new {
                 message = "The success endpoint is working."
-            },
-            correlationId
+            }
         ));
     }
     
@@ -42,11 +45,10 @@ public sealed class ResponseTestController : ControllerBase {
     /// <summary>
     /// Returns a sample first page with pagination metadata and the request's correlation ID.
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("pagination")]
     public IActionResult SuccessWithPagination() {
-        var correlationId = HttpContext.Items[CorrelationIdMiddleware.ItemKey]?.ToString();
-        
-        return Ok(ApiResponseFactory.Paged(
+        return Ok(_responseFactory.Paged(
             new[] {
                 new {
                     message = "The success endpoint is working."
@@ -54,8 +56,16 @@ public sealed class ResponseTestController : ControllerBase {
             },
             0,
             10,
-            20,
-            correlationId
+            20
+        ));
+    }
+    
+    [HttpGet("protected")]
+    public IActionResult ProtectedEndpoint() {
+        return Ok(_responseFactory.Success(
+            data: new {
+                message = "The protected endpoint is working."
+            }
         ));
     }
 }
