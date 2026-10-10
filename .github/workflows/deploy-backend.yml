@@ -4,8 +4,8 @@ on:
   push:
     branches: ["setup/84-cicd-pipeline-deployment-automation", "main"]
     paths:
-      - "src/**"
-      - ./Backend/src/SmartHire.API/Dockerfile
+      - "Backend/src/**"
+      - "Backend/src/SmartHire.API/Dockerfile"
       - ".github/workflows/deploy-backend.yml"
 
 jobs:
@@ -31,7 +31,10 @@ jobs:
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.SUPABASE_MIGRATION_CONN }}
           ConnectionStrings__HangfireConnection: ${{ secrets.SUPABASE_MIGRATION_CONN }}
-        run: dotnet ef database update --project ./Backend/src/SmartHire.Infrastructure --startup-project ./Backend/src/SmartHire.API
+        run: |
+          dotnet ef database update \
+            --project ./Backend/src/SmartHire.Infrastructure/SmartHire.Infrastructure.csproj \
+            --startup-project ./Backend/src/SmartHire.API/SmartHire.Api.csproj
 
   build-and-deploy:
     needs: database-migration
@@ -41,8 +44,14 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/dotnet@master
+        continue-on-error: false
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -61,8 +70,10 @@ jobs:
           file: ./Backend/src/SmartHire.API/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/smart-recruitment-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Trigger Render Service Deploy
         run: |
           echo "Triggering Render service deploy..."
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+          curl --fail-with-body -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
