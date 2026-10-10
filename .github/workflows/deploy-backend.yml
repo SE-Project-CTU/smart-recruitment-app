@@ -24,6 +24,9 @@ jobs:
       - name: Install EF Core Tool
         run: dotnet tool install --global dotnet-ef
 
+      - name: Restore NuGet Packages
+        run: dotnet restore ./Backend/src/SmartHire.Infrastructure/SmartHire.Infrastructure.csproj
+
       - name: Apply EF Core Migrations
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.SUPABASE_MIGRATION_CONN }}
