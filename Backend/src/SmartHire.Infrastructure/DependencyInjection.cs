@@ -55,9 +55,7 @@ public static class DependencyInjection {
         
         return services;
     }
-}
 
-    
     public static IServiceCollection AddJwtBearerAuthentication(
         this IServiceCollection services,
         IConfiguration configuration) {

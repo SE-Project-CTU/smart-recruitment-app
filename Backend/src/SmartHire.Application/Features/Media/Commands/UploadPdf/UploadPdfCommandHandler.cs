@@ -4,6 +4,7 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Abstractions.Storage;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Features.Media.Commands.UploadPdf;
@@ -64,6 +65,18 @@ public sealed class UploadPdfCommandHandler
                     "file",
                     ValidationReasons.MaxLength,
                     $"File size {request.FileSize} bytes exceeds limit of {MaxPdfSizeBytes} bytes.")]);
+        }
+
+        // Validate Magic Bytes
+        if (!FileSignatureValidator.IsValidPdf(request.FileStream)) {
+            throw new AppException(
+                AppErrorKind.BadRequest,
+                CommonErrorCodes.ValidationError,
+                "The file content does not match a valid PDF signature.",
+                [new AppErrorDetail(
+                    "file",
+                    ValidationReasons.InvalidFormat,
+                    "File binary signature does not match PDF format (%PDF-).")]);
         }
 
         // Upload lên storage
