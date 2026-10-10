@@ -1,0 +1,82 @@
+name: SmartHire Backend CI/CD
+
+on:
+  push:
+    branches: ["setup/84-cicd-pipeline-deployment-automation", "main"]
+    paths:
+      - "Backend/src/**"
+      - "Backend/src/SmartHire.API/Dockerfile"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  database-migration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install EF Core Tool
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Restore NuGet Packages
+        run: dotnet restore ./Backend
+
+      - name: Apply EF Core Migrations
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.SUPABASE_MIGRATION_CONN }}
+          ConnectionStrings__HangfireConnection: ${{ secrets.SUPABASE_MIGRATION_CONN }}
+        run: |
+          dotnet ef database update \
+            --project ./Backend/src/SmartHire.Infrastructure/SmartHire.Infrastructure.csproj \
+            --startup-project ./Backend/src/SmartHire.API/SmartHire.Api.csproj
+
+  build-and-deploy:
+    needs: database-migration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/dotnet@master
+        continue-on-error: false
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --all-projects --detection-depth=4 --severity-threshold=high
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Backend
+          file: ./Backend/src/SmartHire.API/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/smart-recruitment-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trigger Render Service Deploy
+        run: |
+          echo "Triggering Render service deploy..."
+          curl --fail-with-body -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
