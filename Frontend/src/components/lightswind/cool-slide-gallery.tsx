@@ -321,7 +321,7 @@ const CoolSlideGallery: React.FC<CoolSlideGalleryProps> = ({
     (Math.max(0, Math.min(20, radius)) / 20) * (Math.min(cardWidth, cardHeight) / 2);
   const dimValue = 1 - Math.max(0, Math.min(100, dimOpacity)) / 100;
 
-  const isTopPosition = titlePosition === "top-left" || titlePosition === "top-right";
+  // const isTopPosition = titlePosition === "top-left" || titlePosition === "top-right";
 
   return (
     <div
