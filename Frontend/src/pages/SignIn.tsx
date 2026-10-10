@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/stores/authStore";
 import { MorphIcon } from "morphicons/react";
+import { toast } from "@/components/ui/toast";
 
 function SignIn() {
   const navigate = useNavigate();
@@ -42,9 +43,11 @@ function SignIn() {
         password,
       });
 
+      // đăng nhập thành công nè
       if (response && response.data) {
         setAuth(response.data);
         navigate("/", { replace: true });
+        toast.add({ type: "success", description: "Đăng nhập thành công" });
       } else {
         setErrorMessage("Không nhận được dữ liệu xác thực từ hệ thống.");
       }
