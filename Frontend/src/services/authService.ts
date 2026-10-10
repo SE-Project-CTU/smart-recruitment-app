@@ -1,4 +1,5 @@
 import axiosClient from "@/api/axios";
+import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type {
   ApiResponse,
   LoginRequest,
@@ -14,7 +15,7 @@ export const authService = {
    */
   async login(payload: LoginRequest): Promise<ApiResponse<LoginResult>> {
     return await axiosClient.post<never, ApiResponse<LoginResult>>(
-      "/api/v1/Auth/login",
+      API_ENDPOINTS.AUTH.LOGIN,
       payload,
     );
   },
@@ -24,7 +25,7 @@ export const authService = {
    */
   async refresh(payload: RefreshRequest): Promise<ApiResponse<RefreshResult>> {
     return await axiosClient.post<never, ApiResponse<RefreshResult>>(
-      "/api/v1/Auth/refresh",
+      API_ENDPOINTS.AUTH.REFRESH,
       payload,
     );
   },
@@ -33,6 +34,7 @@ export const authService = {
    * Logout user session
    */
   async logout(payload?: LogoutRequest): Promise<void> {
-    await axiosClient.post("/api/v1/Auth/logout", payload ?? {});
+    await axiosClient.post(API_ENDPOINTS.AUTH.LOGOUT, payload ?? {});
   },
 };
+
