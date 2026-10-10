@@ -50,7 +50,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Backend
           file: ./Backend/src/SmartHire.API/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/smart-recruitment-api:latest
