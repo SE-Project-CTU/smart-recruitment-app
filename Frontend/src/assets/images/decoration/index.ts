@@ -5,4 +5,5 @@ export { default as Rectangle_2 } from "./Rectangle 2.svg";
 export { default as Rectangle_3 } from "./Rectangle 3.svg";
 export { default as CandidateMatching } from "./Candidate matching panel.svg";
 export { default as OfficeGirl } from "./OfficeGirl.png";
+export { default as OfficeGirl2 } from "./OfficeGirl2.png";
 export { default as Office } from "./office.png";
