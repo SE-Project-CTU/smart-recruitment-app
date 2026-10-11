@@ -66,71 +66,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.ToTable("ai_match_results", (string)null);
                 });
 
-            modelBuilder.Entity("SmartHire.Domain.Entities.Application", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTimeOffset>("AppliedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("applied_at");
-
-                    b.Property<Guid>("CandidateId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("candidate_id");
-
-                    b.Property<string>("CoverLetter")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("cover_letter");
-
-                    b.Property<Guid?>("CvVersionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("cv_version_id");
-
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("job_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("status");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid?>("UploadedCvFileId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("uploaded_cv_file_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_applications");
-
-                    b.HasIndex("CandidateId")
-                        .HasDatabaseName("ix_applications_candidate_id");
-
-                    b.HasIndex("CvVersionId")
-                        .HasDatabaseName("ix_applications_cv_version_id");
-
-                    b.HasIndex("JobId")
-                        .HasDatabaseName("ix_applications_job_id");
-
-                    b.HasIndex("UploadedCvFileId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_applications_uploaded_cv_file_id");
-
-                    b.ToTable("applications", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_applications_exactly_one_cv_source", "(cv_version_id IS NOT NULL) <> (uploaded_cv_file_id IS NOT NULL)");
-                        });
-                });
-
             modelBuilder.Entity("SmartHire.Domain.Entities.ApplicationStatusHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -715,6 +650,71 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.ToTable("industry_groups", (string)null);
                 });
 
+            modelBuilder.Entity("SmartHire.Domain.Entities.JobApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at");
+
+                    b.Property<Guid>("CandidateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("candidate_id");
+
+                    b.Property<string>("CoverLetter")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cover_letter");
+
+                    b.Property<Guid?>("CvVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cv_version_id");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UploadedCvFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("uploaded_cv_file_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_applications");
+
+                    b.HasIndex("CandidateId")
+                        .HasDatabaseName("ix_applications_candidate_id");
+
+                    b.HasIndex("CvVersionId")
+                        .HasDatabaseName("ix_applications_cv_version_id");
+
+                    b.HasIndex("JobId")
+                        .HasDatabaseName("ix_applications_job_id");
+
+                    b.HasIndex("UploadedCvFileId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_applications_uploaded_cv_file_id");
+
+                    b.ToTable("applications", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_applications_exactly_one_cv_source", "(cv_version_id IS NOT NULL) <> (uploaded_cv_file_id IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("SmartHire.Domain.Entities.JobEmbedding", b =>
                 {
                     b.Property<Guid>("Id")
@@ -983,6 +983,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("owner_id");
 
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("public_id");
+
                     b.HasKey("Id")
                         .HasName("pk_media_files");
 
@@ -1238,7 +1244,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("SmartHire.Domain.Entities.AiMatchResult", b =>
                 {
-                    b.HasOne("SmartHire.Domain.Entities.Application", "Application")
+                    b.HasOne("SmartHire.Domain.Entities.JobApplication", "Application")
                         .WithOne("AiMatchResult")
                         .HasForeignKey("SmartHire.Domain.Entities.AiMatchResult", "ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1257,46 +1263,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("CvVersion");
                 });
 
-            modelBuilder.Entity("SmartHire.Domain.Entities.Application", b =>
-                {
-                    b.HasOne("SmartHire.Domain.Entities.User", "Candidate")
-                        .WithMany("Applications")
-                        .HasForeignKey("CandidateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_applications_users_candidate_id");
-
-                    b.HasOne("SmartHire.Domain.Entities.CvVersion", "CvVersion")
-                        .WithMany("Applications")
-                        .HasForeignKey("CvVersionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_applications_cv_versions_cv_version_id");
-
-                    b.HasOne("SmartHire.Domain.Entities.JobPosting", "Job")
-                        .WithMany("Applications")
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_applications_job_postings_job_id");
-
-                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "UploadedCvFile")
-                        .WithOne("UploadedCvApplication")
-                        .HasForeignKey("SmartHire.Domain.Entities.Application", "UploadedCvFileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_applications_media_files_uploaded_cv_file_id");
-
-                    b.Navigation("Candidate");
-
-                    b.Navigation("CvVersion");
-
-                    b.Navigation("Job");
-
-                    b.Navigation("UploadedCvFile");
-                });
-
             modelBuilder.Entity("SmartHire.Domain.Entities.ApplicationStatusHistory", b =>
                 {
-                    b.HasOne("SmartHire.Domain.Entities.Application", "Application")
+                    b.HasOne("SmartHire.Domain.Entities.JobApplication", "Application")
                         .WithMany("StatusHistories")
                         .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1507,6 +1476,43 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("Group");
                 });
 
+            modelBuilder.Entity("SmartHire.Domain.Entities.JobApplication", b =>
+                {
+                    b.HasOne("SmartHire.Domain.Entities.User", "Candidate")
+                        .WithMany("Applications")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_applications_users_candidate_id");
+
+                    b.HasOne("SmartHire.Domain.Entities.CvVersion", "CvVersion")
+                        .WithMany("Applications")
+                        .HasForeignKey("CvVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_applications_cv_versions_cv_version_id");
+
+                    b.HasOne("SmartHire.Domain.Entities.JobPosting", "Job")
+                        .WithMany("Applications")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_applications_job_postings_job_id");
+
+                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "UploadedCvFile")
+                        .WithOne("UploadedCvApplication")
+                        .HasForeignKey("SmartHire.Domain.Entities.JobApplication", "UploadedCvFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_applications_media_files_uploaded_cv_file_id");
+
+                    b.Navigation("Candidate");
+
+                    b.Navigation("CvVersion");
+
+                    b.Navigation("Job");
+
+                    b.Navigation("UploadedCvFile");
+                });
+
             modelBuilder.Entity("SmartHire.Domain.Entities.JobEmbedding", b =>
                 {
                     b.HasOne("SmartHire.Domain.Entities.JobPosting", "Job")
@@ -1689,13 +1695,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("Province");
                 });
 
-            modelBuilder.Entity("SmartHire.Domain.Entities.Application", b =>
-                {
-                    b.Navigation("AiMatchResult");
-
-                    b.Navigation("StatusHistories");
-                });
-
             modelBuilder.Entity("SmartHire.Domain.Entities.Company", b =>
                 {
                     b.Navigation("Followers");
@@ -1747,6 +1746,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SmartHire.Domain.Entities.IndustryGroup", b =>
                 {
                     b.Navigation("Industries");
+                });
+
+            modelBuilder.Entity("SmartHire.Domain.Entities.JobApplication", b =>
+                {
+                    b.Navigation("AiMatchResult");
+
+                    b.Navigation("StatusHistories");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.JobPosting", b =>

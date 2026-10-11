@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap");
 @import "tailwindcss";
+@plugin "lightswind/plugin";
 @plugin "@tailwindcss/typography";
 
 @theme {
@@ -15,14 +16,17 @@
   --color-secondary-light: #d6f1fc;
   --color-secondary-dark: #6fc3e8;
 
-  /* Neutral Surface & Text */
-  --color-bg-app: #f7fafc;
-  --color-bg-white-blue: #ecf5f9;
+  /* ==== Neutral ==== */
+
+  /* primary background color */
+  --color-bg: #f7fafc;
   --color-bg-stone: #f9f9f9;
+  --color-bg-white-blue: #ecf5f9;
+
   --color-surface: #ffffff;
+  --color-border: #e2e8f0;
 
-  --color-border-app: #e2e8f0;
-
+  /* text */
   --color-text-main: #1a202c;
   --color-text-muted: #64748b;
 
@@ -41,8 +45,39 @@
   color: var(--color-text-main);
 }
 
+.bg-grid-cus {
+  background-image:
+    linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+    linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+  background-size: 20px 30px;
+}
+
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+.header-link-item {
+  @apply font-medium text-text-main underline-offset-4 transition-colors duration-200 hover:text-primary hover:underline;
+}
+
+.btn {
+  @apply inline-flex cursor-pointer items-center justify-center font-medium transition-all duration-200 select-none active:scale-[0.98];
+}
+
+.btn-primary {
+  @apply rounded-full bg-primary px-4 py-2 text-sm text-white shadow-sm hover:bg-primary-dark hover:shadow-md;
+}
+
+.btn-secondary {
+  @apply rounded-full px-4 py-2 text-sm text-primary ring-1 ring-primary ring-inset hover:bg-secondary-light/40 hover:text-primary-dark hover:ring-primary-dark;
+}
+
+.btn-outline {
+  @apply rounded-full px-4 py-2 text-sm text-white ring-1 ring-white ring-inset hover:bg-white hover:text-primary-dark hover:ring-primary-dark;
+}
+
+.section-title {
+  @apply text-3xl font-bold tracking-tight text-text-main lg:text-5xl;
 }
