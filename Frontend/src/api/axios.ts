@@ -5,12 +5,7 @@ import axios, {
 } from "axios";
 import { config } from "@/api/env";
 import { handleApiError } from "./errorHandler";
-import {
-  getAccessToken,
-  getRefreshToken,
-  setAuthCookies,
-  clearAuthCookies,
-} from "@/utils/cookie";
+import { useAuthStore } from "@/stores/authStore";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 const axiosClient = axios.create({
@@ -20,7 +15,7 @@ const axiosClient = axios.create({
   },
 });
 
-// Flag & queue to avoid multiple parallel refresh requests
+// Flag & queue để xử lý nhiều request đồng thời khi token hết hạn
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
@@ -38,11 +33,16 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
+// ----------------------------------------------------------------------
+// Request Interceptor: Gắn Token và Correlation ID
+// ----------------------------------------------------------------------
 axiosClient.interceptors.request.use(
   (reqConfig: InternalAxiosRequestConfig) => {
-    const token = getAccessToken() || localStorage.getItem("token");
+    // Ưu tiên đọc từ Zustand store (Single Source of Truth)
+    const token = useAuthStore.getState().accessToken;
+
     if (reqConfig.headers) {
-      // Use crypto.randomUUID() if supported, or fallback
+      // Sinh Correlation ID cho mỗi request để backend dễ trace log
       const correlationId =
         typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
@@ -59,6 +59,9 @@ axiosClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
+// ----------------------------------------------------------------------
+// Response Interceptor: Tự động Refresh Token khi gặp lỗi 401
+// ----------------------------------------------------------------------
 axiosClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response.data;
@@ -75,16 +78,18 @@ axiosClient.interceptors.response.use(
       originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_CANDIDATE) ||
       originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_RECRUITER);
 
-    // Attempt token refresh on 401 if not already retried and not an auth route
+    // Xử lý khi gặp 401 Unauthorized (ngoại trừ các endpoint auth)
     if (status === 401 && !originalRequest?._retry && !isAuthRoute) {
-      const refreshToken = getRefreshToken();
+      const refreshToken = useAuthStore.getState().refreshToken;
 
+      // Không có refresh token -> xóa phiên và reject
       if (!refreshToken) {
-        clearAuthCookies();
+        useAuthStore.getState().clearAuth();
         handleApiError(error);
         return Promise.reject(error);
       }
 
+      // Nếu đang có 1 request refresh chạy ngầm, đưa các request sau vào hàng đợi
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -103,18 +108,15 @@ axiosClient.interceptors.response.use(
 
       try {
         const refreshResponse = await axios.post(
-          `${config.api.baseUrl}/api/v1/Auth/refresh`,
+          `${config.api.baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`,
           { refreshToken },
           { headers: { "Content-Type": "application/json" } },
         );
 
         const newAuthData = refreshResponse.data?.data;
         if (newAuthData?.accessToken) {
-          setAuthCookies(
-            newAuthData.accessToken,
-            newAuthData.refreshToken,
-            newAuthData.refreshTokenExpiresAt,
-          );
+          // Cập nhật token vào Zustand store (tự động đồng bộ cookie luôn)
+          useAuthStore.getState().updateTokens(newAuthData);
 
           processQueue(null, newAuthData.accessToken);
 
@@ -124,17 +126,20 @@ axiosClient.interceptors.response.use(
 
           return axiosClient(originalRequest);
         } else {
-          throw new Error("Invalid refresh token response");
+          throw new Error("Dữ liệu refresh token trả về không hợp lệ");
         }
       } catch (refreshErr) {
         processQueue(refreshErr, null);
-        clearAuthCookies();
+        // Refresh thất bại -> xóa sạch auth store để cập nhật UI ngay lập tức
+        useAuthStore.getState().clearAuth();
+        handleApiError(refreshErr);
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
       }
     }
 
+    // Xử lý lỗi toàn cục qua global error handler
     handleApiError(error);
     return Promise.reject(error);
   },

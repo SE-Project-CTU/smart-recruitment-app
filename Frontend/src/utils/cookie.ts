@@ -1,14 +1,13 @@
+import { STORAGE_KEYS, TOKEN_EXPIRY } from "@/constants/storage";
+
 export interface CookieOptions {
-  expires?: Date | number; // Number of days or Date object
+  expires?: Date | number;
   path?: string;
   domain?: string;
   secure?: boolean;
   sameSite?: "Strict" | "Lax" | "None";
 }
 
-/**
- * Retrieve a cookie value by key name.
- */
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
 
@@ -26,7 +25,7 @@ export function getCookie(name: string): string | null {
 }
 
 /**
- * Set a cookie with optional expiration and configuration.
+ * Lưu Cookie với cấu hình tùy chọn
  */
 export function setCookie(
   name: string,
@@ -49,7 +48,9 @@ export function setCookie(
     let expiresDate: Date;
     if (typeof expires === "number") {
       expiresDate = new Date();
-      expiresDate.setTime(expiresDate.getTime() + expires * 24 * 60 * 60 * 1000);
+      expiresDate.setTime(
+        expiresDate.getTime() + expires * 24 * 60 * 60 * 1000,
+      );
     } else {
       expiresDate = expires;
     }
@@ -65,27 +66,23 @@ export function setCookie(
 }
 
 /**
- * Remove a cookie by name.
+ * Xóa Cookie theo tên
  */
 export function removeCookie(name: string, path: string = "/"): void {
   if (typeof document === "undefined") return;
   document.cookie = `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`;
 }
 
-export const AUTH_KEYS = {
-  ACCESS_TOKEN: "access_token",
-  REFRESH_TOKEN: "refresh_token",
-} as const;
+// ----------------------------------------------------------------------
+// Các hàm tiện ích dành riêng cho Auth Tokens
+// ----------------------------------------------------------------------
 
-/**
- * Convenience methods for auth tokens
- */
 export function getAccessToken(): string | null {
-  return getCookie(AUTH_KEYS.ACCESS_TOKEN);
+  return getCookie(STORAGE_KEYS.ACCESS_TOKEN);
 }
 
 export function getRefreshToken(): string | null {
-  return getCookie(AUTH_KEYS.REFRESH_TOKEN);
+  return getCookie(STORAGE_KEYS.REFRESH_TOKEN);
 }
 
 export function setAuthCookies(
@@ -93,17 +90,20 @@ export function setAuthCookies(
   refreshToken: string,
   refreshTokenExpiresAt?: string,
 ): void {
-  // Set accessToken (e.g. 1 day default)
-  setCookie(AUTH_KEYS.ACCESS_TOKEN, accessToken, { expires: 1 });
+  setCookie(STORAGE_KEYS.ACCESS_TOKEN, accessToken, {
+    expires: TOKEN_EXPIRY.ACCESS_TOKEN_DAYS,
+  });
 
-  // Set refreshToken using expiration date from backend if available, or default to 7 days
   const refreshExpires = refreshTokenExpiresAt
     ? new Date(refreshTokenExpiresAt)
-    : 7;
-  setCookie(AUTH_KEYS.REFRESH_TOKEN, refreshToken, { expires: refreshExpires });
+    : TOKEN_EXPIRY.REFRESH_TOKEN_DAYS;
+
+  setCookie(STORAGE_KEYS.REFRESH_TOKEN, refreshToken, {
+    expires: refreshExpires,
+  });
 }
 
 export function clearAuthCookies(): void {
-  removeCookie(AUTH_KEYS.ACCESS_TOKEN);
-  removeCookie(AUTH_KEYS.REFRESH_TOKEN);
+  removeCookie(STORAGE_KEYS.ACCESS_TOKEN);
+  removeCookie(STORAGE_KEYS.REFRESH_TOKEN);
 }

@@ -15,11 +15,21 @@ import {
   TabsTab,
 } from "@/components/animate-ui/components/base/tabs";
 import { Blur } from "@/components/animate-ui/primitives/effects/blur";
-import { authService } from "@/services/authService";
+import {
+  useRegisterCandidate,
+  useRegisterRecruiter,
+} from "@/hooks/queries/useAuth";
 import { getApiErrorMessage } from "@/api/errorHandler";
 
 function SignUp() {
   const navigate = useNavigate();
+
+  const { mutateAsync: registerCandidate, isPending: isCandidatePending } =
+    useRegisterCandidate();
+  const { mutateAsync: registerRecruiter, isPending: isRecruiterPending } =
+    useRegisterRecruiter();
+
+  const isLoading = isCandidatePending || isRecruiterPending;
 
   const [role, setRole] = useState<"candidate" | "recruiter">("candidate");
   const [fullName, setFullName] = useState("");
@@ -28,8 +38,6 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -61,8 +69,6 @@ function SignUp() {
       return;
     }
 
-    setIsLoading(true);
-
     try {
       const payload = {
         fullName: fullName.trim(),
@@ -72,9 +78,9 @@ function SignUp() {
       };
 
       if (role === "candidate") {
-        await authService.registerCandidate(payload);
+        await registerCandidate(payload);
       } else {
-        await authService.registerRecruiter(payload);
+        await registerRecruiter(payload);
       }
 
       toast.add({
@@ -90,8 +96,6 @@ function SignUp() {
           "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
         ),
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -214,6 +218,7 @@ function SignUp() {
           và Chính sách bảo mật của SmartHire.
         </label>
       </div>
+
       {errorMessage && (
         <div className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-600 transition-all">
           <AlertCircle size={18} className="shrink-0" />
@@ -299,7 +304,8 @@ function SignUp() {
           </div>
         </div>
       </div>
-      {/* right */}
+
+      {/* Right */}
       <div className="relative hidden w-1/2 overflow-hidden rounded-[2.5rem] p-12 text-white shadow-lg xl:flex xl:flex-col xl:justify-between">
         {role === "candidate" && (
           <Blur key="candidate-img" asChild initialBlur={10} blur={0}>
@@ -320,7 +326,7 @@ function SignUp() {
             />
           </Blur>
         )}
-        <div className="absolute top-6 right-6 left-6 flex w-fit items-center gap-4 rounded-full border border-white/20 bg-black/20 p-3 px-5 text-white shadow-xl backdrop-blur-md">
+        <div className="absolute top-6 right-6 left-6 flex w-fit items-center gap-4 rounded-full border border-white/20 bg-black/20 p-3 px-5 text-white shadow-xl drop-shadow-xs backdrop-blur-md">
           <div className="flex shrink-0 -space-x-2.5">
             {[1, 2, 3].map((item) => (
               <img
@@ -332,7 +338,7 @@ function SignUp() {
             ))}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold tracking-wide text-white drop-shadow-xs">
+            <p className="text-xs font-bold tracking-wide text-white">
               Hơn 10.000+ nhân tài đã tham gia
             </p>
             <p className="truncate text-[11px] font-light text-slate-200/90">

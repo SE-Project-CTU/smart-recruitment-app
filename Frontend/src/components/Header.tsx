@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
 import { useAuthStore } from "@/stores/authStore";
+import { useLogout } from "@/hooks/queries/useAuth";
 
 const headerItems = [
   { title: "Việc làm", href: "/" },
@@ -16,12 +17,17 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
 
   const handleLogout = async () => {
-    await logout();
-    setIsOpen(false);
-    navigate("/sign-in");
+    try {
+      await logout(false);
+      setIsOpen(false);
+      navigate("/sign-in");
+    } catch (err) {
+      console.error("Lỗi khi đăng xuất:", err);
+    }
   };
 
   return (
@@ -62,11 +68,12 @@ function Header() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex cursor-pointer items-center gap-2 rounded-full border border-red-200 bg-red-50/80 px-4 py-2 text-xs font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700 active:scale-95"
+                disabled={isLoggingOut}
+                className="flex cursor-pointer items-center gap-2 rounded-full border border-red-200 bg-red-50/80 px-4 py-2 text-xs font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700 active:scale-95 disabled:opacity-50"
                 title="Đăng xuất khỏi hệ thống"
               >
                 <LogOut size={15} />
-                Đăng xuất
+                {isLoggingOut ? "Đang xuất..." : "Đăng xuất"}
               </button>
             </div>
           ) : (
@@ -130,10 +137,11 @@ function Header() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-red-500 py-3 text-sm font-semibold text-white shadow-xs transition-all active:scale-98"
+                disabled={isLoggingOut}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-red-500 py-3 text-sm font-semibold text-white shadow-xs transition-all active:scale-98 disabled:opacity-50"
               >
                 <LogOut size={16} />
-                Đăng xuất
+                {isLoggingOut ? "Đang xuất..." : "Đăng xuất"}
               </button>
             </div>
           ) : (

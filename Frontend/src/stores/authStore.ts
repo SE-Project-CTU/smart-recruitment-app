@@ -6,9 +6,10 @@ import {
   getRefreshToken,
   setAuthCookies,
 } from "@/utils/cookie";
+import { STORAGE_KEYS } from "@/constants/storage";
 import { authService } from "@/services/authService";
 
-interface AuthState {
+export interface AuthState {
   user: AuthUser | null;
   accessToken: string | null;
   refreshToken: string | null;
@@ -17,15 +18,15 @@ interface AuthState {
 
   setAuth: (data: LoginResult) => void;
   updateTokens: (data: RefreshResult) => void;
+  setUser: (user: AuthUser | null) => void;
   clearAuth: () => void;
   logout: (allSessions?: boolean) => Promise<void>;
-  setUser: (user: AuthUser | null) => void;
 }
 
 const getStoredUser = (): AuthUser | null => {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem("auth_user");
+    const raw = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   } catch {
     return null;
@@ -44,17 +45,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: false,
 
   setAuth: (data: LoginResult) => {
-    // 1. Store in cookies
     setAuthCookies(
       data.accessToken,
       data.refreshToken,
       data.refreshTokenExpiresAt,
     );
 
-    // 2. Persist user info in localStorage
-    localStorage.setItem("auth_user", JSON.stringify(data.user));
+    localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(data.user));
 
-    // 3. Update store state
     set({
       user: data.user,
       accessToken: data.accessToken,
@@ -78,9 +76,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
+  setUser: (user: AuthUser | null) => {
+    if (user) {
+      localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    }
+    set({ user });
+  },
+
   clearAuth: () => {
     clearAuthCookies();
-    localStorage.removeItem("auth_user");
+    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     set({
       user: null,
       accessToken: null,
@@ -98,18 +105,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         allSessions,
       });
     } catch (err) {
-      console.warn("Lỗi khi gọi API logout:", err);
+      console.warn("Lỗi khi gọi API logout đến máy chủ:", err);
     } finally {
       clearAuth();
     }
   },
-
-  setUser: (user: AuthUser | null) => {
-    if (user) {
-      localStorage.setItem("auth_user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("auth_user");
-    }
-    set({ user });
-  },
 }));
+
+/** Helper lấy token nhanh cho các tác vụ bên ngoài React Hook (vd: Axios Interceptor) */
+export const getAuthToken = (): string | null => {
+  return useAuthStore.getState().accessToken || getAccessToken();
+};

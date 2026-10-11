@@ -5,20 +5,18 @@ import { SmartHire_default } from "@/assets/images/logo";
 import Button from "@/components/Button";
 import { AlertCircle, Lock, UserRound } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
-import { authService } from "@/services/authService";
-import { useAuthStore } from "@/stores/authStore";
+import { useLogin } from "@/hooks/queries/useAuth";
 import { MorphIcon } from "morphicons/react";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 
 function SignIn() {
   const navigate = useNavigate();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { mutateAsync: login, isPending: isLoading } = useLogin();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -36,22 +34,14 @@ function SignIn() {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      const response = await authService.login({
+      await login({
         email: trimmedEmail,
         password,
       });
 
-      // đăng nhập thành công nè
-      if (response && response.data) {
-        setAuth(response.data);
-        navigate("/", { replace: true });
-        toast.add({ type: "success", description: "Đăng nhập thành công" });
-      } else {
-        setErrorMessage("Không nhận được dữ liệu xác thực từ hệ thống.");
-      }
+      toast.add({ type: "success", description: "Đăng nhập thành công" });
+      navigate("/", { replace: true });
     } catch (err: unknown) {
       setErrorMessage(
         getApiErrorMessage(
@@ -59,8 +49,6 @@ function SignIn() {
           "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
         ),
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -82,7 +70,7 @@ function SignIn() {
             biệt cách làm truyền thống phức tạp
           </p>
 
-          {/* Alert error message if any */}
+          {/* Thông báo lỗi nếu có */}
           {errorMessage && (
             <div className="mb-6 flex w-full max-w-md items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 transition-all">
               <AlertCircle size={18} className="shrink-0" />
