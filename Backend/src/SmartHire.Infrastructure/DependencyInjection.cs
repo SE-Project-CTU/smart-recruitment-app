@@ -47,15 +47,17 @@ public static class DependencyInjection {
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
         
         services.AddScoped<IMediaFileRepository, MediaFileRepository>();
-
+        
+        services.AddScoped<ICvTemplateRepository, CvTemplateRepository>();
+        
         // --- Cloudinary ---
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
-
+        
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         
         return services;
     }
-
+    
     public static IServiceCollection AddJwtBearerAuthentication(
         this IServiceCollection services,
         IConfiguration configuration) {
