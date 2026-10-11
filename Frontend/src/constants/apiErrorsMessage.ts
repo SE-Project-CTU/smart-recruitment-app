@@ -1,4 +1,4 @@
-const API_ERROR_MESSAGES: Record<string, string> = {
+export const API_ERROR_MESSAGES: Record<string, string> = {
   CORRELATION_ID_REQUIRED: "Thiếu mã định danh yêu cầu. Vui lòng thử lại.",
   CORRELATION_ID_INVALID:
     "Mã định danh yêu cầu không hợp lệ. Vui lòng thử lại.",
@@ -34,7 +34,7 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   MEDIA_FILE_DELETE_STORAGE_ERROR: "Không thể xóa tệp. Vui lòng thử lại.",
 };
 
-const FIELD_LABELS: Record<string, string> = {
+export const FIELD_LABELS: Record<string, string> = {
   email: "email",
   phone: "số điện thoại",
   password: "mật khẩu",
@@ -43,7 +43,7 @@ const FIELD_LABELS: Record<string, string> = {
   newPassword: "mật khẩu mới",
 };
 
-const HTTP_STATUS_MESSAGES: Record<number, string> = {
+export const HTTP_STATUS_MESSAGES: Record<number, string> = {
   400: "Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra lại.",
   401: "Thông tin xác thực không hợp lệ. Vui lòng đăng nhập lại.",
   403: "Bạn không có quyền thực hiện thao tác này.",
@@ -55,4 +55,3 @@ const HTTP_STATUS_MESSAGES: Record<number, string> = {
   503: "Dịch vụ hiện không khả dụng. Vui lòng thử lại sau.",
   504: "Máy chủ phản hồi quá thời gian. Vui lòng thử lại sau.",
 };
-export default { API_ERROR_MESSAGES, FIELD_LABELS, HTTP_STATUS_MESSAGES };
