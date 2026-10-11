@@ -6,12 +6,15 @@ using SmartHire.Api.Middleware;
 using SmartHire.Api.Services;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
+using SmartHire.Infrastructure.Persistence.Json;
 
 namespace SmartHire.Api;
 
 public static class DependencyInjection {
     public static IServiceCollection AddApiServices(this IServiceCollection services) {
         services.AddControllers()
+            .AddJsonOptions(options =>
+                options.JsonSerializerOptions.Converters.Add(new CvLanguageJsonConverter()))
             .ConfigureApiBehaviorOptions(options => {
                 options.InvalidModelStateResponseFactory = actionContext => {
                     var hasBodyParsingError = actionContext.ModelState.Values

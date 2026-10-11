@@ -19,6 +19,8 @@ public static class CvJsonSerializer
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         options.Converters.Add(new CvLanguageJsonConverter());
+        options.Converters.Add(new CvFieldStyleJsonConverter());
+        options.Converters.Add(new CvContentDocumentJsonConverter());
         return options;
     }
 }
