@@ -3,6 +3,13 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  fullname: string;
+  email: string;
+  phone: string;
+  password: string;
+}
+
 export interface LogoutRequest {
   refreshToken?: string | null;
   allSessions?: boolean;
@@ -26,6 +33,10 @@ export interface LoginResult {
   expiresIn: number;
   refreshToken: string;
   refreshTokenExpiresAt: string;
+  user: AuthUser;
+}
+
+export interface RegisterResult {
   user: AuthUser;
 }
 

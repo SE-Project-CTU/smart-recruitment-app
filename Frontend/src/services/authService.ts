@@ -7,6 +7,8 @@ import type {
   LogoutRequest,
   RefreshRequest,
   RefreshResult,
+  RegisterRequest,
+  RegisterResult,
 } from "@/types/auth";
 
 export const authService = {
@@ -30,6 +32,23 @@ export const authService = {
     );
   },
 
+  async registerCandidate(
+    payload: RegisterRequest,
+  ): Promise<ApiResponse<RegisterResult>> {
+    return await axiosClient.post<never, ApiResponse<RegisterResult>>(
+      API_ENDPOINTS.AUTH.REGISTER_CANDIDATE,
+      payload,
+    );
+  },
+
+  async registerRecruiter(
+    payload: RegisterRequest,
+  ): Promise<ApiResponse<RegisterResult>> {
+    return await axiosClient.post<never, ApiResponse<RegisterResult>>(
+      API_ENDPOINTS.AUTH.REGISTER_RECRUITER,
+      payload,
+    );
+  },
   /**
    * Logout user session
    */
@@ -37,4 +56,3 @@ export const authService = {
     await axiosClient.post(API_ENDPOINTS.AUTH.LOGOUT, payload ?? {});
   },
 };
-

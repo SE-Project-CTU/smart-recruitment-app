@@ -15,6 +15,7 @@ import {
   TabsTab,
 } from "@/components/animate-ui/components/base/tabs";
 import { Blur } from "@/components/animate-ui/primitives/effects/blur";
+import { authService } from "@/services/authService";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -42,12 +43,20 @@ function SignUp() {
     setIsLoading(true);
 
     try {
-      console.log("Register payload:", {
-        fullName: fullName.trim(),
+      const payload = {
+        fullname: fullName.trim(),
         email: email.trim(),
-        phoneNumber: phoneNumber.trim(),
+        phone: phoneNumber.trim(),
         password,
-      });
+      };
+
+      console.log("Register payload:", payload);
+
+      if (role === "candidate") {
+        await authService.registerCandidate(payload);
+      } else {
+        await authService.registerRecruiter(payload);
+      }
 
       toast.add({
         type: "success",
@@ -64,7 +73,7 @@ function SignUp() {
   };
 
   const renderFormFields = () => (
-    <form className="flex w-full flex-col gap-3.5" onSubmit={handleSubmit}>
+    <form className="p flex w-full flex-col gap-3.5" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-1 text-left">
         <label className="text-text text-xs font-semibold">
           Họ và tên <span className="text-red-500">*</span>
@@ -197,6 +206,7 @@ function SignUp() {
 
   return (
     <div className="mx-auto flex min-h-screen flex-col gap-6 bg-surface p-4 font-sans md:max-w-[90%] md:p-6 xl:flex-row">
+      {/* Left */}
       <div className="flex w-full flex-col gap-6 xl:w-1/2">
         <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-6 shadow-sm md:p-10 lg:px-20">
           <div className="mb-6 flex items-center gap-2">
@@ -266,6 +276,7 @@ function SignUp() {
           </div>
         </div>
       </div>
+      {/* right */}
       <div className="relative hidden w-1/2 overflow-hidden rounded-[2.5rem] p-12 text-white shadow-lg xl:flex xl:flex-col xl:justify-between">
         {role === "candidate" && (
           <Blur key="candidate-img" asChild initialBlur={10} blur={0}>
