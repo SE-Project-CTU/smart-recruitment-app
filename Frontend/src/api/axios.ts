@@ -80,6 +80,10 @@ axiosClient.interceptors.response.use(
 
     // Xử lý khi gặp 401 Unauthorized (ngoại trừ các endpoint auth)
     if (status === 401 && !originalRequest?._retry && !isAuthRoute) {
+      if (originalRequest) {
+        originalRequest._retry = true;
+      }
+
       const refreshToken = useAuthStore.getState().refreshToken;
 
       // Không có refresh token -> xóa phiên và reject
@@ -103,7 +107,6 @@ axiosClient.interceptors.response.use(
           .catch((err) => Promise.reject(err));
       }
 
-      originalRequest._retry = true;
       isRefreshing = true;
 
       try {
