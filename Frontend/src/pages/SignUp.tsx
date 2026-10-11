@@ -175,7 +175,10 @@ function SignUp() {
             <Lock size={18} />
           </span>
           <input
+            id="signup-password"
+            name="password"
             type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, type Location } from "react-router-dom";
 import { Office } from "@/assets/images/decoration";
 import { SmartHire_default } from "@/assets/images/logo";
 import Button from "@/components/Button";
@@ -12,7 +12,12 @@ import { getApiErrorMessage } from "@/api/errorHandler";
 
 function SignIn() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { mutateAsync: login, isPending: isLoading } = useLogin();
+
+  // Route người dùng muốn truy cập trước khi bị chuyển về /sign-in (mặc định là "/")
+  const from =
+    (location.state as { from?: Location | string } | null)?.from || "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,7 +46,7 @@ function SignIn() {
       });
 
       toast.add({ type: "success", description: "Đăng nhập thành công" });
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       setErrorMessage(
         getApiErrorMessage(
@@ -81,13 +86,17 @@ function SignIn() {
           <form
             className="flex w-full max-w-md flex-col gap-5"
             onSubmit={handleSubmit}
+            autoComplete="on"
           >
             <div className="relative flex items-center">
               <span className="absolute left-5 text-text-muted">
                 <UserRound size={18} />
               </span>
               <input
+                id="email"
+                name="email"
                 type="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
@@ -102,7 +111,10 @@ function SignIn() {
                 <Lock size={18} />
               </span>
               <input
+                id="password"
+                name="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"

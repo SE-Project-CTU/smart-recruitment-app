@@ -7,7 +7,7 @@ import { useLogout } from "@/hooks/queries/useAuth";
 
 const headerItems = [
   { title: "Việc làm", href: "/" },
-  { title: "Tạo CV", href: "/sign-in" },
+  { title: "Tạo CV", href: "/create-cv" },
   { title: "Blog nghề nghiệp", href: "/" },
   { title: "Liên hệ", href: "/" },
   { title: "FAQs", href: "/" },
