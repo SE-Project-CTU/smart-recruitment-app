@@ -4,7 +4,7 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  fullname: string;
+  fullName: string;
   email: string;
   phone: string;
   password: string;
@@ -37,7 +37,13 @@ export interface LoginResult {
 }
 
 export interface RegisterResult {
-  user: AuthUser;
+  id: string;
+  email: string;
+  phone: string | null;
+  fullName: string;
+  roles: string[];
+  status: string;
+  createdAt: string;
 }
 
 export interface RefreshResult {

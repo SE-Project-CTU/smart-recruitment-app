@@ -9,6 +9,7 @@ import { authService } from "@/services/authService";
 import { useAuthStore } from "@/stores/authStore";
 import { MorphIcon } from "morphicons/react";
 import { toast } from "@/components/ui/toast";
+import { getApiErrorMessage } from "@/api/errorHandler";
 
 function SignIn() {
   const navigate = useNavigate();
@@ -52,20 +53,12 @@ function SignIn() {
         setErrorMessage("Không nhận được dữ liệu xác thực từ hệ thống.");
       }
     } catch (err: unknown) {
-      console.error("SignIn error:", err);
-
-      let message = "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
-      if (typeof err === "object" && err !== null) {
-        const errorObj = err as Record<string, unknown>;
-        if (typeof errorObj.message === "string") {
-          message = errorObj.message;
-        } else if (typeof errorObj.detail === "string") {
-          message = errorObj.detail;
-        } else if (typeof errorObj.title === "string") {
-          message = errorObj.title;
-        }
-      }
-      setErrorMessage(message);
+      setErrorMessage(
+        getApiErrorMessage(
+          err,
+          "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+        ),
+      );
     } finally {
       setIsLoading(false);
     }

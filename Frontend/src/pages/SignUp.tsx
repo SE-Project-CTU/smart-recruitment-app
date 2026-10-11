@@ -16,6 +16,7 @@ import {
 } from "@/components/animate-ui/components/base/tabs";
 import { Blur } from "@/components/animate-ui/primitives/effects/blur";
 import { authService } from "@/services/authService";
+import { getApiErrorMessage } from "@/api/errorHandler";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -40,17 +41,35 @@ function SignUp() {
       return;
     }
 
+    if (!fullName.trim()) {
+      setErrorMessage("Vui lòng nhập họ và tên.");
+      return;
+    }
+
+    if (!phoneNumber.trim()) {
+      setErrorMessage("Vui lòng nhập số điện thoại.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setErrorMessage("Vui lòng nhập địa chỉ email.");
+      return;
+    }
+
+    if (!password.trim()) {
+      setErrorMessage("Vui lòng nhập mật khẩu.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const payload = {
-        fullname: fullName.trim(),
+        fullName: fullName.trim(),
         email: email.trim(),
         phone: phoneNumber.trim(),
         password,
       };
-
-      console.log("Register payload:", payload);
 
       if (role === "candidate") {
         await authService.registerCandidate(payload);
@@ -65,8 +84,12 @@ function SignUp() {
 
       navigate("/sign-in");
     } catch (err: unknown) {
-      console.error("SignUp error:", err);
-      setErrorMessage("Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
+      setErrorMessage(
+        getApiErrorMessage(
+          err,
+          "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
+        ),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +98,7 @@ function SignUp() {
   const renderFormFields = () => (
     <form className="p flex w-full flex-col gap-3.5" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-1 text-left">
-        <label className="text-text text-xs font-semibold">
+        <label className="text-xs font-semibold text-text-main">
           Họ và tên <span className="text-red-500">*</span>
         </label>
         <div className="relative flex items-center">
@@ -95,7 +118,7 @@ function SignUp() {
       </div>
 
       <div className="flex flex-col gap-1 text-left">
-        <label className="text-text text-xs font-semibold">
+        <label className="text-xs font-semibold text-text-main">
           Số điện thoại <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-2">
@@ -120,7 +143,7 @@ function SignUp() {
       </div>
 
       <div className="flex flex-col gap-1 text-left">
-        <label className="text-text text-xs font-semibold">
+        <label className="text-xs font-semibold text-text-main">
           Địa chỉ Email <span className="text-red-500">*</span>
         </label>
         <div className="relative flex items-center">
@@ -140,7 +163,7 @@ function SignUp() {
       </div>
 
       <div className="flex flex-col gap-1 text-left">
-        <label className="text-text text-xs font-semibold">
+        <label className="text-xs font-semibold text-text-main">
           Mật khẩu <span className="text-red-500">*</span>
         </label>
         <div className="relative flex items-center">
@@ -160,7 +183,7 @@ function SignUp() {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             tabIndex={-1}
-            className="hover:text-text absolute right-5 cursor-pointer text-text-muted transition-colors"
+            className="absolute right-5 cursor-pointer text-text-muted transition-colors hover:text-text-main"
             title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
           >
             <MorphIcon icon={showPassword ? EyeOff : Eye} />
@@ -174,6 +197,7 @@ function SignUp() {
           id="agreeTerms"
           checked={agreeTerms}
           onChange={(e) => setAgreeTerms(e.target.checked)}
+          disabled={isLoading}
           className="mt-0.5 h-4 w-4 cursor-pointer rounded accent-primary"
         />
         <label
@@ -183,13 +207,19 @@ function SignUp() {
           Tôi đã đọc và đồng ý với các{" "}
           <a
             href="#"
-            className="text-text font-bold underline hover:text-primary"
+            className="font-bold text-text-main underline hover:text-primary"
           >
             Điều khoản sử dụng
           </a>{" "}
           và Chính sách bảo mật của SmartHire.
         </label>
       </div>
+      {errorMessage && (
+        <div className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-600 transition-all">
+          <AlertCircle size={18} className="shrink-0" />
+          <span className="flex-1">{errorMessage}</span>
+        </div>
+      )}
 
       <Button
         htmlType="submit"
@@ -208,15 +238,15 @@ function SignUp() {
     <div className="mx-auto flex min-h-screen flex-col gap-6 bg-surface p-4 font-sans md:max-w-[90%] md:p-6 xl:flex-row">
       {/* Left */}
       <div className="flex w-full flex-col gap-6 xl:w-1/2">
-        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-6 shadow-sm md:p-10 lg:px-20">
+        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-3 shadow-sm md:p-3 lg:px-20">
           <div className="mb-6 flex items-center gap-2">
             <Link to="/">
               <img src={SmartHire_default} alt="SmartHire Logo" />
             </Link>
           </div>
 
-          <h1 className="text-text mb-2 text-center text-3xl font-bold md:text-4xl">
-            Tạo tài khoản SmartHire
+          <h1 className="mb-2 text-center text-3xl font-bold text-text-main md:text-4xl">
+            Tạo tài khoản
           </h1>
           <p className="mb-6 max-w-sm text-center text-sm leading-relaxed text-text-muted md:text-base">
             Gia nhập nền tảng tuyển dụng thông minh hàng đầu
@@ -247,13 +277,6 @@ function SignUp() {
               </TabsTab>
             </TabsList>
 
-            {errorMessage && (
-              <div className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-600 transition-all">
-                <AlertCircle size={18} className="shrink-0" />
-                <span className="flex-1">{errorMessage}</span>
-              </div>
-            )}
-
             <TabsPanels className="mt-4 w-full">
               <TabsPanel value="candidate" className="w-full">
                 {renderFormFields()}
@@ -269,7 +292,7 @@ function SignUp() {
             Đã có tài khoản?{" "}
             <Link
               to="/sign-in"
-              className="text-text font-bold transition-colors hover:text-primary"
+              className="font-bold text-text-main transition-colors hover:text-primary"
             >
               Đăng nhập ngay
             </Link>

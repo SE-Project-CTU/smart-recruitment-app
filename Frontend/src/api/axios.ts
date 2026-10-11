@@ -1,7 +1,17 @@
-import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from "axios";
 import { config } from "@/api/env";
 import { handleApiError } from "./errorHandler";
-import { getAccessToken, getRefreshToken, setAuthCookies, clearAuthCookies } from "@/utils/cookie";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAuthCookies,
+  clearAuthCookies,
+} from "@/utils/cookie";
+import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 const axiosClient = axios.create({
   baseURL: config.api.baseUrl,
@@ -60,8 +70,10 @@ axiosClient.interceptors.response.use(
 
     const status = error.response?.status;
     const isAuthRoute =
-      originalRequest?.url?.includes("/api/v1/Auth/login") ||
-      originalRequest?.url?.includes("/api/v1/Auth/refresh");
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.LOGIN) ||
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REFRESH) ||
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_CANDIDATE) ||
+      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_RECRUITER);
 
     // Attempt token refresh on 401 if not already retried and not an auth route
     if (status === 401 && !originalRequest?._retry && !isAuthRoute) {
@@ -70,7 +82,7 @@ axiosClient.interceptors.response.use(
       if (!refreshToken) {
         clearAuthCookies();
         handleApiError(error);
-        return Promise.reject(error.response?.data || error.message);
+        return Promise.reject(error);
       }
 
       if (isRefreshing) {
@@ -124,7 +136,7 @@ axiosClient.interceptors.response.use(
     }
 
     handleApiError(error);
-    return Promise.reject(error.response?.data || error.message);
+    return Promise.reject(error);
   },
 );
 
