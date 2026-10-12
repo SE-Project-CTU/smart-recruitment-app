@@ -25,7 +25,9 @@ public sealed class GetCurrentAccountQueryHandler
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+                "The access token does not contain a valid user id.",
+                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+                    "A valid user id claim is required.")]);
         }
         
         var account = await _userRepository.GetCurrentAccountAsync(userId, cancellationToken);
@@ -34,7 +36,9 @@ public sealed class GetCurrentAccountQueryHandler
             throw new AppException(
                 AppErrorKind.NotFound,
                 AuthErrorCodes.CurrentAccountNotFound,
-                "The account was not found.");
+                "The account was not found.",
+                [new AppErrorDetail("account", ErrorDetailReasons.NotFound,
+                    "The current account could not be found.")]);
         }
         
         return new CurrentAccountResult(

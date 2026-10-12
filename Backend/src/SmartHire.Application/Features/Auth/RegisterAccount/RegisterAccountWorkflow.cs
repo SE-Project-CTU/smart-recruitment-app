@@ -28,7 +28,9 @@ public sealed class RegisterAccountWorkflow(
             throw new AppException(
                 AppErrorKind.Conflict,
                 AuthErrorCodes.EmailAlreadyExists,
-                "Email already exists.");
+                "Email already exists.",
+                [new AppErrorDetail("email", ErrorDetailReasons.AlreadyExists,
+                    "This email address is already associated with an account.")]);
         }
         
         if (input.Phone is not null &&
@@ -36,7 +38,9 @@ public sealed class RegisterAccountWorkflow(
             throw new AppException(
                 AppErrorKind.Conflict,
                 AuthErrorCodes.PhoneAlreadyExists,
-                "Phone number already exists.");
+                "Phone number already exists.",
+                [new AppErrorDetail("phone", ErrorDetailReasons.AlreadyExists,
+                    "This phone number is already associated with an account.")]);
         }
         
         var role = await roles.GetByNameAsync(roleName, cancellationToken);
@@ -54,7 +58,9 @@ public sealed class RegisterAccountWorkflow(
             throw new AppException(
                 AppErrorKind.NotFound,
                 roleErrorCode,
-                $"Required role '{roleName}' was not found.");
+                $"Required role '{roleName}' was not found.",
+                [new AppErrorDetail("role", ErrorDetailReasons.NotFound,
+                    $"The required role '{roleName}' is not configured.")]);
         }
         
         var user = User.Create(
@@ -89,14 +95,18 @@ public sealed class RegisterAccountWorkflow(
                 throw new AppException(
                     AppErrorKind.Conflict,
                     AuthErrorCodes.EmailAlreadyExists,
-                    "Email already exists.");
+                    "Email already exists.",
+                    [new AppErrorDetail("email", ErrorDetailReasons.AlreadyExists,
+                        "This email address is already associated with an account.")]);
             }
             
             if (string.Equals(constraintName, "ix_users_phone", StringComparison.OrdinalIgnoreCase)) {
                 throw new AppException(
                     AppErrorKind.Conflict,
                     AuthErrorCodes.PhoneAlreadyExists,
-                    "Phone number already exists.");
+                    "Phone number already exists.",
+                    [new AppErrorDetail("phone", ErrorDetailReasons.AlreadyExists,
+                        "This phone number is already associated with an account.")]);
             }
             
             // Nếu là unique constraint khác không dự đoán được, throw lại lỗi gốc

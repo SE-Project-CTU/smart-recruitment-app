@@ -10,7 +10,7 @@ public sealed record CvContentDocument {
 
 public sealed record CvDocumentMetadata {
     public string Version { get; init; } = "1.0";
-    public string TemplateId { get; init; } = string.Empty;
+    public string TemplateCode { get; init; } = string.Empty;
     public CvLanguage Language { get; init; } = CvLanguage.Vietnamese;
     public DateTimeOffset UpdatedAt { get; init; }
 }

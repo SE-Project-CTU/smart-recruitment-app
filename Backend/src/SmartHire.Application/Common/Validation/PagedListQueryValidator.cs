@@ -19,7 +19,9 @@ public static class PagedListQueryValidator
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.InvalidPageNumber,
-                "Page must be greater than or equal to 0.");
+                "Page must be greater than or equal to 0.",
+                [new AppErrorDetail("page", ValidationReasons.InvalidFormat,
+                    "Page must be greater than or equal to 0.")]);
         }
 
         return page;
@@ -32,7 +34,9 @@ public static class PagedListQueryValidator
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.InvalidPageSize,
-                $"Page size must be between 1 and {MaximumPageSize}.");
+                $"Page size must be between 1 and {MaximumPageSize}.",
+                [new AppErrorDetail("pageSize", ValidationReasons.InvalidFormat,
+                    $"Page size must be between 1 and {MaximumPageSize}.")]);
         }
 
         return pageSize;
@@ -51,7 +55,9 @@ public static class PagedListQueryValidator
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.InvalidSearchQuery,
-                $"Search must not exceed {MaximumSearchLength} characters.");
+                $"Search must not exceed {MaximumSearchLength} characters.",
+                [new AppErrorDetail("search", ValidationReasons.MaxLength,
+                    $"Search must not exceed {MaximumSearchLength} characters.")]);
         }
 
         return normalizedSearch;
@@ -65,7 +71,9 @@ public static class PagedListQueryValidator
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.InvalidPageNumber,
-                "Page is too large.");
+                "Page is too large.",
+                [new AppErrorDetail("page", ValidationReasons.InvalidFormat,
+                    "The requested page exceeds the supported range.")]);
         }
 
         return (int)skip;

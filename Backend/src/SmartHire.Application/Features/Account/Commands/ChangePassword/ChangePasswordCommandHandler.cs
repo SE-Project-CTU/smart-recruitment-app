@@ -38,7 +38,9 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+                "The access token does not contain a valid user id.",
+                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+                    "A valid user id claim is required.")]);
         }
 
         var passwords = ChangePasswordValidator.ValidateAndNormalize(
@@ -54,7 +56,9 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
                     throw new AppException(
                         AppErrorKind.NotFound,
                         AuthErrorCodes.CurrentAccountNotFound,
-                        "The account was not found.");
+                        "The account was not found.",
+                        [new AppErrorDetail("account", ErrorDetailReasons.NotFound,
+                            "The current account could not be found.")]);
                 }
 
                 if (user.Status != UserStatus.Active)
@@ -62,7 +66,9 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
                     throw new AppException(
                         AppErrorKind.Forbidden,
                         AuthErrorCodes.AccountNotAllowed,
-                        "This account is not allowed to change its password.");
+                        "This account is not allowed to change its password.",
+                        [new AppErrorDetail("account.status", ValidationReasons.NotAllowed,
+                            "The account is not active.")]);
                 }
 
                 if (!_passwordHasher.Verify(passwords.CurrentPassword, user.PasswordHash))
@@ -70,7 +76,9 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
                     throw new AppException(
                         AppErrorKind.Unauthorized,
                         AuthErrorCodes.CurrentPasswordInvalid,
-                        "Current password is incorrect.");
+                        "Current password is incorrect.",
+                        [new AppErrorDetail("currentPassword", ErrorDetailReasons.InvalidCredentials,
+                            "Current password is incorrect.")]);
                 }
 
                 if (_passwordHasher.Verify(passwords.NewPassword, user.PasswordHash))

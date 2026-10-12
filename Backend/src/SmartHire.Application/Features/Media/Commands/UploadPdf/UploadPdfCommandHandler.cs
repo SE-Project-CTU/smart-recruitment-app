@@ -37,7 +37,9 @@ public sealed class UploadPdfCommandHandler
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+                "The access token does not contain a valid user id.",
+                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+                    "A valid user id claim is required.")]);
         }
 
         // Validate type
@@ -93,11 +95,13 @@ public sealed class UploadPdfCommandHandler
                 AllowedPdfMimeType,
                 folder: "documents",
                 cancellationToken);
-        } catch (Exception ex) {
+        } catch (Exception) {
             throw new AppException(
                 AppErrorKind.BadRequest,
                 MediaErrorCodes.MediaFileStorageError,
-                "Failed to upload PDF to storage. " + ex.Message);
+                "Failed to upload PDF to storage.",
+                [new AppErrorDetail("file", ErrorDetailReasons.StorageError,
+                    "The storage provider could not store the PDF.")]);
         }
 
         var mediaFile = MediaFile.Create(

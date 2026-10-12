@@ -27,7 +27,11 @@ public sealed class GetCvTemplateByIdQueryHandler
             throw new AppException(
                 AppErrorKind.NotFound,
                 CvTemplateErrorCodes.TemplateNotFound,
-                "CV template was not found.");
+                "CV template was not found.",
+                [new AppErrorDetail(
+                    "id",
+                    ErrorDetailReasons.NotFound,
+                    "The requested active CV template does not exist.")]);
         }
         
         return new CvTemplateResult(

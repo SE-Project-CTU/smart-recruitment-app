@@ -1,11 +1,9 @@
 ﻿using MediatR;
-using Microsoft.IdentityModel.Tokens.Experimental;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
-using SmartHire.Application.Features.Auth.RegisterAccount;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -43,7 +41,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
             request.Password,
             validationDetails,
             minimumLength: null);
-
+        
         if (validationDetails.Count > 0) {
             throw new AppException(
                 AppErrorKind.Validation,
@@ -51,14 +49,23 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
                 "Request contains invalid fields.",
                 validationDetails);
         }
-
+        
         var user = await _userRepository.GetByEmailWithRolesAsync(email!, cancellationToken);
         
         if (user is null || !_passwordHasher.Verify(password!, user.PasswordHash)) {
+            List<AppErrorDetail> details = new() {
+                new AppErrorDetail(
+                    "credentials",
+                    ErrorDetailReasons.InvalidCredentials,
+                    "Email or password is incorrect."
+                )
+            };
+            
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidCredentials,
-                "Email or Password does not match"
+                "Email or password is incorrect.",
+                details
             );
         }
         
@@ -66,7 +73,11 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.AccountNotAllowed,
-                "Account is not allowed to log in"
+                "This account is not allowed to sign in.",
+                [new AppErrorDetail(
+                    "account.status",
+                    ValidationReasons.NotAllowed,
+                    "The account is not active.")]
             );
         }
         

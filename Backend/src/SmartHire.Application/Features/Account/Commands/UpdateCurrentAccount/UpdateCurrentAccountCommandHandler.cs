@@ -28,7 +28,9 @@ public sealed class UpdateCurrentAccountCommandHandler
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+                "The access token does not contain a valid user id.",
+                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+                    "A valid user id claim is required.")]);
         }
         
         var update = UpdateCurrentAccountValidator.ValidateAndNormalize(request);
@@ -41,7 +43,9 @@ public sealed class UpdateCurrentAccountCommandHandler
             throw new AppException(
                 AppErrorKind.NotFound,
                 AuthErrorCodes.CurrentAccountNotFound,
-                "The account was not found.");
+                "The account was not found.",
+                [new AppErrorDetail("account", ErrorDetailReasons.NotFound,
+                    "The current account could not be found.")]);
         }
         
         if (update.PhoneProvided &&
@@ -54,7 +58,9 @@ public sealed class UpdateCurrentAccountCommandHandler
             throw new AppException(
                 AppErrorKind.Conflict,
                 AuthErrorCodes.PhoneAlreadyExists,
-                "Phone number already exists.");
+                "Phone number already exists.",
+                [new AppErrorDetail("phone", ErrorDetailReasons.AlreadyExists,
+                    "This phone number is already associated with another account.")]);
         }
         
         if (request.AvatarFileIdProvided &&
@@ -67,14 +73,18 @@ public sealed class UpdateCurrentAccountCommandHandler
                 throw new AppException(
                     AppErrorKind.NotFound,
                     AuthErrorCodes.AvatarFileNotFound,
-                    "Avatar file was not found.");
+                    "Avatar file was not found.",
+                    [new AppErrorDetail("avatarFileId", ErrorDetailReasons.NotFound,
+                        "The specified avatar file could not be found.")]);
             }
             
             if (avatarFile.OwnerId != userId) {
                 throw new AppException(
                     AppErrorKind.Forbidden,
                     AuthErrorCodes.AvatarFileNotOwned,
-                    "Avatar file does not belong to the current user.");
+                    "Avatar file does not belong to the current user.",
+                    [new AppErrorDetail("avatarFileId", ValidationReasons.NotAllowed,
+                        "The avatar file must belong to the current user.")]);
             }
             
             if (!avatarFile.FileType.StartsWith(
@@ -115,7 +125,9 @@ public sealed class UpdateCurrentAccountCommandHandler
             throw new AppException(
                 AppErrorKind.NotFound,
                 AuthErrorCodes.CurrentAccountNotFound,
-                "The account was not found.");
+                "The account was not found.",
+                [new AppErrorDetail("account", ErrorDetailReasons.NotFound,
+                    "The updated account could not be loaded.")]);
         }
         
         return new UpdateCurrentAccountResult(

@@ -40,7 +40,13 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+                "The access token does not contain a valid user id.",
+                [
+                    new AppErrorDetail(
+                        "userId",
+                        ValidationReasons.InvalidFormat,
+                        "A valid user identifier could not be read from the access token.")
+                ]);
         }
         
         var validatedRequest = CreateCvCommandValidator.Validate(request, candidateId);
@@ -53,39 +59,46 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
             throw new AppException(
                 AppErrorKind.Forbidden,
                 CvErrorCodes.CandidateRoleRequired,
-                "Only Candidate users can create a CV.");
-        }
-        
-        var template = await _cvTemplateRepository.GetByIdAsync(
-            validatedRequest.TemplateId,
-            tracking: false,
-            cancellationToken);
-        
-        if (template is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CvTemplateErrorCodes.TemplateNotFound,
-                "CV template was not found.");
-        }
-        
-        if (!template.IsActive) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CvTemplateErrorCodes.TemplateInactive,
-                "CV template is no longer active.");
+                "Only Candidate users can create a CV.",
+                [
+                    new AppErrorDetail(
+                        "role",
+                        ValidationReasons.NotAllowed,
+                        "The current user must have the Candidate role to create a CV.")
+                ]);
         }
         
         return await _unitOfWork.ExecuteInTransactionAsync(
             async transactionToken => {
-                var cvTemplate =
-                    await _cvTemplateRepository.GetActiveByIdAsync(validatedRequest.TemplateId, transactionToken);
+                var cvTemplate = await _cvTemplateRepository.GetByIdAsync(
+                    validatedRequest.TemplateId,
+                    tracking: false,
+                    transactionToken);
                 
                 if (cvTemplate is null) {
                     throw new AppException(
                         AppErrorKind.NotFound,
                         CvTemplateErrorCodes.TemplateNotFound,
-                        "CV template was not found."
-                    );
+                        "CV template was not found.",
+                        [
+                            new AppErrorDetail(
+                                "templateId",
+                                ErrorDetailReasons.NotFound,
+                                "The selected CV template does not exist.")
+                        ]);
+                }
+                
+                if (!cvTemplate.IsActive) {
+                    throw new AppException(
+                        AppErrorKind.Conflict,
+                        CvTemplateErrorCodes.TemplateInactive,
+                        "CV template is no longer active.",
+                        [
+                            new AppErrorDetail(
+                                "templateId",
+                                ErrorDetailReasons.Inactive,
+                                "The selected CV template is inactive and cannot be used.")
+                        ]);
                 }
                 
                 var now = DateTimeOffset.UtcNow;

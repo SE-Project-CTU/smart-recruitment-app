@@ -33,7 +33,9 @@ public sealed class DeleteMediaFileCommandHandler
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+                "The access token does not contain a valid user id.",
+                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+                    "A valid user id claim is required.")]);
         }
 
         var mediaFile = await _mediaFileRepository.GetByIdAsync(
@@ -44,7 +46,9 @@ public sealed class DeleteMediaFileCommandHandler
             throw new AppException(
                 AppErrorKind.NotFound,
                 MediaErrorCodes.MediaFileNotFound,
-                "Media file was not found.");
+                "Media file was not found.",
+                [new AppErrorDetail("fileId", ErrorDetailReasons.NotFound,
+                    "The specified media file could not be found.")]);
         }
 
         // Kiểm tra quyền sở hữu
@@ -56,17 +60,21 @@ public sealed class DeleteMediaFileCommandHandler
             throw new AppException(
                 AppErrorKind.Forbidden,
                 MediaErrorCodes.MediaFileForbidden,
-                "You do not have permission to delete this file.");
+                "You do not have permission to delete this file.",
+                [new AppErrorDetail("fileId", ValidationReasons.NotAllowed,
+                    "The current account does not own this media file.")]);
         }
 
         // Xóa trên Cloudinary trước
         try {
             await _storageService.DeleteAsync(mediaFile.PublicId, cancellationToken);
-        } catch (Exception ex) {
+        } catch (Exception) {
             throw new AppException(
                 AppErrorKind.BadRequest,
                 MediaErrorCodes.MediaFileDeleteStorageError,
-                "Failed to delete file from storage. " + ex.Message);
+                "Failed to delete file from storage.",
+                [new AppErrorDetail("file", ErrorDetailReasons.StorageError,
+                    "The storage provider could not delete the file.")]);
         }
 
         _mediaFileRepository.Delete(mediaFile);

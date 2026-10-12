@@ -21,6 +21,7 @@ public static class CvJsonSerializer
         options.Converters.Add(new CvLanguageJsonConverter());
         options.Converters.Add(new CvFieldStyleJsonConverter());
         options.Converters.Add(new CvContentDocumentJsonConverter());
+        options.Converters.Add(new CvPresentationMetadataJsonConverter());
         return options;
     }
 }

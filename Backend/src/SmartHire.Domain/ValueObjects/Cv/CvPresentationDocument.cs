@@ -7,7 +7,7 @@ public sealed record CvPresentationDocument {
 
 public sealed record CvPresentationMetadata {
     public string Version { get; init; } = "1.0";
-    public string TemplateId { get; init; } = string.Empty;
+    public string TemplateCode { get; init; } = string.Empty;
     public DateTimeOffset UpdatedAt { get; init; }
 }
 
