@@ -45,7 +45,7 @@ export function SlidingLogoMarquee({
   scale = 1,
   direction = "horizontal",
   autoPlay = true,
-  backgroundColor = '!transparent',
+  backgroundColor = "!transparent",
   showGridBackground = false,
   className,
   onItemClick,
@@ -55,9 +55,6 @@ export function SlidingLogoMarquee({
 }: SlidingLogoMarqueeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
-
-  // CORE FIX: Duplicating the items for a seamless loop
-  // const duplicatedItems = useMemo(() => [...items, ...items], [items]);
 
   const handleItemClick = (item: SlidingLogoMarqueeItem) => {
     if (item.href) {
@@ -71,18 +68,26 @@ export function SlidingLogoMarquee({
   };
 
   const blurDivs = Array.from({ length: animationSteps }, (_, index) => (
-    <div key={index} style={{ "--index": index } as React.CSSProperties} className="absolute inset-0 z-[var(--index)]" />
+    <div
+      key={index}
+      style={{ "--index": index } as React.CSSProperties}
+      className="absolute inset-0 z-[var(--index)]"
+    />
   ));
 
-  const itemRenderer = (item: SlidingLogoMarqueeItem, index: number, isDuplicate: boolean) => (
+  const itemRenderer = (
+    item: SlidingLogoMarqueeItem,
+    index: number,
+    isDuplicate: boolean,
+  ) => (
     <li
       // Use original ID plus index/flag for unique keys
-      key={`${item.id}-${index}-${isDuplicate ? 'dup' : 'orig'}`}
+      key={`${item.id}-${index}-${isDuplicate ? "dup" : "orig"}`}
       className={cn(
         "sliding-marquee-item text-foreground",
-        "grid place-items-center cursor-pointer transition-transform duration-200 ease-in-out",
-        "hover:scale-[1.05] focus:scale-[1.05] focus:outline-none focus:ring-2 focus:ring-primary",
-        " backdrop-blur-sm",
+        "grid cursor-pointer place-items-center transition-transform duration-200 ease-in-out",
+        "hover:scale-[1.05] focus:scale-[1.05] focus:outline-none",
+        "backdrop-blur-sm",
       )}
       onClick={() => handleItemClick(item)}
       role="button"
@@ -215,9 +220,8 @@ export function SlidingLogoMarquee({
         onMouseLeave={() => pauseOnHover && setIsPlaying(true)}
       >
         {showGridBackground && (
-          <div className="absolute inset-0 pointer-events-none opacity-5">
-            <div className="h-full w-full bg-[radial-gradient(#4b5563_1px,transparent_1px)]
-             [background-size:16px_16px]"/>
+          <div className="pointer-events-none absolute inset-0 opacity-5">
+            <div className="h-full w-full bg-[radial-gradient(#4b5563_1px,transparent_1px)] [background-size:16px_16px]" />
           </div>
         )}
 
@@ -236,7 +240,10 @@ export function SlidingLogoMarquee({
             )}
 
             {/* Rendered Items: Original Set + Duplicate Set */}
-            <ul className="sliding-marquee-list text-foreground" aria-hidden={false}>
+            <ul
+              className="sliding-marquee-list text-foreground"
+              aria-hidden={false}
+            >
               {items.map((item, index) => itemRenderer(item, index, false))}
 
               {/* Duplicate is key to the seamless loop */}
@@ -255,14 +262,18 @@ export function SlidingLogoMarquee({
           <button
             onClick={togglePlayState}
             className={cn(
-              "absolute top-1/2 right-2 transform -translate-y-1/2 z-10 p-2 text-xs",
+              "absolute top-1/2 right-2 z-10 -translate-y-1/2 transform p-2 text-xs",
               "bg-gray-800/50 text-white",
-              "rounded-full hover:bg-gray-700/70 transition-colors",
-              "focus:outline-none focus:ring-2 focus:ring-primary"
+              "rounded-full transition-colors hover:bg-gray-700/70",
+              "focus:ring-2 focus:ring-primary focus:outline-none",
             )}
             aria-label={isPlaying ? "Pause animation" : "Play animation"}
           >
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {isPlaying ? (
+              <Pause className="h-4 w-4" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
           </button>
         )}
       </div>
