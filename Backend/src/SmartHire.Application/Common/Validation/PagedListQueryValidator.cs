@@ -1,13 +1,13 @@
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 
-namespace SmartHire.Application.Features.Cv.Validation;
+namespace SmartHire.Application.Common.Validation;
 
 /// <summary>
-/// Shared query-parameter rules for paginated CV and CV-template endpoints.
-/// Endpoint-specific validators should call these methods and add their own rules.
+/// Shared validation and normalization rules for paginated list queries.
+/// Feature-specific query validators should call these methods and add their own rules.
 /// </summary>
-public static class CvQueryValidator
+public static class PagedListQueryValidator
 {
     public const int MaximumPageSize = 100;
     public const int MaximumSearchLength = 100;

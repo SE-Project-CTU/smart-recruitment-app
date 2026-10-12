@@ -38,6 +38,7 @@ public static class DependencyInjection {
         
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
@@ -49,6 +50,8 @@ public static class DependencyInjection {
         services.AddScoped<IMediaFileRepository, MediaFileRepository>();
         
         services.AddScoped<ICvTemplateRepository, CvTemplateRepository>();
+        services.AddScoped<ICvRepository, CvRepository>();
+        services.AddScoped<ICvVersionRepository, CvVersionRepository>();
         
         // --- Cloudinary ---
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
