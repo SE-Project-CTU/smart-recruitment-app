@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 export interface TextParticleAnimationProps {
   text: string;
@@ -64,7 +64,8 @@ export function TextParticleAnimation({
 
     // Respect the height prop if specified, otherwise use calculated height
     canvas.width = textWidth + padding * 2;
-    canvas.height = typeof height === "number" ? height : textHeight + padding * 2;
+    canvas.height =
+      typeof height === "number" ? height : textHeight + padding * 2;
 
     ctx.font = fontStr;
     ctx.textAlign = "center";
