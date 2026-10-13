@@ -27,6 +27,10 @@ public class CvConfiguration : IEntityTypeConfiguration<Cv> {
         
         builder.Property(x => x.Language)
             .HasCvLanguageCodeConversion();
+
+        builder.Property(x => x.DeletedAt);
+        builder.Property(x => x.UpdatedAt)
+            .IsConcurrencyToken();
         
         builder.HasOne(x => x.Candidate)
             .WithMany(x => x.Cvs)

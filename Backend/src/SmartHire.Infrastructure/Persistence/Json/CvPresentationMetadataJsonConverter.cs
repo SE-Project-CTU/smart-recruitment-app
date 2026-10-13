@@ -15,10 +15,8 @@ public sealed class CvPresentationMetadataJsonConverter
         
         return new CvPresentationMetadata {
             Version = ReadString(root, "version") ?? "1.0",
-            TemplateCode =
-                ReadString(root, "template_code")
-                ?? string.Empty,
-            UpdatedAt = ReadDateTimeOffset(root, "updated_at")
+            TemplateCode = ReadString(root, "templateCode", "template_code") ?? string.Empty,
+            UpdatedAt = ReadDateTimeOffset(root, "updatedAt", "updated_at")
         };
     }
     
@@ -28,20 +26,30 @@ public sealed class CvPresentationMetadataJsonConverter
         JsonSerializerOptions options) {
         writer.WriteStartObject();
         writer.WriteString("version", value.Version);
-        writer.WriteString("template_code", value.TemplateCode);
-        writer.WriteString("updated_at", value.UpdatedAt);
+        writer.WriteString("templateCode", value.TemplateCode);
+        writer.WriteString("updatedAt", value.UpdatedAt);
         writer.WriteEndObject();
     }
     
-    private static string? ReadString(JsonElement root, string propertyName) =>
-        root.TryGetProperty(propertyName, out var property)
-            ? property.GetString()
-            : null;
+    private static string? ReadString(JsonElement root, params string[] propertyNames) {
+        foreach (var propertyName in propertyNames) {
+            if (root.TryGetProperty(propertyName, out var property)) {
+                return property.GetString();
+            }
+        }
+
+        return null;
+    }
     
     private static DateTimeOffset ReadDateTimeOffset(
         JsonElement root,
-        string propertyName) =>
-        root.TryGetProperty(propertyName, out var property)
-            ? property.GetDateTimeOffset()
-            : default;
+        string camelCaseName,
+        string snakeCaseName) {
+        if (root.TryGetProperty(camelCaseName, out var property) ||
+            root.TryGetProperty(snakeCaseName, out property)) {
+            return property.GetDateTimeOffset();
+        }
+
+        return default;
+    }
 }

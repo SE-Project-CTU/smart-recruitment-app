@@ -22,11 +22,19 @@ public sealed class CvRepository : ICvRepository {
     public async Task<Cv?> GetCvByIdAsync(Guid cvId, CancellationToken cancellationToken) {
         return await _dbContext.Cvs
             .AsNoTracking()
-            .Where(cv => cv.Id == cvId)
+            .Where(cv => cv.Id == cvId && cv.DeletedAt == null)
             .Include(cv => cv.Template)
             .SingleOrDefaultAsync(cancellationToken);
     }
-    
+
+    public Task<Cv?> GetForUpdateByIdAsync(Guid cvId, CancellationToken cancellationToken) {
+        return _dbContext.Cvs
+            .Include(cv => cv.Template)
+            .SingleOrDefaultAsync(
+                cv => cv.Id == cvId && cv.DeletedAt == null,
+                cancellationToken);
+    }
+
     public Task<int> CountMineAsync(
         Guid candidateId,
         bool? isPublic,
@@ -69,7 +77,7 @@ public sealed class CvRepository : ICvRepository {
         CvLanguage? language) {
         var query = _dbContext.Cvs
             .AsNoTracking()
-            .Where(cv => cv.CandidateId == candidateId);
+            .Where(cv => cv.CandidateId == candidateId && cv.DeletedAt == null);
         
         if (isPublic is not null) {
             query = query.Where(cv => cv.IsPublic == isPublic);

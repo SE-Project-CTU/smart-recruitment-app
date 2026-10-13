@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Domain.ValueObjects.Cv;
@@ -16,6 +17,7 @@ public sealed record CvDocumentMetadata {
 }
 
 public sealed record CvProfile {
+    [Required]
     public string FullName { get; init; } = string.Empty;
     public string Title { get; init; } = string.Empty;
     public string AvatarUrl { get; init; } = string.Empty;

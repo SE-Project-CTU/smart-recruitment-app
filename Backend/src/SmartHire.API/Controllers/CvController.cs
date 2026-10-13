@@ -5,7 +5,9 @@ using SmartHire.Api.Contracts.Requests;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
-using SmartHire.Application.Features.Cv.Queries.GetCvDetaill;
+using SmartHire.Application.Features.Cv.Commands.DeleteCv;
+using SmartHire.Application.Features.Cv.Commands.UpdateCv;
+using SmartHire.Application.Features.Cv.Queries.GetCvDetail;
 using SmartHire.Application.Features.Cv.Queries.GetMyCvs;
 
 namespace SmartHire.Api.Controllers;
@@ -57,6 +59,7 @@ public sealed class CvController : ControllerBase {
     }
     
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCvDetail(
         Guid id,
         CancellationToken cancellationToken
@@ -66,5 +69,41 @@ public sealed class CvController : ControllerBase {
             cancellationToken);
         
         return Ok(_responseFactory.Success(result));
+    }
+    
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> UpdateCv(
+        Guid id,
+        [FromBody] UpdateCvRequest request,
+        CancellationToken cancellationToken
+    ) {
+        var command = new UpdateCvCommand(
+            id,
+            request.TitleProvided,
+            request.Title,
+            request.ContentProvided,
+            request.Content,
+            request.LayoutProvided,
+            request.Layout,
+            request.PresentationProvided,
+            request.Presentation,
+            request.LanguageProvided,
+            request.Language,
+            request.IsPublic,
+            request.IsPublicProvided,
+            request.AdditionalFields?.Keys.ToArray() ?? Array.Empty<string>()
+        );
+        
+        var result = await _sender.Send(command, cancellationToken);
+        return Ok(_responseFactory.Success(result));
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCv(
+        Guid id,
+        CancellationToken cancellationToken
+    ) {
+        await _sender.Send(new DeleteCvCommand(id), cancellationToken);
+        return NoContent();
     }
 }

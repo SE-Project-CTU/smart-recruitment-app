@@ -29,7 +29,12 @@ public class EfUnitOfWork : IUnitOfWork {
         }
     }
     
-    public Task SaveChangesAsync(CancellationToken cancellationToken) {
-        return _dbContext.SaveChangesAsync(cancellationToken);
+    public async Task SaveChangesAsync(CancellationToken cancellationToken) {
+        try {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException exception) {
+            throw new SmartHire.Application.Common.Exceptions.OptimisticConcurrencyException(exception);
+        }
     }
 }

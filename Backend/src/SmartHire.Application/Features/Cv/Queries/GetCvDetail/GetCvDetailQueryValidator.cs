@@ -1,6 +1,5 @@
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
-using SmartHire.Application.Features.Cv.Queries.GetCvDetaill;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvDetail;
 

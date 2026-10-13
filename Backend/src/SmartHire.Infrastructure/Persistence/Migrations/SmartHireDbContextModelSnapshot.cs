@@ -365,6 +365,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("content");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -400,6 +404,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("title");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 

@@ -20,6 +20,7 @@ public class Cv {
     
     public CvLanguage Language { get; private set; }
     public bool IsPublic { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
     
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -67,21 +68,37 @@ public class Cv {
     }
 
     public void Update(
+        CvTemplate template,
         string title,
         CvContentDocument content,
         CvLayoutDocument layout,
         CvPresentationDocument presentation,
         CvLanguage language,
         DateTimeOffset now) {
+        ArgumentNullException.ThrowIfNull(template);
+        ThrowIfInvalid(CvValidator.ValidateIdentity(CandidateId, template.Id));
         ThrowIfInvalid(CvValidator.ValidateTitle(title));
         ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout, presentation));
         ThrowIfInvalid(CvValidator.ValidateLanguage(language));
 
+        Template = template;
+        TemplateId = template.Id;
         Title = CvValidator.NormalizeTitle(title);
         Content = content;
         Layout = layout;
         Presentation = presentation;
         Language = language;
+        UpdatedAt = now;
+    }
+
+    public void Archive(DateTimeOffset now)
+    {
+        if (DeletedAt is not null)
+        {
+            return;
+        }
+
+        DeletedAt = now;
         UpdatedAt = now;
     }
 

@@ -8,4 +8,5 @@ public static class ErrorDetailReasons
     public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string Expired = "EXPIRED";
     public const string StorageError = "STORAGE_ERROR";
+    public const string ConcurrentModification = "CONCURRENT_MODIFICATION";
 }

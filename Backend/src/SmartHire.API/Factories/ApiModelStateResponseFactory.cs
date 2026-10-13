@@ -126,7 +126,7 @@ public static class ApiModelStateResponseFactory
     }
 
     private static string GetStringLengthReason(string? value, StringLengthAttribute attribute) =>
-        value is not null && value.Trim().Length < attribute.MinimumLength
+        value is null || value.Trim().Length < attribute.MinimumLength
             ? ValidationReasons.MinLength
             : ValidationReasons.MaxLength;
 

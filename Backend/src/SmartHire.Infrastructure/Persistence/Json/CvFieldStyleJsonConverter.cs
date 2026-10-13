@@ -5,8 +5,7 @@ using SmartHire.Domain.ValueObjects.Cv;
 namespace SmartHire.Infrastructure.Persistence.Json;
 
 /// <summary>
-/// Reads both the canonical camelCase style keys and legacy snake_case keys.
-/// Writes only camelCase so persisted JSON and API responses use one format.
+/// Reads both camelCase and snake_case style keys, and writes camelCase.
 /// </summary>
 public sealed class CvFieldStyleJsonConverter : JsonConverter<CvFieldStyle> {
     public override CvFieldStyle Read(
