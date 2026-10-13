@@ -14,37 +14,51 @@ import {
   UserRound,
   UserRoundGroup,
 } from "lucide-react";
+import { PATHS } from "./paths";
 
 export const candidateSidebarData = {
   //tổng quan
   mainNav: [
     {
       title: "Trang chủ",
-      url: "#",
+      url: PATHS.CANDIDATE.DASHBOARD,
       icon: Home,
       isActive: true,
       items: [],
     },
     {
       title: "Việc làm phù hợp",
-      url: "#",
+      url: PATHS.CANDIDATE.MATCHED_JOBS,
       icon: LayoutList,
       items: [],
     },
   ],
   //hồ sơ của tui
   myProfile: [
-    { title: "Quản lý CV", url: "#", icon: FileText },
-    { title: "Trạng thái hồ sơ", url: "#", icon: FileChartLine },
+    { title: "Quản lý CV", url: PATHS.CANDIDATE.CV_MANAGEMENT, icon: FileText },
+    {
+      title: "Trạng thái hồ sơ",
+      url: PATHS.CANDIDATE.APPLICATION_STATUS,
+      icon: FileChartLine,
+    },
   ],
   //cá nhân
   personal: [
-    { title: "Việc làm đã lưu", url: "#", icon: Bookmark },
-    { title: "Công ty đã lưu", url: "#", icon: BuildingComplex },
+    {
+      title: "Mục đã lưu",
+      url: PATHS.CANDIDATE.BOOKMARKS,
+      icon: Bookmark,
+    },
     { title: "Đánh giá", url: "#", icon: Star },
   ],
   //footer
-  footer: [{ title: "Trợ giúp", url: "", icon: CircleQuestionMark }],
+  footer: [
+    {
+      title: "Trợ giúp",
+      url: PATHS.CANDIDATE.SETTINGS,
+      icon: CircleQuestionMark,
+    },
+  ],
 };
 
 export const recruiterSidebarData = {
@@ -52,7 +66,7 @@ export const recruiterSidebarData = {
   recruitment: [
     {
       title: "Tổng quan",
-      url: "#",
+      url: PATHS.RECRUITER.DASHBOARD,
       icon: Home,
       isActive: true,
       items: [],
@@ -94,22 +108,22 @@ export const recruiterSidebarData = {
 
   //footer
   footer: [
-    { title: "Nâng cấp gói", url: "", icon: ChevronsUp },
-    { title: "Trợ giúp", url: "", icon: CircleQuestionMark },
+    { title: "Nâng cấp gói", url: "#", icon: ChevronsUp },
+    { title: "Trợ giúp", url: "#", icon: CircleQuestionMark },
   ],
 };
 
 export const adminSidebarData = {
   //quản trị hệ thống
   mainNav: [
-    { title: "Tổng quan", url: "#", icon: Home },
+    { title: "Tổng quan", url: PATHS.ADMIN.DASHBOARD, icon: Home },
     {
       title: "Kiểm duyệt",
       url: "#",
       icon: ListCheck,
       items: [
-        { title: "Doanh nghiệp", url: "#" },
-        { title: "Tin tuyển dụng", url: "#" },
+        { title: "Doanh nghiệp", url: PATHS.ADMIN.APPROVE_COMPANY },
+        { title: "Tin tuyển dụng", url: PATHS.ADMIN.APPROVE_JD },
       ],
     },
     {

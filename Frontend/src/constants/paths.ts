@@ -19,7 +19,9 @@ export const PATHS = {
   },
 
   ADMIN: {
-    DASHBOARD: "admin/dashboard",
+    DASHBOARD: "/admin/dashboard",
+    APPROVE_COMPANY: "/admin/aprove/company",
+    APPROVE_JD: "/admin/aprove/jd",
   },
 
   // other
