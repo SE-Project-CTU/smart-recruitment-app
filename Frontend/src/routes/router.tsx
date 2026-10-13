@@ -4,27 +4,41 @@ import Page from "@/components/Page.tsx";
 import { SignUp, SignIn, LandingPage, NotFound } from "@/pages";
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { PATHS } from "@/constants/paths";
+import DashboardLayout from "@/layouts/DashboardLayout";
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: PATHS.HOME,
     element: <BaseLayout />,
     children: [{ index: true, element: <LandingPage /> }],
   },
   {
-    element: <PublicOnlyRoute redirectTo="/" />,
+    element: <PublicOnlyRoute redirectTo={PATHS.HOME} />,
     children: [
-      { path: "/sign-in", element: <SignIn /> },
-      { path: "/sign-up", element: <SignUp /> },
+      { path: PATHS.SIGN_IN, element: <SignIn /> },
+      { path: PATHS.SIGN_UP, element: <SignUp /> },
     ],
   },
   {
     element: <ProtectedRoute />,
     children: [
-      { path: "/create-cv", element: <Page title="you hit CV creator" /> },
+      {
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: PATHS.CANDIDATE.DASHBOARD,
+            element: <Page title="this is CANDIDATE dashaboard" />,
+          },
+        ],
+      },
+      {
+        path: PATHS.CREATE_CV,
+        element: <Page title="you hit CV creator" />,
+      },
     ],
   },
-  { path: "*", element: <NotFound /> },
+  { path: PATHS.NOT_FOUND, element: <NotFound /> },
 ]);
 
 export default router;

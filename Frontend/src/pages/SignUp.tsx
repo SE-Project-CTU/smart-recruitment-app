@@ -20,6 +20,7 @@ import {
   useRegisterRecruiter,
 } from "@/hooks/queries/useAuth";
 import { getApiErrorMessage } from "@/api/errorHandler";
+import { PATHS } from "@/constants/paths";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -88,7 +89,7 @@ function SignUp() {
         description: "Đăng ký tài khoản thành công!",
       });
 
-      navigate("/sign-in");
+      navigate(PATHS.SIGN_IN);
     } catch (err: unknown) {
       setErrorMessage(
         getApiErrorMessage(
@@ -230,15 +231,14 @@ function SignUp() {
       )}
 
       <Button
-        htmlType="submit"
-        text={
-          role === "recruiter"
-            ? "Tạo tài khoản Nhà tuyển dụng"
-            : "Tạo tài khoản Ứng viên"
-        }
+        type="submit"
         isLoading={isLoading}
         className="mt-2 py-3.5! text-base! font-medium!"
-      />
+      >
+        {role === "recruiter"
+          ? "Tạo tài khoản Nhà tuyển dụng"
+          : "Tạo tài khoản Ứng viên"}
+      </Button>
     </form>
   );
 
@@ -246,10 +246,14 @@ function SignUp() {
     <div className="mx-auto flex min-h-screen flex-col gap-6 bg-surface p-4 font-sans md:max-w-[90%] md:p-6 xl:flex-row">
       {/* Left */}
       <div className="flex w-full flex-col gap-6 xl:w-1/2">
-        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-3 shadow-sm md:p-3 lg:px-20">
+        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-6 shadow-sm md:p-3 lg:px-20">
           <div className="mb-6 flex items-center gap-2">
-            <Link to="/">
-              <img src={SmartHire_default} alt="SmartHire Logo" />
+            <Link to={PATHS.HOME}>
+              <img
+                src={SmartHire_default}
+                alt="SmartHire Logo"
+                className="max-w-30 md:max-w-none"
+              />
             </Link>
           </div>
 
@@ -299,7 +303,7 @@ function SignUp() {
           <div className="mt-6 text-xs text-text-muted md:text-sm">
             Đã có tài khoản?{" "}
             <Link
-              to="/sign-in"
+              to={PATHS.SIGN_IN}
               className="font-bold text-text-main transition-colors hover:text-primary"
             >
               Đăng nhập ngay
