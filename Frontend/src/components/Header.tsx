@@ -1,10 +1,19 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, FileText } from "lucide-react";
 import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/hooks/queries/useAuth";
 import { PATHS } from "@/constants/paths";
+import { getLoremAvt, getDashboardPathByRole } from "@/utils/helper";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 const headerItems = [
   { title: "Việc làm", href: PATHS.HOME },
@@ -20,6 +29,8 @@ function Header() {
 
   const { user, isAuthenticated } = useAuthStore();
   const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
+
+  const dashboardPath = getDashboardPathByRole(user?.roles[0]);
 
   const handleLogout = async () => {
     try {
@@ -52,31 +63,66 @@ function Header() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2.5 rounded-full border border-border/60 bg-white/60 py-1.5 pr-4 pl-2 shadow-2xs backdrop-blur-xs">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-dark text-xs font-bold text-white shadow-xs">
-                  {user?.fullName ? (
-                    user.fullName.charAt(0).toUpperCase()
-                  ) : (
-                    <UserIcon size={16} />
-                  )}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    type="button"
+                    className="flex cursor-pointer items-center gap-2.5 rounded-full border border-border/60 bg-white/60 p-1 shadow-2xs backdrop-blur-xs transition-transform active:scale-95"
+                  >
+                    <img
+                      src={getLoremAvt(user?.fullName)}
+                      alt={user?.fullName || "User Avatar"}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="end" className="min-w-52">
+                <div className="flex flex-col px-3 py-2">
+                  <span className="text-text truncate text-sm font-bold">
+                    {user?.fullName || "Người dùng"}
+                  </span>
+                  <span className="truncate text-xs text-text-muted">
+                    {user?.email}
+                  </span>
                 </div>
-                <span className="text-text max-w-35 truncate text-sm font-semibold">
-                  {user?.fullName || user?.email || "Người dùng"}
-                </span>
-              </div>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="flex cursor-pointer items-center gap-2 rounded-full border border-red-200 bg-red-50/80 px-4 py-2 text-xs font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700 active:scale-95 disabled:opacity-50"
-                title="Đăng xuất khỏi hệ thống"
-              >
-                <LogOut size={15} />
-                {isLoggingOut ? "Đang xuất..." : "Đăng xuất"}
-              </button>
-            </div>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    onClick={() => navigate(dashboardPath)}
+                    className="cursor-pointer"
+                  >
+                    <LayoutDashboard className="size-4" />
+                    Trang quản lý
+                  </DropdownMenuItem>
+
+                  {user?.roles[0].toLowerCase() === "candidate" && (
+                    <DropdownMenuItem
+                      onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
+                      className="cursor-pointer"
+                    >
+                      <FileText className="size-4" />
+                      Quản lý CV
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="cursor-pointer"
+                >
+                  <LogOut className="size-4" />
+                  {isLoggingOut ? "Đang xuất..." : "Đăng xuất"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
               <Link to={PATHS.SIGN_IN} className="btn btn-secondary">
@@ -118,13 +164,11 @@ function Header() {
           {isAuthenticated ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3 rounded-2xl bg-white/60 p-3 shadow-2xs">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-dark font-bold text-white">
-                  {user?.fullName ? (
-                    user.fullName.charAt(0).toUpperCase()
-                  ) : (
-                    <UserIcon size={18} />
-                  )}
-                </div>
+                <img
+                  src={getLoremAvt(user?.fullName)}
+                  alt=""
+                  className="h-10 w-10 rounded-full object-cover"
+                />
                 <div className="flex min-w-0 flex-col">
                   <span className="text-text truncate text-sm font-bold">
                     {user?.fullName || "Người dùng"}
@@ -134,6 +178,15 @@ function Header() {
                   </span>
                 </div>
               </div>
+
+              <Link
+                to={dashboardPath}
+                onClick={() => setIsOpen(false)}
+                className="btn btn-primary flex w-full items-center justify-center gap-2"
+              >
+                <LayoutDashboard size={16} />
+                Trang quản lý
+              </Link>
 
               <button
                 type="button"

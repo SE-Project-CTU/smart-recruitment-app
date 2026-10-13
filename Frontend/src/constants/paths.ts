@@ -14,6 +14,14 @@ export const PATHS = {
     SETTINGS: "/candidate/settings",
   },
 
+  RECRUITER: {
+    DASHBOARD: "/recruiter/dashboard",
+  },
+
+  ADMIN: {
+    DASHBOARD: "admin/dashboard",
+  },
+
   // other
   CREATE_CV: "/create-cv",
   NOT_FOUND: "*",
