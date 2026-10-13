@@ -1,13 +1,25 @@
 import DashboardHeader from "@/components/DashboardHeader";
+import DashboardSidebar from "@/components/DashboardSidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Outlet } from "react-router-dom";
 
-const DashboardLayout = () => (
-  <div className="font-sans text-text-main">
-    <DashboardHeader />
-    <main className="bg-bg-white-blue">
-      <Outlet />
-    </main>
-  </div>
-);
+const DashboardLayout = () => {
+  return (
+    <div className="font-sans text-text-main">
+      <SidebarProvider className="flex min-h-screen flex-col">
+        <DashboardHeader />
+
+        <div className="flex flex-1">
+          <DashboardSidebar />
+          <SidebarInset className="min-h-[calc(100svh-4rem)] flex-1">
+            <div className="flex-1 p-4 md:p-6 lg:p-8">
+              <Outlet />
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </div>
+  );
+};
 
 export default DashboardLayout;
