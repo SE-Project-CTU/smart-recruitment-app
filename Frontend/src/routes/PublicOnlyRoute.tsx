@@ -1,11 +1,14 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
+import { PATHS } from "@/constants/paths";
 
 interface PublicOnlyRouteProps {
   redirectTo?: string;
 }
 
-export const PublicOnlyRoute = ({ redirectTo = "/" }: PublicOnlyRouteProps) => {
+export const PublicOnlyRoute = ({
+  redirectTo = PATHS.HOME,
+}: PublicOnlyRouteProps) => {
   const location = useLocation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 

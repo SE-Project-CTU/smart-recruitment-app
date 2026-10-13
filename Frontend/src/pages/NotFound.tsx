@@ -4,11 +4,13 @@ import Header from "@/components/Header";
 import { TextParticleAnimation } from "@/components/lightswind/text-particle-animation";
 import { MoveLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { PATHS } from "@/constants/paths";
 function NotFound() {
   const navigate = useNavigate();
   const location = useLocation();
   const from =
-    (location.state as { from?: Location | string } | null)?.from || "/";
+    (location.state as { from?: Location | string } | null)?.from ||
+    PATHS.HOME;
   return (
     <div className="relative flex h-screen flex-col items-center justify-center text-text-main">
       <HightlightSideBackground />
@@ -39,12 +41,17 @@ function NotFound() {
           </p>
           <div className="flex items-center justify-center gap-2">
             <Button
-              text="Trở lại"
               icon={MoveLeft}
-              type="secondary"
+              variant="secondary"
               onClick={() => navigate(from, { replace: true })}
-            />
-            <Button text="Trang chủ" onClick={() => navigate("/")} />
+            >
+              Trở lại
+            </Button>
+            <Button
+              onClick={() => navigate(PATHS.HOME)}
+            >
+              Trang chủ
+            </Button>
           </div>
         </div>
       </div>

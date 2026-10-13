@@ -4,13 +4,14 @@ import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/hooks/queries/useAuth";
+import { PATHS } from "@/constants/paths";
 
 const headerItems = [
-  { title: "Việc làm", href: "/" },
-  { title: "Tạo CV", href: "/create-cv" },
-  { title: "Blog nghề nghiệp", href: "/" },
-  { title: "Liên hệ", href: "/" },
-  { title: "FAQs", href: "/" },
+  { title: "Việc làm", href: PATHS.HOME },
+  { title: "Tạo CV", href: PATHS.CREATE_CV },
+  { title: "Blog nghề nghiệp", href: PATHS.HOME },
+  { title: "Liên hệ", href: PATHS.HOME },
+  { title: "FAQs", href: PATHS.HOME },
 ];
 
 function Header() {
@@ -24,7 +25,7 @@ function Header() {
     try {
       await logout(false);
       setIsOpen(false);
-      navigate("/sign-in");
+      navigate(PATHS.SIGN_IN);
     } catch (err) {
       console.error("Lỗi khi đăng xuất:", err);
     }
@@ -33,7 +34,7 @@ function Header() {
   return (
     <header className="fixed inset-x-0 top-5 z-50 mx-auto max-w-7xl px-4 transition-all duration-300">
       <div className="flex h-16 items-center justify-between rounded-full border border-border/50 bg-bg/50 px-6 shadow-lg backdrop-blur-md transition-all duration-300 lg:px-12">
-        <Link to="/" className="flex items-center">
+        <Link to={PATHS.HOME} className="flex items-center">
           <img
             src={logoSmartHire}
             alt="SmartHire Logo"
@@ -78,10 +79,10 @@ function Header() {
             </div>
           ) : (
             <>
-              <Link to="/sign-in" className="btn btn-secondary">
+              <Link to={PATHS.SIGN_IN} className="btn btn-secondary">
                 Đăng nhập
               </Link>
-              <Link to="/sign-up" className="btn btn-primary">
+              <Link to={PATHS.SIGN_UP} className="btn btn-primary">
                 Đăng ký ngay
               </Link>
             </>
@@ -147,14 +148,14 @@ function Header() {
           ) : (
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                to="/sign-in"
+                to={PATHS.SIGN_IN}
                 onClick={() => setIsOpen(false)}
                 className="btn btn-secondary w-full text-center"
               >
                 Đăng nhập
               </Link>
               <Link
-                to="/sign-up"
+                to={PATHS.SIGN_UP}
                 onClick={() => setIsOpen(false)}
                 className="btn btn-primary w-full text-center"
               >
