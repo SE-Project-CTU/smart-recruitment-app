@@ -1,20 +1,21 @@
 import { createBrowserRouter } from "react-router-dom";
-import BaseLayout from "@/layouts/BaseLayout.tsx";
-import DashboardLayout from "@/layouts/DashboardLayout.tsx";
-import Page from "@/components/Page.tsx";
-import { SignUp, SignIn, LandingPage, NotFound } from "@/pages";
-import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
-import { ProtectedRoute } from "@/routes/ProtectedRoute.tsx";
+import BaseLayout from "@/layouts/BaseLayout";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import Page from "@/components/Page";
+import { SignUp, SignIn, LandingPage } from "@/pages";
+import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
+import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { PATHS } from "@/constants/paths";
+import BadRequestPage from "@/pages/BadRequestPage";
 
 const router = createBrowserRouter([
+  // PUBLIC ROUTES
   {
     path: PATHS.HOME,
     element: <BaseLayout />,
     children: [{ index: true, element: <LandingPage /> }],
   },
 
-  // chưa đăng nhập
   {
     element: <PublicOnlyRoute redirectTo={PATHS.HOME} />,
     children: [
@@ -23,10 +24,10 @@ const router = createBrowserRouter([
     ],
   },
 
+  //CANDIDATE ROUTES
   {
-    element: <ProtectedRoute />,
+    element: <ProtectedRoute allowRoles={["candidate"]} />,
     children: [
-      // dashboard Layout Wrapper
       {
         element: <DashboardLayout />,
         children: [
@@ -48,20 +49,40 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.BOOKMARKS,
-            element: <Page title="Mục đã lưu (Việc làm & Công ty)" />,
+            element: <Page title="Mục đã lưu" />,
           },
           {
             path: PATHS.CANDIDATE.SETTINGS,
-            element: <Page title="Cài đặt tài khoản Candidate" />,
+            element: <Page title="Cài đặt tài khoản" />,
           },
+        ],
+      },
+    ],
+  },
 
-          // --- Recruiter Routes ---
+  // RECRUITER
+  {
+    element: <ProtectedRoute allowRoles={["recruiter", "hr"]} />,
+    children: [
+      {
+        element: <DashboardLayout />,
+        children: [
           {
             path: PATHS.RECRUITER.DASHBOARD,
             element: <Page title="Recruiter Dashboard Overview" />,
           },
+        ],
+      },
+    ],
+  },
 
-          // --- Admin Routes ---
+  // ADMIN ROUTES
+  {
+    element: <ProtectedRoute allowRoles={["admin", "superadmin"]} />,
+    children: [
+      {
+        element: <DashboardLayout />,
+        children: [
           {
             path: PATHS.ADMIN.DASHBOARD,
             element: <Page title="Admin Dashboard Overview" />,
@@ -72,17 +93,37 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.APPROVE_JD,
-            element: <Page title="Duyệt tin tuyển dụng (JD)" />,
+            element: <Page title="Duyệt tin tuyển dụng" />,
           },
         ],
       },
     ],
   },
+
   {
-    path: PATHS.CREATE_CV,
-    element: <Page title="Trình tạo CV (Full Screen)" />,
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: PATHS.CREATE_CV,
+        element: <Page title="Trình tạo CV (Full Screen)" />,
+      },
+    ],
   },
-  { path: PATHS.NOT_FOUND, element: <NotFound /> },
+
+  {
+    path: PATHS.FORBIDDEN,
+    element: (
+      <BadRequestPage
+        httpCode="403"
+        title="Forbidden"
+        description="Rất tiếc, bạn không có quyền truy cập vào khu vực này!"
+      />
+    ),
+  },
+  {
+    path: PATHS.NOT_FOUND,
+    element: <BadRequestPage />,
+  },
 ]);
 
 export default router;

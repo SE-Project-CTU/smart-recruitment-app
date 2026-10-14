@@ -26,5 +26,6 @@ export const PATHS = {
 
   // other
   CREATE_CV: "/create-cv",
+  FORBIDDEN: "forbidden",
   NOT_FOUND: "*",
 } as const;

@@ -184,7 +184,7 @@ function SignIn() {
               <img
                 key={item}
                 className="h-8 w-8 rounded-full border-2 border-white object-cover md:h-12 md:w-12"
-                src={`https://i.pravatar.cc/100?img=${item + 10}`}
+                src={`https://i.pravatar.cc/100?img=${item + 39}`}
                 alt="Avatar"
               />
             ))}
