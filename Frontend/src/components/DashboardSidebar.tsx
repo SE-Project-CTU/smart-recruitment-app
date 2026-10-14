@@ -158,7 +158,7 @@ export function DashboardSidebar() {
                         <SidebarMenuButton
                           onClick={() => toggleSubMenu(item.title)}
                           tooltip={item.title}
-                          className="flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                          className="flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-primary!"
                         >
                           <div className="flex items-center gap-3">
                             {item.icon && (
@@ -190,8 +190,8 @@ export function DashboardSidebar() {
                                     isActive={subActive}
                                     className={`rounded-lg px-2 py-1.5 text-xs transition-colors ${
                                       subActive
-                                        ? "bg-status-active font-semibold text-slate-900"
-                                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                                        ? "bg-status-active font-semibold text-primary!"
+                                        : "text-slate-500 hover:bg-slate-100 hover:text-primary!"
                                     }`}
                                   >
                                     {subItem.title}
@@ -213,8 +213,8 @@ export function DashboardSidebar() {
                         tooltip={item.title}
                         className={`flex items-center gap-3 rounded-xl px-3 py-5 text-sm transition-colors ${
                           active
-                            ? "bg-status-active font-semibold text-slate-900 hover:bg-[#b7e2fd]"
-                            : "font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            ? "bg-status-active! font-semibold text-primary! hover:bg-[#b7e2fd]"
+                            : "font-medium text-slate-600 hover:bg-slate-100 hover:text-primary!"
                         }`}
                       >
                         {item.icon && (
@@ -249,8 +249,8 @@ export function DashboardSidebar() {
                     tooltip={item.title}
                     className={`flex items-center gap-3 rounded-xl px-3 py-5 text-sm transition-colors ${
                       active
-                        ? "bg-status-active font-semibold text-slate-900"
-                        : "font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        ? "bg-status-active font-semibold text-primary!"
+                        : "font-medium text-slate-600 hover:bg-slate-100 hover:text-primary!"
                     }`}
                   >
                     {item.icon && (
