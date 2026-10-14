@@ -27,6 +27,16 @@ public sealed class CvRepository : ICvRepository {
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public Task<Guid?> GetCandidateIdByCvIdAsync(
+        Guid cvId,
+        CancellationToken cancellationToken) {
+        return _dbContext.Cvs
+            .AsNoTracking()
+            .Where(cv => cv.Id == cvId && cv.DeletedAt == null)
+            .Select(cv => (Guid?)cv.CandidateId)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public Task<Cv?> GetForUpdateByIdAsync(Guid cvId, CancellationToken cancellationToken) {
         return _dbContext.Cvs
             .Include(cv => cv.Template)

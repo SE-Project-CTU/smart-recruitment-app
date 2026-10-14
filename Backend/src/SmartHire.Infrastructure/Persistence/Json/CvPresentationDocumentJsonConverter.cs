@@ -65,7 +65,7 @@ public sealed class CvPresentationDocumentJsonConverter
         if (node is JsonObject jsonObject) {
             var normalizedObject = new JsonObject();
             foreach (var property in jsonObject) {
-                normalizedObject[ToCamelCase(property.Key)] =
+                normalizedObject[property.Key] =
                     NormalizePropertyNames(property.Value?.DeepClone());
             }
 

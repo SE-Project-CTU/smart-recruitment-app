@@ -11,7 +11,8 @@ public static class CreateCvCommandValidator {
         
         var issues = new List<CvValidationIssue>();
         
-        issues.AddRange(CvValidator.ValidateIdentity(candidateId, command.TemplateId));
+        issues.Add(CvValidator.ValidateCandidateId(candidateId));
+        issues.Add(CvValidator.ValidateTemplateId(command.TemplateId));
         
         var titleIssue = CvValidator.ValidateTitle(title);
         if (titleIssue is not null) {

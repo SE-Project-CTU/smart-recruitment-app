@@ -1,5 +1,6 @@
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Domain.Entities;
+using SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 using Microsoft.EntityFrameworkCore;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -25,5 +26,44 @@ public sealed class CvVersionRepository : ICvVersionRepository {
             .MaxAsync(cancellationToken);
 
         return latestVersionNumber ?? 0;
+    }
+
+    public Task<int> CountByCvIdAsync(Guid cvId, CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .CountAsync(version => version.CvId == cvId, cancellationToken);
+    }
+
+    public Task<List<CvVersionSummaryResult>> GetPageByCvIdAsync(
+        Guid cvId,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .Where(version => version.CvId == cvId)
+            .OrderByDescending(version => version.VersionNumber)
+            .ThenByDescending(version => version.CreatedAt)
+            .ThenBy(version => version.Id)
+            .Select(version => new CvVersionSummaryResult(
+                version.Id,
+                version.CvId,
+                version.VersionNumber,
+                version.Language == SmartHire.Domain.Enums.CvLanguage.Vietnamese ? "vi" : "en",
+                version.CreatedAt))
+            .Skip(skip)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<CvVersion?> GetByIdAsync(
+        Guid cvId,
+        Guid versionId,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                version => version.CvId == cvId && version.Id == versionId,
+                cancellationToken);
     }
 }

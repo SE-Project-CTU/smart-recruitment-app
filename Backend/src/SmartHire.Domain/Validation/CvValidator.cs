@@ -8,47 +8,51 @@ namespace SmartHire.Domain.Validation;
 /// </summary>
 public static class CvValidator {
     public const int MaximumTitleLength = 200;
-
+    
     public static IReadOnlyList<CvValidationIssue> ValidateCreateRequest(
         Guid candidateId,
         Guid templateId,
         string? title,
         string? languageCode) {
-        var issues = ValidateIdentity(candidateId, templateId).ToList();
-
+        var issues = new List<CvValidationIssue>();
+        issues.Add(ValidateCandidateId(candidateId));
+        issues.Add(ValidateTemplateId(templateId));
+        
         var titleIssue = ValidateTitle(title);
         if (titleIssue is not null) {
             issues.Add(titleIssue);
         }
-
+        
         var languageIssue = ValidateLanguageCode(languageCode);
         if (languageIssue is not null) {
             issues.Add(languageIssue);
         }
-
+        
         return issues;
     }
-
-    public static IReadOnlyList<CvValidationIssue> ValidateIdentity(Guid candidateId, Guid templateId) {
-        var issues = new List<CvValidationIssue>();
-
+    
+    public static CvValidationIssue ValidateCandidateId(Guid candidateId) {
         if (candidateId == Guid.Empty) {
-            issues.Add(new CvValidationIssue(
+            return new CvValidationIssue(
                 "candidateId",
                 CvValidationFailure.Required,
-                "A candidate must be selected."));
+                "A candidate must be selected.");
         }
-
+        
+        return null!;
+    }
+    
+    public static CvValidationIssue ValidateTemplateId(Guid templateId) {
         if (templateId == Guid.Empty) {
-            issues.Add(new CvValidationIssue(
+            return new CvValidationIssue(
                 "templateId",
                 CvValidationFailure.Required,
-                "A template must be selected."));
+                "A template must be selected.");
         }
-
-        return issues;
+        
+        return null!;
     }
-
+    
     public static CvValidationIssue? ValidateTitle(string? title) {
         if (string.IsNullOrWhiteSpace(title)) {
             return new CvValidationIssue(
@@ -56,33 +60,33 @@ public static class CvValidator {
                 CvValidationFailure.Required,
                 "Title is required.");
         }
-
+        
         if (title.Trim().Length > MaximumTitleLength) {
             return new CvValidationIssue(
                 "title",
                 CvValidationFailure.MaxLength,
                 $"Title must not exceed {MaximumTitleLength} characters.");
         }
-
+        
         return null;
     }
-
+    
     public static CvValidationIssue? ValidateLanguageCode(string? languageCode) {
         if (languageCode is null) {
             return null;
         }
-
+        
         var normalizedCode = languageCode.Trim();
         if (normalizedCode is "vi" or "en") {
             return null;
         }
-
+        
         return new CvValidationIssue(
             "language",
             CvValidationFailure.InvalidFormat,
             "Language must be either 'vi' or 'en'.");
     }
-
+    
     public static CvValidationIssue? ValidateLanguage(CvLanguage language) =>
         Enum.IsDefined(language)
             ? null
@@ -90,43 +94,43 @@ public static class CvValidator {
                 "language",
                 CvValidationFailure.InvalidFormat,
                 "CV language is invalid.");
-
+    
     public static IReadOnlyList<CvValidationIssue> ValidateDocuments(
         CvContentDocument? content,
         CvLayoutDocument? layout,
         CvPresentationDocument? presentation) {
         var issues = new List<CvValidationIssue>();
-
+        
         if (content is null) {
             issues.Add(new CvValidationIssue(
                 "content",
                 CvValidationFailure.Required,
                 "CV content is required."));
         }
-
+        
         if (layout is null) {
             issues.Add(new CvValidationIssue(
                 "layout",
                 CvValidationFailure.Required,
                 "CV layout is required."));
         }
-
+        
         if (presentation is null) {
             issues.Add(new CvValidationIssue(
                 "presentation",
                 CvValidationFailure.Required,
                 "CV presentation is required."));
         }
-
+        
         return issues;
     }
-
+    
     public static CvLanguage ParseLanguageCode(string? languageCode) => languageCode?.Trim() switch {
         null => CvLanguage.Vietnamese,
         "vi" => CvLanguage.Vietnamese,
         "en" => CvLanguage.English,
         _ => throw new ArgumentException("Language code must be either 'vi' or 'en'.", nameof(languageCode))
     };
-
+    
     public static string NormalizeTitle(string title) => title.Trim();
 }

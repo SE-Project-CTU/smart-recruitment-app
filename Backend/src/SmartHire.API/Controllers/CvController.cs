@@ -9,6 +9,8 @@ using SmartHire.Application.Features.Cv.Commands.DeleteCv;
 using SmartHire.Application.Features.Cv.Commands.UpdateCv;
 using SmartHire.Application.Features.Cv.Queries.GetCvDetail;
 using SmartHire.Application.Features.Cv.Queries.GetMyCvs;
+using SmartHire.Application.Features.Cv.Queries.GetCvVersions;
+using SmartHire.Application.Features.Cv.Queries.GetCvVersion;
 
 namespace SmartHire.Api.Controllers;
 
@@ -68,6 +70,37 @@ public sealed class CvController : ControllerBase {
             new GetCvDetailQuery(id),
             cancellationToken);
         
+        return Ok(_responseFactory.Success(result));
+    }
+
+    [HttpGet("{id}/versions")]
+    public async Task<IActionResult> GetCvVersions(
+        Guid id,
+        [FromQuery] int page = 0,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _sender.Send(
+            new GetCvVersionsQuery(id, page, pageSize),
+            cancellationToken);
+
+        return Ok(_responseFactory.Paged(
+            result.Items,
+            result.Page,
+            result.PageSize,
+            result.TotalItems));
+    }
+
+    [HttpGet("{id}/versions/{versionId}")]
+    public async Task<IActionResult> GetCvVersion(
+        Guid id,
+        Guid versionId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            new GetCvVersionQuery(id, versionId),
+            cancellationToken);
+
         return Ok(_responseFactory.Success(result));
     }
     

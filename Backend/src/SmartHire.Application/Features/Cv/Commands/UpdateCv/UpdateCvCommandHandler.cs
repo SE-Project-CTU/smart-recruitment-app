@@ -7,7 +7,7 @@ using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.Mapping;
 using SmartHire.Domain.Enums;
-using SmartHire.Domain.Entities;
+using SmartHire.Domain.ValueObjects.Cv;
 
 namespace SmartHire.Application.Features.Cv.Commands.UpdateCv;
 
@@ -84,53 +84,99 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         
         presentation = CvDocumentUpdateValidator.RemoveOrphanedItemStyles(content, presentation);
         
+        var isPublic = cv.IsPublic;
+        if (validated.IsPublicProvided) {
+            isPublic = validated.IsPublic!.Value;
+        }
+        
+        bool isVersioningRequired =
+            validated.ContentProvided || validated.LayoutProvided || validated.PresentationProvided;
+        
         try {
-            return await _unitOfWork.ExecuteInTransactionAsync(
-                async (transactionToken) => {
-                    var latestVersionNumber = await _cvVersionRepository.GetLatestVersionNumberAsync(
-                        cv.Id,
-                        transactionToken);
-                    if (latestVersionNumber == int.MaxValue) {
-                        throw CreateVersionConflictException();
-                    }
-                    
-                    cv.Update(
-                        template,
-                        validated.TitleProvided ? validated.Title! : cv.Title,
+            if (isVersioningRequired) {
+                var latestVersionNumber = await _cvVersionRepository.GetLatestVersionNumberAsync(
+                    cv.Id,
+                    cancellationToken
+                );
+                if (latestVersionNumber == int.MaxValue) {
+                    throw CreateVersionConflictException();
+                }
+                
+                return await HandleUpdateWithVersioning(
+                    cv,
+                    latestVersionNumber,
+                    () => cv.UpdateDocuments(
                         content,
                         layout,
                         presentation,
                         language,
-                        now,
-                        latestVersionNumber + 1
-                    );
-                    
-                    var documentErrors = CvDocumentUpdateValidator.Validate(
-                        cv.Content,
-                        cv.Layout,
-                        cv.Presentation);
-                    if (documentErrors.Count > 0) {
-                        throw new AppException(
-                            AppErrorKind.Validation,
-                            CommonErrorCodes.ValidationError,
-                            "CV documents contain invalid fields.",
-                            documentErrors);
-                    }
-                    
-                    var version = cv.CreateVersion(
-                        latestVersionNumber + 1,
+                        latestVersionNumber,
                         now
-                    );
-                    await _cvVersionRepository.Add(version);
-                    await _unitOfWork.SaveChangesAsync(transactionToken);
-                    
-                    return CvResultMapper.ToResult(cv, template);
-                },
-                cancellationToken);
+                    ),
+                    now,
+                    cancellationToken);
+            }
+            else {
+                return await HandlerSimpleUpdate(
+                    cv,
+                    () => cv.Update(
+                        validated.TitleProvided ? validated.Title! : cv.Title,
+                        now,
+                        isPublic
+                    ),
+                    cancellationToken
+                );
+            }
         }
         catch (OptimisticConcurrencyException) {
             throw CreateVersionConflictException();
         }
+    }
+    
+    private async Task<CvResult> HandlerSimpleUpdate(
+        Domain.Entities.Cv cv,
+        Action updateAction,
+        CancellationToken cancellationToken
+    ) {
+        updateAction();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        return CvResultMapper.ToResult(cv, cv.Template);
+    }
+    
+    private async Task<CvResult> HandleUpdateWithVersioning(
+        Domain.Entities.Cv cv,
+        int latestVersionNumber,
+        Action updateAction,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    ) {
+        return await _unitOfWork.ExecuteInTransactionAsync(
+            async (transactionToken) => {
+                updateAction();
+                
+                var documentErrors = CvDocumentUpdateValidator.Validate(
+                    cv.Content,
+                    cv.Layout,
+                    cv.Presentation);
+                if (documentErrors.Count > 0) {
+                    throw new AppException(
+                        AppErrorKind.Validation,
+                        CommonErrorCodes.ValidationError,
+                        "CV documents contain invalid fields.",
+                        documentErrors);
+                }
+                
+                var version = cv.CreateVersion(
+                    latestVersionNumber + 1,
+                    now
+                );
+                await _cvVersionRepository.Add(version);
+                await _unitOfWork.SaveChangesAsync(transactionToken);
+                
+                return CvResultMapper.ToResult(cv, cv.Template);
+            },
+            cancellationToken);
     }
     
     private Guid GetCandidateId() {

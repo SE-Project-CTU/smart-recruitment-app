@@ -53,7 +53,7 @@ public static class UpdateCvCommandValidator {
             }
         }
         
-        if (command.IsPublicProvided && command.IsPublic is not null) {
+        if (command.IsPublicProvided && command.IsPublic is null) {
             details.Add(new AppErrorDetail("isPublic", ValidationReasons.Required,
                 "Is public cannot be null."));
         }

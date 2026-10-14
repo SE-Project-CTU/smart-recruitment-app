@@ -39,7 +39,8 @@ public class Cv {
         CvPresentationDocument presentation,
         CvLanguage language,
         DateTimeOffset now) {
-        ThrowIfInvalid(CvValidator.ValidateIdentity(candidateId, templateId));
+        ThrowIfInvalid(CvValidator.ValidateCandidateId(candidateId));
+        ThrowIfInvalid(CvValidator.ValidateTemplateId(templateId));
         ThrowIfInvalid(CvValidator.ValidateTitle(title));
         ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout, presentation));
         ThrowIfInvalid(CvValidator.ValidateLanguage(language));
@@ -92,18 +93,26 @@ public class Cv {
     }
     
     public void Update(
-        CvTemplate template,
         string title,
+        DateTimeOffset now,
+        bool isPublic
+    ) {
+        ThrowIfInvalid(CvValidator.ValidateCandidateId(CandidateId));
+        ThrowIfInvalid(CvValidator.ValidateTitle(title));
+        
+        Title = CvValidator.NormalizeTitle(title);
+        UpdatedAt = now;
+        IsPublic = isPublic;
+    }
+    
+    public void UpdateDocuments(
         CvContentDocument content,
         CvLayoutDocument layout,
         CvPresentationDocument presentation,
         CvLanguage language,
-        DateTimeOffset now,
-        int latestVersionNumber
+        int latestVersionNumber,
+        DateTimeOffset now
     ) {
-        ArgumentNullException.ThrowIfNull(template);
-        ThrowIfInvalid(CvValidator.ValidateIdentity(CandidateId, template.Id));
-        ThrowIfInvalid(CvValidator.ValidateTitle(title));
         ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout, presentation));
         ThrowIfInvalid(CvValidator.ValidateLanguage(language));
         ArgumentNullException.ThrowIfNull(content.Metadata);
@@ -111,32 +120,21 @@ public class Cv {
         
         var formattedVersionNumber = latestVersionNumber.ToString("F1");
         
-        content = content with {
+        Content = content with {
             Metadata = content.Metadata with {
                 Version = formattedVersionNumber,
-                TemplateCode = template.Code,
                 Language = language,
                 UpdatedAt = now
             }
         };
-        presentation = presentation with {
+        Layout = layout;
+        Presentation = presentation with {
             Metadata = presentation.Metadata with {
                 Version = formattedVersionNumber,
-                TemplateCode = template.Code,
                 UpdatedAt = now
             }
         };
         
-        layout = layout with {
-            Version = formattedVersionNumber
-        };
-        
-        Template = template;
-        TemplateId = template.Id;
-        Title = CvValidator.NormalizeTitle(title);
-        Content = content;
-        Layout = layout;
-        Presentation = presentation;
         Language = language;
         UpdatedAt = now;
     }
