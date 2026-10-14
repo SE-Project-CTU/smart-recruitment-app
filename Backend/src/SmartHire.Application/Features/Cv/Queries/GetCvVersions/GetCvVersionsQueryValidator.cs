@@ -1,6 +1,5 @@
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Cv.Exceptions;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 
@@ -16,12 +15,7 @@ public static class GetCvVersionsQueryValidator
     {
         if (query.CvId == Guid.Empty)
         {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "CV id must be a valid UUID.",
-                [new AppErrorDetail("id", ValidationReasons.InvalidFormat,
-                    "Provide a non-empty CV id.")]);
+            throw CvExceptions.InvalidCvId();
         }
 
         var page = PagedListQueryValidator.ValidatePage(query.Page);

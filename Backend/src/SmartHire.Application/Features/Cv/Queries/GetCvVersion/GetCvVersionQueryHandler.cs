@@ -1,8 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Cv.Exceptions;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvVersion;
 
@@ -34,10 +33,10 @@ public sealed class GetCvVersionQueryHandler
 
         if (candidateId is null)
         {
-            throw CvVersionQueryErrors.CvNotFound();
+            throw CvExceptions.CvNotFound();
         }
 
-        CvVersionQueryErrors.EnsureOwner(_currentUser.UserId, candidateId.Value);
+        CvExceptions.EnsureOwner(_currentUser.UserId, candidateId.Value);
 
         var version = await _cvVersionRepository.GetByIdAsync(
             validated.CvId,
@@ -46,14 +45,7 @@ public sealed class GetCvVersionQueryHandler
 
         if (version is null)
         {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CvErrorCodes.CvVersionNotFound,
-                "CV version was not found.",
-                [new AppErrorDetail(
-                    "versionId",
-                    ErrorDetailReasons.NotFound,
-                    "The requested version does not exist for this CV.")]);
+            throw CvExceptions.CvVersionNotFound();
         }
 
         return new CvVersionResult(

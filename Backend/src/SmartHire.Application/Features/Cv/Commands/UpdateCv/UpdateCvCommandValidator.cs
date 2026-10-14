@@ -1,5 +1,5 @@
 using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Domain.Enums;
 using SmartHire.Domain.ValueObjects.Cv;
 using SmartHire.Domain.Validation;
@@ -98,9 +98,7 @@ public static class UpdateCvCommandValidator {
         }
         
         if (details.Count > 0) {
-            throw new AppException(
-                AppErrorKind.Validation,
-                CommonErrorCodes.ValidationError,
+            throw CvExceptions.Validation(
                 "CV update request contains invalid fields.",
                 details);
         }

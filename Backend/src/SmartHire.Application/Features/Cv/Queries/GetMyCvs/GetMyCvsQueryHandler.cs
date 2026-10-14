@@ -1,9 +1,8 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Cv.Exceptions;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetMyCvs;
 
@@ -23,16 +22,8 @@ public sealed class GetMyCvsQueryHandler
         GetMyCvsQuery request,
         CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid candidateId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.",
-                [
-                    new AppErrorDetail(
-                        "userId",
-                        ValidationReasons.InvalidFormat,
-                        "A valid user identifier could not be read from the access token.")
-                ]);
+            throw CvExceptions.InvalidAccessToken(
+                "The access token does not contain a valid user id.");
         }
         
         var validated = GetMyCvsQueryValidator.Validate(request);

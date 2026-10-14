@@ -5,6 +5,7 @@ using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
+using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Application.Features.Cv.Mapping;
 
 namespace SmartHire.Application.Features.Cv.Commands.UpdateCv;
@@ -35,11 +36,11 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         
         var cv = await _cvRepository.GetForUpdateByIdAsync(validated.Id, cancellationToken);
         if (cv is null) {
-            throw CreateCvNotFoundException();
+            throw CvExceptions.CvNotFound();
         }
         
         if (cv.CandidateId != candidateId) {
-            throw CreateCvForbiddenException();
+            throw CvExceptions.CvNotOwned("update");
         }
         
         var content = validated.ContentProvided ? validated.Content! : cv.Content;
@@ -65,9 +66,7 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                     "Presentation metadata is required."));
             }
             
-            throw new AppException(
-                AppErrorKind.Validation,
-                CommonErrorCodes.ValidationError,
+            throw CvExceptions.Validation(
                 "CV documents contain invalid fields.",
                 metadataErrors);
         }
@@ -95,7 +94,7 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                     cancellationToken
                 );
                 if (latestVersionNumber == int.MaxValue) {
-                    throw CreateVersionConflictException();
+                    throw CvExceptions.CvUpdateConflict();
                 }
                 
                 return await HandleUpdateWithVersioning(
@@ -125,7 +124,7 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
             }
         }
         catch (OptimisticConcurrencyException) {
-            throw CreateVersionConflictException();
+            throw CvExceptions.CvUpdateConflict();
         }
     }
     
@@ -156,9 +155,7 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                     cv.Layout,
                     cv.Presentation);
                 if (documentErrors.Count > 0) {
-                    throw new AppException(
-                        AppErrorKind.Validation,
-                        CommonErrorCodes.ValidationError,
+                    throw CvExceptions.Validation(
                         "CV documents contain invalid fields.",
                         documentErrors);
                 }
@@ -177,54 +174,14 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
     
     private Guid GetCandidateId() {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "A valid access token is required.",
-                [
-                    new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
-                        "A valid user identity could not be read from the access token.")
-                ]);
+            throw CvExceptions.InvalidAccessToken("A valid access token is required.");
         }
         
         if (!_currentUser.Roles.Contains(RoleNames.Candidate, StringComparer.OrdinalIgnoreCase)) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CvErrorCodes.CandidateRoleRequired,
-                "Only Candidate users can update CVs.",
-                [
-                    new AppErrorDetail("role", ValidationReasons.NotAllowed,
-                        "The current user must have the Candidate role.")
-                ]);
+            throw CvExceptions.CandidateRoleRequired("update");
         }
         
         return userId;
     }
     
-    private static AppException CreateCvNotFoundException() => new(
-        AppErrorKind.NotFound,
-        CvErrorCodes.CvNotFound,
-        "CV was not found.",
-        [
-            new AppErrorDetail("id", ErrorDetailReasons.NotFound,
-                "The requested CV does not exist.")
-        ]);
-    
-    private static AppException CreateCvForbiddenException() => new(
-        AppErrorKind.Forbidden,
-        CvErrorCodes.CvNotOwned,
-        "You are not allowed to update this CV.",
-        [
-            new AppErrorDetail("id", ValidationReasons.NotAllowed,
-                "Only the CV owner can update it.")
-        ]);
-    
-    private static AppException CreateVersionConflictException() => new(
-        AppErrorKind.Conflict,
-        CvErrorCodes.CvUpdateConflict,
-        "CV was updated by another request. Reload it and retry.",
-        [
-            new AppErrorDetail("id", ErrorDetailReasons.ConcurrentModification,
-                "The CV changed while its new version was being created.")
-        ]);
 }

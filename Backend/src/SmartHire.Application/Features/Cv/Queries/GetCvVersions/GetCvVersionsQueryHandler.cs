@@ -1,8 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Cv.Exceptions;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 
@@ -34,10 +33,10 @@ public sealed class GetCvVersionsQueryHandler
 
         if (candidateId is null)
         {
-            throw CvVersionQueryErrors.CvNotFound();
+            throw CvExceptions.CvNotFound();
         }
 
-        CvVersionQueryErrors.EnsureOwner(_currentUser.UserId, candidateId.Value);
+        CvExceptions.EnsureOwner(_currentUser.UserId, candidateId.Value);
 
         var totalItems = await _cvVersionRepository.CountByCvIdAsync(
             validated.CvId,

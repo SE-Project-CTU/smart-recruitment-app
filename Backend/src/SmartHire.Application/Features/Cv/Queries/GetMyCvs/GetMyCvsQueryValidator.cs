@@ -1,6 +1,5 @@
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Domain.Enums;
 using SmartHire.Domain.Validation;
 
@@ -35,14 +34,7 @@ public static class GetMyCvsQueryValidator {
         var normalizedLanguage = language.Trim().ToLowerInvariant();
         var issue = CvValidator.ValidateLanguageCode(normalizedLanguage);
         if (issue is not null) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                issue.Message,
-                [new AppErrorDetail(
-                    issue.Field,
-                    ValidationReasons.InvalidFormat,
-                    issue.Message)]);
+            throw CvExceptions.InvalidLanguage(issue.Message, issue.Field);
         }
 
         return CvValidator.ParseLanguageCode(normalizedLanguage);

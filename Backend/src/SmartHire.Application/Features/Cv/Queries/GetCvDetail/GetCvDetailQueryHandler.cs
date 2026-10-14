@@ -1,9 +1,8 @@
 ﻿using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
+using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Application.Features.Cv.Mapping;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvDetail;
@@ -23,26 +22,11 @@ public sealed class GetCvDetailQueryHandler : IRequestHandler<GetCvDetailQuery, 
         var cv = await _cvRepository.GetCvByIdAsync(validatedRequest.Id, cancellationToken);
         
         if (cv is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CvErrorCodes.CvNotFound,
-                "CV was not found.",
-                [
-                    new AppErrorDetail(
-                        "id",
-                        ErrorDetailReasons.NotFound,
-                        "The requested CV does not exist."
-                    )
-                ]
-            );
+            throw CvExceptions.CvNotFound();
         }
         
         if (_currentUser.UserId != cv.CandidateId && !cv.IsPublic) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                AuthErrorCodes.AccountNotAllowed,
-                "You are not authorized to access this resource."
-            );
+            throw CvExceptions.AccountNotAllowed();
         }
         
         return CvResultMapper.ToResult(cv, cv.Template);

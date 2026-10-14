@@ -3,9 +3,8 @@ using MediatR;
 using SmartHire.Application.Features.Cv.Mapping;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Domain.Validation;
 
 namespace SmartHire.Application.Features.Cv.Commands.CreateCv;
@@ -36,16 +35,8 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
     
     public async Task<CvResult> Handle(CreateCvCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid candidateId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.",
-                [
-                    new AppErrorDetail(
-                        "userId",
-                        ValidationReasons.InvalidFormat,
-                        "A valid user identifier could not be read from the access token.")
-                ]);
+            throw CvExceptions.InvalidAccessToken(
+                "The access token does not contain a valid user id.");
         }
         
         var validatedRequest = CreateCvCommandValidator.Validate(request, candidateId);
@@ -55,16 +46,7 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
         );
         
         if (candidateRoles.All(role => role.Role.Name != RoleNames.Candidate)) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CvErrorCodes.CandidateRoleRequired,
-                "Only Candidate users can create a CV.",
-                [
-                    new AppErrorDetail(
-                        "role",
-                        ValidationReasons.NotAllowed,
-                        "The current user must have the Candidate role to create a CV.")
-                ]);
+            throw CvExceptions.CandidateRoleRequired("create");
         }
         
         return await _unitOfWork.ExecuteInTransactionAsync(
@@ -75,29 +57,11 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
                     transactionToken);
                 
                 if (cvTemplate is null) {
-                    throw new AppException(
-                        AppErrorKind.NotFound,
-                        CvTemplateErrorCodes.TemplateNotFound,
-                        "CV template was not found.",
-                        [
-                            new AppErrorDetail(
-                                "templateId",
-                                ErrorDetailReasons.NotFound,
-                                "The selected CV template does not exist.")
-                        ]);
+                    throw CvExceptions.TemplateNotFound();
                 }
                 
                 if (!cvTemplate.IsActive) {
-                    throw new AppException(
-                        AppErrorKind.Conflict,
-                        CvTemplateErrorCodes.TemplateInactive,
-                        "CV template is no longer active.",
-                        [
-                            new AppErrorDetail(
-                                "templateId",
-                                ErrorDetailReasons.Inactive,
-                                "The selected CV template is inactive and cannot be used.")
-                        ]);
+                    throw CvExceptions.TemplateInactive();
                 }
                 
                 var now = DateTimeOffset.UtcNow;

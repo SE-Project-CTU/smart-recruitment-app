@@ -1,6 +1,6 @@
 using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Domain.Validation;
+using SmartHire.Application.Features.Cv.Exceptions;
 
 namespace SmartHire.Application.Features.Cv.Commands.CreateCv;
 
@@ -16,14 +16,12 @@ public static class CreateCvCommandValidator {
             language);
         
         if (issues.Count > 0) {
-            throw new AppException(
-                AppErrorKind.Validation,
-                CommonErrorCodes.ValidationError,
+            throw CvExceptions.Validation(
                 "CV request contains invalid fields.",
                 issues.Select(issue => new AppErrorDetail(
                     issue.Field,
                     ToValidationReason(issue.Failure),
-                    issue.Message)).ToArray());
+                    issue.Message)));
         }
         
         return command with {
