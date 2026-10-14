@@ -65,6 +65,7 @@ function Header() {
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger
+                openOnHover
                 render={
                   <button
                     type="button"

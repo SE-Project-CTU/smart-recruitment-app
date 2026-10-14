@@ -9,8 +9,10 @@ export const PATHS = {
     DASHBOARD: "/candidate/dashboard",
     MATCHED_JOBS: "/candidate/matched-jobs",
     CV_MANAGEMENT: "/candidate/cv-management",
-    APPLICATION_STATUS: "/candidate/application_status",
-    BOOKMARKS: "/candidate/bookmarks",
+    APPLICATION_STATUS: "/candidate/application-status",
+    BOOKMARK_JOBS: "/candidate/bookmarks/jobs",
+    BOOKMARK_COMPANIES: "/candidate/bookmarks/companies",
+    COMPANY_REVIEWS: "/candidate/reviews",
     SETTINGS: "/candidate/settings",
   },
 

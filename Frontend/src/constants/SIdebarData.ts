@@ -46,10 +46,13 @@ export const candidateSidebarData = {
   personal: [
     {
       title: "Mục đã lưu",
-      url: PATHS.CANDIDATE.BOOKMARKS,
       icon: Bookmark,
+      items: [
+        { title: "Công ty", url: PATHS.CANDIDATE.BOOKMARK_COMPANIES },
+        { title: "Công việc", url: PATHS.CANDIDATE.BOOKMARK_JOBS },
+      ],
     },
-    { title: "Đánh giá", url: "#", icon: Star },
+    { title: "Đánh giá", url: PATHS.CANDIDATE.COMPANY_REVIEWS, icon: Star },
   ],
   //footer
   footer: [

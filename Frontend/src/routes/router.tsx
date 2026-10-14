@@ -48,8 +48,16 @@ const router = createBrowserRouter([
             element: <Page title="Trạng thái hồ sơ" />,
           },
           {
-            path: PATHS.CANDIDATE.BOOKMARKS,
-            element: <Page title="Mục đã lưu" />,
+            path: PATHS.CANDIDATE.BOOKMARK_COMPANIES,
+            element: <Page title="Mục đã lưu 1" />,
+          },
+          {
+            path: PATHS.CANDIDATE.BOOKMARK_JOBS,
+            element: <Page title="Mục đã lưu 2" />,
+          },
+          {
+            path: PATHS.CANDIDATE.COMPANY_REVIEWS,
+            element: <Page title="Mục đã lưu 2" />,
           },
           {
             path: PATHS.CANDIDATE.SETTINGS,
