@@ -6,7 +6,6 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
-using SmartHire.Domain.Entities;
 using SmartHire.Domain.Validation;
 
 namespace SmartHire.Application.Features.Cv.Commands.CreateCv;

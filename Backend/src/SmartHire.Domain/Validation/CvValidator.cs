@@ -15,8 +15,15 @@ public static class CvValidator {
         string? title,
         string? languageCode) {
         var issues = new List<CvValidationIssue>();
-        issues.Add(ValidateCandidateId(candidateId));
-        issues.Add(ValidateTemplateId(templateId));
+        var candidateIdIssue = ValidateCandidateId(candidateId);
+        if (candidateIdIssue is not null) {
+            issues.Add(candidateIdIssue);
+        }
+
+        var templateIdIssue = ValidateTemplateId(templateId);
+        if (templateIdIssue is not null) {
+            issues.Add(templateIdIssue);
+        }
         
         var titleIssue = ValidateTitle(title);
         if (titleIssue is not null) {
@@ -31,7 +38,7 @@ public static class CvValidator {
         return issues;
     }
     
-    public static CvValidationIssue ValidateCandidateId(Guid candidateId) {
+    public static CvValidationIssue? ValidateCandidateId(Guid candidateId) {
         if (candidateId == Guid.Empty) {
             return new CvValidationIssue(
                 "candidateId",
@@ -39,10 +46,10 @@ public static class CvValidator {
                 "A candidate must be selected.");
         }
         
-        return null!;
+        return null;
     }
     
-    public static CvValidationIssue ValidateTemplateId(Guid templateId) {
+    public static CvValidationIssue? ValidateTemplateId(Guid templateId) {
         if (templateId == Guid.Empty) {
             return new CvValidationIssue(
                 "templateId",
@@ -50,7 +57,7 @@ public static class CvValidator {
                 "A template must be selected.");
         }
         
-        return null!;
+        return null;
     }
     
     public static CvValidationIssue? ValidateTitle(string? title) {

@@ -94,8 +94,8 @@ public class Cv {
     
     public void Update(
         string title,
-        DateTimeOffset now,
-        bool isPublic
+        bool isPublic,
+        DateTimeOffset now
     ) {
         ThrowIfInvalid(CvValidator.ValidateCandidateId(CandidateId));
         ThrowIfInvalid(CvValidator.ValidateTitle(title));

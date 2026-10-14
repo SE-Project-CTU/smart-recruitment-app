@@ -6,7 +6,7 @@ namespace SmartHire.Application.Features.Cv.Commands.UpdateCv;
 internal static class CvDocumentUpdateValidator {
     private static readonly HashSet<string> KnownSections = new(StringComparer.Ordinal) {
         "objective", "experience", "education", "skills", "projects",
-        "certifications", "awards", "interests", "additional_info"
+        "certifications", "awards", "interests", "additionalInfo"
     };
     
     public static IReadOnlyList<AppErrorDetail> Validate(

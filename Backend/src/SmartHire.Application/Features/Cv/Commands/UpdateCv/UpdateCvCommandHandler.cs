@@ -6,8 +6,6 @@ using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.Mapping;
-using SmartHire.Domain.Enums;
-using SmartHire.Domain.ValueObjects.Cv;
 
 namespace SmartHire.Application.Features.Cv.Commands.UpdateCv;
 
@@ -43,8 +41,6 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         if (cv.CandidateId != candidateId) {
             throw CreateCvForbiddenException();
         }
-        
-        var template = cv.Template;
         
         var content = validated.ContentProvided ? validated.Content! : cv.Content;
         var layout = validated.LayoutProvided ? validated.Layout! : cv.Layout;
@@ -121,8 +117,8 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                     cv,
                     () => cv.Update(
                         validated.TitleProvided ? validated.Title! : cv.Title,
-                        now,
-                        isPublic
+                        isPublic,
+                        now
                     ),
                     cancellationToken
                 );

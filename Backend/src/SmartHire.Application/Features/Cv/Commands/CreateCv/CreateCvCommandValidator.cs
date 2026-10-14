@@ -9,20 +9,11 @@ public static class CreateCvCommandValidator {
         var title = command.Title?.Trim();
         var language = command.Language?.Trim();
         
-        var issues = new List<CvValidationIssue>();
-        
-        issues.Add(CvValidator.ValidateCandidateId(candidateId));
-        issues.Add(CvValidator.ValidateTemplateId(command.TemplateId));
-        
-        var titleIssue = CvValidator.ValidateTitle(title);
-        if (titleIssue is not null) {
-            issues.Add(titleIssue);
-        }
-        
-        var languageIssue = CvValidator.ValidateLanguageCode(language);
-        if (languageIssue is not null) {
-            issues.Add(languageIssue);
-        }
+        var issues = CvValidator.ValidateCreateRequest(
+            candidateId,
+            command.TemplateId,
+            title,
+            language);
         
         if (issues.Count > 0) {
             throw new AppException(
