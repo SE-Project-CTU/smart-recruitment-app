@@ -19,12 +19,6 @@ internal static class CvDocumentUpdateValidator
         var errors = new List<AppErrorDetail>();
         var itemIds = new HashSet<string>(StringComparer.Ordinal);
 
-        if (content.Metadata is null || content.Profile is null || content.Sections is null)
-        {
-            errors.Add(Invalid("content", "Content must include metadata, profile, and sections."));
-            return errors;
-        }
-
         if (string.IsNullOrWhiteSpace(content.Metadata.Version) ||
             string.IsNullOrWhiteSpace(content.Metadata.TemplateCode) ||
             !Enum.IsDefined(content.Metadata.Language))
@@ -33,17 +27,8 @@ internal static class CvDocumentUpdateValidator
                 "Metadata must contain a version, template code, and supported language."));
         }
 
-        if (content.Profile.FullName is null || content.Profile.Title is null ||
-            content.Profile.AvatarUrl is null || content.Profile.Email is null ||
-            content.Profile.Phone is null || content.Profile.Dob is null ||
-            content.Profile.Address is null || content.Profile.Website is null ||
-            content.Profile.SocialLink is null)
-        {
-            errors.Add(Invalid("content.profile", "Profile fields cannot be null."));
-        }
-
         var sections = content.Sections;
-        if (sections.Order is null || sections.Order.Count != KnownSections.Count ||
+        if (sections.Order.Count != KnownSections.Count ||
             sections.Order.Any(section => !KnownSections.Contains(section)))
         {
             errors.Add(Invalid("content.sections.order",

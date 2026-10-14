@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SmartHire.Api.Contracts.Validation;
+using SmartHire.Domain.Validation;
 using SmartHire.Domain.ValueObjects.Cv;
 
 namespace SmartHire.Api.Contracts.Requests;

@@ -1,5 +1,7 @@
 ﻿namespace SmartHire.Api.Contracts.Requests;
 
+using SmartHire.Domain.Validation;
+
 public sealed record RegisterCandidateRequest(
     [Required(ErrorMessage = "Email is required.")]
     [EmailAddress(ErrorMessage = "Email format is invalid.")]

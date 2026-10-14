@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SmartHire.Api.Contracts.Validation;
+using SmartHire.Domain.Validation;
 
 namespace SmartHire.Api.Contracts.Requests;
 

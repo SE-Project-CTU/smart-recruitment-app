@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SmartHire.Domain\SmartHire.Domain.csproj" />
     <ProjectReference Include="..\SmartHire.Application\SmartHire.Application.csproj" />
     <ProjectReference Include="..\SmartHire.Infrastructure\SmartHire.Infrastructure.csproj" />
   </ItemGroup>

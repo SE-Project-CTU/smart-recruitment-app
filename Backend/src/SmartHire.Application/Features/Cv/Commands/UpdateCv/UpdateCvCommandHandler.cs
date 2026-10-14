@@ -54,28 +54,24 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         var now = DateTimeOffset.UtcNow;
         var language = validated.LanguageProvided
             ? validated.ParsedLanguage!.Value
-            : validated.ContentProvided && content.Metadata is not null
+            : validated.ContentProvided
                 ? content.Metadata.Language
                 : cv.Language;
         
-        if (content.Metadata is not null) {
-            content = content with {
-                Metadata = content.Metadata with {
-                    TemplateCode = template.Code,
-                    Language = language,
-                    UpdatedAt = now
-                }
-            };
-        }
+        content = content with {
+            Metadata = content.Metadata with {
+                TemplateCode = template.Code,
+                Language = language,
+                UpdatedAt = now
+            }
+        };
         
-        if (presentation.Metadata is not null) {
-            presentation = presentation with {
-                Metadata = presentation.Metadata with {
-                    TemplateCode = template.Code,
-                    UpdatedAt = now
-                }
-            };
-        }
+        presentation = presentation with {
+            Metadata = presentation.Metadata with {
+                TemplateCode = template.Code,
+                UpdatedAt = now
+            }
+        };
         
         presentation = CvDocumentUpdateValidator.RemoveOrphanedItemStyles(content, presentation);
         var documentErrors = CvDocumentUpdateValidator.Validate(content, layout, presentation);

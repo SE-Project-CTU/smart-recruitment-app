@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using SmartHire.Domain.Validation;
 
 namespace SmartHire.Api.Contracts.Requests;
 
