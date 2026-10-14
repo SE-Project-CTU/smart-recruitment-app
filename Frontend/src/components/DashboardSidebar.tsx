@@ -190,7 +190,7 @@ export function DashboardSidebar() {
                                     isActive={subActive}
                                     className={`rounded-lg px-2 py-1.5 text-xs transition-colors ${
                                       subActive
-                                        ? "bg-status-active font-semibold text-primary!"
+                                        ? "bg-status-active! font-semibold text-primary!"
                                         : "text-slate-500 hover:bg-slate-100 hover:text-primary!"
                                     }`}
                                   >
@@ -249,7 +249,7 @@ export function DashboardSidebar() {
                     tooltip={item.title}
                     className={`flex items-center gap-3 rounded-xl px-3 py-5 text-sm transition-colors ${
                       active
-                        ? "bg-status-active font-semibold text-primary!"
+                        ? "bg-status-active! font-semibold text-primary!"
                         : "font-medium text-slate-600 hover:bg-slate-100 hover:text-primary!"
                     }`}
                   >

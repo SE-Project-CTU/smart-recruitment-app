@@ -10,6 +10,7 @@ import {
   LayoutList,
   LibraryBig,
   ListCheck,
+  Search,
   Star,
   UserRound,
   UserRoundGroup,
@@ -25,6 +26,11 @@ export const candidateSidebarData = {
       icon: Home,
       isActive: true,
       items: [],
+    },
+    {
+      title: "Tìm kiếm",
+      url: PATHS.CANDIDATE.SEARCH_JOBS,
+      icon: Search,
     },
     {
       title: "Việc làm phù hợp",

@@ -23,3 +23,17 @@ export const getDashboardPathByRole = (role?: string): string => {
       return PATHS.HOME;
   }
 };
+
+export const getProfilePathByRole = (role: string): string => {
+  switch (role) {
+    case "recruiter":
+    case "hr":
+      return PATHS.RECRUITER.USER_PROFILE;
+    case "admin":
+    case "superadmin":
+      return PATHS.ADMIN.USER_PROFILE;
+    case "candidate":
+    default:
+      return PATHS.CANDIDATE.USER_PROFILE;
+  }
+};

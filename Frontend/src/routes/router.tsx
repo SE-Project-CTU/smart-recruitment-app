@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/Page";
-import { SignUp, SignIn, LandingPage } from "@/pages";
+import { SignUp, SignIn, LandingPage, CandidateDashboard } from "@/pages";
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { PATHS } from "@/constants/paths";
@@ -33,7 +33,11 @@ const router = createBrowserRouter([
         children: [
           {
             path: PATHS.CANDIDATE.DASHBOARD,
-            element: <Page title="Candidate Dashboard Overview" />,
+            element: <CandidateDashboard />,
+          },
+          {
+            path: PATHS.CANDIDATE.SEARCH_JOBS,
+            element: <Page title="tìm kiếm việc làm" />,
           },
           {
             path: PATHS.CANDIDATE.MATCHED_JOBS,
@@ -60,6 +64,10 @@ const router = createBrowserRouter([
             element: <Page title="Mục đã lưu 2" />,
           },
           {
+            path: PATHS.CANDIDATE.USER_PROFILE,
+            element: <Page title="thông tin cá nhân" />,
+          },
+          {
             path: PATHS.CANDIDATE.SETTINGS,
             element: <Page title="Cài đặt tài khoản" />,
           },
@@ -79,6 +87,10 @@ const router = createBrowserRouter([
             path: PATHS.RECRUITER.DASHBOARD,
             element: <Page title="Recruiter Dashboard Overview" />,
           },
+          {
+            path: PATHS.RECRUITER.USER_PROFILE,
+            element: <Page title="Recruiter user prifle" />,
+          },
         ],
       },
     ],
@@ -94,6 +106,10 @@ const router = createBrowserRouter([
           {
             path: PATHS.ADMIN.DASHBOARD,
             element: <Page title="Admin Dashboard Overview" />,
+          },
+          {
+            path: PATHS.ADMIN.USER_PROFILE,
+            element: <Page title="Admin profile" />,
           },
           {
             path: PATHS.ADMIN.APPROVE_COMPANY,

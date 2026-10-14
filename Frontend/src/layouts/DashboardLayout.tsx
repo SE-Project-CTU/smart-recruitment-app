@@ -12,7 +12,7 @@ const DashboardLayout = () => {
         <div className="flex flex-1">
           <DashboardSidebar />
           <SidebarInset className="min-h-[calc(100svh-4rem)] flex-1">
-            <div className="flex-1 p-4 md:p-6 lg:p-8">
+            <div className="flex-1 p-4 md:p-6 lg:p-7">
               <Outlet />
             </div>
           </SidebarInset>
