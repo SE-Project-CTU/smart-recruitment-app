@@ -10,6 +10,7 @@ using DotNetEnv;
 using SmartHire.Api;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
+using DependencyInjection = SmartHire.Api.DependencyInjection;
 
 Env.TraversePath().Load();
 
@@ -37,6 +38,7 @@ builder.Services.AddHangfire(configuration =>
 builder.Services.AddHangfireServer();
 
 builder.Services.AddApiServices();
+builder.Services.AddAppCors(builder.Configuration);
 
 builder.Services.AddOpenApi(options => {
     options.AddOperationTransformer((operation, context, cancellationToken) => {
@@ -60,6 +62,8 @@ builder.Services.AddScoped<ApiResponseFactory>();
 builder.Services.AddJwtBearerAuthentication(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseCors(DependencyInjection.PolicyName);
 
 // ── Use App exception and middleware
 app.UseExceptionHandler();
