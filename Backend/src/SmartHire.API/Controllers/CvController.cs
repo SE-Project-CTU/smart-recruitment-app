@@ -106,4 +106,5 @@ public sealed class CvController : ControllerBase {
         await _sender.Send(new DeleteCvCommand(id), cancellationToken);
         return NoContent();
     }
+
 }

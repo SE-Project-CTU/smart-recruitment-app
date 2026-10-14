@@ -14,17 +14,18 @@ namespace SmartHire.Application.Features.Cv.Commands.UpdateCv;
 public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, CvResult> {
     private readonly ICurrentUser _currentUser;
     private readonly ICvRepository _cvRepository;
-    private readonly ICvTemplateRepository _cvTemplateRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICvVersionRepository _cvVersionRepository;
     
     public UpdateCvCommandHandler(
         ICurrentUser currentUser,
         ICvRepository cvRepository,
-        ICvTemplateRepository cvTemplateRepository,
-        IUnitOfWork unitOfWork) {
+        ICvVersionRepository cvVersionRepository,
+        IUnitOfWork unitOfWork
+    ) {
         _currentUser = currentUser;
         _cvRepository = cvRepository;
-        _cvTemplateRepository = cvTemplateRepository;
+        _cvVersionRepository = cvVersionRepository;
         _unitOfWork = unitOfWork;
     }
     
@@ -52,62 +53,84 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
             : cv.Presentation;
         
         var now = DateTimeOffset.UtcNow;
+        if (now <= cv.UpdatedAt) {
+            now = cv.UpdatedAt.AddTicks(TimeSpan.TicksPerMicrosecond);
+        }
+        
+        if (content.Metadata is null || presentation.Metadata is null) {
+            var metadataErrors = new List<AppErrorDetail>();
+            if (content.Metadata is null) {
+                metadataErrors.Add(new AppErrorDetail("content.metadata", ValidationReasons.Required,
+                    "Content metadata is required."));
+            }
+            
+            if (presentation.Metadata is null) {
+                metadataErrors.Add(new AppErrorDetail("presentation.metadata", ValidationReasons.Required,
+                    "Presentation metadata is required."));
+            }
+            
+            throw new AppException(
+                AppErrorKind.Validation,
+                CommonErrorCodes.ValidationError,
+                "CV documents contain invalid fields.",
+                metadataErrors);
+        }
+        
         var language = validated.LanguageProvided
             ? validated.ParsedLanguage!.Value
             : validated.ContentProvided
                 ? content.Metadata.Language
                 : cv.Language;
         
-        content = content with {
-            Metadata = content.Metadata with {
-                TemplateCode = template.Code,
-                Language = language,
-                UpdatedAt = now
-            }
-        };
-        
-        presentation = presentation with {
-            Metadata = presentation.Metadata with {
-                TemplateCode = template.Code,
-                UpdatedAt = now
-            }
-        };
-        
         presentation = CvDocumentUpdateValidator.RemoveOrphanedItemStyles(content, presentation);
-        var documentErrors = CvDocumentUpdateValidator.Validate(content, layout, presentation);
-        if (documentErrors.Count > 0) {
-            throw new AppException(
-                AppErrorKind.Validation,
-                CommonErrorCodes.ValidationError,
-                "CV documents contain invalid fields.",
-                documentErrors);
-        }
-        
-        cv.Update(
-            template,
-            validated.TitleProvided ? validated.Title! : cv.Title,
-            content,
-            layout,
-            presentation,
-            language,
-            now
-        );
         
         try {
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return await _unitOfWork.ExecuteInTransactionAsync(
+                async (transactionToken) => {
+                    var latestVersionNumber = await _cvVersionRepository.GetLatestVersionNumberAsync(
+                        cv.Id,
+                        transactionToken);
+                    if (latestVersionNumber == int.MaxValue) {
+                        throw CreateVersionConflictException();
+                    }
+                    
+                    cv.Update(
+                        template,
+                        validated.TitleProvided ? validated.Title! : cv.Title,
+                        content,
+                        layout,
+                        presentation,
+                        language,
+                        now,
+                        latestVersionNumber + 1
+                    );
+                    
+                    var documentErrors = CvDocumentUpdateValidator.Validate(
+                        cv.Content,
+                        cv.Layout,
+                        cv.Presentation);
+                    if (documentErrors.Count > 0) {
+                        throw new AppException(
+                            AppErrorKind.Validation,
+                            CommonErrorCodes.ValidationError,
+                            "CV documents contain invalid fields.",
+                            documentErrors);
+                    }
+                    
+                    var version = cv.CreateVersion(
+                        latestVersionNumber + 1,
+                        now
+                    );
+                    await _cvVersionRepository.Add(version);
+                    await _unitOfWork.SaveChangesAsync(transactionToken);
+                    
+                    return CvResultMapper.ToResult(cv, template);
+                },
+                cancellationToken);
         }
         catch (OptimisticConcurrencyException) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CvErrorCodes.CvUpdateConflict,
-                "CV was updated by another request. Reload it and retry.",
-                [
-                    new AppErrorDetail("id", ErrorDetailReasons.ConcurrentModification,
-                        "The CV changed while this update was being processed.")
-                ]);
+            throw CreateVersionConflictException();
         }
-        
-        return CvResultMapper.ToResult(cv, template);
     }
     
     private Guid GetCandidateId() {
@@ -152,5 +175,14 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         [
             new AppErrorDetail("id", ValidationReasons.NotAllowed,
                 "Only the CV owner can update it.")
+        ]);
+    
+    private static AppException CreateVersionConflictException() => new(
+        AppErrorKind.Conflict,
+        CvErrorCodes.CvUpdateConflict,
+        "CV was updated by another request. Reload it and retry.",
+        [
+            new AppErrorDetail("id", ErrorDetailReasons.ConcurrentModification,
+                "The CV changed while its new version was being created.")
         ]);
 }

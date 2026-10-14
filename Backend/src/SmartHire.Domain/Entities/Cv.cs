@@ -28,10 +28,11 @@ public class Cv {
     public ICollection<CvVersion> Versions { get; private set; } = new List<CvVersion>();
     
     private Cv() { }
-
+    
     public static Cv Create(
         Guid candidateId,
         Guid templateId,
+        string templateCode,
         string title,
         CvContentDocument content,
         CvLayoutDocument layout,
@@ -42,7 +43,25 @@ public class Cv {
         ThrowIfInvalid(CvValidator.ValidateTitle(title));
         ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout, presentation));
         ThrowIfInvalid(CvValidator.ValidateLanguage(language));
-
+        
+        ArgumentNullException.ThrowIfNull(content.Metadata);
+        ArgumentNullException.ThrowIfNull(presentation.Metadata);
+        ArgumentException.ThrowIfNullOrWhiteSpace(templateCode);
+        
+        content = content with {
+            Metadata = content.Metadata with {
+                TemplateCode = templateCode,
+                Language = language,
+                UpdatedAt = now
+            }
+        };
+        presentation = presentation with {
+            Metadata = presentation.Metadata with {
+                TemplateCode = templateCode,
+                UpdatedAt = now
+            }
+        };
+        
         return new Cv {
             CandidateId = candidateId,
             TemplateId = templateId,
@@ -56,17 +75,22 @@ public class Cv {
             UpdatedAt = now
         };
     }
-
+    
     public CvVersion CreateInitialVersion(DateTimeOffset now) {
-        if (Versions.Any(version => version.VersionNumber == 1)) {
-            throw new InvalidOperationException("The initial CV version has already been created.");
+        return CreateVersion(1, now);
+    }
+    
+    public CvVersion CreateVersion(int versionNumber, DateTimeOffset now) {
+        if (Versions.Any(version => version.VersionNumber == versionNumber)) {
+            throw new InvalidOperationException(
+                $"CV version {versionNumber} has already been created.");
         }
-
-        var version = CvVersion.CreateSnapshot(this, 1, now);
+        
+        var version = CvVersion.CreateSnapshot(this, versionNumber, now);
         Versions.Add(version);
         return version;
     }
-
+    
     public void Update(
         CvTemplate template,
         string title,
@@ -74,13 +98,39 @@ public class Cv {
         CvLayoutDocument layout,
         CvPresentationDocument presentation,
         CvLanguage language,
-        DateTimeOffset now) {
+        DateTimeOffset now,
+        int latestVersionNumber
+    ) {
         ArgumentNullException.ThrowIfNull(template);
         ThrowIfInvalid(CvValidator.ValidateIdentity(CandidateId, template.Id));
         ThrowIfInvalid(CvValidator.ValidateTitle(title));
         ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout, presentation));
         ThrowIfInvalid(CvValidator.ValidateLanguage(language));
-
+        ArgumentNullException.ThrowIfNull(content.Metadata);
+        ArgumentNullException.ThrowIfNull(presentation.Metadata);
+        
+        var formattedVersionNumber = latestVersionNumber.ToString("F1");
+        
+        content = content with {
+            Metadata = content.Metadata with {
+                Version = formattedVersionNumber,
+                TemplateCode = template.Code,
+                Language = language,
+                UpdatedAt = now
+            }
+        };
+        presentation = presentation with {
+            Metadata = presentation.Metadata with {
+                Version = formattedVersionNumber,
+                TemplateCode = template.Code,
+                UpdatedAt = now
+            }
+        };
+        
+        layout = layout with {
+            Version = formattedVersionNumber
+        };
+        
         Template = template;
         TemplateId = template.Id;
         Title = CvValidator.NormalizeTitle(title);
@@ -90,33 +140,31 @@ public class Cv {
         Language = language;
         UpdatedAt = now;
     }
-
-    public void Archive(DateTimeOffset now)
-    {
-        if (DeletedAt is not null)
-        {
+    
+    public void Archive(DateTimeOffset now) {
+        if (DeletedAt is not null) {
             return;
         }
-
+        
         DeletedAt = now;
         UpdatedAt = now;
     }
-
+    
     public void SetVisibility(bool isPublic, DateTimeOffset now) {
         if (IsPublic == isPublic) {
             return;
         }
-
+        
         IsPublic = isPublic;
         UpdatedAt = now;
     }
-
+    
     private static void ThrowIfInvalid(CvValidationIssue? issue) {
         if (issue is not null) {
             throw new ArgumentException(issue.Message, issue.Field);
         }
     }
-
+    
     private static void ThrowIfInvalid(IReadOnlyList<CvValidationIssue> issues) {
         if (issues.Count > 0) {
             throw new ArgumentException(

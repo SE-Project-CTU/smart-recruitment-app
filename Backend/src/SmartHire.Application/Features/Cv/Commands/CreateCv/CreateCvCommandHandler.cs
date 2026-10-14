@@ -110,6 +110,7 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
                 var newCv = Domain.Entities.Cv.Create(
                     candidateId,
                     validatedRequest.TemplateId,
+                    cvTemplate.Code,
                     validatedRequest.Title!,
                     cvTemplate.DefaultContent,
                     cvTemplate.DefaultLayout,

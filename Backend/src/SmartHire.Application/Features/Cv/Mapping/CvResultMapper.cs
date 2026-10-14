@@ -32,4 +32,5 @@ public static class CvResultMapper
             cv.CreatedAt,
             cv.UpdatedAt);
     }
+
 }
