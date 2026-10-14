@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, FileText } from "lucide-react";
+import {
+  Menu,
+  X,
+  LogOut,
+  LayoutDashboard,
+  FileText,
+  UserRound,
+} from "lucide-react";
 import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/hooks/queries/useAuth";
 import { PATHS } from "@/constants/paths";
-import { getLoremAvt, getDashboardPathByRole } from "@/utils/helper";
+import {
+  getLoremAvt,
+  getDashboardPathByRole,
+  getProfilePathByRole,
+} from "@/utils/helper";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +41,9 @@ function Header() {
   const { user, isAuthenticated } = useAuthStore();
   const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
 
-  const dashboardPath = getDashboardPathByRole(user?.roles[0]);
+  const primaryRole = user?.roles?.[0]?.toLowerCase() || "candidate";
+  const dashboardPath = getDashboardPathByRole(primaryRole);
+  const profilePath = getProfilePathByRole(primaryRole);
 
   const handleLogout = async () => {
     try {
@@ -69,7 +82,7 @@ function Header() {
                 render={
                   <button
                     type="button"
-                    className="flex cursor-pointer items-center gap-2.5 rounded-full border border-border/60 bg-white/60 p-1 shadow-2xs backdrop-blur-xs transition-transform active:scale-95"
+                    className="rounded-fullp-1 flex cursor-pointer items-center gap-2.5 shadow-2xs backdrop-blur-xs transition-transform active:scale-95"
                   >
                     <img
                       src={getLoremAvt(user?.fullName)}
@@ -100,7 +113,7 @@ function Header() {
                     Trang quản lý
                   </DropdownMenuItem>
 
-                  {user?.roles[0].toLowerCase() === "candidate" && (
+                  {primaryRole === "candidate" && (
                     <DropdownMenuItem
                       onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
                       className="cursor-pointer"
@@ -109,6 +122,14 @@ function Header() {
                       Quản lý CV
                     </DropdownMenuItem>
                   )}
+
+                  <DropdownMenuItem
+                    onClick={() => navigate(profilePath)}
+                    className="cursor-pointer"
+                  >
+                    <UserRound className="size-4" />
+                    Thông tin cá nhân
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
 
                 <DropdownMenuSeparator />
@@ -187,6 +208,15 @@ function Header() {
               >
                 <LayoutDashboard size={16} />
                 Trang quản lý
+              </Link>
+
+              <Link
+                to={profilePath}
+                onClick={() => setIsOpen(false)}
+                className="btn btn-secondary flex w-full items-center justify-center gap-2"
+              >
+                <UserRound size={16} />
+                Thông tin cá nhân
               </Link>
 
               <button

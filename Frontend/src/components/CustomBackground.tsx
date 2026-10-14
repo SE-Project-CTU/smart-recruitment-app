@@ -43,3 +43,21 @@ export function HightlightSideBackground() {
     />
   );
 }
+
+export function CTAMeshGradient() {
+  return (
+    <div
+      className="absolute inset-0 z-0"
+      style={{
+        background: `
+      radial-gradient(ellipse 60% 80% at 8% 10%, rgba(2, 18, 69, 0.95), transparent 70%),
+      radial-gradient(ellipse 45% 45% at 95% 5%, rgba(224, 139, 94, 0.75), transparent 60%),
+      radial-gradient(ellipse 55% 70% at 65% 35%, rgba(123, 209, 249, 0.85), transparent 65%),
+      radial-gradient(ellipse 70% 60% at 85% 85%, rgba(23, 58, 115, 0.90), transparent 70%),
+      radial-gradient(ellipse 80% 50% at 30% 90%, rgba(18, 48, 102, 0.85), transparent 75%),
+      linear-gradient(110deg, #0d2754 0%, #3e88b5 50%, #90d3f7 100%)
+    `,
+      }}
+    />
+  );
+}

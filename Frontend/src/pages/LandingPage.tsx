@@ -295,10 +295,7 @@ const CVTemplate = () => {
   return (
     <div className="flex flex-col gap-8 overflow-hidden bg-bg-white-blue px-4 py-16 sm:px-6 md:gap-20 md:py-30 lg:px-8">
       <div className="space-y-4">
-        <Button
-          variant="secondary"
-          className="text-xs!"
-        >
+        <Button variant="secondary" className="text-xs!">
           Bộ sưu tập mẫu CV
         </Button>
         <h1 className="section-title">Thư Viện CV Chuẩn Khổng Lồ</h1>
@@ -430,9 +427,7 @@ const Testimonial = () => {
         <p className="max-w-100 text-center text-xl font-medium md:max-w-200 md:text-4xl">
           Bạn có muốn biết cách chúng tôi xây dựng lòng tin với khách hàng?
         </p>
-        <Button
-          className="text-lg! md:px-8! md:text-2xl!"
-        >
+        <Button className="text-lg! md:px-8! md:text-2xl!">
           Tìm hiểu ngay
         </Button>
       </div>
@@ -462,9 +457,7 @@ const CTA = () => {
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2 lg:justify-start">
-              <Button
-                className="border-none! bg-status-active! px-6! py-3! text-sm font-semibold text-primary-dark! transition-all hover:opacity-90 sm:text-base!"
-              >
+              <Button className="border-none! bg-status-active! px-6! py-3! text-sm font-semibold text-primary-dark! transition-all hover:opacity-90 sm:text-base!">
                 Bắt đầu ngay
               </Button>
               <Button

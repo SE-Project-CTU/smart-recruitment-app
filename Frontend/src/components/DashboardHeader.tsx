@@ -8,12 +8,13 @@ import {
   ListCheck,
   LogOut,
   PlusCircle,
+  UserRound,
 } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SmartHire_default } from "@/assets/images/logo";
 import { useAuthStore } from "@/stores/authStore";
 import { PATHS } from "@/constants/paths";
-import { getLoremAvt } from "@/utils/helper";
+import { getLoremAvt, getProfilePathByRole } from "@/utils/helper";
 import Button from "./Button";
 import {
   DropdownMenu,
@@ -32,7 +33,6 @@ function DashboardHeader() {
 
   const displayName = user?.fullName || "Người dùng";
   const displayEmail = user?.email || "user@smarthire.com";
-
   const primaryRole = user?.roles?.[0]?.toLowerCase() || "candidate";
 
   const handleLogout = async () => {
@@ -135,11 +135,9 @@ function DashboardHeader() {
 
             <DropdownMenuContent align="end" className="min-w-56">
               <div className="flex flex-col px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-text truncate text-sm font-bold">
-                    {displayName}
-                  </span>
-                </div>
+                <span className="text-text truncate text-sm font-bold">
+                  {displayName}
+                </span>
                 <span className="truncate text-xs text-text-muted">
                   {displayEmail}
                 </span>
@@ -165,6 +163,14 @@ function DashboardHeader() {
                     Quản lý CV
                   </DropdownMenuItem>
                 )}
+
+                <DropdownMenuItem
+                  onClick={() => navigate(getProfilePathByRole(primaryRole))}
+                  className="cursor-pointer"
+                >
+                  <UserRound className="size-4" />
+                  Thông tin cá nhân
+                </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
