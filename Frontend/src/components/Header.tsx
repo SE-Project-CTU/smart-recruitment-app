@@ -223,7 +223,7 @@ function Header() {
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-red-500 py-3 text-sm font-semibold text-white shadow-xs transition-all active:scale-98 disabled:opacity-50"
+                className="btn btn-secondary flex w-full items-center justify-center gap-2 text-status-error! ring-status-error!"
               >
                 <LogOut size={16} />
                 {isLoggingOut ? "Đang xuất..." : "Đăng xuất"}
