@@ -1,9 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout.tsx";
-import Page from "@/components/Page.tsx";
 import { SignUp, SignIn, LandingPage, NotFound } from "@/pages";
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
 import { ProtectedRoute } from "./ProtectedRoute";
+import CVBuilder from "@/pages/CVBuilder";
 
 const router = createBrowserRouter([
   {
@@ -20,9 +20,7 @@ const router = createBrowserRouter([
   },
   {
     element: <ProtectedRoute />,
-    children: [
-      { path: "/create-cv", element: <Page title="you hit CV creator" /> },
-    ],
+    children: [{ path: "/create-cv", element: <CVBuilder /> }],
   },
   { path: "*", element: <NotFound /> },
 ]);
