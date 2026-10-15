@@ -365,6 +365,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("content");
 
+                    b.Property<string>("ContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("content_hash");
+
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
@@ -388,10 +393,20 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("layout");
 
+                    b.Property<string>("LayoutHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("layout_hash");
+
                     b.Property<string>("Presentation")
                         .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("presentation");
+
+                    b.Property<string>("PresentationHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("presentation_hash");
 
                     b.Property<Guid>("TemplateId")
                         .HasColumnType("uuid")

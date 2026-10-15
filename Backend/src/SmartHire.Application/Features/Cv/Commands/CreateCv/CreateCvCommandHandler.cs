@@ -2,6 +2,7 @@
 using MediatR;
 using SmartHire.Application.Features.Cv.Mapping;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Abstractions.Serialization;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.Exceptions;
@@ -16,6 +17,7 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
     private readonly ICvTemplateRepository _cvTemplateRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUser _currentUser;
+    private readonly ICvDocumentHasher _cvDocumentHasher;
     
     public CreateCvCommandHandler(
         ICvRepository cvRepository,
@@ -23,7 +25,8 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
         IUserRoleRepository userRoleRepository,
         ICvTemplateRepository cvTemplateRepository,
         IUnitOfWork unitOfWork,
-        ICurrentUser currentUser
+        ICurrentUser currentUser,
+        ICvDocumentHasher cvDocumentHasher
     ) {
         _cvRepository = cvRepository;
         _cvVersionRepository = cvVersionRepository;
@@ -31,6 +34,7 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
         _cvTemplateRepository = cvTemplateRepository;
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _cvDocumentHasher = cvDocumentHasher;
     }
     
     public async Task<CvResult> Handle(CreateCvCommand request, CancellationToken cancellationToken) {
@@ -81,6 +85,15 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
                     language,
                     now
                 );
+
+                var hashes = _cvDocumentHasher.Calculate(
+                    newCv.Content,
+                    newCv.Presentation,
+                    newCv.Layout);
+                newCv.SetDocumentHashes(
+                    hashes.ContentHash,
+                    hashes.PresentationHash,
+                    hashes.LayoutHash);
                 
                 await _cvRepository.Add(newCv);
                 await _unitOfWork.SaveChangesAsync(transactionToken);

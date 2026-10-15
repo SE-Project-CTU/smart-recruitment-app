@@ -1,5 +1,6 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Abstractions.Serialization;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
@@ -15,17 +16,20 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
     private readonly ICvRepository _cvRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICvVersionRepository _cvVersionRepository;
+    private readonly ICvDocumentHasher _cvDocumentHasher;
     
     public UpdateCvCommandHandler(
         ICurrentUser currentUser,
         ICvRepository cvRepository,
         ICvVersionRepository cvVersionRepository,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        ICvDocumentHasher cvDocumentHasher
     ) {
         _currentUser = currentUser;
         _cvRepository = cvRepository;
         _cvVersionRepository = cvVersionRepository;
         _unitOfWork = unitOfWork;
+        _cvDocumentHasher = cvDocumentHasher;
     }
     
     public async Task<CvResult> Handle(
@@ -76,16 +80,55 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
             : validated.ContentProvided
                 ? content.Metadata.Language
                 : cv.Language;
+
+        content = content with {
+            Metadata = content.Metadata with { Language = language }
+        };
         
-        presentation = CvDocumentUpdateValidator.RemoveOrphanedItemStyles(content, presentation);
+        if (validated.ContentProvided || validated.PresentationProvided) {
+            presentation = CvDocumentUpdateValidator.RemoveOrphanedItemStyles(content, presentation);
+        }
         
         var isPublic = cv.IsPublic;
         if (validated.IsPublicProvided) {
             isPublic = validated.IsPublic!.Value;
         }
         
-        bool isVersioningRequired =
-            validated.ContentProvided || validated.LayoutProvided || validated.PresentationProvided;
+        var currentHashes = _cvDocumentHasher.Calculate(
+            cv.Content,
+            cv.Presentation,
+            cv.Layout);
+        var proposedHashes = _cvDocumentHasher.Calculate(
+            content,
+            presentation,
+            layout);
+
+        var currentContentHash = cv.ContentHash ?? currentHashes.ContentHash;
+        var currentPresentationHash = cv.PresentationHash ?? currentHashes.PresentationHash;
+        var currentLayoutHash = cv.LayoutHash ?? currentHashes.LayoutHash;
+
+        var contentComparisonRequired = validated.ContentProvided || language != cv.Language;
+        var presentationComparisonRequired =
+            validated.PresentationProvided || validated.ContentProvided;
+        var layoutComparisonRequired = validated.LayoutProvided;
+
+        var contentChanged = contentComparisonRequired && !string.Equals(
+            proposedHashes.ContentHash,
+            currentContentHash,
+            StringComparison.Ordinal);
+        var presentationChanged = presentationComparisonRequired && !string.Equals(
+            proposedHashes.PresentationHash,
+            currentPresentationHash,
+            StringComparison.Ordinal);
+        var layoutChanged = layoutComparisonRequired && !string.Equals(
+            proposedHashes.LayoutHash,
+            currentLayoutHash,
+            StringComparison.Ordinal);
+        var isVersioningRequired = contentChanged || presentationChanged || layoutChanged;
+
+        var title = validated.TitleProvided ? validated.Title! : cv.Title;
+        var titleChanged = !string.Equals(title, cv.Title, StringComparison.Ordinal);
+        var visibilityChanged = isPublic != cv.IsPublic;
         
         try {
             if (isVersioningRequired) {
@@ -100,25 +143,42 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                 return await HandleUpdateWithVersioning(
                     cv,
                     latestVersionNumber,
-                    () => cv.UpdateDocuments(
-                        content,
-                        layout,
-                        presentation,
-                        language,
-                        latestVersionNumber,
-                        now
-                    ),
+                    () => {
+                        cv.Update(title, isPublic, now);
+                        cv.UpdateDocuments(
+                            content,
+                            layout,
+                            presentation,
+                            language,
+                            latestVersionNumber,
+                            now);
+
+                        // Hash again because the updated documents modified version.
+                        var updatedHashes = _cvDocumentHasher.Calculate(
+                            cv.Content,
+                            cv.Presentation,
+                            cv.Layout);
+                        cv.SetDocumentHashes(
+                            updatedHashes.ContentHash,
+                            updatedHashes.PresentationHash,
+                            updatedHashes.LayoutHash);
+                    },
                     now,
                     cancellationToken);
             }
             else {
                 return await HandlerSimpleUpdate(
                     cv,
-                    () => cv.Update(
-                        validated.TitleProvided ? validated.Title! : cv.Title,
-                        isPublic,
-                        now
-                    ),
+                    () => {
+                        if (titleChanged || visibilityChanged) {
+                            cv.Update(title, isPublic, now);
+                        }
+
+                        cv.SetDocumentHashes(
+                            proposedHashes.ContentHash,
+                            proposedHashes.PresentationHash,
+                            proposedHashes.LayoutHash);
+                    },
                     cancellationToken
                 );
             }

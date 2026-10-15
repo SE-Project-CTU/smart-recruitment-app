@@ -17,6 +17,9 @@ public class Cv {
     public CvContentDocument Content { get; private set; } = new();
     public CvLayoutDocument Layout { get; private set; } = new();
     public CvPresentationDocument Presentation { get; private set; } = new();
+    public string? ContentHash { get; private set; }
+    public string? PresentationHash { get; private set; }
+    public string? LayoutHash { get; private set; }
     
     public CvLanguage Language { get; private set; }
     public bool IsPublic { get; private set; }
@@ -137,6 +140,19 @@ public class Cv {
         
         Language = language;
         UpdatedAt = now;
+    }
+
+    public void SetDocumentHashes(
+        string contentHash,
+        string presentationHash,
+        string layoutHash) {
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentHash);
+        ArgumentException.ThrowIfNullOrWhiteSpace(presentationHash);
+        ArgumentException.ThrowIfNullOrWhiteSpace(layoutHash);
+
+        ContentHash = contentHash;
+        PresentationHash = presentationHash;
+        LayoutHash = layoutHash;
     }
     
     public void Archive(DateTimeOffset now) {

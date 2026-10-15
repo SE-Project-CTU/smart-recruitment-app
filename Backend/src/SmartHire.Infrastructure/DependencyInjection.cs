@@ -4,8 +4,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Abstractions.Serialization;
 using SmartHire.Application.Abstractions.Storage;
 using SmartHire.Infrastructure.Persistence;
+using SmartHire.Infrastructure.Persistence.Json;
 using SmartHire.Infrastructure.Persistence.Repositories;
 using SmartHire.Infrastructure.Security;
 using SmartHire.Infrastructure.Storage;
@@ -52,6 +54,7 @@ public static class DependencyInjection {
         services.AddScoped<ICvTemplateRepository, CvTemplateRepository>();
         services.AddScoped<ICvRepository, CvRepository>();
         services.AddScoped<ICvVersionRepository, CvVersionRepository>();
+        services.AddSingleton<ICvDocumentHasher, CvDocumentHasher>();
         
         // --- Cloudinary ---
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
