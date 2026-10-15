@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Menu,
+  Menu as MenuIcon,
   X,
   LogOut,
   LayoutDashboard,
@@ -18,13 +18,13 @@ import {
   getProfilePathByRole,
 } from "@/utils/helper";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+  Menu,
+  MenuTrigger,
+  MenuPanel,
+  MenuGroup,
+  MenuItem,
+  MenuSeparator,
+} from "@/components/animate-ui/components/base/menu";
 
 const headerItems = [
   { title: "Việc làm", href: PATHS.HOME },
@@ -76,23 +76,19 @@ function Header() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
+            <Menu>
+              <MenuTrigger
                 openOnHover
-                render={
-                  <button
-                    type="button"
-                    className="rounded-fullp-1 flex cursor-pointer items-center gap-2.5 shadow-2xs backdrop-blur-xs transition-transform active:scale-95"
-                  >
-                    <img
-                      src={getLoremAvt(user?.fullName)}
-                      alt={user?.fullName || "User Avatar"}
-                      className="h-8 w-8 rounded-full object-cover"
-                    />
-                  </button>
-                }
-              />
-              <DropdownMenuContent align="end" className="min-w-52">
+                className="flex cursor-pointer items-center gap-2.5 rounded-full p-1 shadow-2xs backdrop-blur-xs transition-transform focus:outline-none active:scale-95"
+              >
+                <img
+                  src={getLoremAvt(user?.fullName)}
+                  alt={user?.fullName || "User Avatar"}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              </MenuTrigger>
+
+              <MenuPanel align="end" className="min-w-52">
                 <div className="flex flex-col px-3 py-2">
                   <span className="text-text truncate text-sm font-bold">
                     {user?.fullName || "Người dùng"}
@@ -102,49 +98,49 @@ function Header() {
                   </span>
                 </div>
 
-                <DropdownMenuSeparator />
+                <MenuSeparator />
 
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
+                <MenuGroup>
+                  <MenuItem
                     onClick={() => navigate(dashboardPath)}
-                    className="cursor-pointer"
+                    className="cursor-pointer gap-2"
                   >
                     <LayoutDashboard className="size-4" />
-                    Trang quản lý
-                  </DropdownMenuItem>
+                    <span>Trang quản lý</span>
+                  </MenuItem>
 
                   {primaryRole === "candidate" && (
-                    <DropdownMenuItem
+                    <MenuItem
                       onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
-                      className="cursor-pointer"
+                      className="cursor-pointer gap-2"
                     >
                       <FileText className="size-4" />
-                      Quản lý CV
-                    </DropdownMenuItem>
+                      <span>Quản lý CV</span>
+                    </MenuItem>
                   )}
 
-                  <DropdownMenuItem
+                  <MenuItem
                     onClick={() => navigate(profilePath)}
-                    className="cursor-pointer"
+                    className="cursor-pointer gap-2"
                   >
                     <UserRound className="size-4" />
-                    Thông tin cá nhân
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
+                    <span>Thông tin cá nhân</span>
+                  </MenuItem>
+                </MenuGroup>
 
-                <DropdownMenuSeparator />
+                <MenuSeparator />
 
-                <DropdownMenuItem
+                <MenuItem
                   variant="destructive"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="cursor-pointer"
+                  className="cursor-pointer gap-2 text-red-600 focus:bg-red-50 focus:text-red-600"
                 >
                   <LogOut className="size-4" />
-                  {isLoggingOut ? "Đang xuất..." : "Đăng xuất"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <span>{isLoggingOut ? "Đang xuất..." : "Đăng xuất"}</span>
+                </MenuItem>
+              </MenuPanel>
+            </Menu>
           ) : (
             <>
               <Link to={PATHS.SIGN_IN} className="btn btn-secondary">
@@ -162,7 +158,7 @@ function Header() {
           aria-label="Toggle Menu"
           className="p-2 text-text-main transition-transform duration-200 hover:text-primary active:scale-90 lg:hidden"
         >
-          {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+          {isOpen ? <X className="size-6" /> : <MenuIcon className="size-6" />}
         </button>
       </div>
 

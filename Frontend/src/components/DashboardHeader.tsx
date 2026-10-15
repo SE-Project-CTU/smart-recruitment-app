@@ -17,13 +17,13 @@ import { PATHS } from "@/constants/paths";
 import { getLoremAvt, getProfilePathByRole } from "@/utils/helper";
 import Button from "./Button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+  Menu,
+  MenuTrigger,
+  MenuPanel,
+  MenuGroup,
+  MenuItem,
+  MenuSeparator,
+} from "@/components/animate-ui/components/base/menu";
 import { useLogout } from "@/hooks/queries/useAuth";
 
 function DashboardHeader() {
@@ -108,32 +108,28 @@ function DashboardHeader() {
         </button>
 
         <div className="flex items-center gap-3 border-l border-border/40 pl-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <button
-                  type="button"
-                  className="flex cursor-pointer items-center gap-2.5 rounded-lg p-1 transition-colors hover:bg-slate-100/80"
-                >
-                  <img
-                    src={getLoremAvt(user?.fullName)}
-                    alt={user?.fullName || "User Avatar"}
-                    className="aspect-square h-8 w-8 min-w-8 rounded-full object-cover"
-                  />
-                  <div className="hidden flex-col text-left md:flex">
-                    <span className="text-xs leading-tight font-semibold text-slate-800">
-                      {displayName}
-                    </span>
-                    <span className="text-[11px] leading-tight text-text-muted">
-                      {displayEmail}
-                    </span>
-                  </div>
-                  <ChevronDown className="hidden size-4 text-slate-400 md:block" />
-                </button>
-              }
-            />
+          <Menu>
+            <MenuTrigger
+              openOnHover
+              className="flex cursor-pointer items-center gap-2.5 rounded-lg p-1 transition-colors hover:bg-slate-100/80 focus:outline-none"
+            >
+              <img
+                src={getLoremAvt(user?.fullName)}
+                alt={user?.fullName || "User Avatar"}
+                className="aspect-square h-8 w-8 min-w-8 rounded-full object-cover"
+              />
+              <div className="hidden flex-col text-left md:flex">
+                <span className="text-xs leading-tight font-semibold text-slate-800">
+                  {displayName}
+                </span>
+                <span className="text-[11px] leading-tight text-text-muted">
+                  {displayEmail}
+                </span>
+              </div>
+              <ChevronDown className="hidden size-4 text-slate-400 md:block" />
+            </MenuTrigger>
 
-            <DropdownMenuContent align="end" className="min-w-56">
+            <MenuPanel align="end" className="min-w-56">
               <div className="flex flex-col px-3 py-2">
                 <span className="text-text truncate text-sm font-bold">
                   {displayName}
@@ -143,49 +139,49 @@ function DashboardHeader() {
                 </span>
               </div>
 
-              <DropdownMenuSeparator />
+              <MenuSeparator />
 
-              <DropdownMenuGroup>
-                <DropdownMenuItem
+              <MenuGroup>
+                <MenuItem
                   onClick={() => navigate(PATHS.HOME)}
-                  className="cursor-pointer"
+                  className="cursor-pointer gap-2"
                 >
                   <Home className="size-4" />
-                  Trang chủ
-                </DropdownMenuItem>
+                  <span>Trang chủ</span>
+                </MenuItem>
 
                 {primaryRole === "candidate" && (
-                  <DropdownMenuItem
+                  <MenuItem
                     onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
-                    className="cursor-pointer"
+                    className="cursor-pointer gap-2"
                   >
                     <FilePlus className="size-4" />
-                    Quản lý CV
-                  </DropdownMenuItem>
+                    <span>Quản lý CV</span>
+                  </MenuItem>
                 )}
 
-                <DropdownMenuItem
+                <MenuItem
                   onClick={() => navigate(getProfilePathByRole(primaryRole))}
-                  className="cursor-pointer"
+                  className="cursor-pointer gap-2"
                 >
                   <UserRound className="size-4" />
-                  Thông tin cá nhân
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
+                  <span>Thông tin cá nhân</span>
+                </MenuItem>
+              </MenuGroup>
 
-              <DropdownMenuSeparator />
+              <MenuSeparator />
 
-              <DropdownMenuItem
+              <MenuItem
                 variant="destructive"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="cursor-pointer"
+                className="cursor-pointer gap-2 text-red-600 focus:bg-red-50 focus:text-red-600"
               >
                 <LogOut className="size-4" />
-                {isLoggingOut ? "Đang xuất..." : "Đăng xuất"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <span>{isLoggingOut ? "Đang xuất..." : "Đăng xuất"}</span>
+              </MenuItem>
+            </MenuPanel>
+          </Menu>
         </div>
       </div>
     </header>
