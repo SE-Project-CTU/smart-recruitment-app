@@ -1,3 +1,8 @@
+import { PATHS } from "@/constants/paths";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/vi";
+
 export const getLoremAvt = (name?: string): string => {
   if (!name) return "https://placehold.co/100x100?text=U";
   const words = name.trim().split(/\s+/);
@@ -8,8 +13,6 @@ export const getLoremAvt = (name?: string): string => {
 
   return `https://placehold.co/100x100?text=${encodeURIComponent(initials)}`;
 };
-
-import { PATHS } from "@/constants/paths";
 
 export const getDashboardPathByRole = (role?: string): string => {
   switch (role?.toLowerCase()) {
@@ -36,4 +39,26 @@ export const getProfilePathByRole = (role: string): string => {
     default:
       return PATHS.CANDIDATE.USER_PROFILE;
   }
+};
+
+dayjs.extend(relativeTime);
+dayjs.locale("vi");
+export const getTimeAgo = (isoString: string): string => {
+  if (!isoString) return "";
+
+  const now = dayjs();
+  const targetDate = dayjs(isoString);
+  const diffInHours = now.diff(targetDate, "hour");
+
+  if (diffInHours < 1) {
+    const diffInMinutes = now.diff(targetDate, "minute");
+    if (diffInMinutes <= 1) return "Vừa xong";
+    return `${diffInMinutes} phút trước`;
+  }
+
+  if (diffInHours < 24) {
+    return `${diffInHours} giờ trước`;
+  }
+
+  return targetDate.fromNow();
 };
