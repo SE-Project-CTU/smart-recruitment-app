@@ -50,6 +50,9 @@ public static class DependencyInjection {
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
         
         services.AddScoped<IMediaFileRepository, MediaFileRepository>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+
         
         services.AddScoped<ICvTemplateRepository, CvTemplateRepository>();
         services.AddScoped<ICvRepository, CvRepository>();
@@ -99,6 +102,17 @@ public static class DependencyInjection {
                     
                     NameClaimType = JwtRegisteredClaimNames.Name,
                     RoleClaimType = "role"
+                };
+
+                options.Events = new JwtBearerEvents {
+                    OnMessageReceived = context => {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs")) {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
         

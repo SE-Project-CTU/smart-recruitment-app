@@ -28,6 +28,7 @@ public sealed class MediaController : ControllerBase {
         _responseFactory = responseFactory;
     }
 
+    // Upload ảnh
     [HttpPost("upload/image")]
     public async Task<IActionResult> UploadImage(
         IFormFile? file,
@@ -53,6 +54,7 @@ public sealed class MediaController : ControllerBase {
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
 
+    // Upload pdf
     [HttpPost("upload/pdf")]
     public async Task<IActionResult> UploadPdf(
         IFormFile? file,
@@ -78,6 +80,7 @@ public sealed class MediaController : ControllerBase {
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
 
+    // Lấy thông tin file media
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetMediaFile(
         Guid id,
@@ -89,6 +92,7 @@ public sealed class MediaController : ControllerBase {
         return Ok(_responseFactory.Success(result));
     }
 
+    // Xóa file media
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteMediaFile(
         Guid id,

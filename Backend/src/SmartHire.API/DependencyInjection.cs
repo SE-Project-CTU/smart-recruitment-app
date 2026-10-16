@@ -22,6 +22,11 @@ public static class DependencyInjection {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, HttpCurrentUser>();
 
+        // SignalR
+        services.AddSignalR();
+        services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, Hubs.SubUserIdProvider>();
+        services.AddScoped<SmartHire.Application.Abstractions.Notifications.INotificationDispatcher, Services.SignalRNotificationDispatcher>();
+        
         return services;
     }
     

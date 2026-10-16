@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Responses;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;

@@ -11,7 +11,7 @@ public static class FileSignatureValidator {
     private static readonly byte[] PdfSignature = [0x25, 0x50, 0x44, 0x46, 0x2D];
 
     /// <summary>
-    /// Phát hiện chính xác Content-Type của hình ảnh dựa trên Magic Bytes nhị phân (JPEG, PNG, WEBP).
+    /// Phát hiện chính xác Content-Type của hình ảnh dựa trên Magic Bytes nhị phân.
     /// Trả về null nếu nội dung không khớp với định dạng ảnh nào được hỗ trợ.
     /// </summary>
     public static string? DetectImageContentType(Stream stream) {
@@ -28,17 +28,17 @@ public static class FileSignatureValidator {
             return null;
         }
 
-        // 1. JPEG / JPG: FF D8 FF
+        // JPEG / JPG
         if (header.Take(3).SequenceEqual(JpegSignature)) {
             return "image/jpeg";
         }
 
-        // 2. PNG: 89 50 4E 47 0D 0A 1A 0A
+        // PNG
         if (bytesRead >= 8 && header.Take(8).SequenceEqual(PngSignature)) {
             return "image/png";
         }
 
-        // 3. WEBP: RIFF (bytes 0-3) + WEBP (bytes 8-11)
+        // WEBP
         if (bytesRead >= 12 &&
             header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46 &&
             header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50) {
