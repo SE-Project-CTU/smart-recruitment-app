@@ -1,0 +1,10 @@
+using MediatR;
+using SmartHire.Domain.ValueObjects.Cv;
+
+namespace SmartHire.Application.Features.Cv.Commands.CreateCv;
+
+public sealed record CreateCvCommand(
+    Guid TemplateId,
+    string? Title,
+    string? Language = null
+) : IRequest<CvResult>;

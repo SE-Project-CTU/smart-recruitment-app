@@ -29,7 +29,9 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand> {
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id."
+                "The access token does not contain a valid user id.",
+                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+                    "A valid user id claim is required.")]
             );
         }
         
@@ -48,7 +50,9 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand> {
                     throw new AppException(
                         AppErrorKind.BadRequest,
                         AuthErrorCodes.LogoutTargetRequired,
-                        "Provide a refresh token or set allSessions to true."
+                        "Provide a refresh token or set allSessions to true.",
+                        [new AppErrorDetail("refreshToken", ValidationReasons.Required,
+                            "Provide a refresh token unless allSessions is true.")]
                     );
                 }
                 
@@ -59,14 +63,18 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand> {
                     throw new AppException(
                         AppErrorKind.NotFound,
                         AuthErrorCodes.RefreshTokenNotFound,
-                        "Refresh token was not found.");
+                        "Refresh token was not found.",
+                        [new AppErrorDetail("refreshToken", ErrorDetailReasons.NotFound,
+                            "The specified refresh token could not be found.")]);
                 }
                 
                 if (token.UserId != userId) {
                     throw new AppException(
                         AppErrorKind.Forbidden,
                         AuthErrorCodes.RefreshTokenNotOwned,
-                        "Refresh token does not belong to the current user."
+                        "Refresh token does not belong to the current user.",
+                        [new AppErrorDetail("refreshToken", ValidationReasons.NotAllowed,
+                            "The refresh token does not belong to the current account.")]
                     );
                 }
                 

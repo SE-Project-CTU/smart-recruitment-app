@@ -14,6 +14,8 @@ public sealed record LoginResult(
 public sealed record LoginUserResult(
     Guid Id,
     string Email,
+    string? Phone,
+    string? AvatarUrl,
     string FullName,
     IReadOnlyList<string> Roles,
     string Status

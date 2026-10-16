@@ -38,7 +38,9 @@ public sealed class UploadImageCommandHandler
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+                "The access token does not contain a valid user id.",
+                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+                    "A valid user id claim is required.")]);
         }
 
         // Validate type
@@ -108,11 +110,13 @@ public sealed class UploadImageCommandHandler
                 actualContentType,
                 folder: "images",
                 cancellationToken);
-        } catch (Exception ex) {
+        } catch (Exception) {
             throw new AppException(
                 AppErrorKind.BadRequest,
                 MediaErrorCodes.MediaFileStorageError,
-                "Failed to upload image to storage. " + ex.Message);
+                "Failed to upload image to storage.",
+                [new AppErrorDetail("file", ErrorDetailReasons.StorageError,
+                    "The storage provider could not store the image.")]);
         }
 
         // Lưu metadata vào DB với actualContentType và sanitizedFileName

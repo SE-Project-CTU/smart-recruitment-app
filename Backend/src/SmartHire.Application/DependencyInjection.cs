@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-
+using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Features.Auth.RegisterAccount;
+using SmartHire.Application.Features.Media.Jobs.DeleteMediaFile;
 
 namespace SmartHire.Application;
 
@@ -9,10 +10,13 @@ public static class DependencyInjection {
         this IServiceCollection services
     ) {
         services.AddScoped<RegisterAccountWorkflow>();
-
+        
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly)
         );
+        
+        // Register background jobs
+        services.AddBackgroundJob<DeleteMediaFileJob, DeleteMediaFileJobArgs>();
         
         return services;
     }
