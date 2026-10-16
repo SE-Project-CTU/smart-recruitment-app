@@ -453,3 +453,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+.docs

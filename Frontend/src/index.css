@@ -49,13 +49,14 @@
   background-image:
     linear-gradient(to right, #e2e8f0 1px, transparent 1px),
     linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
-  background-size: 20px 30px;
+  background-size: 50px 70px;
 }
 
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: var(--font-sans);
 }
 
 .header-link-item {
@@ -80,4 +81,8 @@ body {
 
 .section-title {
   @apply text-3xl font-bold tracking-tight text-text-main lg:text-5xl;
+}
+
+.input-primary {
+  @apply w-full rounded-full border-2 border-transparent bg-white py-3 pr-6 pl-14 text-sm text-text-main shadow-sm transition-all outline-none focus:border-primary disabled:bg-gray-100;
 }

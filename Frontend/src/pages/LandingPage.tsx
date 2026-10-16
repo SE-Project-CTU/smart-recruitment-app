@@ -27,8 +27,14 @@ import {
 import { useEffect, useState } from "react";
 import TestimonialCard from "@/components/TestimonialCard";
 import { testimonialData } from "@/constants/mockData";
+import { useNavigate } from "react-router-dom";
+import {
+  GradientBackground,
+  GradientGridBackground,
+} from "@/components/CustomBackground";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
     <section className="overflow-bg-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg-white-blue pt-28 pb-16 lg:pt-32">
       <div className="container mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
@@ -68,6 +74,9 @@ const HeroSection = () => {
               <Button
                 text="Bắt đầu ngay"
                 className="w-fit! px-8! py-4! text-xl!"
+                onClick={() => {
+                  navigate("/sign-in");
+                }}
               />
             </div>
           </div>
@@ -305,15 +314,7 @@ const CVTemplate = () => {
 const HitDifferent = () => {
   return (
     <div className="relative flex w-full flex-col gap-8 overflow-hidden bg-bg-stone px-4 py-16 sm:px-6 md:gap-20 md:py-30 lg:px-8">
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `
-        radial-gradient(125% 125% at 50% 10%, #ffffff 30%, #6fc3e8 100%)
-      `,
-          backgroundSize: "100% 100%",
-        }}
-      />
+      <GradientBackground />
 
       <div className="z-1 space-y-2 text-center">
         <Button text="Nổi bật" type="secondary" className="text-xs!" />
@@ -436,18 +437,7 @@ const Testimonial = () => {
 const CTA = () => {
   return (
     <section className="relative w-full px-4 pt-20! pb-30! sm:px-6 md:py-24 lg:px-8">
-      <div
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          backgroundImage: `
-      linear-gradient(to right, rgba(203, 213, 225, 0.4) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(203, 213, 225, 0.4) 1px, transparent 1px),
-      radial-gradient(circle 600px at 20% 100%, rgba(56, 189, 248, 0.25), transparent),
-      radial-gradient(circle 600px at 80% 20%, rgba(27, 59, 111, 0.15), transparent)
-    `,
-          backgroundSize: "48px 48px, 48px 48px, 100% 100%, 100% 100%",
-        }}
-      />
+      <GradientGridBackground />
       <div className="relative container mx-auto max-w-6xl">
         <div className="relative flex min-h-95 w-full flex-col items-center justify-between overflow-visible rounded-3xl bg-primary-dark p-8 text-white shadow-2xl sm:p-12 lg:flex-row lg:p-14">
           <div className="pointer-events-none absolute -bottom-4 left-1/2 z-0 h-12 w-[92%] -translate-x-1/2 rounded-b-3xl bg-primary-dark/50" />
