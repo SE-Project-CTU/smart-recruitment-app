@@ -36,8 +36,10 @@ public sealed class UserRepository : IUserRepository {
     
     public async Task<User?> GetByEmailWithRolesAsync(string normalizedEmail, CancellationToken cancellationToken) {
         return await _dbContext.Users
+            .AsNoTracking()
             .Include(user => user.UserRoles)
             .ThenInclude(userRole => userRole.Role)
+            .Include(user => user.AvatarFile)
             .SingleOrDefaultAsync(
                 user => user.Email == normalizedEmail,
                 cancellationToken

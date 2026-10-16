@@ -74,10 +74,12 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.AccountNotAllowed,
                 "This account is not allowed to sign in.",
-                [new AppErrorDetail(
-                    "account.status",
-                    ValidationReasons.NotAllowed,
-                    "The account is not active.")]
+                [
+                    new AppErrorDetail(
+                        "account.status",
+                        ValidationReasons.NotAllowed,
+                        "The account is not active.")
+                ]
             );
         }
         
@@ -117,6 +119,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
                     User: new LoginUserResult(
                         user.Id,
                         user.Email,
+                        user.Phone,
+                        user.AvatarFile?.FileUrl,
                         user.FullName,
                         roleNames,
                         user.Status.ToString()
