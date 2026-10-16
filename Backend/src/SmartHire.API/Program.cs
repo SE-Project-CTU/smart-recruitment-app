@@ -1,11 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application;
 using SmartHire.Infrastructure;
+using SmartHire.Infrastructure.BackgroundJobs;
 using SmartHire.Infrastructure.Persistence;
 using NLog.Web;
-using Hangfire;
-using Hangfire.Dashboard;
-using Hangfire.PostgreSql;
 using DotNetEnv;
 using SmartHire.Api;
 using SmartHire.Api.Factories;
@@ -19,22 +17,11 @@ builder.Configuration.AddEnvironmentVariables();
 
 // Đăng ký Infrastructure (EF Core, pgvector)
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHangfireBackgroundJobs(builder.Configuration);
 
 // Cấu hình Logging
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
-
-// Đăng ký Hangfire
-var hangfireConnection =
-    builder.Configuration.GetConnectionString("HangfireConnection")
-    ?? throw new InvalidOperationException(
-        "Connection string 'HangfireConnection' was not configured.");
-
-builder.Services.AddHangfire(configuration =>
-    configuration.UsePostgreSqlStorage(options =>
-        options.UseNpgsqlConnection(hangfireConnection)));
-
-builder.Services.AddHangfireServer();
 
 builder.Services.AddApiServices();
 
@@ -75,15 +62,13 @@ using (var scope = app.Services.CreateScope()) {
 app.MapOpenApi();
 app.UseSwaggerUi(options => { options.DocumentPath = "/openapi/v1.json"; });
 
-// ── Hangfire Dashboard ──
-app.UseHangfireDashboard("/hangfire", new DashboardOptions {
-    Authorization = Array.Empty<IDashboardAuthorizationFilter>()
-});
-
+// ── Background-job dashboard ──
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseBackgroundJobDashboard();
 
 app.MapControllers().RequireAuthorization();
 
