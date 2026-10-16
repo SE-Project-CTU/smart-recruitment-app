@@ -24,7 +24,9 @@ public sealed class GetMediaFileQueryHandler
             throw new AppException(
                 AppErrorKind.NotFound,
                 MediaErrorCodes.MediaFileNotFound,
-                "Media file was not found.");
+                "Media file was not found.",
+                [new AppErrorDetail("fileId", ErrorDetailReasons.NotFound,
+                    "The specified media file could not be found.")]);
         }
 
         return new MediaFileResult(
