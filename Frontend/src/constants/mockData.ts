@@ -81,7 +81,7 @@ export const MOCK_JOB_POSTINGS: MockJobPosting[] = [
       "- Lương cạnh tranh, thưởng tháng 13 + Performance Bonus.\n- Bảo hiểm sức khỏe toàn diện cho nhân sự và người thân.\n- Môi trường làm việc quốc tế, linh hoạt thời gian.",
     salaryMin: 1800,
     salaryMax: 2800,
-    salaryNegotiable: false,
+    salaryNegotiable: true,
     deadline: "2026-05-30T23:59:59Z",
     createAt: "2026-04-10T09:00:00Z",
     status: "ACTIVE",
@@ -95,7 +95,7 @@ export const MOCK_JOB_POSTINGS: MockJobPosting[] = [
       id: "comp-uuid-102",
       name: "CloudWorks Asia",
       logoUrl:
-        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150",
+        "https://store.servicenow.com/f7a4e1941b55a110ee92cb31604bcb2e.iix",
       verificationStatus: "VERIFIED",
     },
     title: "Full-stack .NET & React Developer",
