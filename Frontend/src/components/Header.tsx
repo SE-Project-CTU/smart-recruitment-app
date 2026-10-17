@@ -82,7 +82,7 @@ function Header() {
                 className="flex cursor-pointer items-center gap-2.5 rounded-full p-1 shadow-2xs backdrop-blur-xs transition-transform focus:outline-none active:scale-95"
               >
                 <img
-                  src={getLoremAvt(user?.fullName)}
+                  src={user?.avatarUrl || getLoremAvt(user?.fullName)}
                   alt={user?.fullName || "User Avatar"}
                   className="h-8 w-8 rounded-full object-cover"
                 />
@@ -183,7 +183,7 @@ function Header() {
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3 rounded-2xl bg-white/60 p-3 shadow-2xs">
                 <img
-                  src={getLoremAvt(user?.fullName)}
+                  src={user?.avatarUrl || getLoremAvt(user?.fullName)}
                   alt=""
                   className="h-10 w-10 rounded-full object-cover"
                 />

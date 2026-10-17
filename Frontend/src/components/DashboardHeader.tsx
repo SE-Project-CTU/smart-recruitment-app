@@ -114,7 +114,7 @@ function DashboardHeader() {
               className="flex cursor-pointer items-center gap-2.5 rounded-lg p-1 transition-colors hover:bg-slate-100/80 focus:outline-none"
             >
               <img
-                src={getLoremAvt(user?.fullName)}
+                src={user?.avatarUrl || getLoremAvt(user?.fullName)}
                 alt={user?.fullName || "User Avatar"}
                 className="aspect-square h-8 w-8 min-w-8 rounded-full object-cover"
               />

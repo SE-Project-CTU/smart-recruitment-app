@@ -25,6 +25,7 @@ export interface AuthUser {
   fullName: string;
   roles: string[];
   status: string;
+  avatarUrl: string;
 }
 
 export interface LoginResult {
