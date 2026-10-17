@@ -41,18 +41,16 @@ public static class DependencyInjection {
         
         services.AddCors(options => {
             options.AddPolicy(PolicyName, policy => {
-                if (allowedOrigins.Length > 0) {
-                    policy.WithOrigins(allowedOrigins)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                }
-                else {
-                    policy.SetIsOriginAllowed(_ => true)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                }
+                policy.SetIsOriginAllowed(origin => {
+                    if (string.IsNullOrEmpty(origin)) return false;
+                    if (Uri.TryCreate(origin, UriKind.Absolute, out var uri)) {
+                        if (uri.Host == "localhost" || uri.Host == "127.0.0.1") return true;
+                    }
+                    return allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase);
+                })
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
             });
         });
         return services;
