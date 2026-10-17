@@ -4,11 +4,32 @@ import { Smarthire_icon_default } from "@/assets/images/logo";
 import { CTAMeshGradient } from "@/components/CustomBackground";
 import { MOCK_JOB_POSTINGS } from "@/constants/mockData";
 import { JobCard } from "@/components/JobCard";
+import {
+  Toggle,
+  ToggleGroup,
+} from "@/components/animate-ui/components/base/toggle-group";
 
 function CandidateDashboard() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [category, setCategory] = useState("cntt");
   const [location, setLocation] = useState("hanoi");
+
+  const [selectedLevel, setSelectedLevel] = useState<string[]>(["all"]);
+
+  const handleLevelChange = (newValue: string[]) => {
+    if (!newValue || newValue.length === 0) {
+      setSelectedLevel(["all"]);
+    } else {
+      const latestSelected = newValue[newValue.length - 1];
+      setSelectedLevel([latestSelected]);
+    }
+  };
+
+  const activeFilter = selectedLevel[0] || "all";
+  const filteredJobs = MOCK_JOB_POSTINGS.filter((job) => {
+    if (activeFilter === "all") return true;
+    return job.jobLevel.toLowerCase() === activeFilter.toLowerCase();
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,9 +121,28 @@ function CandidateDashboard() {
       </div>
 
       <div className="flex flex-col gap-4">
-        <h2 className="text-xl font-bold text-text-main">Việc làm gợi ý</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-text-main">Việc làm gợi ý</h2>
+
+          <ToggleGroup
+            value={selectedLevel}
+            onValueChange={handleLevelChange}
+            className={"gap-1! bg-bg-white-blue p-1!"}
+          >
+            <Toggle className={"px-2.5! py-px! text-sm!"} value="all">
+              Tất cả
+            </Toggle>
+            <Toggle className={"px-2.5! py-px! text-sm!"} value="intern">
+              Intern
+            </Toggle>
+            <Toggle className={"px-2.5! py-px! text-sm!"} value="fresher">
+              Fresher
+            </Toggle>
+          </ToggleGroup>
+        </div>
+
         <div className="flex gap-2">
-          {MOCK_JOB_POSTINGS.map((item) => (
+          {filteredJobs.map((item) => (
             <JobCard key={item.id} job={item} />
           ))}
         </div>
