@@ -1,4 +1,4 @@
-﻿using SmartHire.Domain.Enums;
+using SmartHire.Domain.Enums;
 
 namespace SmartHire.Domain.Entities;
 
@@ -20,4 +20,39 @@ public class CompanyJoinRequest {
     public DateTimeOffset CreatedAt { get; private set; }
     
     private CompanyJoinRequest() { }
+
+    public static CompanyJoinRequest Create(
+        Guid companyId,
+        Guid userId,
+        DateTimeOffset now
+    ) {
+        if (companyId == Guid.Empty) {
+            throw new ArgumentException("Company ID is required.", nameof(companyId));
+        }
+        if (userId == Guid.Empty) {
+            throw new ArgumentException("User ID is required.", nameof(userId));
+        }
+
+        return new CompanyJoinRequest {
+            Id = Guid.NewGuid(),
+            CompanyId = companyId,
+            UserId = userId,
+            Status = CompanyJoinRequestStatus.Pending,
+            ReviewedBy = null,
+            ReviewedAt = null,
+            CreatedAt = now
+        };
+    }
+
+    public void Approve(Guid reviewerUserId, DateTimeOffset reviewedAt) {
+        Status = CompanyJoinRequestStatus.Approved;
+        ReviewedBy = reviewerUserId;
+        ReviewedAt = reviewedAt;
+    }
+
+    public void Reject(Guid reviewerUserId, DateTimeOffset reviewedAt) {
+        Status = CompanyJoinRequestStatus.Rejected;
+        ReviewedBy = reviewerUserId;
+        ReviewedAt = reviewedAt;
+    }
 }

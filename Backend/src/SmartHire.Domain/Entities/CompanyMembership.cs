@@ -1,4 +1,4 @@
-﻿using SmartHire.Domain.Enums;
+using SmartHire.Domain.Enums;
 
 namespace SmartHire.Domain.Entities;
 
@@ -27,4 +27,38 @@ public class CompanyMembership {
         = new List<JobPosting>();
     
     private CompanyMembership() { }
+
+    public static CompanyMembership Create(
+        Guid companyId,
+        Guid userId,
+        CompanyMemberRole role,
+        CompanyMembershipStatus status,
+        DateTimeOffset joinedAt,
+        DateTimeOffset now
+    ) {
+        if (companyId == Guid.Empty) {
+            throw new ArgumentException("Company ID is required.", nameof(companyId));
+        }
+        if (userId == Guid.Empty) {
+            throw new ArgumentException("User ID is required.", nameof(userId));
+        }
+
+        return new CompanyMembership {
+            Id = Guid.NewGuid(),
+            CompanyId = companyId,
+            UserId = userId,
+            Role = role,
+            Status = status,
+            JoinedAt = joinedAt,
+            CreatedAt = now
+        };
+    }
+
+    public void UpdateRole(CompanyMemberRole role) {
+        Role = role;
+    }
+
+    public void UpdateStatus(CompanyMembershipStatus status) {
+        Status = status;
+    }
 }

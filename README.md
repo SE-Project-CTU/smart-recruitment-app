@@ -96,44 +96,44 @@ Bên cạnh các nghiệp vụ tuyển dụng cốt lõi, SmartHire định hư�
 
 ### Frontend
 
-| Công nghệ | Mục đích |
-|---|---|
-| React 19 | Xây dựng giao diện theo mô hình component |
-| TypeScript 6 | Kiểm soát kiểu dữ liệu và tăng tính an toàn của mã nguồn |
-| Vite 8 | Công cụ phát triển và đóng gói ứng dụng |
-| Tailwind CSS 4 | Xây dựng giao diện bằng utility classes |
-| React Router | Điều hướng phía Client |
-| Axios | Giao tiếp HTTP với Backend API |
-| Zustand | Quản lý trạng thái ứng dụng |
-| TipTap | Biên tập nội dung cho CV Builder |
-| Lucide React | Biểu tượng giao diện |
+| Công nghệ      | Mục đích                                                 |
+| -------------- | -------------------------------------------------------- |
+| React 19       | Xây dựng giao diện theo mô hình component                |
+| TypeScript 6   | Kiểm soát kiểu dữ liệu và tăng tính an toàn của mã nguồn |
+| Vite 8         | Công cụ phát triển và đóng gói ứng dụng                  |
+| Tailwind CSS 4 | Xây dựng giao diện bằng utility classes                  |
+| React Router   | Điều hướng phía Client                                   |
+| Axios          | Giao tiếp HTTP với Backend API                           |
+| Zustand        | Quản lý trạng thái ứng dụng                              |
+| TipTap         | Biên tập nội dung cho CV Builder                         |
+| Lucide React   | Biểu tượng giao diện                                     |
 
 ### Backend
 
-| Công nghệ | Mục đích |
-|---|---|
-| ASP.NET Core 10 | Xây dựng RESTful API |
-| C# | Ngôn ngữ lập trình Backend |
-| Entity Framework Core 10 | ORM và quản lý dữ liệu |
-| Npgsql | Kết nối PostgreSQL |
-| Pgvector.EntityFrameworkCore | Tích hợp lưu trữ và truy vấn vector |
-| Hangfire | Xử lý tác vụ nền và tác vụ theo lịch |
-| NLog | Ghi log ứng dụng |
-| NSwag / OpenAPI | Mô tả và khám phá API |
-| JWT | Hỗ trợ xác thực bằng token |
+| Công nghệ                    | Mục đích                             |
+| ---------------------------- | ------------------------------------ |
+| ASP.NET Core 10              | Xây dựng RESTful API                 |
+| C#                           | Ngôn ngữ lập trình Backend           |
+| Entity Framework Core 10     | ORM và quản lý dữ liệu               |
+| Npgsql                       | Kết nối PostgreSQL                   |
+| Pgvector.EntityFrameworkCore | Tích hợp lưu trữ và truy vấn vector  |
+| Hangfire                     | Xử lý tác vụ nền và tác vụ theo lịch |
+| NLog                         | Ghi log ứng dụng                     |
+| NSwag / OpenAPI              | Mô tả và khám phá API                |
+| JWT                          | Hỗ trợ xác thực bằng token           |
 
 ### Database, lưu trữ và DevOps
 
-| Công nghệ | Mục đích |
-|---|---|
-| PostgreSQL 16 | Hệ quản trị cơ sở dữ liệu quan hệ |
-| pgvector | Hỗ trợ lưu trữ và truy vấn vector embedding |
-| Cloudinary | Tích hợp dịch vụ lưu trữ media |
-| Docker | Đóng gói ứng dụng trong container |
-| Docker Compose | Khởi chạy và điều phối các dịch vụ |
-| Nginx | Phục vụ Frontend trong container |
-| GitHub Actions | Tự động hóa quy trình CI/CD |
-| Snyk | Kiểm tra lỗ hổng bảo mật dependency trong pipeline |
+| Công nghệ      | Mục đích                                           |
+| -------------- | -------------------------------------------------- |
+| PostgreSQL 16  | Hệ quản trị cơ sở dữ liệu quan hệ                  |
+| pgvector       | Hỗ trợ lưu trữ và truy vấn vector embedding        |
+| Cloudinary     | Tích hợp dịch vụ lưu trữ media                     |
+| Docker         | Đóng gói ứng dụng trong container                  |
+| Docker Compose | Khởi chạy và điều phối các dịch vụ                 |
+| Nginx          | Phục vụ Frontend trong container                   |
+| GitHub Actions | Tự động hóa quy trình CI/CD                        |
+| Snyk           | Kiểm tra lỗ hổng bảo mật dependency trong pipeline |
 
 ---
 
@@ -173,11 +173,11 @@ flowchart TD
 
 ### Các lớp Backend
 
-| Project | Trách nhiệm |
-|---|---|
-| `SmartHire.API` | Tiếp nhận HTTP requests, cấu hình middleware và cung cấp API |
-| `SmartHire.Application` | Chứa các use case và abstraction phục vụ nghiệp vụ ứng dụng |
-| `SmartHire.Domain` | Chứa các thực thể, value objects và quy tắc nghiệp vụ cốt lõi |
+| Project                    | Trách nhiệm                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `SmartHire.API`            | Tiếp nhận HTTP requests, cấu hình middleware và cung cấp API                  |
+| `SmartHire.Application`    | Chứa các use case và abstraction phục vụ nghiệp vụ ứng dụng                   |
+| `SmartHire.Domain`         | Chứa các thực thể, value objects và quy tắc nghiệp vụ cốt lõi                 |
 | `SmartHire.Infrastructure` | Triển khai persistence, Entity Framework Core, migrations và tích hợp hạ tầng |
 
 ### Nguyên tắc thiết kế
@@ -232,13 +232,13 @@ smart-recruitment-app/
 └── SETUP.md
 ```
 
-| Thành phần | Mô tả |
-|---|---|
-| `Backend/` | Mã nguồn ASP.NET Core và các project theo kiến trúc phân lớp |
-| `Frontend/` | Mã nguồn React, TypeScript và cấu hình đóng gói |
-| `.github/workflows/` | Quy trình tự động hóa CI/CD |
-| `compose.yaml` | Cấu hình các dịch vụ Docker |
-| `.env.example` | Mẫu biến môi trường |
+| Thành phần           | Mô tả                                                        |
+| -------------------- | ------------------------------------------------------------ |
+| `Backend/`           | Mã nguồn ASP.NET Core và các project theo kiến trúc phân lớp |
+| `Frontend/`          | Mã nguồn React, TypeScript và cấu hình đóng gói              |
+| `.github/workflows/` | Quy trình tự động hóa CI/CD                                  |
+| `compose.yaml`       | Cấu hình các dịch vụ Docker                                  |
+| `.env.example`       | Mẫu biến môi trường                                          |
 
 ---
 
@@ -325,12 +325,12 @@ docker compose --env-file Backend/.env ps
 
 ### 6.5. Truy cập các dịch vụ
 
-| Dịch vụ | URL |
-|---|---|
-| Frontend | [http://localhost:5173](http://localhost:5173) |
-| Swagger UI | [http://localhost:5190/swagger](http://localhost:5190/swagger) |
+| Dịch vụ               | URL                                                                            |
+| --------------------- | ------------------------------------------------------------------------------ |
+| Frontend              | [http://localhost:5173](http://localhost:5173)                                 |
+| Swagger UI            | [http://localhost:5190/swagger](http://localhost:5190/swagger)                 |
 | OpenAPI Specification | [http://localhost:5190/openapi/v1.json](http://localhost:5190/openapi/v1.json) |
-| Hangfire Dashboard | [http://localhost:5190/hangfire](http://localhost:5190/hangfire) |
+| Hangfire Dashboard    | [http://localhost:5190/hangfire](http://localhost:5190/hangfire)               |
 
 ### 6.6. Xem log
 
@@ -392,14 +392,14 @@ Tài liệu phân tích, thiết kế và báo cáo được quản lý trong re
 
 **[smart-recruitment-docs](https://github.com/SE-Project-CTU/smart-recruitment-docs)**
 
-| Tài liệu | Nội dung |
-|---|---|
+| Tài liệu                                                                                                         | Nội dung                                  |
+| ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | [Requirement Specification](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/requirement-spec) | Đặc tả yêu cầu chức năng và phi chức năng |
-| [Design Specification](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/design-spec) | Tài liệu thiết kế hệ thống |
-| [API Specification](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/api-spec) | Tài liệu đặc tả API |
-| [System Diagrams](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/diagrams) | Sơ đồ và mô hình hệ thống |
-| [Project Report](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/report) | Tài liệu báo cáo dự án |
-| [Setup Guide](SETUP.md) | Hướng dẫn cài đặt và phát triển ứng dụng |
+| [Design Specification](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/design-spec)           | Tài liệu thiết kế hệ thống                |
+| [API Specification](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/api-spec)                 | Tài liệu đặc tả API                       |
+| [System Diagrams](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/diagrams)                   | Sơ đồ và mô hình hệ thống                 |
+| [Project Report](https://github.com/SE-Project-CTU/smart-recruitment-docs/tree/main/report)                      | Tài liệu báo cáo dự án                    |
+| [Setup Guide](SETUP.md)                                                                                          | Hướng dẫn cài đặt và phát triển ứng dụng  |
 
 ---
 
@@ -407,11 +407,11 @@ Tài liệu phân tích, thiết kế và báo cáo được quản lý trong re
 
 **Nhóm 1 — Niên luận ngành Kỹ thuật phần mềm, Trường Đại học Cần Thơ**
 
-| Thành viên | Vai trò |
-|---|---|
-| Phan Quốc Bình | Product Owner, Development Team |
-| Trần Trọng Phúc | Scrum Master, Development Team |
-| Nguyễn Phước Lộc | Development Team |
+| Thành viên       | Vai trò                         |
+| ---------------- | ------------------------------- |
+| Phan Quốc Bình   | Product Owner, Development Team |
+| Trần Trọng Phúc  | Scrum Master, Development Team  |
+| Nguyễn Phước Lộc | Development Team                |
 
 Nhóm tổ chức công việc dựa trên Scrum, kết hợp quản lý yêu cầu, phân chia nhiệm vụ, phát triển tính năng, review mã nguồn và tự động hóa quy trình triển khai.
 
@@ -437,4 +437,5 @@ Dự án được phát hành theo [MIT License](LICENSE).
 **SmartHire — Connecting Talent with Opportunities.**
 
 <sub>Built with ASP.NET Core, React, TypeScript and PostgreSQL.</sub>
+
 </div>

@@ -75,5 +75,6 @@ app.UseAuthorization();
 app.UseBackgroundJobDashboard();
 
 app.MapControllers().RequireAuthorization();
+app.MapHub<SmartHire.Api.Hubs.NotificationHub>("/hubs/notifications");
 
 app.Run();
