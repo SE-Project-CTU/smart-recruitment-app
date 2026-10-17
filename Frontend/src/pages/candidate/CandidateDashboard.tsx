@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { ArrowRight, Briefcase, Clock, MapPin, Search } from "lucide-react";
+import { ArrowRight, Briefcase, MapPin, Search } from "lucide-react";
 import { Smarthire_icon_default } from "@/assets/images/logo";
 import { CTAMeshGradient } from "@/components/CustomBackground";
 import { MOCK_JOB_POSTINGS } from "@/constants/mockData";
-import { getTimeAgo } from "@/utils/helper";
-import Button from "@/components/Button";
+import { JobCard } from "@/components/JobCard";
+
 function CandidateDashboard() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [category, setCategory] = useState("cntt");
@@ -12,14 +12,11 @@ function CandidateDashboard() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // sau này nối api hoặc là chuyển qua trang seearch việc làm luôn fucking shit
     console.log("Searching with:", { searchKeyword, category, location });
   };
 
-  const job = MOCK_JOB_POSTINGS[0];
   return (
-    <div className="flex h-full w-full flex-col gap-6">
-      {/* CTA Header Banner */}
+    <div className="flex h-full w-full flex-col gap-8">
       <div className="relative flex min-h-65 w-full overflow-hidden rounded-3xl p-8 md:p-12">
         <CTAMeshGradient />
 
@@ -102,37 +99,12 @@ function CandidateDashboard() {
         </div>
       </div>
 
-      <div className="flex flex-col">
-        <div className="flex items-center justify-between">
-          <h1>${job.salaryNegotiable ? "Thỏa thuận" : job.salaryMax}</h1>
-          <p>{getTimeAgo(job.createAt)}</p>
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p>{job.title}</p>
-            <p>{job.company.name}</p>
-          </div>
-          <img src={job.company.logoUrl} alt="" className="max-w-20" />
-        </div>
-        <div className="flex flex-col">
-          <div>
-            <MapPin />
-            <p>{`${job.location.wardName}, ${job.location.provinceName}`}</p>
-          </div>
-          <div>
-            <Clock />
-            <p>{job.jobType}</p>
-          </div>
-        </div>
-        <div className="flex items-center">
-          <div>{job.jobLevel}</div>
-          <div>{job.workMode}</div>
-          <div>YOE {job.experienceYears}+</div>
-        </div>
-
-        <div className="flex">
-          <Button>Ứng tuyển ngay</Button>
-          <Button variant="secondary">Lưu tin</Button>
+      <div className="flex flex-col gap-4">
+        <h2 className="text-xl font-bold text-text-main">Việc làm gợi ý</h2>
+        <div className="flex gap-2">
+          {MOCK_JOB_POSTINGS.map((item) => (
+            <JobCard key={item.id} job={item} />
+          ))}
         </div>
       </div>
     </div>
