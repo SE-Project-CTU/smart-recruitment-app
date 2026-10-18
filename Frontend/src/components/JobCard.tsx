@@ -20,7 +20,7 @@ export const JobCard = ({ job }: JobCardProps) => {
   //local state
   const [isMarked, setIsMarked] = useState(false);
   return (
-    <div className="group relative flex w-full max-w-85 min-w-70 flex-col justify-between rounded-3xl bg-bg p-6 transition-all duration-300">
+    <div className="group relative flex min-h-80.5 w-full max-w-85 min-w-70 flex-col justify-between rounded-3xl bg-bg p-6 transition-all duration-300">
       <div>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-baseline gap-1">
@@ -77,7 +77,7 @@ export const JobCard = ({ job }: JobCardProps) => {
 
         <div className="mt-5 flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <h3 className="text-base leading-snug font-bold text-text-main transition-colors group-hover:text-primary">
+            <h3 className="text-base leading-snug font-semibold text-text-main transition-colors group-hover:text-primary">
               {job.title}
             </h3>
             <p className="truncate text-xs font-medium text-text-muted">
@@ -85,7 +85,7 @@ export const JobCard = ({ job }: JobCardProps) => {
             </p>
           </div>
 
-          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2">
+          <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2">
             <img
               src={job.company.logoUrl}
               alt={job.company.name}
@@ -110,13 +110,13 @@ export const JobCard = ({ job }: JobCardProps) => {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-muted">
+          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
             {job.jobType || "Full-time"}
           </span>
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-muted">
+          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
             {job.workMode || "Hybrid"}
           </span>
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-muted">
+          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
             {job.jobLevel || "Middle"}
           </span>
         </div>

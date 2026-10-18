@@ -51,6 +51,22 @@ export interface MockJobPosting {
   aiMatchScore?: number; // Điểm gợi ý tương thích ảo cho Dashboard
 }
 
+export type ApplicationStatus =
+  "APPLIED" | "REVIEWING" | "INTERVIEW" | "OFFERED" | "ACCEPTED" | "REJECTED";
+
+export interface MockApplication {
+  id: string;
+  jobId: string;
+  candidateId: string;
+  cvVersionId: string | null;
+  uploadedCvUrl: string | null;
+  coverLetter: string;
+  status: ApplicationStatus;
+  appliedAt: string;
+  updatedAt: string;
+  job: MockJobPosting;
+}
+
 export const MOCK_JOB_POSTINGS: MockJobPosting[] = [
   {
     id: "job-uuid-001",
@@ -81,7 +97,7 @@ export const MOCK_JOB_POSTINGS: MockJobPosting[] = [
       "- Lương cạnh tranh, thưởng tháng 13 + Performance Bonus.\n- Bảo hiểm sức khỏe toàn diện cho nhân sự và người thân.\n- Môi trường làm việc quốc tế, linh hoạt thời gian.",
     salaryMin: 1800,
     salaryMax: 2800,
-    salaryNegotiable: true,
+    salaryNegotiable: false,
     deadline: "2026-05-30T23:59:59Z",
     createAt: "2026-04-10T09:00:00Z",
     status: "ACTIVE",
@@ -118,7 +134,7 @@ export const MOCK_JOB_POSTINGS: MockJobPosting[] = [
       "- Xét tăng lương định kỳ 2 lần/năm.\n- Trợ cấp ăn trưa, gửi xe và học tập nâng cao kỹ năng.\n- Team building hàng quý và du lịch nước ngoài.",
     salaryMin: 1500,
     salaryMax: 2200,
-    salaryNegotiable: true,
+    salaryNegotiable: false,
     deadline: "2026-06-15T23:59:59Z",
     createAt: "2026-05-02T09:00:00Z",
     status: "ACTIVE",
@@ -281,3 +297,114 @@ export const testimonialData: TestimonialItem[] = [
       "Thuật toán ghép đôi thông minh hoạt động vượt ngoài mong đợi. Đây chắc chắn là công cụ tuyển dụng không thể thiếu cho các startup công nghệ.",
   },
 ];
+
+export const MOCK_APPLICATIONS: MockApplication[] = [
+  {
+    id: "5fc43d70-1c27-4c94-9306-d1a1d4dc9c60",
+    jobId: MOCK_JOB_POSTINGS[0].id,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    cvVersionId: "0d55e7ee-44f4-4d30-a65c-d9c5af5cf6c8",
+    uploadedCvUrl: null,
+    coverLetter:
+      "Tôi rất ấn tượng với định hướng phát triển nền tảng tuyển dụng AI của TechNova. Với 3 năm kinh nghiệm làm việc sâu với React và TypeScript, tôi tự tin có thể đóng góp ngay vào dự án.",
+    status: "INTERVIEW",
+    appliedAt: "2026-10-16T08:30:00Z",
+    updatedAt: "2026-10-17T14:20:00Z",
+    job: MOCK_JOB_POSTINGS[0],
+  },
+  {
+    id: "a1b2c3d4-2e38-4d05-8417-e2b2e5ed0d71",
+    jobId: MOCK_JOB_POSTINGS[1].id,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    cvVersionId: null,
+    uploadedCvUrl:
+      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    coverLetter:
+      "Em xin gửi hồ sơ ứng tuyển vị trí Full-stack .NET & React Developer. Em đã có kinh nghiệm xây dựng hệ thống bằng ASP.NET Core kết hợp PostgreSQL.",
+    status: "REVIEWING",
+    appliedAt: "2026-10-15T10:15:00Z",
+    updatedAt: "2026-10-17T09:00:00Z",
+    job: MOCK_JOB_POSTINGS[1],
+  },
+  {
+    id: "b2c3d4e5-3f49-4e16-9528-f3c3f6fe1e82",
+    jobId: MOCK_JOB_POSTINGS[2].id,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    cvVersionId: "1e66f8ff-55a5-4e41-b76d-e0d6bg6dg7d9",
+    uploadedCvUrl: null,
+    coverLetter:
+      "Đính kèm là CV và Portfolio các dự án FinTech Web/Mobile App mà tôi đã thiết kế. Rất mong được đồng hành cùng đội ngũ Product của FinTech Saigon Hub.",
+    status: "OFFERED",
+    appliedAt: "2026-10-10T15:45:00Z",
+    updatedAt: "2026-10-18T03:10:00Z",
+    job: MOCK_JOB_POSTINGS[2],
+  },
+  {
+    id: "c3d4e5f6-4a50-4f27-a639-a4d4a7af2f93",
+    jobId: MOCK_JOB_POSTINGS[3].id,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    cvVersionId: "2f77a9aa-66b6-4f52-c87e-f1e7ch7eh8e0",
+    uploadedCvUrl: null,
+    coverLetter:
+      "Tôi có nền tảng nghiên cứu về NLP và kinh nghiệm triển khai Vector Database (pgvector). Rất hào hứng với bài toán AI Matching mà AI Vision Labs đang giải quyết.",
+    status: "APPLIED",
+    appliedAt: "2026-10-18T06:00:00Z",
+    updatedAt: "2026-10-18T06:00:00Z",
+    job: MOCK_JOB_POSTINGS[3],
+  },
+  {
+    id: "d4e5f6a7-5b61-4a38-b740-b5e5b8ba3a04",
+    jobId: MOCK_JOB_POSTINGS[4].id,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    cvVersionId: null,
+    uploadedCvUrl:
+      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    coverLetter:
+      "Em vừa tốt nghiệp chuyên ngành CNTT và đã hoàn thành đồ án xây dựng nền tảng tuyển dụng bằng ReactJS. Em rất mong có cơ hội được học hỏi tại Global Media Vietnam.",
+    status: "ACCEPTED",
+    appliedAt: "2026-09-25T09:20:00Z",
+    updatedAt: "2026-10-10T11:00:00Z",
+    job: MOCK_JOB_POSTINGS[4],
+  },
+  {
+    id: "e5f6a7b8-6c72-4b49-c851-c6f6c9cb4b15",
+    jobId: MOCK_JOB_POSTINGS[0].id,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    cvVersionId: "0d55e7ee-44f4-4d30-a65c-d9c5af5cf6c8",
+    uploadedCvUrl: null,
+    coverLetter:
+      "Tôi mong muốn thử sức với các bài toán chịu tải cao và tối ưu hóa Frontend Architecture.",
+    status: "REJECTED",
+    appliedAt: "2026-09-20T13:10:00Z",
+    updatedAt: "2026-09-28T16:45:00Z",
+    job: MOCK_JOB_POSTINGS[0],
+  },
+  {
+    id: "f6a7b8c9-7d83-4c50-d962-d7a7d0dc5c26",
+    jobId: MOCK_JOB_POSTINGS[1].id,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    cvVersionId: null,
+    uploadedCvUrl:
+      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    coverLetter:
+      "Em có kiến thức cơ bản về Docker, GitHub Actions và .NET. Em xin ứng tuyển để rèn luyện kỹ năng phát triển hệ thống thực tế.",
+    status: "INTERVIEW",
+    appliedAt: "2026-10-14T07:50:00Z",
+    updatedAt: "2026-10-18T01:30:00Z",
+    job: MOCK_JOB_POSTINGS[1],
+  },
+];
+
+// Nếu muốn giả lập luôn cấu trúc bọc nguyên bản của API 10 (có data, meta, correlationId):
+export const MOCK_APPLICATIONS_RESPONSE = {
+  data: MOCK_APPLICATIONS,
+  meta: {
+    page: 1,
+    pageSize: 20,
+    totalItems: MOCK_APPLICATIONS.length,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  },
+  correlationId: "5f1c0d68-9a3f-4c85-bf50-4a7c17c1e2af",
+};

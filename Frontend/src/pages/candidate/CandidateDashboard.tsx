@@ -1,13 +1,21 @@
-import { useState } from "react";
-import { ArrowRight, Briefcase, MapPin, Search } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  ArrowRight,
+  Briefcase,
+  MapPin,
+  PackageOpen,
+  Search,
+} from "lucide-react";
 import { Smarthire_icon_default } from "@/assets/images/logo";
 import { CTAMeshGradient } from "@/components/CustomBackground";
 import { MOCK_JOB_POSTINGS } from "@/constants/mockData";
 import { JobCard } from "@/components/JobCard";
+import Button from "@/components/Button";
 import {
   Toggle,
   ToggleGroup,
 } from "@/components/animate-ui/components/base/toggle-group";
+import { ApplicationTrackingTable } from "@/components/ApplicationTrackingTable";
 
 function CandidateDashboard() {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -15,6 +23,7 @@ function CandidateDashboard() {
   const [location, setLocation] = useState("hanoi");
 
   const [selectedLevel, setSelectedLevel] = useState<string[]>(["all"]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleLevelChange = (newValue: string[]) => {
     if (!newValue || newValue.length === 0) {
@@ -36,9 +45,17 @@ function CandidateDashboard() {
     console.log("Searching with:", { searchKeyword, category, location });
   };
 
+  const handleFocusSearch = () => {
+    searchInputRef.current?.focus();
+    searchInputRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
+
   return (
     <div className="flex h-full w-full flex-col gap-8">
-      <div className="relative flex min-h-65 w-full overflow-hidden rounded-3xl p-8 md:p-12">
+      <div className="relative flex min-h-65 w-full overflow-hidden rounded-3xl p-8 lg:p-10 xl:p-12">
         <CTAMeshGradient />
 
         <div className="relative z-10 flex w-full items-center justify-between gap-8">
@@ -60,6 +77,7 @@ function CandidateDashboard() {
               <div className="flex flex-1 items-center gap-2.5 px-3">
                 <Search className="size-5 shrink-0 text-slate-400" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Vị trí tuyển dụng, kỹ năng, công ty..."
                   value={searchKeyword}
@@ -120,32 +138,101 @@ function CandidateDashboard() {
         </div>
       </div>
 
+      {/* jobbbbssss */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-text-main">Việc làm gợi ý</h2>
+        <div className="flex flex-col items-start gap-3">
+          <div className="flex w-full items-center justify-between">
+            <h2 className="text-xl font-semibold text-text-main">
+              Việc làm gợi ý
+            </h2>
+
+            <Button
+              variant="secondary"
+              icon={ArrowRight}
+              iconPosition="right"
+              iconSize={14}
+              className="px-3! py-1.5! text-xs!"
+            >
+              Xem tất cả gợi ý
+            </Button>
+          </div>
 
           <ToggleGroup
             value={selectedLevel}
             onValueChange={handleLevelChange}
-            className={"gap-1! bg-bg-white-blue p-1!"}
+            className="gap-1! bg-bg-white-blue p-1!"
           >
-            <Toggle className={"px-2.5! py-px! text-sm!"} value="all">
+            <Toggle className="text-xs!" value="all">
               Tất cả
             </Toggle>
-            <Toggle className={"px-2.5! py-px! text-sm!"} value="intern">
+            <Toggle className="text-xs!" value="intern">
               Intern
             </Toggle>
-            <Toggle className={"px-2.5! py-px! text-sm!"} value="fresher">
+            <Toggle className="text-xs!" value="fresher">
               Fresher
             </Toggle>
           </ToggleGroup>
         </div>
 
-        <div className="flex gap-2">
-          {filteredJobs.map((item) => (
-            <JobCard key={item.id} job={item} />
-          ))}
+        <div className="flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto pb-2">
+          {filteredJobs.length > 0 ? (
+            filteredJobs.map((item) => (
+              <div key={item.id} className="shrink-0">
+                <JobCard job={item} />
+              </div>
+            ))
+          ) : (
+            <div className="flex min-h-80.5 w-full max-w-85 min-w-70 flex-col items-center justify-between rounded-3xl border-2 border-dashed border-border bg-white/60 p-6 text-center">
+              <PackageOpen
+                className="mt-4 animate-bounce"
+                size={32}
+                strokeWidth={1}
+              />
+
+              <div className="flex flex-col gap-1.5">
+                <h3 className="text-base font-bold text-text-main">
+                  Hiện tại chưa có gợi ý phù hợp
+                </h3>
+                <p className="text-xs leading-relaxed text-text-muted">
+                  Chưa tìm thấy công việc nào khớp với hồ sơ của bạn. Hãy bắt
+                  đầu bằng cách tìm kiếm ngay!
+                </p>
+              </div>
+
+              <div className="flex w-full flex-col gap-2">
+                <Button
+                  variant="primary"
+                  icon={Search}
+                  iconSize={15}
+                  onClick={handleFocusSearch}
+                  className="w-full! py-2.5! text-xs!"
+                >
+                  Bắt đầu tìm kiếm
+                </Button>
+
+                {activeFilter !== "all" && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => setSelectedLevel(["all"])}
+                    className="w-full! text-xs!"
+                  >
+                    Xem tất cả cấp bậc
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* theo doi hồ sơ */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-text-main">
+            Theo dõi hồ sơ
+          </h2>
+        </div>
+        <ApplicationTrackingTable />
       </div>
     </div>
   );

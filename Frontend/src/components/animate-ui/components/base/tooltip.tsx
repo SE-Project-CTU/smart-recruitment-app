@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from "react";
 
 import {
   TooltipProvider as TooltipProviderPrimitive,
@@ -13,8 +13,8 @@ import {
   type TooltipTriggerProps as TooltipTriggerPrimitiveProps,
   type TooltipPositionerProps as TooltipPositionerPrimitiveProps,
   type TooltipPopupProps as TooltipPopupPrimitiveProps,
-} from 'src/components/animate-ui/primitives/base/tooltip';
-import { cn } from 'src/lib/utils';
+} from "src/components/animate-ui/primitives/base/tooltip";
+import { cn } from "src/lib/utils";
 
 type TooltipProviderProps = TooltipProviderPrimitiveProps;
 
@@ -23,7 +23,7 @@ function TooltipProvider({ delay = 0, ...props }: TooltipProviderProps) {
 }
 
 type TooltipProps = TooltipPrimitiveProps & {
-  delay?: TooltipPrimitiveProps['delay'];
+  delay?: TooltipPrimitiveProps["delay"];
 };
 
 function Tooltip({ delay = 0, ...props }: TooltipProps) {
@@ -59,13 +59,13 @@ function TooltipPanel({
       >
         <TooltipPopupPrimitive
           className={cn(
-            'bg-primary text-primary-foreground w-fit origin-(--transform-origin) rounded-md px-3 py-1.5 text-xs text-balance',
+            "w-fit origin-(--transform-origin) rounded-md bg-secondary-dark px-3 py-1.5 text-xs text-balance text-primary-foreground",
             className,
           )}
           style={style}
         >
           {children}
-          <TooltipArrowPrimitive className="bg-primary fill-primary z-50 size-2.5 data-[side='bottom']:-top-[4px] data-[side='right']:-left-[4px] data-[side='left']:-right-[4px] data-[side='inline-start']:-right-[4px] data-[side='inline-end']:-left-[4px] rotate-45 rounded-[2px]" />
+          <TooltipArrowPrimitive className="z-50 size-2.5 rotate-45 rounded-[2px] bg-secondary-dark fill-secondary-dark data-[side='bottom']:-top-[4px] data-[side='inline-end']:-left-[4px] data-[side='inline-start']:-right-[4px] data-[side='left']:-right-[4px] data-[side='right']:-left-[4px]" />
         </TooltipPopupPrimitive>
       </TooltipPositionerPrimitive>
     </TooltipPortalPrimitive>
