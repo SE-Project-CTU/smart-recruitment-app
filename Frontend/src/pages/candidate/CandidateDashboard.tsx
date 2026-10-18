@@ -16,6 +16,7 @@ import {
   ToggleGroup,
 } from "@/components/animate-ui/components/base/toggle-group";
 import { ApplicationTrackingTable } from "@/components/ApplicationTrackingTable";
+// import { ScrollFade } from "@animate-ui/react/primitives/effects/scroll-fade";
 
 function CandidateDashboard() {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -139,7 +140,7 @@ function CandidateDashboard() {
       </div>
 
       {/* jobbbbssss */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 rounded-2xl bg-bg p-4">
         <div className="flex flex-col items-start gap-3">
           <div className="flex w-full items-center justify-between">
             <h2 className="text-xl font-semibold text-text-main">
@@ -174,7 +175,7 @@ function CandidateDashboard() {
           </ToggleGroup>
         </div>
 
-        <div className="flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto pb-2">
+        <div className="scrollbar-hide flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto pb-2">
           {filteredJobs.length > 0 ? (
             filteredJobs.map((item) => (
               <div key={item.id} className="shrink-0">
@@ -226,7 +227,7 @@ function CandidateDashboard() {
       </div>
 
       {/* theo doi hồ sơ */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 rounded-2xl bg-bg p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-text-main">
             Theo dõi hồ sơ

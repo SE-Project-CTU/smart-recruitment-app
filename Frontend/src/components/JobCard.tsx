@@ -20,7 +20,7 @@ export const JobCard = ({ job }: JobCardProps) => {
   //local state
   const [isMarked, setIsMarked] = useState(false);
   return (
-    <div className="group relative flex min-h-80.5 w-full max-w-85 min-w-70 flex-col justify-between rounded-3xl bg-bg p-6 transition-all duration-300">
+    <div className="group relative flex min-h-80.5 w-full max-w-85 min-w-70 flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-xs transition-all duration-300 hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200">
       <div>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-baseline gap-1">
