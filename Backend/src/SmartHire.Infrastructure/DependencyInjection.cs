@@ -54,6 +54,7 @@ public static class DependencyInjection {
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IIndustryCatalogRepository, IndustryCatalogRepository>();
         services.AddScoped<ILocationCatalogRepository, LocationCatalogRepository>();
+        services.AddScoped<ISkillCatalogRepository, SkillCatalogRepository>();
 
         
         services.AddScoped<ICvTemplateRepository, CvTemplateRepository>();

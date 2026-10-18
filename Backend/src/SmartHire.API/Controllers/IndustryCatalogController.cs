@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetIndustries;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetIndustryGroups;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetIndustryGroupsWithIndustries;
+using SmartHire.Application.Features.IndustryCatalog.Queries.GetIndustries;
+using SmartHire.Application.Features.IndustryCatalog.Queries.GetIndustryGroups;
+using SmartHire.Application.Features.IndustryCatalog.Queries.GetIndustryGroupsWithIndustries;
 
 namespace SmartHire.Api.Controllers;
 

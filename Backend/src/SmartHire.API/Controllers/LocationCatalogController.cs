@@ -2,12 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetIndustries;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetIndustryGroups;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetIndustryGroupsWithIndustries;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetProvinces;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetProvincesWithWards;
-using SmartHire.Application.Features.RecruitmentCatalog.Queries.GetWards;
+using SmartHire.Application.Features.LocationCatalog.Queries.GetProvinces;
+using SmartHire.Application.Features.LocationCatalog.Queries.GetProvincesWithWards;
+using SmartHire.Application.Features.LocationCatalog.Queries.GetWards;
 
 namespace SmartHire.Api.Controllers;
 
