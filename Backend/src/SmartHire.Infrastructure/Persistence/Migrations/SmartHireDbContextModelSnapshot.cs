@@ -370,13 +370,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("content_hash");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean")
@@ -1094,6 +1094,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<bool>("IsCentrallyGoverned")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_centrally_governed");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -1304,6 +1308,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<bool>("IsCommune")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_commune");
 
                     b.Property<string>("Name")
                         .IsRequired()
