@@ -1,4 +1,4 @@
-﻿namespace SmartHire.Application.Common.Errors;
+namespace SmartHire.Application.Common.Errors;
 
 public enum AppErrorKind {
     BadRequest,
@@ -6,5 +6,6 @@ public enum AppErrorKind {
     Unauthorized,
     Forbidden,
     NotFound,
-    Conflict
+    Conflict,
+    Gone
 }
