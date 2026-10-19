@@ -74,6 +74,17 @@ public sealed class IndustryCatalogRepository : IIndustryCatalogRepository
             .AnyAsync(group => group.Id == groupId, cancellationToken);
     }
 
+    public async Task<HashSet<Guid>> GetActiveIndustryIdsAsync(
+        IReadOnlyCollection<Guid> industryIds,
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.Industries
+            .AsNoTracking()
+            .Where(industry => industry.IsActive && industryIds.Contains(industry.Id))
+            .Select(industry => industry.Id)
+            .ToHashSetAsync(cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<Industry> Items, int TotalCount)> GetActiveIndustriesAsync(
         Guid? groupId,
         string? search,

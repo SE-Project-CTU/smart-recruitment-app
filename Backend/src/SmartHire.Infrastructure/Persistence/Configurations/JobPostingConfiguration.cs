@@ -12,6 +12,9 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting> {
         builder.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()")
             .ValueGeneratedOnAdd();
         
+        builder.Property(x => x.EducationLevel)
+            .HasConversion<string>();
+        
         builder.Property(x => x.JobLevel)
             .HasConversion<string>();
         

@@ -33,7 +33,7 @@ public class JobPosting {
     
     public int? ExperienceYears { get; private set; }
     public JobLevel? JobLevel { get; private set; }
-    public string? EducationLevel { get; private set; }
+    public EducationLevel? EducationLevel { get; private set; }
     
     public WorkMode WorkMode { get; private set; }
     public JobType JobType { get; private set; }
@@ -56,8 +56,28 @@ public class JobPosting {
     public ICollection<JobRecommendation> Recommendations { get; private set; } = new List<JobRecommendation>();
     
     private JobPosting() { }
-    
-    public JobPosting(Guid companyId, Guid createdBy, string title, string description, int vacancies) {
+
+    public static JobPosting Create(
+        Guid companyId,
+        Guid createdBy,
+        string title,
+        Guid provinceId,
+        Guid? wardId,
+        string? detailedLocation,
+        int experienceYears,
+        JobLevel jobLevel,
+        EducationLevel? educationLevel,
+        int vacancies,
+        WorkMode workMode,
+        JobType jobType,
+        string description,
+        string requirements,
+        string? benefits,
+        decimal? salaryMin,
+        decimal? salaryMax,
+        bool salaryNegotiable,
+        DateTimeOffset deadline,
+        DateTimeOffset now) {
         if (companyId == Guid.Empty) {
             throw new ArgumentException("CompanyId is required.", nameof(companyId));
         }
@@ -73,15 +93,68 @@ public class JobPosting {
         if (vacancies <= 0) {
             throw new ArgumentOutOfRangeException(nameof(vacancies));
         }
+
+        if (provinceId == Guid.Empty) {
+            throw new ArgumentException("ProvinceId is required.", nameof(provinceId));
+        }
+
+        if (string.IsNullOrWhiteSpace(description)) {
+            throw new ArgumentException("Description is required.", nameof(description));
+        }
+
+        if (string.IsNullOrWhiteSpace(requirements)) {
+            throw new ArgumentException("Requirements are required.", nameof(requirements));
+        }
         
-        CompanyId = companyId;
-        CreatedBy = createdBy;
-        Title = title.Trim();
-        Description = description?.Trim() ?? string.Empty;
-        Vacancies = vacancies;
-        
-        Status = JobPostingStatus.Published;
-        CreatedAt = DateTimeOffset.UtcNow;
-        UpdatedAt = CreatedAt;
+        return new JobPosting {
+            CompanyId = companyId,
+            CreatedBy = createdBy,
+            Title = title.Trim(),
+            Description = description.Trim(),
+            ProvinceId = provinceId,
+            WardId = wardId,
+            DetailedLocation = string.IsNullOrWhiteSpace(detailedLocation)
+                ? null
+                : detailedLocation.Trim(),
+            ExperienceYears = experienceYears,
+            JobLevel = jobLevel,
+            EducationLevel = educationLevel,
+            Vacancies = vacancies,
+            WorkMode = workMode,
+            JobType = jobType,
+            Requirements = requirements.Trim(),
+            Benefits = string.IsNullOrWhiteSpace(benefits) ? string.Empty : benefits.Trim(),
+            SalaryMin = salaryMin,
+            SalaryMax = salaryMax,
+            SalaryNegotiable = salaryNegotiable,
+            Deadline = deadline,
+            Status = JobPostingStatus.PendingReview,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+    }
+
+    public void AddIndustry(Guid industryId) {
+        if (industryId == Guid.Empty) {
+            throw new ArgumentException("IndustryId is required.", nameof(industryId));
+        }
+
+        if (JobIndustries.Any(x => x.IndustryId == industryId)) {
+            return;
+        }
+
+        JobIndustries.Add(JobIndustry.Create(this, industryId));
+    }
+
+    public void AddSkill(Guid skillId) {
+        if (skillId == Guid.Empty) {
+            throw new ArgumentException("SkillId is required.", nameof(skillId));
+        }
+
+        if (JobSkills.Any(x => x.SkillId == skillId)) {
+            return;
+        }
+
+        JobSkills.Add(JobSkill.Create(this, skillId));
     }
 }

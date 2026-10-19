@@ -18,6 +18,10 @@ public interface IIndustryCatalogRepository
 
     Task<bool> IndustryGroupExistsAsync(Guid groupId, CancellationToken cancellationToken);
 
+    Task<HashSet<Guid>> GetActiveIndustryIdsAsync(
+        IReadOnlyCollection<Guid> industryIds,
+        CancellationToken cancellationToken);
+
     Task<(IReadOnlyList<Industry> Items, int TotalCount)> GetActiveIndustriesAsync(
         Guid? groupId,
         string? search,

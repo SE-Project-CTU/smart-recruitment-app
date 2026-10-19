@@ -13,6 +13,17 @@ public sealed class SkillCatalogRepository : ISkillCatalogRepository
         _dbContext = dbContext;
     }
 
+    public async Task<HashSet<Guid>> GetActiveSkillIdsAsync(
+        IReadOnlyCollection<Guid> skillIds,
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.Skills
+            .AsNoTracking()
+            .Where(skill => skill.IsActive && skillIds.Contains(skill.Id))
+            .Select(skill => skill.Id)
+            .ToHashSetAsync(cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<Skill> Items, int TotalCount)> GetActiveSkillsAsync(
         string? search,
         int skip,

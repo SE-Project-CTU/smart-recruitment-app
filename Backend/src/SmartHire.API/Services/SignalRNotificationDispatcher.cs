@@ -6,7 +6,7 @@ namespace SmartHire.Api.Services;
 
 public class SignalRNotificationDispatcher : INotificationDispatcher {
     private readonly IHubContext<NotificationHub> _hubContext;
-
+            
     public SignalRNotificationDispatcher(IHubContext<NotificationHub> hubContext) {
         _hubContext = hubContext;
     }
