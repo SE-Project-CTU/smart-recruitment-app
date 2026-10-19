@@ -3,7 +3,7 @@ import type { UserAccount } from "./auth";
 export interface UpdateProfileRequest {
   fullName?: string;
   phone?: string | null;
-  avatarUrl?: string | null;
+  avatarFileId?: string | null;
 }
 
 export type UpdateProfileResult = Omit<UserAccount, "createdAt">;

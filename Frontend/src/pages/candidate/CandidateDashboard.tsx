@@ -169,8 +169,12 @@ function CandidateDashboard() {
             <Toggle className="text-xs!" value="all">
               Tất cả
             </Toggle>
-            {level.map((level) => (
-              <Toggle className="text-xs!" value={level.toLocaleLowerCase()}>
+            {level.map((level, index) => (
+              <Toggle
+                key={index}
+                className="text-xs!"
+                value={level.toLocaleLowerCase()}
+              >
                 {level}
               </Toggle>
             ))}

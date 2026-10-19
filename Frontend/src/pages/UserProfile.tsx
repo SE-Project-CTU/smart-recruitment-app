@@ -23,6 +23,7 @@ import {
   useGetMe,
   useUpdateAccount,
 } from "@/hooks/queries/useAccount";
+import { useUploadImage } from "@/hooks/queries/useMedia";
 
 type TabKey = "profile" | "security" | "delete";
 
@@ -34,7 +35,6 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function UserProfile() {
   const authUser = useAuthStore((state) => state.user);
-
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
 
   const { data: serverAccount, isLoading: isFetchingAccount } = useGetMe();
@@ -42,6 +42,8 @@ export default function UserProfile() {
     useUpdateAccount();
   const { mutateAsync: changePassword, isPending: isChangingPw } =
     useChangePassword();
+  const { mutateAsync: uploadImage, isPending: isUploadingAvatar } =
+    useUploadImage();
 
   const account = useMemo(
     () => serverAccount ?? authUser ?? null,
@@ -53,8 +55,10 @@ export default function UserProfile() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [pendingAvatarUrl, setPendingAvatarUrl] = useState<string | null>(null);
+  const [pendingAvatarFileId, setPendingAvatarFileId] = useState<string | null>(
+    null,
+  );
 
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [profileMessage, setProfileMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -78,12 +82,14 @@ export default function UserProfile() {
     setFullName(account.fullName);
     setPhone(account.phone ?? "");
     setPendingAvatarUrl(currentAvatar);
+    setPendingAvatarFileId(null);
     setProfileMessage(null);
     setIsEditingProfile(true);
   };
 
   const handleCancelEdit = () => {
     setProfileMessage(null);
+    setPendingAvatarFileId(null);
     setIsEditingProfile(false);
   };
 
@@ -94,11 +100,11 @@ export default function UserProfile() {
     if (!file) return;
 
     setProfileMessage(null);
-    setIsUploadingAvatar(true);
 
     try {
-      const previewUrl = URL.createObjectURL(file);
-      setPendingAvatarUrl(previewUrl);
+      const mediaData = await uploadImage(file);
+      setPendingAvatarUrl(mediaData.fileUrl);
+      setPendingAvatarFileId(mediaData.id);
 
       if (!isEditingProfile && account) {
         setFullName(account.fullName);
@@ -108,13 +114,9 @@ export default function UserProfile() {
     } catch (err: unknown) {
       setProfileMessage({
         type: "error",
-        text: getApiErrorMessage(
-          err,
-          "Tải ảnh đại diện thất bại. Vui lòng thử lại.",
-        ),
+        text: getApiErrorMessage(err, "Tải ảnh đại diện thất bại."),
       });
     } finally {
-      setIsUploadingAvatar(false);
       e.target.value = "";
     }
   };
@@ -139,8 +141,12 @@ export default function UserProfile() {
     if (trimmedName !== account.fullName) payload.fullName = trimmedName;
     if (normalizedPhone !== (account.phone ?? null))
       payload.phone = normalizedPhone;
-    if (pendingAvatarUrl !== currentAvatar)
-      payload.avatarUrl = pendingAvatarUrl;
+
+    if (pendingAvatarFileId) {
+      payload.avatarFileId = pendingAvatarFileId;
+    } else if (pendingAvatarUrl === null && currentAvatar !== null) {
+      payload.avatarFileId = null;
+    }
 
     if (Object.keys(payload).length === 0) {
       setIsEditingProfile(false);
@@ -150,7 +156,7 @@ export default function UserProfile() {
     try {
       await updateAccount(payload);
       setIsEditingProfile(false);
-
+      setPendingAvatarFileId(null);
       toast.add({
         type: "success",
         description: "Cập nhật thông tin thành công",
@@ -337,7 +343,7 @@ export default function UserProfile() {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
                       onChange={handleAvatarFileChange}
                       className="hidden"
                     />
@@ -347,7 +353,7 @@ export default function UserProfile() {
                       disabled={isUploadingAvatar}
                       onClick={() => fileInputRef.current?.click()}
                       title="Tải ảnh đại diện mới"
-                      className="absolute right-0 bottom-0 flex size-7 cursor-pointer items-center justify-center rounded-full border border-border bg-white text-text-main transition-colors hover:bg-bg"
+                      className="absolute right-0 bottom-0 flex size-7 cursor-pointer items-center justify-center rounded-full border border-border bg-white text-text-main transition-colors hover:bg-bg disabled:opacity-50"
                     >
                       <Camera className="size-3.5" />
                     </button>
@@ -357,19 +363,6 @@ export default function UserProfile() {
                     <h3 className="text-base font-bold text-text-main">
                       {account.fullName}
                     </h3>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {account.roles.map((role) => (
-                        <span
-                          key={role}
-                          className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary"
-                        >
-                          {ROLE_LABELS[role] || role}
-                        </span>
-                      ))}
-                      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                        {account.status}
-                      </span>
-                    </div>
                     <p className="text-xs text-text-muted">{account.email}</p>
                   </div>
                 </div>
@@ -380,7 +373,10 @@ export default function UserProfile() {
                       variant="secondary"
                       icon={X}
                       iconSize={14}
-                      onClick={() => setPendingAvatarUrl(null)}
+                      onClick={() => {
+                        setPendingAvatarUrl(null);
+                        setPendingAvatarFileId(null);
+                      }}
                       className="h-9! rounded-full! px-3! py-1.5! text-xs!"
                     >
                       Gỡ ảnh
