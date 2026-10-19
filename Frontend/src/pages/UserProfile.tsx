@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Camera,
   Check,
@@ -21,7 +21,7 @@ import {
   useGetMe,
   useUpdateAccount,
 } from "@/hooks/queries/useAccount";
-import { useUploadImage } from "@/hooks/queries/useMedia";
+import { useDeleteMedia, useUploadImage } from "@/hooks/queries/useMedia";
 import { MorphIcon } from "morphicons/react";
 
 type TabKey = "profile" | "security" | "delete";
@@ -59,6 +59,7 @@ export default function UserProfile() {
     useChangePassword();
   const { mutateAsync: uploadImage, isPending: isUploadingAvatar } =
     useUploadImage();
+  const { mutateAsync: deleteMedia } = useDeleteMedia();
 
   const account = useMemo(
     () => serverAccount ?? authUser ?? null,
@@ -77,6 +78,21 @@ export default function UserProfile() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Ref dùng để cleanup orphan file nếu user upload rồi rời trang / unmount component
+  const pendingFileIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    pendingFileIdRef.current = pendingAvatarFileId;
+  }, [pendingAvatarFileId]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingFileIdRef.current) {
+        // Tự động dọn file tạm khi rời component mà chưa bấm Lưu
+        deleteMedia(pendingFileIdRef.current).catch(() => {});
+      }
+    };
+  }, [deleteMedia]);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -84,6 +100,16 @@ export default function UserProfile() {
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
   const [pwErrors, setPwErrors] = useState<PasswordErrors>({});
+
+  // Hàm tiện ích hỗ trợ xóa file tạm ngầm mà không làm crash app nếu lỗi
+  const safeDeleteMedia = async (fileId: string | null) => {
+    if (!fileId) return;
+    try {
+      await deleteMedia(fileId);
+    } catch (err) {
+      console.warn("Không thể dọn file tạm:", err);
+    }
+  };
 
   const handleStartEdit = () => {
     if (!account) return;
@@ -95,11 +121,24 @@ export default function UserProfile() {
     setIsEditingProfile(true);
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = async () => {
+    // Nếu có ảnh vừa upload lên mà bấm Hủy -> xóa ảnh đó khỏi server
+    if (pendingAvatarFileId) {
+      await safeDeleteMedia(pendingAvatarFileId);
+    }
     setProfileErrors({});
     setPendingAvatarUrl(currentAvatar);
     setPendingAvatarFileId(null);
     setIsEditingProfile(false);
+  };
+
+  const handleRemovePendingAvatar = async () => {
+    // Nếu vừa upload ảnh mới -> xóa ảnh đó khỏi server và khôi phục ảnh cũ ban đầu
+    if (pendingAvatarFileId) {
+      await safeDeleteMedia(pendingAvatarFileId);
+    }
+    setPendingAvatarUrl(currentAvatar);
+    setPendingAvatarFileId(null);
   };
 
   const handleAvatarFileChange = async (
@@ -112,6 +151,12 @@ export default function UserProfile() {
 
     try {
       const mediaData = await uploadImage(file);
+
+      // Nếu trước đó đã upload 1 ảnh tạm khác, xóa ngay ảnh cũ đi để không bị rác CSDL/Cloudinary
+      if (pendingAvatarFileId) {
+        await safeDeleteMedia(pendingAvatarFileId);
+      }
+
       setPendingAvatarUrl(mediaData.fileUrl);
       setPendingAvatarFileId(mediaData.id);
 
@@ -167,8 +212,11 @@ export default function UserProfile() {
 
     try {
       await updateAccount(payload);
-      setIsEditingProfile(false);
+      // Gán null cho ref để khi unmount không kích hoạt deleteMedia ảnh vừa lưu thành công
+      pendingFileIdRef.current = null;
       setPendingAvatarFileId(null);
+      setIsEditingProfile(false);
+
       toast.add({
         type: "success",
         description: "Cập nhật thông tin thành công",
@@ -374,18 +422,16 @@ export default function UserProfile() {
                     </div>
 
                     <div className="flex w-full items-center justify-center gap-2 self-start sm:self-end sm:pb-1 md:w-fit md:justify-end">
-                      {isEditingProfile && pendingAvatarUrl && (
-                        <Button
-                          variant="secondary"
-                          onClick={() => {
-                            setPendingAvatarUrl(currentAvatar);
-                            setPendingAvatarFileId(null);
-                          }}
-                          className="h-9! rounded-full! px-3! py-1.5! text-xs!"
-                        >
-                          Gỡ ảnh
-                        </Button>
-                      )}
+                      {isEditingProfile &&
+                        pendingAvatarUrl !== currentAvatar && (
+                          <Button
+                            variant="secondary"
+                            onClick={handleRemovePendingAvatar}
+                            className="h-9! rounded-full! px-3! py-1.5! text-xs!"
+                          >
+                            Gỡ ảnh
+                          </Button>
+                        )}
                       <Button
                         variant="secondary"
                         icon={Camera}

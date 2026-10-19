@@ -19,3 +19,12 @@ export const useUploadImage = () => {
     },
   });
 };
+
+export const useDeleteMedia = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await mediaService.deleteFile(id);
+      return response.data;
+    },
+  });
+};
