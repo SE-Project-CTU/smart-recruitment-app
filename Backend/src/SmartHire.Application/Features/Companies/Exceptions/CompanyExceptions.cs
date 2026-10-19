@@ -11,7 +11,7 @@ internal static class CompanyExceptions {
         [new AppErrorDetail("userId", ValidationReasons.InvalidFormat, "A valid user identity is required.")]);
 
     public static AppException Validation(string message, IEnumerable<AppErrorDetail>? details = null) => new(
-        AppErrorKind.BadRequest,
+        AppErrorKind.Validation,
         CommonErrorCodes.ValidationError,
         message,
         details?.ToArray() ?? Array.Empty<AppErrorDetail>());
@@ -70,7 +70,7 @@ internal static class CompanyExceptions {
         [new AppErrorDetail("invitation", ValidationReasons.NotAllowed, "Invitation is not in pending status.")]);
 
     public static AppException CompanyInvitationExpired() => new(
-        AppErrorKind.BadRequest,
+        AppErrorKind.Gone,
         CompanyErrorCodes.CompanyInvitationExpired,
         "This invitation has expired.",
         [new AppErrorDetail("invitation", ErrorDetailReasons.Expired, "The invitation validity period has ended.")]);
@@ -94,10 +94,16 @@ internal static class CompanyExceptions {
         [new AppErrorDetail("joinRequest", ValidationReasons.NotAllowed, "Join request is not in pending status.")]);
 
     public static AppException CompanyNewOwnerInvalid(string message) => new(
-        AppErrorKind.BadRequest,
+        AppErrorKind.Validation,
         CompanyErrorCodes.CompanyNewOwnerInvalid,
         message,
         [new AppErrorDetail("newOwnerId", ValidationReasons.NotAllowed, message)]);
+
+    public static AppException InviteeRoleRequired() => new(
+        AppErrorKind.Validation,
+        CommonErrorCodes.ValidationError,
+        "Invitee must have the Recruiter role.",
+        [new AppErrorDetail("inviteeId", ValidationReasons.NotAllowed, "Only users with the Recruiter role can be invited.")]);
 
     public static AppException CompanyAlreadyFollowed() => new(
         AppErrorKind.Conflict,
