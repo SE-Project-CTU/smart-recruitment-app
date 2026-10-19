@@ -1,10 +1,13 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
+using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Features.JobPostings.DTOs;
 using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Application.Features.JobPostings.Mapping;
 using SmartHire.Application.Features.JobPostings.Notifications;
+using SmartHire.Application.Features.Notifications.Jobs.DispatchNotificationBatch;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -19,7 +22,9 @@ public sealed class CreateJobPostingCommandHandler
     private readonly ISkillCatalogRepository _skillRepository;
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly INotificationRepository _notificationRepository;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CreateJobPostingCommandHandler> _logger;
     
     public CreateJobPostingCommandHandler(
         ICurrentUser currentUser,
@@ -29,7 +34,9 @@ public sealed class CreateJobPostingCommandHandler
         ISkillCatalogRepository skillRepository,
         IJobPostingRepository jobPostingRepository,
         INotificationRepository notificationRepository,
-        IUnitOfWork unitOfWork) {
+        IBackgroundJobScheduler backgroundJobScheduler,
+        IUnitOfWork unitOfWork,
+        ILogger<CreateJobPostingCommandHandler> logger) {
         _currentUser = currentUser;
         _companyRepository = companyRepository;
         _locationRepository = locationRepository;
@@ -37,7 +44,9 @@ public sealed class CreateJobPostingCommandHandler
         _skillRepository = skillRepository;
         _jobPostingRepository = jobPostingRepository;
         _notificationRepository = notificationRepository;
+        _backgroundJobScheduler = backgroundJobScheduler;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
     
     public async Task<JobPostingResult> Handle(
@@ -88,7 +97,7 @@ public sealed class CreateJobPostingCommandHandler
         if (missingSkillIds.Length > 0)
             throw JobPostingExceptions.SkillNotFound(missingSkillIds);
         
-        return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+        var transactionResult = await _unitOfWork.ExecuteInTransactionAsync(async ct => {
             var jobPosting = JobPosting.Create(
                 request.CompanyId,
                 userId,
@@ -118,7 +127,7 @@ public sealed class CreateJobPostingCommandHandler
             
             await _jobPostingRepository.AddAsync(jobPosting, ct);
             await _unitOfWork.SaveChangesAsync(ct);
-
+            
             var followerUserIds = await _companyRepository.GetFollowerUserIdsAsync(
                 company.Id,
                 ct);
@@ -127,13 +136,39 @@ public sealed class CreateJobPostingCommandHandler
                 jobPosting,
                 followerUserIds,
                 now);
-
+            
             await _notificationRepository.AddRangeAsync(notifications, ct);
             if (notifications.Count > 0) {
                 await _unitOfWork.SaveChangesAsync(ct);
             }
             
-            return JobPostingMapper.ToResult(jobPosting);
+            return (
+                Result: JobPostingMapper.ToResult(jobPosting),
+                NotificationIds: notifications.Select(notification => notification.Id).ToArray());
         }, cancellationToken);
+        
+        // Enqueue only after ExecuteInTransactionAsync has committed successfully.
+        // Bounded batches keep Hangfire arguments small when a company has many followers.
+        foreach (var notificationIdBatch in transactionResult.NotificationIds.Chunk(NotificationDispatchBatchSize)) {
+            try {
+                _backgroundJobScheduler.Enqueue<DispatchNotificationBatchJob, DispatchNotificationBatchJobArgs>(
+                    new DispatchNotificationBatchJobArgs(notificationIdBatch)
+                );
+            }
+            catch (Exception exception) {
+                // The posting and notification rows are already committed. Returning an error here
+                // could cause clients to retry and create duplicate postings; the outbox phase will
+                // provide durable recovery for this enqueue gap.
+                _logger.LogError(
+                    exception,
+                    "Could not enqueue realtime dispatch for job posting {JobPostingId} and {NotificationCount} notifications.",
+                    transactionResult.Result.Id,
+                    notificationIdBatch.Length);
+            }
+        }
+        
+        return transactionResult.Result;
     }
+    
+    private const int NotificationDispatchBatchSize = 100;
 }

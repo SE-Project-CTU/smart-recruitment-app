@@ -5,6 +5,9 @@ namespace SmartHire.Application.Abstractions.Persistence;
 
 public interface INotificationRepository {
     Task<Notification?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Notification>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken);
     Task AddAsync(Notification notification, CancellationToken cancellationToken);
     Task AddRangeAsync(IReadOnlyCollection<Notification> notifications, CancellationToken cancellationToken);
     Task<(IReadOnlyList<Notification> Items, int TotalCount)> GetByRecipientPagedAsync(

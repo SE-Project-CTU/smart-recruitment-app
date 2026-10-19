@@ -17,6 +17,20 @@ public sealed class NotificationRepository : INotificationRepository {
             .FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Notification>> GetByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken) {
+        if (ids.Count == 0) {
+            return Array.Empty<Notification>();
+        }
+
+        return await _context.Notifications
+            .AsNoTracking()
+            .Where(notification => ids.Contains(notification.Id))
+            .OrderBy(notification => notification.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Notification notification, CancellationToken cancellationToken) {
         await _context.Notifications.AddAsync(notification, cancellationToken);
     }
