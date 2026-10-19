@@ -6,6 +6,7 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Application.Features.Notifications.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -42,10 +43,9 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
 
         var normalizedStatus = request.Status?.Trim().ToUpperInvariant();
         if (normalizedStatus is not ("APPROVED" or "REJECTED")) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "Status must be either 'APPROVED' or 'REJECTED'.");
+            throw CompanyExceptions.Validation(
+                "Status must be either 'APPROVED' or 'REJECTED'.",
+                [new AppErrorDetail("status", ValidationReasons.InvalidFormat, "Status must be either 'APPROVED' or 'REJECTED'.")]);
         }
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);

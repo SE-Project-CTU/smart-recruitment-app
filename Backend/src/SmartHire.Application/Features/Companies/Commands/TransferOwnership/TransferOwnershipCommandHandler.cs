@@ -4,6 +4,7 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Companies.Commands.TransferOwnership;
@@ -31,10 +32,7 @@ public sealed class TransferOwnershipCommandHandler : IRequestHandler<TransferOw
         }
 
         if (request.NewOwnerId == userId) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "New owner cannot be the same as current owner.");
+            throw CompanyExceptions.CompanyNewOwnerInvalid("New owner cannot be the same as current owner.");
         }
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);

@@ -87,7 +87,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Xem thông tin chi tiết công ty
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetCompanyDetail(
         [FromRoute] Guid id,
@@ -97,7 +97,7 @@ public sealed class CompanyController : ControllerBase {
     }
     
     /// Cập nhật thông tin công ty
-    [HttpPatch("{id:guid}")]
+    [HttpPatch("{id}")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> UpdateCompany(
         [FromRoute] Guid id,
@@ -119,7 +119,7 @@ public sealed class CompanyController : ControllerBase {
                 .ToArray();
 
             throw new AppException(
-                AppErrorKind.BadRequest,
+                AppErrorKind.Validation,
                 CompanyErrorCodes.InvalidCompanyData,
                 "Request body contains disallowed fields.",
                 details);
@@ -142,7 +142,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Lấy danh sách thành viên công ty
-    [HttpGet("{id:guid}/members")]
+    [HttpGet("{id}/members")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> ListCompanyMembers(
         [FromRoute] Guid id,
@@ -158,7 +158,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Mời vào công ty
-    [HttpPost("{id:guid}/invitations")]
+    [HttpPost("{id}/invitations")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> InviteRecruiter(
         [FromRoute] Guid id,
@@ -192,7 +192,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Chấp nhận lời mời gia nhập công ty
-    [HttpPost("/api/v1/company-invitations/{invitationId:guid}/accept")]
+    [HttpPost("/api/v1/company-invitations/{invitationId}/accept")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> AcceptInvitation(
         [FromRoute] Guid invitationId,
@@ -202,20 +202,17 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Từ chối lời mời gia nhập công ty
-    [HttpPost("/api/v1/company-invitations/{invitationId:guid}/reject")]
+    [HttpPost("/api/v1/company-invitations/{invitationId}/reject")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> RejectInvitation(
         [FromRoute] Guid invitationId,
         CancellationToken cancellationToken) {
         await _sender.Send(new RejectInvitationCommand(invitationId), cancellationToken);
-        return Ok(_responseFactory.Success(new {
-            invitationId,
-            status = "REJECTED"
-        }));
+        return NoContent();
     }
 
     /// Yêu cầu gia nhập công ty
-    [HttpPost("{id:guid}/join-requests")]
+    [HttpPost("{id}/join-requests")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> SubmitJoinRequest(
         [FromRoute] Guid id,
@@ -226,7 +223,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Danh sách yêu cầu gia nhập
-    [HttpGet("{id:guid}/join-requests")]
+    [HttpGet("{id}/join-requests")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> ListJoinRequests(
         [FromRoute] Guid id,
@@ -242,7 +239,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Phê duyệt hoặc từ chối yêu cầu gia nhập
-    [HttpPatch("{id:guid}/join-requests/{requestId:guid}")]
+    [HttpPatch("{id}/join-requests/{requestId}")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> ReviewJoinRequest(
         [FromRoute] Guid id,
@@ -262,7 +259,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Chuyển quyền Chủ sở hữu công ty
-    [HttpPut("{id:guid}/ownership")]
+    [HttpPut("{id}/ownership")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> TransferOwnership(
         [FromRoute] Guid id,
@@ -281,7 +278,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Theo dõi công ty
-    [HttpPost("{id:guid}/followers")]
+    [HttpPost("{id}/followers")]
     [Authorize(Roles = RoleNames.Candidate)]
     public async Task<IActionResult> FollowCompany(
         [FromRoute] Guid id,
@@ -291,7 +288,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Bỏ theo dõi công ty
-    [HttpDelete("{id:guid}/followers")]
+    [HttpDelete("{id}/followers")]
     [Authorize(Roles = RoleNames.Candidate)]
     public async Task<IActionResult> UnfollowCompany(
         [FromRoute] Guid id,
@@ -301,7 +298,7 @@ public sealed class CompanyController : ControllerBase {
     }
 
     /// Danh sách người theo dõi công ty
-    [HttpGet("{id:guid}/followers")]
+    [HttpGet("{id}/followers")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> ListCompanyFollowers(
         [FromRoute] Guid id,

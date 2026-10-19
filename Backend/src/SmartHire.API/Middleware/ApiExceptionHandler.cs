@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using SmartHire.Api.Contracts.Errors;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
@@ -85,6 +85,7 @@ public sealed class ApiExceptionHandler(
             AppErrorKind.Forbidden => StatusCodes.Status403Forbidden,
             AppErrorKind.NotFound => StatusCodes.Status404NotFound,
             AppErrorKind.Conflict => StatusCodes.Status409Conflict,
+            AppErrorKind.Gone => StatusCodes.Status410Gone,
             _ => StatusCodes.Status500InternalServerError
         };
     }
