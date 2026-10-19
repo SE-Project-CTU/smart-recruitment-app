@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartHire SignalR Notification Hub Tester</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --border: #334155;
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 24px;
+        line-height: 1.5;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      header {
+        margin-bottom: 24px;
+      }
+      h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      }
+      .form-group {
+        margin-bottom: 16px;
+      }
+      label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      input[type="text"] {
+        width: 100%;
+        background: #0b1120;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: #fff;
+        font-family: monospace;
+        font-size: 0.9rem;
+      }
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+      .btn-group {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-connect {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-connect:hover {
+        background: var(--primary-hover);
+      }
+      .btn-disconnect {
+        background: var(--danger);
+        color: #fff;
+      }
+      .btn-clear {
+        background: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
+      .btn-clear:hover {
+        background: #334155;
+        color: #fff;
+      }
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .status-connected {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--success);
+      }
+      .status-disconnected {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger);
+      }
+      .status-connecting {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning);
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .feed {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .feed-item {
+        background: #0b1120;
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 16px;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .feed-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+      .feed-time {
+        font-size: 0.75rem;
+        font-weight: normal;
+        color: var(--text-muted);
+      }
+      .feed-body {
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+      pre {
+        background: #020617;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        color: #a5b4fc;
+        overflow-x: auto;
+      }
+      .empty-state {
+        text-align: center;
+        color: var(--text-muted);
+        padding: 36px 0;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📡 SmartHire Real-Time Notification Tester</h1>
+        <p style="color: var(--text-muted); margin-top: 4px">
+          Công cụ kiểm thử kết nối WebSocket SignalR Hub (/hubs/notifications)
+          và nhận thông báo tức thời.
+        </p>
+      </header>
+
+      <div class="card">
+        <div class="form-group">
+          <label for="hubUrl">Hub URL</label>
+          <input
+            type="text"
+            id="hubUrl"
+            value="http://localhost:5190/hubs/notifications"
+          />
+        </div>
+        <div class="form-group">
+          <label for="accessToken">Access Token (JWT của Invitee)</label>
+          <input
+            type="text"
+            id="accessToken"
+            placeholder="Dán Bearer token (không cần chữ Bearer) vào đây..."
+          />
+        </div>
+        <div class="btn-group">
+          <button id="btnConnect" class="btn-connect" onclick="connect()">
+            Kết nối
+          </button>
+          <button
+            id="btnDisconnect"
+            class="btn-disconnect"
+            onclick="disconnect()"
+            style="display: none"
+          >
+            Ngắt kết nối
+          </button>
+          <button class="btn-clear" onclick="clearFeed()">Xóa lịch sử</button>
+          <div id="statusBadge" class="status-badge status-disconnected">
+            <span class="dot"></span>
+            <span id="statusText">Chưa kết nối</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 8px">
+          Danh sách Thông báo Nhận được (Real-time Feed)
+        </h2>
+        <div id="feedList" class="feed">
+          <div class="empty-state">
+            Chưa nhận được thông báo nào. Hãy kết nối và gọi API gửi lời mời từ
+            Postman.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let connection = null;
+
+      function setStatus(status, text) {
+        const badge = document.getElementById("statusBadge");
+        const statusText = document.getElementById("statusText");
+        badge.className = "status-badge status-" + status;
+        statusText.innerText = text;
+
+        const btnConnect = document.getElementById("btnConnect");
+        const btnDisconnect = document.getElementById("btnDisconnect");
+        if (status === "connected") {
+          btnConnect.style.display = "none";
+          btnDisconnect.style.display = "inline-block";
+        } else {
+          btnConnect.style.display = "inline-block";
+          btnDisconnect.style.display = "none";
+        }
+      }
+
+      async function connect() {
+        const hubUrl = document.getElementById("hubUrl").value.trim();
+        const token = document.getElementById("accessToken").value.trim();
+
+        if (!token) {
+          alert("Vui lòng dán Access Token của người nhận (Invitee)!");
+          return;
+        }
+
+        try {
+          setStatus("connecting", "Đang kết nối & bắt tay...");
+
+          // Kết nối trực tiếp qua WebSockets để tránh lỗi CORS fetch khi test từ Live Server (127.0.0.1:5500)
+          connection = new signalR.HubConnectionBuilder()
+            .withUrl(hubUrl, {
+              accessTokenFactory: () => token,
+              skipNegotiation: true,
+              transport: signalR.HttpTransportType.WebSockets,
+            })
+            .withAutomaticReconnect()
+            .build();
+
+          connection.on("ReceiveNotification", (notification) => {
+            console.log("[SignalR Received]", notification);
+            appendNotification(notification);
+          });
+
+          connection.onclose(() => {
+            setStatus("disconnected", "Đã ngắt kết nối");
+          });
+
+          connection.onreconnecting(() => {
+            setStatus("connecting", "Đang kết nối lại...");
+          });
+
+          connection.onreconnected(() => {
+            setStatus("connected", "Đã kết nối (SignalR)");
+          });
+
+          await connection.start();
+          setStatus("connected", "Đã kết nối (SignalR Sẵn sàng)");
+        } catch (err) {
+          console.error("Connection failed:", err);
+          setStatus("disconnected", "Lỗi: " + err.message);
+          alert("Kết nối thất bại: " + err.message);
+        }
+      }
+
+      async function disconnect() {
+        if (connection) {
+          await connection.stop();
+          connection = null;
+        }
+        setStatus("disconnected", "Đã ngắt kết nối");
+      }
+
+      function appendNotification(item) {
+        const feed = document.getElementById("feedList");
+        const emptyState = feed.querySelector(".empty-state");
+        if (emptyState) {
+          emptyState.remove();
+        }
+
+        const itemEl = document.createElement("div");
+        itemEl.className = "feed-item";
+
+        const timeStr = item.createdAt
+          ? new Date(item.createdAt).toLocaleTimeString()
+          : new Date().toLocaleTimeString();
+        itemEl.innerHTML = `
+          <div class="feed-title">
+            <span>🔔 ${item.title || "Thông báo mới"}</span>
+            <span class="feed-time">${timeStr}</span>
+          </div>
+          <div class="feed-body">${item.body || ""}</div>
+          <pre><code>${JSON.stringify(item, null, 2)}</code></pre>
+        `;
+
+        feed.prepend(itemEl);
+      }
+
+      function clearFeed() {
+        document.getElementById("feedList").innerHTML = `
+          <div class="empty-state">Chưa nhận được thông báo nào. Hãy kết nối và gọi API gửi lời mời từ Postman.</div>
+        `;
+      }
+    </script>
+  </body>
+</html>

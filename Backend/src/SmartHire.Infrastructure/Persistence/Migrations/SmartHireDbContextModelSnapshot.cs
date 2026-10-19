@@ -365,6 +365,15 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("content");
 
+                    b.Property<string>("ContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("content_hash");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -384,10 +393,20 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("layout");
 
+                    b.Property<string>("LayoutHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("layout_hash");
+
                     b.Property<string>("Presentation")
                         .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("presentation");
+
+                    b.Property<string>("PresentationHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("presentation_hash");
 
                     b.Property<Guid>("TemplateId")
                         .HasColumnType("uuid")
@@ -400,6 +419,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("title");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
@@ -996,6 +1016,74 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_media_files_owner_id");
 
                     b.ToTable("media_files", (string)null);
+                });
+
+            modelBuilder.Entity("SmartHire.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("body");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipient_id");
+
+                    b.Property<Guid?>("ResourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resource_id");
+
+                    b.Property<string>("ResourceType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("resource_type");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_notifications");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_notifications_expires_at");
+
+                    b.HasIndex("RecipientId", "ReadAt")
+                        .HasDatabaseName("ix_notifications_recipient_id_read_at");
+
+                    b.HasIndex("RecipientId", "Type", "CreatedAt")
+                        .HasDatabaseName("ix_notifications_recipient_id_type_created_at");
+
+                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.Province", b =>
@@ -1637,6 +1725,18 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_media_files_users_owner_id");
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("SmartHire.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("SmartHire.Domain.Entities.User", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_notifications_users_recipient_id");
+
+                    b.Navigation("Recipient");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.RefreshToken", b =>

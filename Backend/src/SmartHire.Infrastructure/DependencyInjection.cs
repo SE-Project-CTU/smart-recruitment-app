@@ -4,8 +4,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Abstractions.Serialization;
 using SmartHire.Application.Abstractions.Storage;
 using SmartHire.Infrastructure.Persistence;
+using SmartHire.Infrastructure.Persistence.Json;
 using SmartHire.Infrastructure.Persistence.Repositories;
 using SmartHire.Infrastructure.Security;
 using SmartHire.Infrastructure.Storage;
@@ -38,6 +40,7 @@ public static class DependencyInjection {
         
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
@@ -47,15 +50,23 @@ public static class DependencyInjection {
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
         
         services.AddScoped<IMediaFileRepository, MediaFileRepository>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
+        
+        services.AddScoped<ICvTemplateRepository, CvTemplateRepository>();
+        services.AddScoped<ICvRepository, CvRepository>();
+        services.AddScoped<ICvVersionRepository, CvVersionRepository>();
+        services.AddSingleton<ICvDocumentHasher, CvDocumentHasher>();
+        
         // --- Cloudinary ---
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
-
+        
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         
         return services;
     }
-
+    
     public static IServiceCollection AddJwtBearerAuthentication(
         this IServiceCollection services,
         IConfiguration configuration) {
@@ -91,6 +102,17 @@ public static class DependencyInjection {
                     
                     NameClaimType = JwtRegisteredClaimNames.Name,
                     RoleClaimType = "role"
+                };
+
+                options.Events = new JwtBearerEvents {
+                    OnMessageReceived = context => {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs")) {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
         

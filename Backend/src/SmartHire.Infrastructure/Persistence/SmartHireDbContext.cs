@@ -41,6 +41,7 @@ public sealed class SmartHireDbContext
     public DbSet<AiMatchResult> AiMatchResults => Set<AiMatchResult>();
     public DbSet<JobRecommendation> JobRecommendations => Set<JobRecommendation>();
     public DbSet<MediaFile> MediaFiles => Set<MediaFile>();
+    public DbSet<Notification> Notifications => Set<Notification>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);

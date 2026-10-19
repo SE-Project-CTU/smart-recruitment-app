@@ -42,6 +42,8 @@ services:
       context: ./Backend
       dockerfile: src/SmartHire.API/Dockerfile
     restart: unless-stopped
+    env_file:
+      - ./Backend/.env
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       # Connection strings inject qua env var, ghi đè User Secrets (chỉ dùng dev local)

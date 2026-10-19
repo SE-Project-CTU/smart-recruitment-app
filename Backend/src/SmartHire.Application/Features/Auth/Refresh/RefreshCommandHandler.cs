@@ -31,7 +31,9 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.InvalidRequestBody,
-                "A refresh token is required."
+                "A refresh token is required.",
+                [new AppErrorDetail("refreshToken", ValidationReasons.Required,
+                    "Provide a non-empty refresh token.")]
             );
         }
         
@@ -47,7 +49,9 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidRefreshToken,
-                "Refresh token is invalid or expired."
+                "Refresh token is invalid or expired.",
+                [new AppErrorDetail("refreshToken", ErrorDetailReasons.InvalidCredentials,
+                    "The refresh token is invalid or expired.")]
             );
         }
         
@@ -59,7 +63,9 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidRefreshToken,
-                "Security alert: Refresh token reuse detected. All sessions have been revoked."
+                "Security alert: Refresh token reuse detected. All sessions have been revoked.",
+                [new AppErrorDetail("refreshToken", ValidationReasons.NotAllowed,
+                    "This refresh token has already been revoked. All sessions were revoked.")]
             );
         }
         
@@ -67,7 +73,9 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
             throw new AppException(
                 AppErrorKind.Forbidden,
                 AuthErrorCodes.AccountNotAllowed,
-                "Account is forbidden."
+                "Account is forbidden.",
+                [new AppErrorDetail("account.status", ValidationReasons.NotAllowed,
+                    "The account is not active.")]
             );
         }
         
@@ -122,7 +130,9 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Refr
             throw new AppException(
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidRefreshToken,
-                "Security alert: Concurrent token replay detected. All sessions have been revoked."
+                "Security alert: Concurrent token replay detected. All sessions have been revoked.",
+                [new AppErrorDetail("refreshToken", ValidationReasons.NotAllowed,
+                    "The refresh token was concurrently reused. All sessions were revoked.")]
             );
         }
         
