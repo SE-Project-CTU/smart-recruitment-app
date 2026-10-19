@@ -54,7 +54,7 @@ export function CVCard({ cv, onEdit, onDownload }: CVCardProps) {
           </div>
         )}
 
-        <div className="relative z-1 flex items-center justify-between rounded-full bg-surface/10 text-white backdrop-blur-md">
+        <div className="relative z-1 flex items-center justify-between rounded-full bg-surface/10 text-text-main backdrop-blur-xs">
           {cv.isPublic ? (
             <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold">
               <span className="size-1.5 rounded-full bg-status-success" />

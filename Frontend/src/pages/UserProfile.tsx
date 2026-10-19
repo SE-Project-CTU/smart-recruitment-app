@@ -3,14 +3,12 @@ import {
   Camera,
   Check,
   Edit3,
-  Eye,
-  EyeOff,
   KeyRound,
   ShieldAlert,
   Trash2,
   User,
-  X,
 } from "lucide-react";
+import { Eye, EyeOff } from "lucide";
 import dayjs from "dayjs";
 import Button from "@/components/Button";
 
@@ -24,14 +22,31 @@ import {
   useUpdateAccount,
 } from "@/hooks/queries/useAccount";
 import { useUploadImage } from "@/hooks/queries/useMedia";
+import { MorphIcon } from "morphicons/react";
 
 type TabKey = "profile" | "security" | "delete";
+
+interface ProfileErrors {
+  avatar?: string;
+  fullName?: string;
+  phone?: string;
+  general?: string;
+}
+
+interface PasswordErrors {
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+  general?: string;
+}
 
 const ROLE_LABELS: Record<string, string> = {
   Candidate: "Ứng viên",
   Recruiter: "Nhà tuyển dụng",
   Admin: "Quản trị viên",
 };
+
+const COVER_IMAGE_URL = "https://picsum.photos/id/29/3000/800";
 
 export default function UserProfile() {
   const authUser = useAuthStore((state) => state.user);
@@ -58,11 +73,7 @@ export default function UserProfile() {
   const [pendingAvatarFileId, setPendingAvatarFileId] = useState<string | null>(
     null,
   );
-
-  const [profileMessage, setProfileMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [profileErrors, setProfileErrors] = useState<ProfileErrors>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,10 +83,7 @@ export default function UserProfile() {
   const [revokeAllSessions, setRevokeAllSessions] = useState(true);
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
-  const [pwMessage, setPwMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [pwErrors, setPwErrors] = useState<PasswordErrors>({});
 
   const handleStartEdit = () => {
     if (!account) return;
@@ -83,12 +91,13 @@ export default function UserProfile() {
     setPhone(account.phone ?? "");
     setPendingAvatarUrl(currentAvatar);
     setPendingAvatarFileId(null);
-    setProfileMessage(null);
+    setProfileErrors({});
     setIsEditingProfile(true);
   };
 
   const handleCancelEdit = () => {
-    setProfileMessage(null);
+    setProfileErrors({});
+    setPendingAvatarUrl(currentAvatar);
     setPendingAvatarFileId(null);
     setIsEditingProfile(false);
   };
@@ -99,7 +108,7 @@ export default function UserProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setProfileMessage(null);
+    setProfileErrors((prev) => ({ ...prev, avatar: undefined }));
 
     try {
       const mediaData = await uploadImage(file);
@@ -112,10 +121,10 @@ export default function UserProfile() {
         setIsEditingProfile(true);
       }
     } catch (err: unknown) {
-      setProfileMessage({
-        type: "error",
-        text: getApiErrorMessage(err, "Tải ảnh đại diện thất bại."),
-      });
+      setProfileErrors((prev) => ({
+        ...prev,
+        avatar: getApiErrorMessage(err, "Tải ảnh đại diện thất bại."),
+      }));
     } finally {
       e.target.value = "";
     }
@@ -124,17 +133,20 @@ export default function UserProfile() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!account) return;
-    setProfileMessage(null);
 
+    const newErrors: ProfileErrors = {};
     const trimmedName = fullName.trim();
+
     if (trimmedName.length < 2 || trimmedName.length > 100) {
-      setProfileMessage({
-        type: "error",
-        text: "Họ và tên phải có độ dài từ 2 đến 100 ký tự.",
-      });
+      newErrors.fullName = "Họ và tên phải có độ dài từ 2 đến 100 ký tự.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setProfileErrors(newErrors);
       return;
     }
 
+    setProfileErrors({});
     const normalizedPhone = phone.trim() === "" ? null : phone.trim();
 
     const payload: UpdateProfileRequest = {};
@@ -162,48 +174,44 @@ export default function UserProfile() {
         description: "Cập nhật thông tin thành công",
       });
     } catch (err: unknown) {
-      setProfileMessage({
-        type: "error",
-        text: getApiErrorMessage(err, "Có lỗi xảy ra. Vui lòng thử lại."),
-      });
+      const msg = getApiErrorMessage(err, "Có lỗi xảy ra. Vui lòng thử lại.");
+      if (msg.toLowerCase().includes("điện thoại")) {
+        setProfileErrors({ phone: msg });
+      } else if (msg.toLowerCase().includes("tên")) {
+        setProfileErrors({ fullName: msg });
+      } else {
+        setProfileErrors({ general: msg });
+      }
     }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPwMessage(null);
+    const newErrors: PasswordErrors = {};
 
     if (!currentPassword) {
-      setPwMessage({
-        type: "error",
-        text: "Vui lòng nhập mật khẩu hiện tại.",
-      });
-      return;
+      newErrors.currentPassword = "Vui lòng nhập mật khẩu hiện tại.";
     }
 
     if (newPassword.length < 8) {
-      setPwMessage({
-        type: "error",
-        text: "Mật khẩu mới phải có tối thiểu 8 ký tự.",
-      });
+      newErrors.newPassword = "Mật khẩu mới phải có tối thiểu 8 ký tự.";
+    } else if (newPassword === currentPassword) {
+      newErrors.newPassword =
+        "Mật khẩu mới không được trùng với mật khẩu hiện tại.";
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Vui lòng xác nhận mật khẩu mới.";
+    } else if (newPassword !== confirmPassword) {
+      newErrors.confirmPassword = "Xác nhận mật khẩu mới không khớp.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setPwErrors(newErrors);
       return;
     }
 
-    if (newPassword === currentPassword) {
-      setPwMessage({
-        type: "error",
-        text: "Mật khẩu mới không được trùng với mật khẩu hiện tại.",
-      });
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPwMessage({
-        type: "error",
-        text: "Xác nhận mật khẩu mới không khớp.",
-      });
-      return;
-    }
+    setPwErrors({});
 
     try {
       await changePassword({
@@ -221,10 +229,14 @@ export default function UserProfile() {
         description: "Đổi mật khẩu thành công",
       });
     } catch (err: unknown) {
-      setPwMessage({
-        type: "error",
-        text: getApiErrorMessage(err, "Mật khẩu hiện tại không chính xác."),
-      });
+      const msg = getApiErrorMessage(err, "Mật khẩu hiện tại không chính xác.");
+      if (msg.toLowerCase().includes("hiện tại")) {
+        setPwErrors({ currentPassword: msg });
+      } else if (msg.toLowerCase().includes("mật khẩu mới")) {
+        setPwErrors({ newPassword: msg });
+      } else {
+        setPwErrors({ general: msg });
+      }
     }
   };
 
@@ -261,7 +273,7 @@ export default function UserProfile() {
       <h1 className="text-2xl font-bold text-text-main">Cài đặt tài khoản</h1>
 
       <div className="flex flex-col rounded-3xl border border-border bg-white md:flex-row">
-        <aside className="w-full shrink-0 border-b border-border p-4 md:w-60 md:border-r md:border-b-0 md:p-6">
+        <aside className="w-full shrink-0 rounded-l-3xl border-b border-border p-4 md:w-60 md:border-r md:border-b-0 md:p-6">
           <nav className="flex flex-row gap-2 overflow-x-auto md:flex-col">
             <button
               type="button"
@@ -294,7 +306,7 @@ export default function UserProfile() {
               onClick={() => setActiveTab("delete")}
               className={`flex cursor-pointer items-center gap-2.5 rounded-full px-4 py-2.5 text-left text-xs font-semibold whitespace-nowrap transition-colors md:mt-4 ${
                 activeTab === "delete"
-                  ? "bg-rose-50 text-rose-600"
+                  ? "bg-rose-50 text-status-error"
                   : "text-rose-500 hover:bg-rose-50/60"
               }`}
             >
@@ -304,102 +316,113 @@ export default function UserProfile() {
           </nav>
         </aside>
 
-        <main className="flex-1 p-5 md:p-8">
+        <main className="flex-1 p-5">
           {activeTab === "profile" && (
             <form onSubmit={handleSaveProfile} className="flex flex-col gap-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-text-main">
-                  Hồ sơ của tôi
-                </h2>
-              </div>
-
-              {profileMessage && (
-                <div
-                  className={`rounded-2xl border px-4 py-3 text-xs font-medium ${
-                    profileMessage.type === "success"
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border-rose-200 bg-rose-50 text-rose-600"
-                  }`}
-                >
-                  {profileMessage.text}
+              <div className="overflow-hidden rounded-2xl border border-border bg-white">
+                <div className="relative h-50 w-full bg-bg sm:h-70">
+                  <img
+                    src={COVER_IMAGE_URL}
+                    alt="Cover"
+                    className="size-full object-cover"
+                  />
                 </div>
-              )}
 
-              <div className="flex flex-col justify-between gap-4 rounded-2xl border border-border p-5 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-4">
-                  <div className="relative size-18 shrink-0">
-                    {displayAvatar ? (
-                      <img
-                        src={displayAvatar}
-                        alt={account.fullName}
-                        className="size-full rounded-full border border-border object-cover"
-                      />
-                    ) : (
-                      <div className="flex size-full items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
-                        {initials || "U"}
+                <div className="px-5 pb-4">
+                  <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="relative -mt-12 size-36 shrink-0 rounded-full border-4 border-white bg-white shadow-sm">
+                        {displayAvatar ? (
+                          <img
+                            src={displayAvatar}
+                            alt={account.fullName}
+                            className="size-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
+                            {initials || "U"}
+                          </div>
+                        )}
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleAvatarFileChange}
+                          className="hidden"
+                        />
+
+                        <button
+                          type="button"
+                          disabled={isUploadingAvatar}
+                          onClick={() => fileInputRef.current?.click()}
+                          title="Tải ảnh đại diện mới"
+                          className="absolute right-0 bottom-0 flex size-7 cursor-pointer items-center justify-center rounded-full border border-border bg-white text-text-main shadow-xs transition-colors hover:bg-bg disabled:opacity-50"
+                        >
+                          <Camera className="size-3.5" />
+                        </button>
                       </div>
+
+                      <div className="flex-col gap-0.5 pb-1 text-center md:text-left">
+                        <h3 className="text-center text-lg font-bold text-text-main md:text-left">
+                          {account.fullName}
+                        </h3>
+                        <p className="text-center text-xs text-text-muted md:text-left">
+                          {account.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex w-full items-center justify-center gap-2 self-start sm:self-end sm:pb-1 md:w-fit md:justify-end">
+                      {isEditingProfile && pendingAvatarUrl && (
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setPendingAvatarUrl(currentAvatar);
+                            setPendingAvatarFileId(null);
+                          }}
+                          className="h-9! rounded-full! px-3! py-1.5! text-xs!"
+                        >
+                          Gỡ ảnh
+                        </Button>
+                      )}
+                      <Button
+                        variant="secondary"
+                        icon={Camera}
+                        iconSize={14}
+                        isLoading={isUploadingAvatar}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-9! rounded-full! px-3.5! py-1.5! text-xs!"
+                      >
+                        Đổi ảnh
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-1 min-h-4">
+                    {profileErrors.avatar && (
+                      <p className="text-xs font-medium text-status-error">
+                        {profileErrors.avatar}
+                      </p>
                     )}
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={handleAvatarFileChange}
-                      className="hidden"
-                    />
-
-                    <button
-                      type="button"
-                      disabled={isUploadingAvatar}
-                      onClick={() => fileInputRef.current?.click()}
-                      title="Tải ảnh đại diện mới"
-                      className="absolute right-0 bottom-0 flex size-7 cursor-pointer items-center justify-center rounded-full border border-border bg-white text-text-main transition-colors hover:bg-bg disabled:opacity-50"
-                    >
-                      <Camera className="size-3.5" />
-                    </button>
                   </div>
-
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-base font-bold text-text-main">
-                      {account.fullName}
-                    </h3>
-                    <p className="text-xs text-text-muted">{account.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-start sm:self-center">
-                  {isEditingProfile && pendingAvatarUrl && (
-                    <Button
-                      variant="secondary"
-                      icon={X}
-                      iconSize={14}
-                      onClick={() => {
-                        setPendingAvatarUrl(null);
-                        setPendingAvatarFileId(null);
-                      }}
-                      className="h-9! rounded-full! px-3! py-1.5! text-xs!"
-                    >
-                      Gỡ ảnh
-                    </Button>
-                  )}
-                  <Button
-                    variant="secondary"
-                    icon={Camera}
-                    iconSize={14}
-                    isLoading={isUploadingAvatar}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-9! rounded-full! px-3.5! py-1.5! text-xs!"
-                  >
-                    Đổi ảnh
-                  </Button>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-6 rounded-2xl border border-border p-5">
-                <div className="flex flex-col items-center justify-between gap-2 md:flex-row">
-                  <h3 className="text-base font-bold text-text-main">
-                    Thông tin cá nhân
-                  </h3>
+              <div className="flex flex-col gap-4 rounded-2xl border border-border p-5">
+                <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+                  <div className="flex flex-col">
+                    <h3 className="text-base font-bold text-text-main">
+                      Thông tin cá nhân
+                    </h3>
+                    <div className="min-h-4">
+                      {profileErrors.general && (
+                        <p className="text-xs font-medium text-status-error">
+                          {profileErrors.general}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
                   {!isEditingProfile ? (
                     <Button
@@ -415,8 +438,6 @@ export default function UserProfile() {
                     <div className="flex items-center gap-2">
                       <Button
                         variant="secondary"
-                        icon={X}
-                        iconSize={14}
                         onClick={handleCancelEdit}
                         className="h-9! rounded-full! px-3.5! py-1.5! text-xs!"
                       >
@@ -436,40 +457,82 @@ export default function UserProfile() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
-                  <div className="flex flex-col gap-1.5">
+                <div className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
+                  <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-text-muted">
                       Họ và tên
                     </label>
                     {isEditingProfile ? (
-                      <input
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Nhập họ và tên (2 - 100 ký tự)"
-                        className="rounded-xl border border-border bg-white px-3.5 py-2 text-sm text-text-main focus:border-primary focus:outline-none"
-                      />
+                      <>
+                        <input
+                          type="text"
+                          value={fullName}
+                          onChange={(e) => {
+                            setFullName(e.target.value);
+                            if (profileErrors.fullName) {
+                              setProfileErrors((prev) => ({
+                                ...prev,
+                                fullName: undefined,
+                              }));
+                            }
+                          }}
+                          placeholder="Nhập họ và tên (2 - 100 ký tự)"
+                          className={`rounded-xl border bg-white px-3.5 py-2 text-sm text-text-main focus:outline-none ${
+                            profileErrors.fullName
+                              ? "border-rose-400 focus:border-rose-500"
+                              : "border-border focus:border-primary"
+                          }`}
+                        />
+                        <div className="min-h-4">
+                          {profileErrors.fullName && (
+                            <p className="text-xs text-status-error">
+                              {profileErrors.fullName}
+                            </p>
+                          )}
+                        </div>
+                      </>
                     ) : (
-                      <p className="text-sm font-semibold text-text-main">
+                      <p className="py-1 text-sm font-semibold text-text-main">
                         {account.fullName}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-text-muted">
                       Số điện thoại
                     </label>
                     {isEditingProfile ? (
-                      <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Ví dụ: +84901234567 (để trống để xóa)"
-                        className="rounded-xl border border-border bg-white px-3.5 py-2 text-sm text-text-main focus:border-primary focus:outline-none"
-                      />
+                      <>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => {
+                            setPhone(e.target.value);
+                            if (profileErrors.phone) {
+                              setProfileErrors((prev) => ({
+                                ...prev,
+                                phone: undefined,
+                              }));
+                            }
+                          }}
+                          placeholder="Ví dụ: +84901234567 (để trống để xóa)"
+                          className={`rounded-xl border bg-white px-3.5 py-2 text-sm text-text-main focus:outline-none ${
+                            profileErrors.phone
+                              ? "border-rose-400 focus:border-rose-500"
+                              : "border-border focus:border-primary"
+                          }`}
+                        />
+                        <div className="min-h-4">
+                          {profileErrors.phone && (
+                            <p className="text-xs text-status-error">
+                              {profileErrors.phone}
+                            </p>
+                          )}
+                        </div>
+                      </>
                     ) : (
-                      <p className="text-sm font-semibold text-text-main">
+                      <p className="py-1 text-sm font-semibold text-text-main">
                         {account.phone || "Chưa cập nhật"}
                       </p>
                     )}
@@ -493,7 +556,7 @@ export default function UserProfile() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1.5 pt-2">
                     <span className="text-xs font-medium text-text-muted">
                       Trạng thái
                     </span>
@@ -502,7 +565,7 @@ export default function UserProfile() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1.5 pt-2">
                     <span className="text-xs font-medium text-text-muted">
                       Cập nhật lần cuối
                     </span>
@@ -520,7 +583,7 @@ export default function UserProfile() {
           {activeTab === "security" && (
             <form
               onSubmit={handlePasswordSubmit}
-              className="flex max-w-xl flex-col gap-6"
+              className="flex max-w-xl flex-col gap-5"
             >
               <div className="flex flex-col gap-1">
                 <h2 className="text-lg font-bold text-text-main">
@@ -532,20 +595,8 @@ export default function UserProfile() {
                 </p>
               </div>
 
-              {pwMessage && (
-                <div
-                  className={`rounded-2xl border px-4 py-3 text-xs font-medium ${
-                    pwMessage.type === "success"
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border-rose-200 bg-rose-50 text-rose-600"
-                  }`}
-                >
-                  {pwMessage.text}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-4 rounded-2xl border border-border p-5">
-                <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-3 rounded-2xl border border-border p-5">
+                <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-text-muted">
                     Mật khẩu hiện tại
                   </label>
@@ -553,25 +604,43 @@ export default function UserProfile() {
                     <input
                       type={showCurrentPw ? "text" : "password"}
                       value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      onChange={(e) => {
+                        setCurrentPassword(e.target.value);
+                        if (pwErrors.currentPassword) {
+                          setPwErrors((prev) => ({
+                            ...prev,
+                            currentPassword: undefined,
+                          }));
+                        }
+                      }}
                       placeholder="Nhập mật khẩu hiện tại"
-                      className="w-full rounded-xl border border-border bg-white py-2 pr-10 pl-3.5 text-sm text-text-main focus:border-primary focus:outline-none"
+                      className={`w-full rounded-xl border bg-white py-2 pr-10 pl-3.5 text-sm text-text-main focus:outline-none ${
+                        pwErrors.currentPassword
+                          ? "border-rose-400 focus:border-rose-500"
+                          : "border-border focus:border-primary"
+                      }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPw((v) => !v)}
                       className="absolute right-3 cursor-pointer text-text-muted hover:text-text-main"
                     >
-                      {showCurrentPw ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
+                      <MorphIcon
+                        icon={showCurrentPw ? EyeOff : Eye}
+                        size={20}
+                      />
                     </button>
+                  </div>
+                  <div className="min-h-4">
+                    {pwErrors.currentPassword && (
+                      <p className="text-xs text-status-error">
+                        {pwErrors.currentPassword}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-text-muted">
                     Mật khẩu mới
                   </label>
@@ -579,38 +648,72 @@ export default function UserProfile() {
                     <input
                       type={showNewPw ? "text" : "password"}
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        if (pwErrors.newPassword) {
+                          setPwErrors((prev) => ({
+                            ...prev,
+                            newPassword: undefined,
+                          }));
+                        }
+                      }}
                       placeholder="Tối thiểu 8 ký tự"
-                      className="w-full rounded-xl border border-border bg-white py-2 pr-10 pl-3.5 text-sm text-text-main focus:border-primary focus:outline-none"
+                      className={`w-full rounded-xl border bg-white py-2 pr-10 pl-3.5 text-sm text-text-main focus:outline-none ${
+                        pwErrors.newPassword
+                          ? "border-rose-400 focus:border-rose-500"
+                          : "border-border focus:border-primary"
+                      }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPw((v) => !v)}
                       className="absolute right-3 cursor-pointer text-text-muted hover:text-text-main"
                     >
-                      {showNewPw ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
+                      <MorphIcon icon={showNewPw ? EyeOff : Eye} size={20} />
                     </button>
+                  </div>
+                  <div className="min-h-4">
+                    {pwErrors.newPassword && (
+                      <p className="text-xs text-status-error">
+                        {pwErrors.newPassword}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-text-muted">
                     Xác nhận mật khẩu mới
                   </label>
                   <input
                     type={showNewPw ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      if (pwErrors.confirmPassword) {
+                        setPwErrors((prev) => ({
+                          ...prev,
+                          confirmPassword: undefined,
+                        }));
+                      }
+                    }}
                     placeholder="Nhập lại mật khẩu mới"
-                    className="w-full rounded-xl border border-border bg-white px-3.5 py-2 text-sm text-text-main focus:border-primary focus:outline-none"
+                    className={`w-full rounded-xl border bg-white px-3.5 py-2 text-sm text-text-main focus:outline-none ${
+                      pwErrors.confirmPassword
+                        ? "border-rose-400 focus:border-rose-500"
+                        : "border-border focus:border-primary"
+                    }`}
                   />
+                  <div className="min-h-4">
+                    {pwErrors.confirmPassword && (
+                      <p className="text-xs text-status-error">
+                        {pwErrors.confirmPassword}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <label className="mt-1 flex cursor-pointer items-center gap-2.5 text-xs text-text-main">
+                <label className="flex cursor-pointer items-center gap-2.5 text-xs text-text-main">
                   <input
                     type="checkbox"
                     checked={revokeAllSessions}
@@ -620,7 +723,15 @@ export default function UserProfile() {
                   Đăng xuất khỏi tất cả các thiết bị khác sau khi đổi mật khẩu
                 </label>
 
-                <div className="flex justify-end pt-2">
+                <div className="min-h-4">
+                  {pwErrors.general && (
+                    <p className="text-xs font-medium text-status-error">
+                      {pwErrors.general}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex justify-end">
                   <Button
                     type="submit"
                     variant="primary"
@@ -637,7 +748,7 @@ export default function UserProfile() {
           {activeTab === "delete" && (
             <div className="flex max-w-xl flex-col gap-5">
               <div className="flex flex-col gap-1">
-                <h2 className="text-lg font-bold text-rose-600">
+                <h2 className="text-lg font-bold text-status-error">
                   Xóa tài khoản
                 </h2>
                 <p className="text-xs text-text-muted">
@@ -647,7 +758,7 @@ export default function UserProfile() {
 
               <div className="flex flex-col gap-4 rounded-2xl border border-rose-200 bg-rose-50/40 p-5">
                 <div className="flex items-start gap-3">
-                  <ShieldAlert className="mt-0.5 size-5 shrink-0 text-rose-600" />
+                  <ShieldAlert className="mt-0.5 size-5 shrink-0 text-status-error" />
                   <div className="flex flex-col gap-1">
                     <h3 className="text-sm font-bold text-text-main">
                       Hành động này không thể hoàn tác

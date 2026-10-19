@@ -8,6 +8,7 @@ import {
   MapPin,
   Sparkles,
   ExternalLink,
+  ChevronDown,
 } from "lucide-react";
 import dayjs from "dayjs";
 import {
@@ -22,8 +23,19 @@ import {
   TooltipPanel,
   TooltipTrigger,
 } from "./animate-ui/components/base/tooltip";
+import { Select } from "@animate-ui/react/primitives/base-ui/select";
 
 const columnHelper = createColumnHelper<DataTableFeatures, MockApplication>();
+
+const STATUS_OPTIONS = [
+  { value: "ALL", label: `Tất cả` },
+  { value: "APPLIED", label: "Đã nộp" },
+  { value: "REVIEWING", label: "Đang xem xét" },
+  { value: "INTERVIEW", label: "Phỏng vấn" },
+  { value: "OFFERED", label: "Mời nhận việc" },
+  { value: "ACCEPTED", label: "Đã trúng tuyển" },
+  { value: "REJECTED", label: "Từ chối" },
+];
 
 const STATUS_CONFIG: Record<
   ApplicationStatus,
@@ -283,24 +295,52 @@ export function ApplicationTrackingTable({
               <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
                 <Filter className="size-3.5 text-slate-400" />
                 <span className="text-xs text-slate-500">Trạng thái:</span>
-                <select
+
+                <Select.Root
+                  items={STATUS_OPTIONS}
                   value={currentStatus}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    table
-                      .getColumn("status")
-                      ?.setFilterValue(val === "ALL" ? undefined : val);
+                  onValueChange={(val) => {
+                    const nextValue = val === "ALL" ? undefined : val;
+                    table.getColumn("status")?.setFilterValue(nextValue);
                   }}
-                  className="cursor-pointer bg-transparent text-xs font-semibold text-slate-800 focus:outline-none"
                 >
-                  <option value="ALL">Tất cả ({data.length})</option>
-                  <option value="APPLIED">Đã nộp</option>
-                  <option value="REVIEWING">Đang xem xét</option>
-                  <option value="INTERVIEW">Phỏng vấn</option>
-                  <option value="OFFERED">Mời nhận việc</option>
-                  <option value="ACCEPTED">Đã trúng tuyển</option>
-                  <option value="REJECTED">Từ chối</option>
-                </select>
+                  <Select.Trigger
+                    aria-label="Lọc theo trạng thái"
+                    className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-slate-800 focus:outline-none"
+                  >
+                    <Select.Value />
+                    <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                      <ChevronDown className="size-3.5" />
+                    </Select.Icon>
+                  </Select.Trigger>
+
+                  <Select.Portal>
+                    <Select.Positioner
+                      alignItemWithTrigger={false}
+                      sideOffset={4}
+                    >
+                      <Select.Popup className="z-50 min-w-36 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                        <Select.List>
+                          {STATUS_OPTIONS.map((status) => (
+                            <Select.Item
+                              key={status.value}
+                              value={status.value}
+                              className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-highlighted:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                            >
+                              <Select.ItemText>{status.label}</Select.ItemText>
+                              <Select.ItemIndicator
+                                animation="pop"
+                                className="ml-2 text-xs text-primary"
+                              >
+                                ✓
+                              </Select.ItemIndicator>
+                            </Select.Item>
+                          ))}
+                        </Select.List>
+                      </Select.Popup>
+                    </Select.Positioner>
+                  </Select.Portal>
+                </Select.Root>
               </div>
             </div>
           );
