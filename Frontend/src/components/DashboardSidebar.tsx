@@ -20,7 +20,7 @@ import {
   candidateSidebarData,
   recruiterSidebarData,
   adminSidebarData,
-} from "@/constants/SIdebarData";
+} from "@/constants/SidebarData";
 import { useAuthStore } from "@/stores/authStore";
 
 interface NavItem {

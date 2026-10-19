@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Smarthire_icon_default } from "@/assets/images/logo";
 import { CTAMeshGradient } from "@/components/CustomBackground";
-import { MOCK_JOB_POSTINGS } from "@/constants/mockData";
+import { MOCK_CVS, MOCK_JOB_POSTINGS } from "@/constants/mockData";
 import { JobCard } from "@/components/JobCard";
 import Button from "@/components/Button";
 import {
@@ -239,7 +239,7 @@ function CandidateDashboard() {
       </div>
 
       {/* danh sach cv */}
-      <CandidateCVSection />
+      <CandidateCVSection cvList={MOCK_CVS} />
     </div>
   );
 }

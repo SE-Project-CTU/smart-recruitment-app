@@ -1,3 +1,5 @@
+import type { CVItem } from "@/types/cv";
+
 export const isLoggedIn = false;
 
 export interface TestimonialItem {
@@ -408,3 +410,73 @@ export const MOCK_APPLICATIONS_RESPONSE = {
   },
   correlationId: "5f1c0d68-9a3f-4c85-bf50-4a7c17c1e2af",
 };
+
+export const MOCK_CVS: CVItem[] = [
+  {
+    id: "b3e6ae75-3264-47ec-94c6-e2f1f7a70c9d",
+    title: "CV Fullstack Developer (English)",
+    templateId: "6a6c7345-ec6f-4b09-bf05-2a4a4a2e5a80",
+    template: {
+      id: "6a6c7345-ec6f-4b09-bf05-2a4a4a2e5a80",
+      code: "modern_two_column",
+      name: "Modern Elegant",
+    },
+    language: "en",
+    isPublic: true,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    createdAt: "2026-10-15T09:00:00Z",
+    updatedAt: "2026-10-17T11:20:00Z",
+    // Test trường hợp không có ảnh -> Sẽ tự render khung Skeleton vẽ sẵn
+    thumbnailUrl: "https://picsum.photos/300/400",
+  },
+  {
+    id: "c4f7bf86-4375-48fd-a5d7-f3g2g8b81d0e",
+    title: "CV UI/UX & Frontend (Tiếng Việt)",
+    templateId: "7b7d8456-fd7a-5c1a-cf16-3b5b5b3f6b91",
+    template: {
+      id: "7b7d8456-fd7a-5c1a-cf16-3b5b5b3f6b91",
+      code: "tech_minimalist",
+      name: "Tech Minimalist",
+    },
+    language: "vi",
+    isPublic: false,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    createdAt: "2026-10-10T08:30:00Z",
+    updatedAt: "2026-10-12T14:45:00Z",
+    thumbnailUrl: undefined,
+  },
+  {
+    id: "d5g8cf97-5486-49ge-b6e8-g4h3h9c92e1f",
+    title: "CV AI & Machine Learning Research",
+    templateId: "8c8e9567-ge8b-6d2b-dg27-4c6c6c4g7c02",
+    template: {
+      id: "8c8e9567-ge8b-6d2b-dg27-4c6c6c4g7c02",
+      code: "harvard_classic",
+      name: "Harvard Academic",
+    },
+    language: "en",
+    isPublic: true,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    createdAt: "2026-09-28T14:15:00Z",
+    updatedAt: "2026-10-05T09:10:00Z",
+    // Test trường hợp có ảnh thumbnail mẫu
+    thumbnailUrl:
+      "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "e6h9dg08-6597-40hf-c7f9-h5i4i0d03f2g",
+    title: "CV Chuyên viên Phân tích Dữ liệu",
+    templateId: "9d9f0678-hf9c-7e3c-eh38-5d7d7d5h8d13",
+    template: {
+      id: "9d9f0678-hf9c-7e3c-eh38-5d7d7d5h8d13",
+      code: "creative_clean",
+      name: "Creative Modern",
+    },
+    language: "vi",
+    isPublic: false,
+    candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
+    createdAt: "2026-09-15T16:00:00Z",
+    updatedAt: "2026-09-25T10:30:00Z",
+    thumbnailUrl: undefined,
+  },
+];

@@ -2,7 +2,8 @@ import { FilePlus2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/Button";
 import { PATHS } from "@/constants/paths";
-import { CVCard, type CVItem } from "@/components/CVCard";
+import { CVCard } from "@/components/CVCard";
+import type { CVItem } from "@/types/cv";
 
 interface CandidateCVSectionProps {
   cvList?: CVItem[];
@@ -41,7 +42,7 @@ export function CandidateCVSection({
       </div>
 
       {cvList.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           {cvList.map((cv) => (
             <CVCard
               key={cv.id}
