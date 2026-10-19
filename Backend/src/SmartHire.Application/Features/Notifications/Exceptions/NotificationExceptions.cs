@@ -23,7 +23,7 @@ internal static class NotificationExceptions {
         [new AppErrorDetail("id", ValidationReasons.NotAllowed, "Only the notification recipient can perform this action.")]);
 
     public static AppException Validation(string message, IEnumerable<AppErrorDetail>? details = null) => new(
-        AppErrorKind.BadRequest,
+        AppErrorKind.Validation,
         CommonErrorCodes.ValidationError,
         message,
         details?.ToArray() ?? Array.Empty<AppErrorDetail>());

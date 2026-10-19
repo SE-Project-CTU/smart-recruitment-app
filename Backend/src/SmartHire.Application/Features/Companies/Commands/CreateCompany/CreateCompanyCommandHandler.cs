@@ -32,32 +32,10 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
             throw CompanyExceptions.InvalidAccessToken();
         }
 
-        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length < 2 || request.Name.Trim().Length > 200) {
-            throw CompanyExceptions.Validation(
-                "Company name must be between 2 and 200 characters.",
-                [new AppErrorDetail("name", ValidationReasons.MinLength, "Name must be between 2 and 200 characters.")]);
-        }
-
-        if (string.IsNullOrWhiteSpace(request.TaxCode)) {
-            throw CompanyExceptions.Validation(
-                "Tax code is required.",
-                [new AppErrorDetail("taxCode", ValidationReasons.Required, "Tax code cannot be empty.")]);
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Email)) {
-            throw CompanyExceptions.Validation(
-                "Email is required.",
-                [new AppErrorDetail("email", ValidationReasons.Required, "Email cannot be empty.")]);
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Phone)) {
-            throw CompanyExceptions.Validation(
-                "Phone is required.",
-                [new AppErrorDetail("phone", ValidationReasons.Required, "Phone cannot be empty.")]);
-        }
+        request = CreateCompanyCommandValidator.Validate(request);
 
         // Check tax code
-        var existingCompany = await _companyRepository.GetByTaxCodeAsync(request.TaxCode.Trim(), cancellationToken);
+        var existingCompany = await _companyRepository.GetByTaxCodeAsync(request.TaxCode, cancellationToken);
         if (existingCompany is not null) {
             throw CompanyExceptions.CompanyTaxCodeAlreadyExists();
         }

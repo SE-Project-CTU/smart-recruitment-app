@@ -35,17 +35,7 @@ public sealed class UpdateCompanyCommandHandler : IRequestHandler<UpdateCompanyC
             throw CompanyExceptions.InvalidAccessToken();
         }
 
-        // Kiểm tra ít nhất 1 field được cung cấp để update
-        if (request.Name is null &&
-            request.Email is null &&
-            request.Phone is null &&
-            request.Address is null &&
-            request.Website is null &&
-            request.Description is null &&
-            !request.LogoFileIdProvided &&
-            request.LogoUrl is null) {
-            throw CompanyExceptions.Validation("At least one field must be provided for update.");
-        }
+        request = UpdateCompanyCommandValidator.Validate(request);
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {

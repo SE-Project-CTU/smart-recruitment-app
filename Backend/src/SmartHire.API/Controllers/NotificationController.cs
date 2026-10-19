@@ -51,7 +51,7 @@ public sealed class NotificationController : ControllerBase {
     }
 
     /// Đánh dấu 1 thông báo đã đọc.
-    [HttpPatch("{id:guid}/read")]
+    [HttpPatch("{id}/read")]
     public async Task<IActionResult> MarkAsRead(
         [FromRoute] Guid id,
         CancellationToken cancellationToken = default) {
@@ -67,11 +67,11 @@ public sealed class NotificationController : ControllerBase {
     }
 
     /// Xóa 1 thông báo của người dùng hiện tại.
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteNotification(
         [FromRoute] Guid id,
         CancellationToken cancellationToken = default) {
         await _sender.Send(new DeleteNotificationCommand(id), cancellationToken);
-        return Ok(_responseFactory.Success(new { message = "Notification deleted successfully." }));
+        return NoContent();
     }
 }

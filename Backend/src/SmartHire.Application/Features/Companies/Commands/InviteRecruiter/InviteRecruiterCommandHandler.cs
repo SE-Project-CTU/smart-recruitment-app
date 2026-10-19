@@ -5,7 +5,9 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Application.Features.Notifications.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -16,6 +18,7 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
     private readonly ICurrentUser _currentUser;
     private readonly ICompanyRepository _companyRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
     private readonly INotificationRepository _notificationRepository;
     private readonly INotificationDispatcher? _notificationDispatcher;
     private readonly IUnitOfWork _unitOfWork;
@@ -24,12 +27,14 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
         ICurrentUser currentUser,
         ICompanyRepository companyRepository,
         IUserRepository userRepository,
+        IUserRoleRepository userRoleRepository,
         INotificationRepository notificationRepository,
         IUnitOfWork unitOfWork,
         INotificationDispatcher? notificationDispatcher = null) {
         _currentUser = currentUser;
         _companyRepository = companyRepository;
         _userRepository = userRepository;
+        _userRoleRepository = userRoleRepository;
         _notificationRepository = notificationRepository;
         _unitOfWork = unitOfWork;
         _notificationDispatcher = notificationDispatcher;
@@ -41,6 +46,10 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
                 AppErrorKind.Unauthorized,
                 AuthErrorCodes.InvalidAccessToken,
                 "The access token does not contain a valid user id.");
+        }
+
+        if (request.InviteeId == Guid.Empty) {
+            throw CompanyExceptions.Validation("Invitee id is required.", [new AppErrorDetail("inviteeId", ValidationReasons.Required, "Invitee id must be a valid UUID.")]);
         }
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
@@ -69,6 +78,12 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
                 "Invitee user not found.");
         }
 
+        // Kiểm tra Invitee phải có role Recruiter (Spec: 422 Unprocessable Entity)
+        var inviteeRoles = await _userRoleRepository.GetAllByUserIdAsync(request.InviteeId, cancellationToken);
+        if (inviteeRoles.All(r => r.Role.Name != RoleNames.Recruiter)) {
+            throw CompanyExceptions.InviteeRoleRequired();
+        }
+
         // Invitee đã là thành viên của công ty
         var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, request.InviteeId, cancellationToken);
         if (existingMembership is not null && existingMembership.Status == CompanyMembershipStatus.Active) {
@@ -88,12 +103,11 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
         }
 
         var now = DateTimeOffset.UtcNow;
-        var expiresAt = request.ExpiresAt ?? now.AddDays(7);
+        var expiresAt = (request.ExpiresAt ?? now.AddDays(7)).ToUniversalTime();
         if (expiresAt <= now) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "Expiration date must be in the future.");
+            throw CompanyExceptions.Validation(
+                "Expiration date must be in the future.",
+                [new AppErrorDetail("expiresAt", ValidationReasons.InvalidFormat, "Expiration date must be in the future.")]);
         }
 
         var invitation = CompanyInvitation.Create(
