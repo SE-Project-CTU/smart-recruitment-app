@@ -10,7 +10,7 @@ import { SmartHire_default } from "@/assets/images/logo";
 import Button from "@/components/Button";
 import { AlertCircle, Lock, UserRound } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
-import { useLogin } from "@/hooks/queries/useAuth";
+import { useLogin } from "@/hooks/queries/useAccount";
 import { MorphIcon } from "morphicons/react";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";

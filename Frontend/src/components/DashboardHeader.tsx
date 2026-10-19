@@ -24,7 +24,7 @@ import {
   MenuItem,
   MenuSeparator,
 } from "@/components/animate-ui/components/base/menu";
-import { useLogout } from "@/hooks/queries/useAuth";
+import { useLogout } from "@/hooks/queries/useAccount";
 
 function DashboardHeader() {
   const { user } = useAuthStore();

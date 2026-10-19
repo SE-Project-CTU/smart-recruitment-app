@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
 import { useAuthStore } from "@/stores/authStore";
-import { useLogout } from "@/hooks/queries/useAuth";
+import { useLogout } from "@/hooks/queries/useAccount";
 import { PATHS } from "@/constants/paths";
 import {
   getLoremAvt,

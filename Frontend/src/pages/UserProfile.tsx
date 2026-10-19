@@ -17,27 +17,12 @@ import Button from "@/components/Button";
 import { useAuthStore } from "@/stores/authStore";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { toast } from "@/components/ui/toast";
-import type { UserAccount } from "@/types/auth";
-
-export interface UpdateAccountPayload {
-  fullName?: string;
-  phone?: string | null;
-  avatarUrl?: string | null;
-}
-
-export interface ChangePasswordPayload {
-  currentPassword: string;
-  newPassword: string;
-  revokeAllSessions?: boolean;
-}
-
-// đang bị thừa hàm, không cần truyền props các hàm gọi api
-interface UserProfileProps {
-  initialAccount?: UserAccount | null;
-  onUploadAvatar?: (file: File) => Promise<string>;
-  onUpdateAccount?: (payload: UpdateAccountPayload) => Promise<UserAccount | void>;
-  onChangePassword?: (payload: ChangePasswordPayload) => Promise<void>;
-}
+import type { UpdateProfileRequest } from "@/types/account";
+import {
+  useChangePassword,
+  useGetMe,
+  useUpdateAccount,
+} from "@/hooks/queries/useAccount";
 
 type TabKey = "profile" | "security" | "delete";
 
@@ -47,53 +32,29 @@ const ROLE_LABELS: Record<string, string> = {
   Admin: "Quản trị viên",
 };
 
-export default function UserProfile({
-  initialAccount,
-  onUploadAvatar,
-  onUpdateAccount,
-  onChangePassword,
-}: UserProfileProps) {
-  const authStore = useAuthStore();
-  const authUser = authStore.user;
+export default function UserProfile() {
+  const authUser = useAuthStore((state) => state.user);
 
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
 
-  // State cục bộ lưu thông tin sau khi user cập nhật thành công qua form
-  const [updatedOverrides, setUpdatedOverrides] = useState<Partial<UserAccount>>(
-    {},
+  const { data: serverAccount, isLoading: isFetchingAccount } = useGetMe();
+  const { mutateAsync: updateAccount, isPending: isSavingProfile } =
+    useUpdateAccount();
+  const { mutateAsync: changePassword, isPending: isChangingPw } =
+    useChangePassword();
+
+  const account = useMemo(
+    () => serverAccount ?? authUser ?? null,
+    [serverAccount, authUser],
   );
-
-  const account = useMemo<UserAccount | null>(() => {
-    const base: UserAccount | null =
-      initialAccount ??
-      (authUser
-        ? {
-            id: authUser.id,
-            email: authUser.email,
-            fullName: authUser.fullName,
-            roles: authUser.roles,
-            status: authUser.status || "Active",
-            avatarUrl: authUser.avatarUrl || null,
-            phone: null,
-            createdAt: undefined,
-            updatedAt: undefined,
-          }
-        : null);
-
-    if (!base) return null;
-    return { ...base, ...updatedOverrides };
-  }, [initialAccount, authUser, updatedOverrides]);
-
   const currentAvatar = account?.avatarUrl ?? null;
 
-  // Form states: chỉ active khi người dùng bấm "Chỉnh sửa"
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [pendingAvatarUrl, setPendingAvatarUrl] = useState<string | null>(null);
 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -107,7 +68,6 @@ export default function UserProfile({
   const [revokeAllSessions, setRevokeAllSessions] = useState(true);
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
-  const [isChangingPw, setIsChangingPw] = useState(false);
   const [pwMessage, setPwMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -137,13 +97,9 @@ export default function UserProfile({
     setIsUploadingAvatar(true);
 
     try {
-      if (onUploadAvatar) {
-        const uploadedUrl = await onUploadAvatar(file);
-        setPendingAvatarUrl(uploadedUrl);
-      } else {
-        const previewUrl = URL.createObjectURL(file);
-        setPendingAvatarUrl(previewUrl);
-      }
+      const previewUrl = URL.createObjectURL(file);
+      setPendingAvatarUrl(previewUrl);
+
       if (!isEditingProfile && account) {
         setFullName(account.fullName);
         setPhone(account.phone ?? "");
@@ -179,7 +135,7 @@ export default function UserProfile({
 
     const normalizedPhone = phone.trim() === "" ? null : phone.trim();
 
-    const payload: UpdateAccountPayload = {};
+    const payload: UpdateProfileRequest = {};
     if (trimmedName !== account.fullName) payload.fullName = trimmedName;
     if (normalizedPhone !== (account.phone ?? null))
       payload.phone = normalizedPhone;
@@ -191,18 +147,8 @@ export default function UserProfile({
       return;
     }
 
-    setIsSavingProfile(true);
     try {
-      const updated = await onUpdateAccount?.(payload);
-      setUpdatedOverrides((prev) => ({
-        ...prev,
-        ...(updated || {}),
-        fullName: trimmedName,
-        phone: normalizedPhone,
-        avatarUrl: pendingAvatarUrl,
-        avatar: pendingAvatarUrl,
-        updatedAt: new Date().toISOString(),
-      }));
+      await updateAccount(payload);
       setIsEditingProfile(false);
 
       toast.add({
@@ -212,10 +158,8 @@ export default function UserProfile({
     } catch (err: unknown) {
       setProfileMessage({
         type: "error",
-        text: getApiErrorMessage(err, "Có lỗi xảy ra. Vui lòng thử l"),
+        text: getApiErrorMessage(err, "Có lỗi xảy ra. Vui lòng thử lại."),
       });
-    } finally {
-      setIsSavingProfile(false);
     }
   };
 
@@ -255,35 +199,44 @@ export default function UserProfile({
       return;
     }
 
-    setIsChangingPw(true);
     try {
-      await onChangePassword?.({
+      await changePassword({
         currentPassword,
         newPassword,
         revokeAllSessions,
       });
+
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setPwMessage({
+
+      toast.add({
         type: "success",
-        text: "Đổi mật khẩu thành công.",
+        description: "Đổi mật khẩu thành công",
       });
     } catch (err: unknown) {
       setPwMessage({
         type: "error",
-        text: getApiErrorMessage(err, ""),
+        text: getApiErrorMessage(err, "Mật khẩu hiện tại không chính xác."),
       });
-    } finally {
-      setIsChangingPw(false);
     }
   };
+
+  if (isFetchingAccount && !account) {
+    return (
+      <div className="flex min-h-100 w-full items-center justify-center">
+        <p className="text-sm text-text-muted">
+          Đang tải thông tin tài khoản...
+        </p>
+      </div>
+    );
+  }
 
   if (!account) {
     return (
       <div className="flex min-h-100 w-full items-center justify-center">
         <p className="text-sm text-text-muted">
-          Đang tải thông tin tài khoản...
+          Không tìm thấy thông tin tài khoản.
         </p>
       </div>
     );
@@ -447,7 +400,7 @@ export default function UserProfile({
               </div>
 
               <div className="flex flex-col gap-6 rounded-2xl border border-border p-5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col items-center justify-between gap-2 md:flex-row">
                   <h3 className="text-base font-bold text-text-main">
                     Thông tin cá nhân
                   </h3>

@@ -18,7 +18,7 @@ import { Blur } from "@/components/animate-ui/primitives/effects/blur";
 import {
   useRegisterCandidate,
   useRegisterRecruiter,
-} from "@/hooks/queries/useAuth";
+} from "@/hooks/queries/useAccount";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { PATHS } from "@/constants/paths";
 

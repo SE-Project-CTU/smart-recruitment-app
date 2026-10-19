@@ -19,7 +19,7 @@ export interface AuthState {
   setAuth: (data: LoginResult) => void;
   updateTokens: (data: RefreshResult) => void;
   setUser: (user: UserAccount | null) => void;
-  updateUser: (user: UserAccount | null) => void;
+  updateUser: (partialUser: Partial<UserAccount>) => void;
   clearAuth: () => void;
   logout: (allSessions?: boolean) => Promise<void>;
 }
@@ -86,7 +86,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user });
   },
 
-  updateUser: (partialUser: Partial<UserAccount> | null) => {
+  updateUser: (partialUser: Partial<UserAccount>) => {
     const current = get().user;
     if (!current) return;
     const updated = { ...current, ...partialUser };

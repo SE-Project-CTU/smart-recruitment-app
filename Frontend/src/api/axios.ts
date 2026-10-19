@@ -72,14 +72,34 @@ axiosClient.interceptors.response.use(
     };
 
     const status = error.response?.status;
-    const isAuthRoute =
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.LOGIN) ||
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REFRESH) ||
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_CANDIDATE) ||
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_RECRUITER);
+    const requestUrl = originalRequest?.url?.toLowerCase() || "";
 
-    // Xử lý khi gặp 401 Unauthorized (ngoại trừ các endpoint auth)
-    if (status === 401 && !originalRequest?._retry && !isAuthRoute) {
+    // 1. Các route tuyệt đối không được kích hoạt refresh token khi gặp 401
+    const isAuthBypassRoute =
+      requestUrl.includes(API_ENDPOINTS.AUTH.LOGIN.toLowerCase()) ||
+      requestUrl.includes(API_ENDPOINTS.AUTH.REFRESH.toLowerCase()) ||
+      requestUrl.includes(
+        API_ENDPOINTS.AUTH.REGISTER_CANDIDATE.toLowerCase(),
+      ) ||
+      requestUrl.includes(
+        API_ENDPOINTS.AUTH.REGISTER_RECRUITER.toLowerCase(),
+      ) ||
+      requestUrl.includes("change-password"); // Endpoint đổi mật khẩu
+
+    // 2. Kiểm tra nếu backend báo lỗi nghiệp vụ sai mật khẩu thì không refresh
+    const responseData = error.response?.data as
+      Record<string, unknown> | undefined;
+    const errorBody = (responseData?.error ?? responseData) as
+      Record<string, unknown> | undefined;
+    const isPasswordInvalid = errorBody?.code === "CURRENT_PASSWORD_INVALID";
+
+    // Chỉ refresh token nếu là 401 do token hết hạn, KHÔNG PHẢI lỗi đổi mật khẩu
+    if (
+      status === 401 &&
+      !originalRequest?._retry &&
+      !isAuthBypassRoute &&
+      !isPasswordInvalid
+    ) {
       if (originalRequest) {
         originalRequest._retry = true;
       }
@@ -118,7 +138,6 @@ axiosClient.interceptors.response.use(
 
         const newAuthData = refreshResponse.data?.data;
         if (newAuthData?.accessToken) {
-          // Cập nhật token vào Zustand store (tự động đồng bộ cookie luôn)
           useAuthStore.getState().updateTokens(newAuthData);
 
           processQueue(null, newAuthData.accessToken);
@@ -133,7 +152,6 @@ axiosClient.interceptors.response.use(
         }
       } catch (refreshErr) {
         processQueue(refreshErr, null);
-        // Refresh thất bại -> xóa sạch auth store để cập nhật UI ngay lập tức
         useAuthStore.getState().clearAuth();
         handleApiError(refreshErr);
         return Promise.reject(refreshErr);
