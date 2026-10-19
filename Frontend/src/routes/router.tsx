@@ -2,11 +2,17 @@ import { createBrowserRouter } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/Page";
-import { SignUp, SignIn, LandingPage, CandidateDashboard } from "@/pages";
+import {
+  SignUp,
+  SignIn,
+  LandingPage,
+  CandidateDashboard,
+  UserProfile,
+  BadRequestPage,
+} from "@/pages";
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { PATHS } from "@/constants/paths";
-import BadRequestPage from "@/pages/BadRequestPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -65,7 +71,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.USER_PROFILE,
-            element: <Page title="thông tin cá nhân" />,
+            element: <UserProfile />,
           },
           {
             path: PATHS.CANDIDATE.SETTINGS,
@@ -89,7 +95,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.RECRUITER.USER_PROFILE,
-            element: <Page title="Recruiter user prifle" />,
+            element: <UserProfile />,
           },
         ],
       },
@@ -109,7 +115,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.USER_PROFILE,
-            element: <Page title="Admin profile" />,
+            element: <UserProfile />,
           },
           {
             path: PATHS.ADMIN.APPROVE_COMPANY,
