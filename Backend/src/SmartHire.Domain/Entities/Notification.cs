@@ -15,6 +15,7 @@ public class Notification {
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? ReadAt { get; private set; }
     public DateTimeOffset? ExpiresAt { get; private set; }
+    public DateTimeOffset? RealtimeDispatchedAt { get; private set; }
 
     private Notification() { }
 

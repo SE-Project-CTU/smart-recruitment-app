@@ -1047,6 +1047,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("read_at");
 
+                    b.Property<DateTimeOffset?>("RealtimeDispatchedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("realtime_dispatched_at");
+
                     b.Property<Guid>("RecipientId")
                         .HasColumnType("uuid")
                         .HasColumnName("recipient_id");

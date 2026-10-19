@@ -17,7 +17,7 @@ public sealed class NotificationRepository : INotificationRepository {
             .FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Notification>> GetByIdsAsync(
+    public async Task<IReadOnlyList<Notification>> GetPendingRealtimeDispatchByIdsAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken) {
         if (ids.Count == 0) {
@@ -26,9 +26,28 @@ public sealed class NotificationRepository : INotificationRepository {
 
         return await _context.Notifications
             .AsNoTracking()
-            .Where(notification => ids.Contains(notification.Id))
+            .Where(notification => ids.Contains(notification.Id) &&
+                                   notification.RealtimeDispatchedAt == null)
             .OrderBy(notification => notification.CreatedAt)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> MarkRealtimeDispatchedAsync(
+        IReadOnlyCollection<Guid> ids,
+        DateTimeOffset dispatchedAt,
+        CancellationToken cancellationToken) {
+        if (ids.Count == 0) {
+            return Task.FromResult(0);
+        }
+
+        return _context.Notifications
+            .Where(notification => ids.Contains(notification.Id) &&
+                                   notification.RealtimeDispatchedAt == null)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(
+                    notification => notification.RealtimeDispatchedAt,
+                    dispatchedAt),
+                cancellationToken);
     }
 
     public async Task AddAsync(Notification notification, CancellationToken cancellationToken) {

@@ -24,23 +24,65 @@ public sealed class DispatchNotificationBatchJob(
             return;
         }
 
-        var notifications = await notificationRepository.GetByIdsAsync(
+        var notifications = await notificationRepository.GetPendingRealtimeDispatchByIdsAsync(
             args.NotificationIds,
             cancellationToken);
         var now = DateTimeOffset.UtcNow;
+        var successfullyDispatchedIds = new HashSet<Guid>();
 
-        foreach (var notification in notifications) {
-            if (notification.ExpiresAt is DateTimeOffset expiresAt && expiresAt <= now) {
-                logger.LogInformation(
-                    "Skipping realtime dispatch for expired notification {NotificationId}.",
-                    notification.Id);
-                continue;
+        try {
+            foreach (var notification in notifications) {
+                if (notification.ExpiresAt is DateTimeOffset expiresAt && expiresAt <= now) {
+                    logger.LogInformation(
+                        "Skipping realtime dispatch for expired notification {NotificationId}.",
+                        notification.Id);
+                    continue;
+                }
+
+                await notificationDispatcher.DispatchAsync(
+                    notification.RecipientId,
+                    NotificationResultMapper.ToDto(notification),
+                    cancellationToken);
+
+                successfullyDispatchedIds.Add(notification.Id);
             }
+        }
+        catch {
+            // Persist completed sends before allowing Hangfire to retry the failed batch.
+            // Ignore only a marker-write failure here so the original dispatch exception is retried.
+            await PersistDispatchedIdsAsync(successfullyDispatchedIds, suppressFailure: true);
+            throw;
+        }
 
-            await notificationDispatcher.DispatchAsync(
-                notification.RecipientId,
-                NotificationResultMapper.ToDto(notification),
-                cancellationToken);
+        // A marker-write failure on the success path must fail the Hangfire job so it can retry.
+        await PersistDispatchedIdsAsync(successfullyDispatchedIds, suppressFailure: false);
+    }
+
+    private async Task PersistDispatchedIdsAsync(
+        HashSet<Guid> successfullyDispatchedIds,
+        bool suppressFailure) {
+        if (successfullyDispatchedIds.Count == 0) {
+            return;
+        }
+
+        try {
+            var markedCount = await notificationRepository.MarkRealtimeDispatchedAsync(
+                successfullyDispatchedIds,
+                DateTimeOffset.UtcNow,
+                CancellationToken.None);
+
+            if (markedCount != successfullyDispatchedIds.Count) {
+                logger.LogWarning(
+                    "Marked {MarkedCount} of {DispatchedCount} notifications as realtime-dispatched.",
+                    markedCount,
+                    successfullyDispatchedIds.Count);
+            }
+        }
+        catch (Exception exception) when (suppressFailure) {
+            logger.LogError(
+                exception,
+                "Could not persist realtime-dispatched markers for {NotificationCount} notifications.",
+                successfullyDispatchedIds.Count);
         }
     }
 }
