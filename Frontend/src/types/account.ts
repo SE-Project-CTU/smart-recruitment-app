@@ -1,14 +1,19 @@
-import type { UserRole } from "./auth";
+import type { UserAccount } from "./auth";
 
-export interface UserAccount {
-  id: string;
-  email: string;
-  phone: string | null;
-  fullName: string;
-  avatar?: string | null;
+export interface GetMeResult {
+  data: UserAccount;
+  meta: Record<string, unknown>;
+  correlationId: string;
+}
+
+export interface UpdateProfileRequest {
+  fullName?: string;
+  phone?: string | null;
   avatarUrl?: string | null;
-  roles: UserRole[];
-  status: "Active" | "Inactive" | "Locked" | string;
-  createdAt?: string;
-  updatedAt?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  revokeAllSessions?: boolean;
 }

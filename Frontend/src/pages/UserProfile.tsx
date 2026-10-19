@@ -13,10 +13,11 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import Button from "@/components/Button";
-import type { UserAccount } from "@/types/account";
+
 import { useAuthStore } from "@/stores/authStore";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { toast } from "@/components/ui/toast";
+import type { UserAccount } from "@/types/auth";
 
 export interface UpdateAccountPayload {
   fullName?: string;
@@ -34,9 +35,7 @@ export interface ChangePasswordPayload {
 interface UserProfileProps {
   initialAccount?: UserAccount | null;
   onUploadAvatar?: (file: File) => Promise<string>;
-  onUpdateAccount?: (
-    payload: UpdateAccountPayload,
-  ) => Promise<UserAccount | void>;
+  onUpdateAccount?: (payload: UpdateAccountPayload) => Promise<UserAccount | void>;
   onChangePassword?: (payload: ChangePasswordPayload) => Promise<void>;
 }
 
@@ -60,9 +59,9 @@ export default function UserProfile({
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
 
   // State cục bộ lưu thông tin sau khi user cập nhật thành công qua form
-  const [updatedOverrides, setUpdatedOverrides] = useState<
-    Partial<UserAccount>
-  >({});
+  const [updatedOverrides, setUpdatedOverrides] = useState<Partial<UserAccount>>(
+    {},
+  );
 
   const account = useMemo<UserAccount | null>(() => {
     const base: UserAccount | null =
@@ -75,7 +74,6 @@ export default function UserProfile({
             roles: authUser.roles,
             status: authUser.status || "Active",
             avatarUrl: authUser.avatarUrl || null,
-            avatar: authUser.avatarUrl || null,
             phone: null,
             createdAt: undefined,
             updatedAt: undefined,
@@ -86,7 +84,7 @@ export default function UserProfile({
     return { ...base, ...updatedOverrides };
   }, [initialAccount, authUser, updatedOverrides]);
 
-  const currentAvatar = account?.avatarUrl ?? account?.avatar ?? null;
+  const currentAvatar = account?.avatarUrl ?? null;
 
   // Form states: chỉ active khi người dùng bấm "Chỉnh sửa"
   const [isEditingProfile, setIsEditingProfile] = useState(false);
