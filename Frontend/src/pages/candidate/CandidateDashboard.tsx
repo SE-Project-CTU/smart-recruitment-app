@@ -16,7 +16,10 @@ import {
   ToggleGroup,
 } from "@/components/animate-ui/components/base/toggle-group";
 import { ApplicationTrackingTable } from "@/components/ApplicationTrackingTable";
+import { CandidateCVSection } from "@/components/CandidateCVSection";
 // import { ScrollFade } from "@animate-ui/react/primitives/effects/scroll-fade";
+
+const level = ["Intern", "Fresher", "Junior", "Middle", "Senior", "Executive"];
 
 function CandidateDashboard() {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -166,12 +169,11 @@ function CandidateDashboard() {
             <Toggle className="text-xs!" value="all">
               Tất cả
             </Toggle>
-            <Toggle className="text-xs!" value="intern">
-              Intern
-            </Toggle>
-            <Toggle className="text-xs!" value="fresher">
-              Fresher
-            </Toggle>
+            {level.map((level) => (
+              <Toggle className="text-xs!" value={level.toLocaleLowerCase()}>
+                {level}
+              </Toggle>
+            ))}
           </ToggleGroup>
         </div>
 
@@ -235,6 +237,9 @@ function CandidateDashboard() {
         </div>
         <ApplicationTrackingTable />
       </div>
+
+      {/* danh sach cv */}
+      <CandidateCVSection />
     </div>
   );
 }

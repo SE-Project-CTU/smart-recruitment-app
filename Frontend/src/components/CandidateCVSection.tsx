@@ -1,0 +1,79 @@
+import { FilePlus2, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import Button from "@/components/Button";
+import { PATHS } from "@/constants/paths";
+import { CVCard, type CVItem } from "@/components/CVCard";
+
+interface CandidateCVSectionProps {
+  cvList?: CVItem[];
+  onEdit?: (cv: CVItem) => void;
+  onDownload?: (cv: CVItem) => void;
+}
+
+export function CandidateCVSection({
+  cvList = [],
+  onEdit,
+  onDownload,
+}: CandidateCVSectionProps) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="flex flex-col gap-6 rounded-2xl bg-bg p-6">
+      <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-bold text-text-main">
+            Danh sách CV của bạn
+          </h2>
+          <p className="text-sm text-text-muted">
+            Tạo mới, chỉnh sửa và quản lý hồ sơ của bạn
+          </p>
+        </div>
+
+        <Button
+          variant="primary"
+          icon={Plus}
+          iconSize={16}
+          onClick={() => navigate(PATHS.CREATE_CV)}
+          className="w-full px-4! py-2.5! text-xs! sm:w-auto"
+        >
+          Tạo CV mới chuẩn ATS
+        </Button>
+      </div>
+
+      {cvList.length > 0 ? (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {cvList.map((cv) => (
+            <CVCard
+              key={cv.id}
+              cv={cv}
+              onEdit={onEdit}
+              onDownload={onDownload}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex min-h-96 w-fit flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-300 bg-white p-8 text-center transition-all hover:border-primary/50 hover:bg-slate-50/80">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex size-14 items-center justify-center rounded-full bg-indigo-100/80 text-primary">
+              <FilePlus2 className="size-6" />
+            </div>
+
+            <h4 className="text-sm font-semibold text-text-main">
+              Thêm CV mới, thêm cơ hội mới!
+            </h4>
+
+            <Button
+              variant="secondary"
+              icon={Plus}
+              iconSize={14}
+              onClick={() => navigate(PATHS.CREATE_CV)}
+              className="rounded-xl! px-5! py-2.5! text-xs!"
+            >
+              Tạo CV mới
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
