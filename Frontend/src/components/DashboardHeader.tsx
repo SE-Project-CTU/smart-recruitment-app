@@ -165,7 +165,7 @@ function DashboardHeader() {
                   className="cursor-pointer gap-2"
                 >
                   <UserRound className="size-4" />
-                  <span>Thông tin cá nhân</span>
+                  <span>Cài đặt tài khoản</span>
                 </MenuItem>
               </MenuGroup>
 

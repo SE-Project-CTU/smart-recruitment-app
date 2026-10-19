@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Camera,
   Check,
@@ -13,21 +13,10 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import Button from "@/components/Button";
-
-export type UserRole = "Candidate" | "Recruiter" | "Admin";
-
-export interface CurrentAccount {
-  id: string;
-  email: string;
-  phone: string | null;
-  fullName: string;
-  avatar?: string | null;
-  avatarUrl?: string | null;
-  roles: UserRole[];
-  status: "Active" | "Inactive" | "Locked" | string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { UserAccount } from "@/types/account";
+import { useAuthStore } from "@/stores/authStore";
+import { getApiErrorMessage } from "@/api/errorHandler";
+import { toast } from "@/components/ui/toast";
 
 export interface UpdateAccountPayload {
   fullName?: string;
@@ -41,12 +30,13 @@ export interface ChangePasswordPayload {
   revokeAllSessions?: boolean;
 }
 
+// đang bị thừa hàm, không cần truyền props các hàm gọi api
 interface UserProfileProps {
-  initialAccount?: CurrentAccount;
+  initialAccount?: UserAccount | null;
   onUploadAvatar?: (file: File) => Promise<string>;
   onUpdateAccount?: (
     payload: UpdateAccountPayload,
-  ) => Promise<CurrentAccount | void>;
+  ) => Promise<UserAccount | void>;
   onChangePassword?: (payload: ChangePasswordPayload) => Promise<void>;
 }
 
@@ -58,36 +48,52 @@ const ROLE_LABELS: Record<string, string> = {
   Admin: "Quản trị viên",
 };
 
-const DEFAULT_ACCOUNT: CurrentAccount = {
-  id: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
-  email: "candidate@example.com",
-  phone: "+84901234567",
-  fullName: "Nguyen Van A",
-  avatar: null,
-  avatarUrl: null,
-  roles: ["Candidate"],
-  status: "Active",
-  createdAt: "2026-09-28T10:30:00Z",
-  updatedAt: "2026-09-28T10:30:00Z",
-};
-
 export default function UserProfile({
-  initialAccount = DEFAULT_ACCOUNT,
+  initialAccount,
   onUploadAvatar,
   onUpdateAccount,
   onChangePassword,
 }: UserProfileProps) {
+  const authStore = useAuthStore();
+  const authUser = authStore.user;
+
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
-  const [account, setAccount] = useState<CurrentAccount>(initialAccount);
 
-  const currentAvatar = account.avatarUrl ?? account.avatar ?? null;
+  // State cục bộ lưu thông tin sau khi user cập nhật thành công qua form
+  const [updatedOverrides, setUpdatedOverrides] = useState<
+    Partial<UserAccount>
+  >({});
 
+  const account = useMemo<UserAccount | null>(() => {
+    const base: UserAccount | null =
+      initialAccount ??
+      (authUser
+        ? {
+            id: authUser.id,
+            email: authUser.email,
+            fullName: authUser.fullName,
+            roles: authUser.roles,
+            status: authUser.status || "Active",
+            avatarUrl: authUser.avatarUrl || null,
+            avatar: authUser.avatarUrl || null,
+            phone: null,
+            createdAt: undefined,
+            updatedAt: undefined,
+          }
+        : null);
+
+    if (!base) return null;
+    return { ...base, ...updatedOverrides };
+  }, [initialAccount, authUser, updatedOverrides]);
+
+  const currentAvatar = account?.avatarUrl ?? account?.avatar ?? null;
+
+  // Form states: chỉ active khi người dùng bấm "Chỉnh sửa"
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [fullName, setFullName] = useState(account.fullName);
-  const [phone, setPhone] = useState(account.phone ?? "");
-  const [pendingAvatarUrl, setPendingAvatarUrl] = useState<string | null>(
-    currentAvatar,
-  );
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pendingAvatarUrl, setPendingAvatarUrl] = useState<string | null>(null);
+
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState<{
@@ -110,6 +116,7 @@ export default function UserProfile({
   } | null>(null);
 
   const handleStartEdit = () => {
+    if (!account) return;
     setFullName(account.fullName);
     setPhone(account.phone ?? "");
     setPendingAvatarUrl(currentAvatar);
@@ -118,9 +125,6 @@ export default function UserProfile({
   };
 
   const handleCancelEdit = () => {
-    setFullName(account.fullName);
-    setPhone(account.phone ?? "");
-    setPendingAvatarUrl(currentAvatar);
     setProfileMessage(null);
     setIsEditingProfile(false);
   };
@@ -142,13 +146,18 @@ export default function UserProfile({
         const previewUrl = URL.createObjectURL(file);
         setPendingAvatarUrl(previewUrl);
       }
-      if (!isEditingProfile) {
+      if (!isEditingProfile && account) {
+        setFullName(account.fullName);
+        setPhone(account.phone ?? "");
         setIsEditingProfile(true);
       }
-    } catch {
+    } catch (err: unknown) {
       setProfileMessage({
         type: "error",
-        text: "Tải ảnh đại diện thất bại. Vui lòng thử lại.",
+        text: getApiErrorMessage(
+          err,
+          "Tải ảnh đại diện thất bại. Vui lòng thử lại.",
+        ),
       });
     } finally {
       setIsUploadingAvatar(false);
@@ -158,6 +167,7 @@ export default function UserProfile({
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!account) return;
     setProfileMessage(null);
 
     const trimmedName = fullName.trim();
@@ -186,7 +196,7 @@ export default function UserProfile({
     setIsSavingProfile(true);
     try {
       const updated = await onUpdateAccount?.(payload);
-      setAccount((prev) => ({
+      setUpdatedOverrides((prev) => ({
         ...prev,
         ...(updated || {}),
         fullName: trimmedName,
@@ -196,16 +206,15 @@ export default function UserProfile({
         updatedAt: new Date().toISOString(),
       }));
       setIsEditingProfile(false);
-      setProfileMessage({
+
+      toast.add({
         type: "success",
-        text: "Cập nhật thông tin cá nhân thành công.",
+        description: "Cập nhật thông tin thành công",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setProfileMessage({
         type: "error",
-        text:
-          err?.message ||
-          "Không thể cập nhật hồ sơ (Số điện thoại có thể đã tồn tại hoặc sai định dạng).",
+        text: getApiErrorMessage(err, "Có lỗi xảy ra. Vui lòng thử l"),
       });
     } finally {
       setIsSavingProfile(false);
@@ -262,15 +271,25 @@ export default function UserProfile({
         type: "success",
         text: "Đổi mật khẩu thành công.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setPwMessage({
         type: "error",
-        text: err?.message || "Mật khẩu hiện tại không chính xác.",
+        text: getApiErrorMessage(err, ""),
       });
     } finally {
       setIsChangingPw(false);
     }
   };
+
+  if (!account) {
+    return (
+      <div className="flex min-h-100 w-full items-center justify-center">
+        <p className="text-sm text-text-muted">
+          Đang tải thông tin tài khoản...
+        </p>
+      </div>
+    );
+  }
 
   const displayAvatar = isEditingProfile ? pendingAvatarUrl : currentAvatar;
   const initials = account.fullName

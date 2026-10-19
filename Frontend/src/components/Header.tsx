@@ -124,7 +124,7 @@ function Header() {
                     className="cursor-pointer gap-2"
                   >
                     <UserRound className="size-4" />
-                    <span>Thông tin cá nhân</span>
+                    <span>Cài đặt tài khoản</span>
                   </MenuItem>
                 </MenuGroup>
 
@@ -212,7 +212,7 @@ function Header() {
                 className="btn btn-secondary flex w-full items-center justify-center gap-2"
               >
                 <UserRound size={16} />
-                Thông tin cá nhân
+                Cài đặt tài khoản
               </Link>
 
               <button

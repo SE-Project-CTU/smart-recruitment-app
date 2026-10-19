@@ -1,3 +1,5 @@
+export type UserRole = "Candidate" | "Recruiter" | "Admin";
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -23,7 +25,7 @@ export interface AuthUser {
   id: string;
   email: string;
   fullName: string;
-  roles: string[];
+  roles: UserRole[];
   status: string;
   avatarUrl: string;
 }
