@@ -21,6 +21,16 @@ public sealed class NotificationRepository : INotificationRepository {
         await _context.Notifications.AddAsync(notification, cancellationToken);
     }
 
+    public async Task AddRangeAsync(
+        IReadOnlyCollection<Notification> notifications,
+        CancellationToken cancellationToken) {
+        if (notifications.Count == 0) {
+            return;
+        }
+
+        await _context.Notifications.AddRangeAsync(notifications, cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<Notification> Items, int TotalCount)> GetByRecipientPagedAsync(
         Guid recipientId,
         NotificationType? type,

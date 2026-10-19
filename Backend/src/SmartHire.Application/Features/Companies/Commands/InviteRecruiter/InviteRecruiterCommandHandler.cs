@@ -6,7 +6,7 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
-using SmartHire.Application.Features.Notifications.DTOs;
+using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -129,19 +129,7 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         if (_notificationDispatcher is not null) {
-            var notificationDto = new NotificationDto(
-                notification.Id,
-                notification.RecipientId,
-                notification.Type.ToString(),
-                notification.Title,
-                notification.Body,
-                notification.Payload,
-                notification.ResourceType,
-                notification.ResourceId,
-                notification.CreatedAt,
-                notification.ReadAt,
-                notification.ExpiresAt,
-                notification.IsRead);
+            var notificationDto = NotificationResultMapper.ToDto(notification);
 
             await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
         }

@@ -239,6 +239,16 @@ public sealed class CompanyRepository : ICompanyRepository {
             .CountAsync(f => f.CompanyId == companyId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Guid>> GetFollowerUserIdsAsync(
+        Guid companyId,
+        CancellationToken cancellationToken) {
+        return await _dbContext.CompanyFollows
+            .AsNoTracking()
+            .Where(follow => follow.CompanyId == companyId)
+            .Select(follow => follow.UserId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddFollowAsync(CompanyFollow follow, CancellationToken cancellationToken) {
         await _dbContext.CompanyFollows.AddAsync(follow, cancellationToken);
     }

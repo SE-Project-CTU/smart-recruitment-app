@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace SmartHire.Application.Features.Notifications.DTOs;
 
 public sealed record NotificationDto(
@@ -6,7 +8,7 @@ public sealed record NotificationDto(
     string Type,
     string Title,
     string Body,
-    string? Payload,
+    JsonElement? Payload,
     string? ResourceType,
     Guid? ResourceId,
     DateTimeOffset CreatedAt,

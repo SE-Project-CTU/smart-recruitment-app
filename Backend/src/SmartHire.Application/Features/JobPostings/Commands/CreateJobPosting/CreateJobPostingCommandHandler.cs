@@ -4,6 +4,7 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Features.JobPostings.DTOs;
 using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Application.Features.JobPostings.Mapping;
+using SmartHire.Application.Features.JobPostings.Notifications;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -17,6 +18,7 @@ public sealed class CreateJobPostingCommandHandler
     private readonly IIndustryCatalogRepository _industryRepository;
     private readonly ISkillCatalogRepository _skillRepository;
     private readonly IJobPostingRepository _jobPostingRepository;
+    private readonly INotificationRepository _notificationRepository;
     private readonly IUnitOfWork _unitOfWork;
     
     public CreateJobPostingCommandHandler(
@@ -26,6 +28,7 @@ public sealed class CreateJobPostingCommandHandler
         IIndustryCatalogRepository industryRepository,
         ISkillCatalogRepository skillRepository,
         IJobPostingRepository jobPostingRepository,
+        INotificationRepository notificationRepository,
         IUnitOfWork unitOfWork) {
         _currentUser = currentUser;
         _companyRepository = companyRepository;
@@ -33,6 +36,7 @@ public sealed class CreateJobPostingCommandHandler
         _industryRepository = industryRepository;
         _skillRepository = skillRepository;
         _jobPostingRepository = jobPostingRepository;
+        _notificationRepository = notificationRepository;
         _unitOfWork = unitOfWork;
     }
     
@@ -114,6 +118,20 @@ public sealed class CreateJobPostingCommandHandler
             
             await _jobPostingRepository.AddAsync(jobPosting, ct);
             await _unitOfWork.SaveChangesAsync(ct);
+
+            var followerUserIds = await _companyRepository.GetFollowerUserIdsAsync(
+                company.Id,
+                ct);
+            var notifications = NewJobPostingNotificationFactory.CreateForFollowers(
+                company,
+                jobPosting,
+                followerUserIds,
+                now);
+
+            await _notificationRepository.AddRangeAsync(notifications, ct);
+            if (notifications.Count > 0) {
+                await _unitOfWork.SaveChangesAsync(ct);
+            }
             
             return JobPostingMapper.ToResult(jobPosting);
         }, cancellationToken);
