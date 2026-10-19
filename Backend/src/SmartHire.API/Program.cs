@@ -3,6 +3,7 @@ using SmartHire.Application;
 using SmartHire.Infrastructure;
 using SmartHire.Infrastructure.BackgroundJobs;
 using SmartHire.Infrastructure.Persistence;
+using SmartHire.Infrastructure.Seeding;
 using NLog.Web;
 using DotNetEnv;
 using SmartHire.Api;
@@ -60,6 +61,9 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 using (var scope = app.Services.CreateScope()) {
     var db = scope.ServiceProvider.GetRequiredService<SmartHireDbContext>();
     db.Database.Migrate();
+
+    var adminAccountSeeder = scope.ServiceProvider.GetRequiredService<AdminAccountSeeder>();
+    await adminAccountSeeder.SeedAsync();
 }
 
 // ── OpenAPI / Swagger UI ──

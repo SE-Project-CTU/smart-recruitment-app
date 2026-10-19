@@ -10,6 +10,7 @@ using SmartHire.Infrastructure.Persistence;
 using SmartHire.Infrastructure.Persistence.Json;
 using SmartHire.Infrastructure.Persistence.Repositories;
 using SmartHire.Infrastructure.Security;
+using SmartHire.Infrastructure.Seeding;
 using SmartHire.Infrastructure.Storage;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -42,6 +43,7 @@ public static class DependencyInjection {
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
+        services.AddScoped<AdminAccountSeeder>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
         services.AddSingleton<IAccessTokenGenerator, JwtAccessTokenGenerator>();
