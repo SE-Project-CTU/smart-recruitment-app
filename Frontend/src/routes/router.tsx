@@ -13,6 +13,7 @@ import {
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { PATHS } from "@/constants/paths";
+import SearchJobPage from "@/pages/candidate/SearchJobPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
     children: [
       { path: PATHS.SIGN_IN, element: <SignIn /> },
       { path: PATHS.SIGN_UP, element: <SignUp /> },
+      { path: PATHS.SEARCH_JOB, element: <SearchJobPage /> },
     ],
   },
 
@@ -43,7 +45,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.SEARCH_JOBS,
-            element: <Page title="tìm kiếm việc làm" />,
+            element: <SearchJobPage />,
           },
           {
             path: PATHS.CANDIDATE.MATCHED_JOBS,
@@ -67,7 +69,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.COMPANY_REVIEWS,
-            element: <Page title="Mục đã lưu 2" />,
+            element: <Page title="Rì viu" />,
           },
           {
             path: PATHS.CANDIDATE.USER_PROFILE,
