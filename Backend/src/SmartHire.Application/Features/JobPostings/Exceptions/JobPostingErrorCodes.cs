@@ -8,4 +8,5 @@ internal static class JobPostingErrorCodes {
     public const string WardNotFound = "WARD_NOT_FOUND";
     public const string IndustryNotFound = "INDUSTRY_NOT_FOUND";
     public const string SkillNotFound = "SKILL_NOT_FOUND";
+    public const string InvalidSearchCriteria = "INVALID_JOB_POSTING_SEARCH";
 }

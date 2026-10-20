@@ -5,6 +5,7 @@ using SmartHire.Api.Contracts.Requests;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.JobPostings.Commands.CreateJobPosting;
+using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 
 namespace SmartHire.Api.Controllers;
 
@@ -18,6 +19,34 @@ public sealed class JobPostingController : ControllerBase {
     public JobPostingController(ISender sender, ApiResponseFactory responseFactory) {
         _sender = sender;
         _responseFactory = responseFactory;
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> Search(
+        [FromQuery] SearchJobPostingsRequest request,
+        CancellationToken cancellationToken) {
+        var result = await _sender.Send(new SearchJobPostingsQuery(
+            request.Keyword,
+            request.Company,
+            request.SalaryMin,
+            request.SalaryMax,
+            request.ProvinceId,
+            request.WardId,
+            request.JobLevel,
+            request.JobType,
+            request.WorkMode,
+            request.ExperienceYears,
+            request.Sort,
+            request.Direction,
+            request.Page,
+            request.PageSize), cancellationToken);
+
+        return Ok(_responseFactory.PagedOneBased(
+            result.Items,
+            result.Page,
+            result.PageSize,
+            result.TotalCount));
     }
     
     [HttpPost]

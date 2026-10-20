@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
+using NpgsqlTypes;
 
 namespace SmartHire.Infrastructure.Persistence.Configurations;
 
@@ -26,6 +27,11 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting> {
         
         builder.Property(x => x.Status)
             .HasConversion<string>();
+
+        builder.Property<NpgsqlTsVector>("SearchVector")
+            .HasColumnType("tsvector")
+            .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(title, ''::text))", stored: true);
+        builder.HasIndex("SearchVector").HasMethod("GIN");
         
         builder.HasOne(x => x.Company)
             .WithMany(x => x.JobPostings)

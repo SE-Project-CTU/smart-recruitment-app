@@ -27,7 +27,7 @@ public sealed class CreateJobPostingRequest {
     
     [Required(ErrorMessage = "Education level is required.")]
     [StringLength(150, ErrorMessage = "Education level must not exceed 150 characters.")]
-    public string EducationLevel { get; init; }
+    public string EducationLevel { get; init; } = string.Empty;
     
     [Required(ErrorMessage = "Vacancies is required.")]
     [Range(1, int.MaxValue, ErrorMessage = "Vacancies must be greater than 0.")]

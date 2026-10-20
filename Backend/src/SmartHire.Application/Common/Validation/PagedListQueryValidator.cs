@@ -9,6 +9,7 @@ namespace SmartHire.Application.Common.Validation;
 /// </summary>
 public static class PagedListQueryValidator
 {
+    public const int FirstPage = 0;
     public const int MaximumPageSize = 100;
     public const int MaximumSearchLength = 100;
 

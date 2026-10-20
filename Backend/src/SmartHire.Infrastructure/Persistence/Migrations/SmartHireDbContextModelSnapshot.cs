@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using NpgsqlTypes;
 using Pgvector;
 using SmartHire.Infrastructure.Persistence;
 
@@ -151,6 +152,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("phone");
 
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasColumnName("search_vector")
+                        .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(name, ''::text))", true);
+
                     b.Property<string>("TaxCode")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -181,6 +188,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("LogoFileId")
                         .IsUnique()
                         .HasDatabaseName("ix_companies_logo_file_id");
+
+                    b.HasIndex("SearchVector")
+                        .HasDatabaseName("ix_companies_search_vector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
 
                     b.HasIndex("TaxCode")
                         .IsUnique()
@@ -867,6 +879,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("salary_negotiable");
 
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasColumnName("search_vector")
+                        .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(title, ''::text))", true);
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -899,6 +917,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProvinceId")
                         .HasDatabaseName("ix_job_postings_province_id");
+
+                    b.HasIndex("SearchVector")
+                        .HasDatabaseName("ix_job_postings_search_vector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
 
                     b.HasIndex("WardId")
                         .HasDatabaseName("ix_job_postings_ward_id");

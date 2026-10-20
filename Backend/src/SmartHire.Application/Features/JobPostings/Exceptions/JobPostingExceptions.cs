@@ -52,6 +52,12 @@ internal static class JobPostingExceptions
         [new AppErrorDetail("skillIds", ErrorDetailReasons.NotFound,
             $"Unknown or inactive skill IDs: {string.Join(", ", ids)}.")]);
 
+    public static AppException InvalidSearchCriteria(IEnumerable<AppErrorDetail> details) => new(
+        AppErrorKind.BadRequest,
+        JobPostingErrorCodes.InvalidSearchCriteria,
+        "Job posting search contains invalid fields.",
+        details.ToArray());
+
     public static AppException InvalidAccessToken() => new(
         AppErrorKind.Unauthorized,
         AuthErrorCodes.InvalidAccessToken,
