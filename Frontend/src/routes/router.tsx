@@ -20,7 +20,10 @@ const router = createBrowserRouter([
   {
     path: PATHS.HOME,
     element: <BaseLayout />,
-    children: [{ index: true, element: <LandingPage /> }],
+    children: [
+      { index: true, element: <LandingPage /> },
+      { path: PATHS.SEARCH_JOB, element: <SearchJobPage /> },
+    ],
   },
 
   {
@@ -28,7 +31,6 @@ const router = createBrowserRouter([
     children: [
       { path: PATHS.SIGN_IN, element: <SignIn /> },
       { path: PATHS.SIGN_UP, element: <SignUp /> },
-      { path: PATHS.SEARCH_JOB, element: <SearchJobPage /> },
     ],
   },
 
