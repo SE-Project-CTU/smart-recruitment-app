@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Requests;
 using SmartHire.Api.Factories;
+using SmartHire.Application.Common.Errors;
+using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.JobPostings.Commands.CreateJobPosting;
+using SmartHire.Application.Features.JobPostings.Commands.UpdateJobPosting;
+using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Application.Features.JobPostings.Queries.GetJobPostingDetail;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 
@@ -91,6 +95,84 @@ public sealed class JobPostingController : ControllerBase {
     [AllowAnonymous]
     public async Task<IActionResult> GetDetail(string id, CancellationToken cancellationToken) {
         var result = await _sender.Send(new GetJobPostingDetailQuery(id), cancellationToken);
+        return Ok(_responseFactory.Success(result));
+    }
+
+    /// <summary>
+    /// PATCH /api/v1/job-postings/{id}
+    /// Updates an existing job posting. Only creators or active members of the company may update.
+    /// Postings in Closed or Expired states cannot be updated.
+    /// Disallowed fields (companyId, createdBy, status, createdAt, updatedAt) are rejected with 422.
+    /// </summary>
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> Update(
+        [FromRoute] string id,
+        [FromBody] UpdateJobPostingRequest? request,
+        CancellationToken cancellationToken) {
+        if (request is null) {
+            throw new AppException(
+                AppErrorKind.BadRequest,
+                CommonErrorCodes.InvalidRequestBody,
+                "Request body is required.");
+        }
+
+        if (request.AdditionalFields is { Count: > 0 }) {
+            var disallowedFields = request.AdditionalFields.Keys
+                .Select(fieldName => new AppErrorDetail(
+                    fieldName,
+                    ValidationReasons.NotAllowed,
+                    $"Field '{fieldName}' cannot be updated through this endpoint."))
+                .ToArray();
+
+            throw new AppException(
+                AppErrorKind.Validation,
+                JobPostingErrorCodes.InvalidJobPosting,
+                "Request body contains disallowed fields.",
+                disallowedFields);
+        }
+
+        var command = new UpdateJobPostingCommand(
+            id,
+            request.Title,
+            request.TitleProvided,
+            request.ProvinceId,
+            request.ProvinceIdProvided,
+            request.WardId,
+            request.WardIdProvided,
+            request.DetailedLocation,
+            request.DetailedLocationProvided,
+            request.ExperienceYears,
+            request.ExperienceYearsProvided,
+            request.JobLevel,
+            request.JobLevelProvided,
+            request.EducationLevel,
+            request.EducationLevelProvided,
+            request.Vacancies,
+            request.VacanciesProvided,
+            request.WorkMode,
+            request.WorkModeProvided,
+            request.JobType,
+            request.JobTypeProvided,
+            request.Description,
+            request.DescriptionProvided,
+            request.Requirements,
+            request.RequirementsProvided,
+            request.Benefits,
+            request.BenefitsProvided,
+            request.SalaryMin,
+            request.SalaryMinProvided,
+            request.SalaryMax,
+            request.SalaryMaxProvided,
+            request.SalaryNegotiable,
+            request.SalaryNegotiableProvided,
+            request.Deadline,
+            request.DeadlineProvided,
+            request.IndustryIds,
+            request.IndustryIdsProvided,
+            request.SkillIds,
+            request.SkillIdsProvided);
+
+        var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));
     }
 }

@@ -88,4 +88,10 @@ internal static class JobPostingExceptions
         AppErrorKind.Forbidden,
         JobPostingErrorCodes.JobPostingForbidden,
         "You do not have permission to view this job posting.");
+
+    public static AppException JobPostingConflict(string message) => new(
+        AppErrorKind.Conflict,
+        JobPostingErrorCodes.JobPostingConflict,
+        message,
+        [new AppErrorDetail("status", ValidationReasons.NotAllowed, message)]);
 }

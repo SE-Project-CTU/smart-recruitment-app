@@ -1,0 +1,46 @@
+using MediatR;
+using SmartHire.Application.Features.JobPostings.DTOs;
+
+namespace SmartHire.Application.Features.JobPostings.Commands.UpdateJobPosting;
+
+public sealed record UpdateJobPostingCommand(
+    string? RawJobId,
+    string? Title,
+    bool TitleProvided,
+    Guid? ProvinceId,
+    bool ProvinceIdProvided,
+    Guid? WardId,
+    bool WardIdProvided,
+    string? DetailedLocation,
+    bool DetailedLocationProvided,
+    int? ExperienceYears,
+    bool ExperienceYearsProvided,
+    string? JobLevel,
+    bool JobLevelProvided,
+    string? EducationLevel,
+    bool EducationLevelProvided,
+    int? Vacancies,
+    bool VacanciesProvided,
+    string? WorkMode,
+    bool WorkModeProvided,
+    string? JobType,
+    bool JobTypeProvided,
+    string? Description,
+    bool DescriptionProvided,
+    string? Requirements,
+    bool RequirementsProvided,
+    string? Benefits,
+    bool BenefitsProvided,
+    decimal? SalaryMin,
+    bool SalaryMinProvided,
+    decimal? SalaryMax,
+    bool SalaryMaxProvided,
+    bool? SalaryNegotiable,
+    bool SalaryNegotiableProvided,
+    DateTimeOffset? Deadline,
+    bool DeadlineProvided,
+    IReadOnlyList<Guid>? IndustryIds,
+    bool IndustryIdsProvided,
+    IReadOnlyList<Guid>? SkillIds,
+    bool SkillIdsProvided
+) : IRequest<JobPostingResult>;

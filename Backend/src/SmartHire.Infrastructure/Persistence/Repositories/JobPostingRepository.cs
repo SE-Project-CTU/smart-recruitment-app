@@ -156,6 +156,14 @@ public sealed class JobPostingRepository : IJobPostingRepository
             posting.UpdatedAt);
     }
 
+    public async Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _dbContext.JobPostings
+            .Include(p => p.JobIndustries)
+            .Include(p => p.JobSkills)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         SearchJobPostingsSort sort,

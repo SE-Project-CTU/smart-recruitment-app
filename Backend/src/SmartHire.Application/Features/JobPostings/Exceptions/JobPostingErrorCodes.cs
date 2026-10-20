@@ -1,6 +1,6 @@
 namespace SmartHire.Application.Features.JobPostings.Exceptions;
 
-internal static class JobPostingErrorCodes {
+public static class JobPostingErrorCodes {
     public const string InvalidJobPosting = "INVALID_JOB_POSTING_DATA";
     public const string CompanyNotFound = "COMPANY_NOT_FOUND";
     public const string CompanyForbidden = "COMPANY_FORBIDDEN";
@@ -13,4 +13,5 @@ internal static class JobPostingErrorCodes {
     public const string JobPostingNotFound = "JOB_POSTING_NOT_FOUND";
     public const string JobPostingUnauthorized = "JOB_POSTING_UNAUTHORIZED";
     public const string JobPostingForbidden = "JOB_POSTING_FORBIDDEN";
+    public const string JobPostingConflict = "JOB_POSTING_CONFLICT";
 }

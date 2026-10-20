@@ -13,4 +13,6 @@ public interface IJobPostingRepository
         CancellationToken cancellationToken);
 
     Task<JobPostingDetailData?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken);
 }
