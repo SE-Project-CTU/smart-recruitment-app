@@ -1,0 +1,3 @@
+namespace SmartHire.Application.Features.JobPostings.Jobs.ExpireOverdueJobPostings;
+
+public sealed record ExpireOverdueJobPostingsJobArgs;

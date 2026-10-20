@@ -15,4 +15,6 @@ public interface IJobPostingRepository
     Task<JobPostingDetailData?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<JobPosting>> GetPublishedOverduePostingsAsync(DateTimeOffset now, CancellationToken cancellationToken);
 }

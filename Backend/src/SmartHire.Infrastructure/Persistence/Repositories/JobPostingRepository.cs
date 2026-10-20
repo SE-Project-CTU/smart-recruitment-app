@@ -164,6 +164,17 @@ public sealed class JobPostingRepository : IJobPostingRepository
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<JobPosting>> GetPublishedOverduePostingsAsync(
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.JobPostings
+            .Where(p => p.Status == JobPostingStatus.Published &&
+                        p.Deadline != null &&
+                        p.Deadline <= now)
+            .ToListAsync(cancellationToken);
+    }
+
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         SearchJobPostingsSort sort,
