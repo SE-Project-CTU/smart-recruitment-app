@@ -89,7 +89,7 @@ public sealed class ApiResponseFactory(
     ) {
         var correlationId = GetCorrelationId();
 
-        if (page < 0) {
+        if (page < 1) {
             throw new AppException(
                 AppErrorKind.BadRequest,
                 CommonErrorCodes.InvalidPageNumber,

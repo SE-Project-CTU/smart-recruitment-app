@@ -53,7 +53,7 @@ internal static class SearchJobPostingsQueryValidator {
             sort,
             direction,
             skip,
-            query.PageSize,
+            pageSize,
             DateTimeOffset.UtcNow);
     }
     

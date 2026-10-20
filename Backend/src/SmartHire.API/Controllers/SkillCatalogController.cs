@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.SkillCatalog.Queries.GetSkills;
 
 namespace SmartHire.Api.Controllers;
@@ -23,7 +24,7 @@ public sealed class SkillCatalogController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetSkills(
         [FromQuery] string? search,
-        [FromQuery] int page = 1,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {

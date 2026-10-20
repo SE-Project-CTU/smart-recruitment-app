@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.IndustryCatalog.Queries.GetIndustries;
 using SmartHire.Application.Features.IndustryCatalog.Queries.GetIndustryGroups;
 using SmartHire.Application.Features.IndustryCatalog.Queries.GetIndustryGroupsWithIndustries;
@@ -24,7 +25,7 @@ public class IndustryCatalogController : ControllerBase {
     [HttpGet("industry-groups")]
     public async Task<IActionResult> GetIndustryGroups(
         [FromQuery] string? search,
-        [FromQuery] int page = 1,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
@@ -38,7 +39,7 @@ public class IndustryCatalogController : ControllerBase {
     [HttpGet("industry-groups/with-industries")]
     public async Task<IActionResult> GetIndustryGroupsWithIndustries(
         [FromQuery] string? search,
-        [FromQuery] int page = 1,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
@@ -53,7 +54,7 @@ public class IndustryCatalogController : ControllerBase {
     public async Task<IActionResult> GetIndustries(
         [FromQuery] Guid? groupId,
         [FromQuery] string? search,
-        [FromQuery] int page = 1,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {

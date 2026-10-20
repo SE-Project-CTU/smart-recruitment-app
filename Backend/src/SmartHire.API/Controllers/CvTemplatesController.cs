@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.CvTemplate.Queries.Queries.GetAllCvTemplates;
 using SmartHire.Application.Features.CvTemplate.Queries.Queries.GetCvTemplateById;
 
@@ -21,7 +22,7 @@ public sealed class CvTemplatesController : ControllerBase {
     
     [HttpGet]
     public async Task<IActionResult> GetActive(
-        [FromQuery] int page = 0,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? search = null,
         CancellationToken cancellationToken = default) {
@@ -29,7 +30,7 @@ public sealed class CvTemplatesController : ControllerBase {
             new GetAllCvTemplatesQuery(page, pageSize, search),
             cancellationToken);
         
-        return Ok(_responseFactory.Paged(
+        return Ok(_responseFactory.PagedOneBased(
             result.Items,
             result.Page,
             result.PageSize,
