@@ -64,6 +64,28 @@ internal static class JobPostingExceptions
         "The access token does not contain a valid user ID.",
         [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
             "A valid user identity is required.")]);
+
+    public static AppException InvalidJobPostingId() => new(
+        AppErrorKind.BadRequest,
+        JobPostingErrorCodes.InvalidJobPostingId,
+        "Job posting ID has an invalid format.",
+        [new AppErrorDetail("id", ValidationReasons.InvalidFormat,
+            "The id path parameter must be a valid UUID.")]);
+
+    public static AppException JobPostingNotFound(Guid id) => new(
+        AppErrorKind.NotFound,
+        JobPostingErrorCodes.JobPostingNotFound,
+        "Job posting was not found.",
+        [new AppErrorDetail("id", ErrorDetailReasons.NotFound,
+            $"No job posting with ID '{id}' exists.")]);
+
+    public static AppException JobPostingUnauthorized() => new(
+        AppErrorKind.Unauthorized,
+        JobPostingErrorCodes.JobPostingUnauthorized,
+        "Authentication is required to view this job posting.");
+
+    public static AppException JobPostingForbidden() => new(
+        AppErrorKind.Forbidden,
+        JobPostingErrorCodes.JobPostingForbidden,
+        "You do not have permission to view this job posting.");
 }
-
-

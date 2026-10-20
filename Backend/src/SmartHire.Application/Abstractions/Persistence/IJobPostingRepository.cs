@@ -11,4 +11,6 @@ public interface IJobPostingRepository
     Task<(IReadOnlyList<JobPostingSearchData> Items, int TotalCount)> SearchPublicAsync(
         SearchJobPostingsCriteria criteria,
         CancellationToken cancellationToken);
+
+    Task<JobPostingDetailData?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken);
 }

@@ -5,6 +5,7 @@ using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
+using JobPostingDetailData = SmartHire.Application.Abstractions.Persistence.ReadModels.JobPostingDetailData;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
 
@@ -94,6 +95,65 @@ public sealed class JobPostingRepository : IJobPostingRepository
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
+    }
+
+    public async Task<JobPostingDetailData?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        // Use AsSplitQuery to avoid Cartesian explosion from the two independent collections
+        // (JobIndustries and JobSkills). EF Core issues separate queries per collection.
+        var posting = await _dbContext.JobPostings
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(p => p.Company)
+                .ThenInclude(c => c.LogoFile)
+            .Include(p => p.Province)
+            .Include(p => p.Ward)
+            .Include(p => p.JobIndustries)
+            .Include(p => p.JobSkills)
+                .ThenInclude(js => js.Skill)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+        if (posting is null)
+            return null;
+
+        var company = new CompanyReadModel(
+            posting.Company.Id,
+            posting.Company.Name,
+            posting.Company.VerificationStatus,
+            posting.Company.Address,
+            posting.Company.LogoFile?.FileUrl);
+
+        var location = new LocationReadModel(
+            posting.ProvinceId,
+            posting.Province.Name,
+            posting.WardId,
+            posting.Ward?.Name,
+            posting.DetailedLocation);
+
+        return new JobPostingDetailData(
+            posting.Id,
+            posting.CreatedBy,
+            posting.Title,
+            posting.Description,
+            posting.Requirements,
+            string.IsNullOrEmpty(posting.Benefits) ? null : posting.Benefits,
+            posting.ExperienceYears,
+            posting.JobLevel,
+            posting.EducationLevel,
+            posting.Vacancies,
+            posting.WorkMode,
+            posting.JobType,
+            posting.SalaryMin,
+            posting.SalaryMax,
+            posting.SalaryNegotiable,
+            posting.Deadline,
+            posting.Status,
+            company,
+            location,
+            posting.JobIndustries.Select(ji => ji.IndustryId).ToArray(),
+            posting.JobSkills.Select(js => new SkillReadModel(js.Skill.Id, js.Skill.Name)).ToArray(),
+            posting.CreatedAt,
+            posting.UpdatedAt);
     }
 
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
