@@ -69,6 +69,58 @@ export interface MockApplication {
   job: MockJobPosting;
 }
 
+export interface IndustryGroup {
+  parent: string;
+  children: string[];
+}
+
+export const MOCK_INDUSTRY_HIERARCHY: IndustryGroup[] = [
+  {
+    parent: "Công nghệ thông tin",
+    children: [
+      "Phần mềm & Dịch vụ IT",
+      "Trí tuệ nhân tạo (AI) & Dữ liệu",
+      "An ninh mạng & Hệ thống",
+    ],
+  },
+  {
+    parent: "Tài chính & Ngân hàng",
+    children: [
+      "Công nghệ tài chính (Fintech)",
+      "Ngân hàng số & Đầu tư",
+      "Kế toán & Kiểm toán",
+    ],
+  },
+  {
+    parent: "Thương mại & Truyền thông",
+    children: [
+      "Thương mại điện tử (E-commerce)",
+      "Digital Marketing & Quảng cáo",
+      "Thiết kế sản phẩm (UI/UX)",
+    ],
+  },
+];
+
+export interface LocationGroup {
+  province: string;
+  wards: string[];
+}
+
+export const MOCK_LOCATION_HIERARCHY: LocationGroup[] = [
+  {
+    province: "TP. Hồ Chí Minh",
+    wards: ["Phường Bến Nghé", "Phường Tân Phú", "Phường Thảo Điền"],
+  },
+  {
+    province: "Hà Nội",
+    wards: ["Phường Dịch Vọng Hậu", "Phường Láng Hạ", "Phường Điện Biên"],
+  },
+  {
+    province: "Đà Nẵng",
+    wards: ["Phường Hải Châu 1", "Phường Thạch Thang", "Phường An Hải Bắc"],
+  },
+];
+
 export const MOCK_JOB_POSTINGS: MockJobPosting[] = [
   {
     id: "job-uuid-001",

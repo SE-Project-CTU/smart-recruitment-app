@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { Checkbox } from "@animate-ui/react/primitives/base-ui/checkbox";
 import { Slider } from "@/components/ui/slider";
-import { CheckIcon, RotateCcw } from "lucide-react";
+import { CheckIcon, ChevronDown, RotateCcw } from "lucide-react";
+import { MOCK_INDUSTRY_HIERARCHY } from "@/constants/mockData";
 
 export const SALARY_MIN_LIMIT = 0;
 export const SALARY_MAX_LIMIT = 5000;
 export const SALARY_STEP = 100;
 
 export interface JobFilterState {
+  industries: string[];
   jobTypes: string[];
   workModes: string[];
   jobLevels: string[];
-  provinces: string[];
   minSalary: string;
   maxSalary: string;
   negotiableOnly: boolean;
@@ -20,40 +21,45 @@ export interface JobFilterState {
 interface FilterOption {
   label: string;
   value: string;
-  count?: number;
 }
 
 interface JobFilterSidebarProps {
   filters: JobFilterState;
   onToggleArrayFilter: (
-    key: "jobTypes" | "workModes" | "jobLevels" | "provinces",
+    key: "industries" | "jobTypes" | "workModes" | "jobLevels",
     value: string,
   ) => void;
+  onToggleIndustryGroup: (parent: string, children: string[]) => void;
   onSalaryRangeChange: (min: string, max: string) => void;
   onToggleNegotiable: (checked: boolean) => void;
   onReset: () => void;
-  provinceOptions: FilterOption[];
 }
+
+const SALARY_PRESETS = [
+  { label: "Dưới $1,000", min: "", max: "1000" },
+  { label: "$1,000 - $2,000", min: "1000", max: "2000" },
+  { label: "Trên $2,000", min: "2000", max: "" },
+];
 
 const JOB_TYPE_OPTIONS: FilterOption[] = [
   { label: "Full-time", value: "Full-time" },
   { label: "Part-time", value: "Part-time" },
   { label: "Internship", value: "Internship" },
-  { label: "Contract / Freelance", value: "Contract" },
+  { label: "Contract", value: "Contract" },
 ];
 
 const WORK_MODE_OPTIONS: FilterOption[] = [
-  { label: "Tại văn phòng (On-site)", value: "On-site" },
-  { label: "Linh hoạt (Hybrid)", value: "Hybrid" },
-  { label: "Từ xa (Remote)", value: "Remote" },
+  { label: "On-site", value: "On-site" },
+  { label: "Hybrid", value: "Hybrid" },
+  { label: "Remote", value: "Remote" },
 ];
 
 const JOB_LEVEL_OPTIONS: FilterOption[] = [
-  { label: "Intern / Fresher", value: "Fresher" },
+  { label: "Fresher", value: "Fresher" },
   { label: "Junior", value: "Junior" },
   { label: "Middle", value: "Middle" },
   { label: "Senior", value: "Senior" },
-  { label: "Lead / Manager", value: "Lead" },
+  { label: "Lead", value: "Lead" },
 ];
 
 const HISTOGRAM_BARS = [
@@ -64,25 +70,31 @@ interface FilterCheckboxItemProps {
   label: string;
   checked: boolean;
   onChange: () => void;
+  isParent?: boolean;
 }
 
 function FilterCheckboxItem({
   label,
   checked,
   onChange,
+  isParent = false,
 }: FilterCheckboxItemProps) {
   return (
-    <label className="group flex cursor-pointer items-center gap-2.5 py-0.5 text-xs font-medium text-text-main select-none">
+    <label className="group flex cursor-pointer items-center gap-2 py-0.5 text-xs text-text-main select-none">
       <Checkbox.Root
         checked={checked}
         onCheckedChange={() => onChange()}
-        className="flex size-4.5 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border bg-surface transition-colors group-hover:border-primary data-checked:border-primary data-checked:bg-primary"
+        className="flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border bg-surface transition-colors group-hover:border-primary data-checked:border-primary data-checked:bg-primary"
       >
         <Checkbox.Indicator className="flex items-center justify-center text-white">
-          <CheckIcon className="size-3 stroke-3" />
+          <CheckIcon className="size-2.5 stroke-3" />
         </Checkbox.Indicator>
       </Checkbox.Root>
-      <span className="truncate transition-colors group-hover:text-primary">
+      <span
+        className={`truncate transition-colors group-hover:text-primary ${
+          isParent ? "font-bold text-text-main" : "font-medium text-text-muted"
+        }`}
+      >
         {label}
       </span>
     </label>
@@ -92,11 +104,16 @@ function FilterCheckboxItem({
 export function JobFilterSidebar({
   filters,
   onToggleArrayFilter,
+  onToggleIndustryGroup,
   onSalaryRangeChange,
   onToggleNegotiable,
   onReset,
-  provinceOptions,
 }: JobFilterSidebarProps) {
+  // Mặc định các nhóm lĩnh vực đều thu gọn (false)
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {},
+  );
+
   const parsedMin =
     filters.minSalary === ""
       ? SALARY_MIN_LIMIT
@@ -118,31 +135,27 @@ export function JobFilterSidebar({
     parsedMax,
   ]);
   const [isDragging, setIsDragging] = useState(false);
-  const displayedRange: [number, number] = isDragging
+
+  // Đồng bộ state hiển thị với props từ ngoài khi không dragging
+  const effectiveRange: [number, number] = isDragging
     ? localRange
     : [parsedMin, parsedMax];
 
-  const getSliderRange = (
-    value: number | readonly number[],
-  ): [number, number] =>
-    typeof value === "number"
-      ? [value, value]
-      : [value[0] ?? SALARY_MIN_LIMIT, value[1] ?? SALARY_MAX_LIMIT];
+  const handleSliderChange = (val: number | readonly number[]) => {
+    setIsDragging(true);
+    const arr = Array.isArray(val) ? val : [val];
+    setLocalRange([arr[0] ?? SALARY_MIN_LIMIT, arr[1] ?? SALARY_MAX_LIMIT]);
+  };
 
-  const commitSliderValues = ([min, max]: [number, number]) => {
+  const handleSliderCommit = (val: number | readonly number[]) => {
+    setIsDragging(false);
+    const arr = Array.isArray(val) ? val : [val];
+    const min = arr[0] ?? SALARY_MIN_LIMIT;
+    const max = arr[1] ?? SALARY_MAX_LIMIT;
+
     const nextMin = min <= SALARY_MIN_LIMIT ? "" : String(min);
     const nextMax = max >= SALARY_MAX_LIMIT ? "" : String(max);
     onSalaryRangeChange(nextMin, nextMax);
-  };
-
-  const handleSliderChange = (value: number | readonly number[]) => {
-    setIsDragging(true);
-    setLocalRange(getSliderRange(value));
-  };
-
-  const handleSliderCommit = (value: number | readonly number[]) => {
-    setIsDragging(false);
-    commitSliderValues(getSliderRange(value));
   };
 
   const handleInputChange = (field: "minSalary" | "maxSalary", raw: string) => {
@@ -154,20 +167,8 @@ export function JobFilterSidebar({
     }
   };
 
-  const displayMinInput = isDragging
-    ? displayedRange[0] <= SALARY_MIN_LIMIT
-      ? ""
-      : String(displayedRange[0])
-    : filters.minSalary;
-
-  const displayMaxInput = isDragging
-    ? displayedRange[1] >= SALARY_MAX_LIMIT
-      ? ""
-      : String(displayedRange[1])
-    : filters.maxSalary;
-
   return (
-    <aside className="flex w-full flex-col gap-6 rounded-3xl border border-border bg-surface p-5">
+    <aside className="flex w-full scrollbar-thin flex-col gap-5 overflow-y-auto rounded-3xl border border-border bg-surface p-5">
       <div className="flex items-center justify-between border-b border-border pb-3.5">
         <h2 className="text-base font-bold text-text-main">Bộ lọc</h2>
         <button
@@ -180,42 +181,111 @@ export function JobFilterSidebar({
         </button>
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      {/* Lĩnh vực (Phân cấp thu gọn mặc định & lưới 2 cột) */}
+      <div className="flex flex-col gap-3">
         <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
-          Loại hình công việc
+          Lĩnh vực
         </h3>
         <div className="flex flex-col gap-2">
-          {JOB_TYPE_OPTIONS.map((item) => (
-            <FilterCheckboxItem
-              key={item.value}
-              label={item.label}
-              checked={filters.jobTypes.includes(item.value)}
-              onChange={() => onToggleArrayFilter("jobTypes", item.value)}
-            />
-          ))}
+          {MOCK_INDUSTRY_HIERARCHY.map((group) => {
+            const isExpanded = expandedGroups[group.parent] ?? false;
+            const isParentChecked =
+              filters.industries.includes(group.parent) ||
+              group.children.every((c) => filters.industries.includes(c));
+
+            return (
+              <div key={group.parent} className="flex flex-col gap-1">
+                <div className="flex items-center justify-between rounded-xl px-2 py-1.5">
+                  <FilterCheckboxItem
+                    label={group.parent}
+                    isParent
+                    checked={isParentChecked}
+                    onChange={() =>
+                      onToggleIndustryGroup(group.parent, group.children)
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedGroups((prev) => ({
+                        ...prev,
+                        [group.parent]: !isExpanded,
+                      }))
+                    }
+                    className="cursor-pointer p-1 text-text-muted hover:text-text-main"
+                  >
+                    <ChevronDown
+                      className={`size-3.5 transition-transform duration-200 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {isExpanded && (
+                  <div className="grid grid-cols-1 gap-1.5 pt-1 pl-3">
+                    {group.children.map((child) => (
+                      <FilterCheckboxItem
+                        key={child}
+                        label={child}
+                        checked={filters.industries.includes(child)}
+                        onChange={() =>
+                          onToggleArrayFilter("industries", child)
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-border pt-5">
+      {/* Mức lương kèm nút chọn nhanh */}
+      <div className="flex flex-col gap-3 border-t border-border pt-4">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
             Mức lương
           </h3>
           <span className="text-[11px] font-semibold text-primary">
-            ${displayedRange[0]} -$
-            {displayedRange[1] >= SALARY_MAX_LIMIT
+            ${effectiveRange[0]} -$
+            {effectiveRange[1] >= SALARY_MAX_LIMIT
               ? `${SALARY_MAX_LIMIT}+`
-              : displayedRange[1]}
+              : effectiveRange[1]}
           </span>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <div className="flex h-10 items-end justify-between gap-1 px-1 pt-2">
+        {/* Các mức lương chọn nhanh */}
+        <div className="grid grid-cols-3 gap-1.5">
+          {SALARY_PRESETS.map((preset) => {
+            const isActive =
+              filters.minSalary === preset.min &&
+              filters.maxSalary === preset.max;
+            return (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => onSalaryRangeChange(preset.min, preset.max)}
+                className={`cursor-pointer rounded-lg border px-2 py-1 text-[11px] font-semibold transition-colors ${
+                  isActive
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-bg text-text-muted hover:border-text-muted hover:text-text-main"
+                }`}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col gap-2 pt-1">
+          <div className="flex h-8 items-end justify-between gap-1 px-1">
             {HISTOGRAM_BARS.map((height, idx) => {
               const barValue =
                 ((idx + 0.5) / HISTOGRAM_BARS.length) * SALARY_MAX_LIMIT;
               const isInRange =
-                barValue >= displayedRange[0] && barValue <= displayedRange[1];
+                barValue >= effectiveRange[0] && barValue <= effectiveRange[1];
 
               return (
                 <div
@@ -233,24 +303,30 @@ export function JobFilterSidebar({
             min={SALARY_MIN_LIMIT}
             max={SALARY_MAX_LIMIT}
             step={SALARY_STEP}
-            value={displayedRange}
+            value={effectiveRange}
             onValueChange={handleSliderChange}
             onValueCommitted={handleSliderCommit}
-            className="w-full cursor-pointer touch-none py-1.5"
+            className="w-full cursor-pointer touch-none py-1"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2 pt-1">
+        <div className="grid grid-cols-2 gap-2">
           <div className="relative flex items-center">
             <input
               type="number"
               min={SALARY_MIN_LIMIT}
               max={SALARY_MAX_LIMIT}
               step={SALARY_STEP}
-              value={displayMinInput}
+              value={
+                isDragging
+                  ? localRange[0] <= SALARY_MIN_LIMIT
+                    ? ""
+                    : String(localRange[0])
+                  : filters.minSalary
+              }
               onChange={(e) => handleInputChange("minSalary", e.target.value)}
               placeholder="Từ 0"
-              className="w-full rounded-xl border border-border bg-bg py-2 pr-6 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
+              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-6 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
             <span className="pointer-events-none absolute right-2.5 text-xs font-semibold text-text-muted">
               $
@@ -263,10 +339,16 @@ export function JobFilterSidebar({
               min={SALARY_MIN_LIMIT}
               max={SALARY_MAX_LIMIT}
               step={SALARY_STEP}
-              value={displayMaxInput}
+              value={
+                isDragging
+                  ? localRange[1] >= SALARY_MAX_LIMIT
+                    ? ""
+                    : String(localRange[1])
+                  : filters.maxSalary
+              }
               onChange={(e) => handleInputChange("maxSalary", e.target.value)}
               placeholder={`Đến ${SALARY_MAX_LIMIT}`}
-              className="w-full rounded-xl border border-border bg-bg py-2 pr-6 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
+              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-6 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
             <span className="pointer-events-none absolute right-2.5 text-xs font-semibold text-text-muted">
               $
@@ -281,11 +363,29 @@ export function JobFilterSidebar({
         />
       </div>
 
-      <div className="flex flex-col gap-2.5 border-t border-border pt-5">
+      {/* Loại hình công việc dạng Grid 2 cột */}
+      <div className="flex flex-col gap-2.5 border-t border-border pt-4">
+        <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
+          Loại hình công việc
+        </h3>
+        <div className="grid grid-cols-2 gap-1.5">
+          {JOB_TYPE_OPTIONS.map((item) => (
+            <FilterCheckboxItem
+              key={item.value}
+              label={item.label}
+              checked={filters.jobTypes.includes(item.value)}
+              onChange={() => onToggleArrayFilter("jobTypes", item.value)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Môi trường làm việc (Thuần tiếng Anh) dạng Grid 3 cột */}
+      <div className="flex flex-col gap-2.5 border-t border-border pt-4">
         <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
           Môi trường làm việc
         </h3>
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {WORK_MODE_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
@@ -297,11 +397,12 @@ export function JobFilterSidebar({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 border-t border-border pt-5">
+      {/* Cấp bậc dạng Grid 2 cột */}
+      <div className="flex flex-col gap-2.5 border-t border-border pt-4">
         <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
           Cấp bậc
         </h3>
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-1.5">
           {JOB_LEVEL_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
@@ -312,24 +413,6 @@ export function JobFilterSidebar({
           ))}
         </div>
       </div>
-
-      {provinceOptions.length > 0 && (
-        <div className="flex flex-col gap-2.5 border-t border-border pt-5">
-          <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
-            Khu vực
-          </h3>
-          <div className="flex flex-col gap-2">
-            {provinceOptions.map((item) => (
-              <FilterCheckboxItem
-                key={item.value}
-                label={item.label}
-                checked={filters.provinces.includes(item.value)}
-                onChange={() => onToggleArrayFilter("provinces", item.value)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </aside>
   );
 }

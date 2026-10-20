@@ -2,7 +2,6 @@
 @import "tailwindcss";
 @plugin "lightswind/plugin";
 @plugin "@tailwindcss/typography";
-
 @theme {
   --font-sans: "Montserrat", sans-serif;
 

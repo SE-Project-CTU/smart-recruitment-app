@@ -1,18 +1,44 @@
 import { useMemo, useState } from "react";
-import { Search, X, BriefcaseBusiness } from "lucide-react";
+import {
+  Search,
+  X,
+  BriefcaseBusiness,
+  SlidersHorizontal,
+  ArrowUpDown,
+  ChevronDown,
+} from "lucide-react";
+import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { JobCard } from "@/components/JobCard";
 import Button from "@/components/Button";
 import {
   JobFilterSidebar,
   type JobFilterState,
 } from "@/components/JobFilterSidebar";
-import { MOCK_JOB_POSTINGS, type MockJobPosting } from "@/constants/mockData";
+import {
+  LocationCombobox,
+  type SelectedLocation,
+} from "@/components/LocationCombobox";
+import {
+  MOCK_JOB_POSTINGS,
+  MOCK_LOCATION_HIERARCHY,
+  type MockJobPosting,
+  type LocationGroup,
+} from "@/constants/mockData";
+
+type SortKey = "AI_MATCH" | "NEWEST" | "SALARY_DESC" | "SALARY_ASC";
+
+const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
+  { value: "AI_MATCH", label: "Độ phù hợp" },
+  { value: "NEWEST", label: "Mới đăng gần đây" },
+  { value: "SALARY_DESC", label: "Mức lương: Cao đến thấp" },
+  { value: "SALARY_ASC", label: "Mức lương: Thấp đến cao" },
+];
 
 const INITIAL_FILTERS: JobFilterState = {
+  industries: [],
   jobTypes: [],
   workModes: [],
   jobLevels: [],
-  provinces: [],
   minSalary: "",
   maxSalary: "",
   negotiableOnly: false,
@@ -20,22 +46,37 @@ const INITIAL_FILTERS: JobFilterState = {
 
 export default function SearchJobPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>({
+    province: null,
+    ward: null,
+  });
+  const [sortBy, setSortBy] = useState<SortKey>("AI_MATCH");
   const [filters, setFilters] = useState<JobFilterState>(INITIAL_FILTERS);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const provinceOptions = useMemo(() => {
-    const provinces = Array.from(
-      new Set(
-        (MOCK_JOB_POSTINGS || [])
-          .map((j) => j.location.provinceName)
-          .filter(Boolean),
-      ),
-    );
-    return provinces.map((p) => ({ label: p, value: p }));
+  const locationHierarchy = useMemo<LocationGroup[]>(() => {
+    const map = new Map<string, Set<string>>();
+
+    MOCK_LOCATION_HIERARCHY.forEach((group) => {
+      map.set(group.province, new Set(group.wards));
+    });
+
+    (MOCK_JOB_POSTINGS || []).forEach((job) => {
+      const p = job.location.provinceName;
+      const w = job.location.wardName;
+      if (!p) return;
+      if (!map.has(p)) map.set(p, new Set());
+      if (w) map.get(p)!.add(w);
+    });
+
+    return Array.from(map.entries()).map(([province, wardsSet]) => ({
+      province,
+      wards: Array.from(wardsSet),
+    }));
   }, []);
 
   const handleToggleArrayFilter = (
-    key: "jobTypes" | "workModes" | "jobLevels" | "provinces",
+    key: "industries" | "jobTypes" | "workModes" | "jobLevels",
     value: string,
   ) => {
     setFilters((prev) => {
@@ -49,26 +90,71 @@ export default function SearchJobPage() {
     });
   };
 
+  const handleToggleIndustryGroup = (parent: string, children: string[]) => {
+    setFilters((prev) => {
+      const groupItems = [parent, ...children];
+      const isAllSelected =
+        prev.industries.includes(parent) ||
+        children.every((c) => prev.industries.includes(c));
+
+      if (isAllSelected) {
+        return {
+          ...prev,
+          industries: prev.industries.filter(
+            (item) => !groupItems.includes(item),
+          ),
+        };
+      }
+
+      const merged = Array.from(new Set([...prev.industries, ...groupItems]));
+      return {
+        ...prev,
+        industries: merged,
+      };
+    });
+  };
+
   const handleSalaryRangeChange = (minSalary: string, maxSalary: string) => {
     setFilters((prev) => ({ ...prev, minSalary, maxSalary }));
   };
 
   const handleResetFilters = () => {
     setSearchQuery("");
+    setSelectedLocation({ province: null, ward: null });
+    setSortBy("AI_MATCH");
     setFilters(INITIAL_FILTERS);
   };
 
-  const filteredJobs = useMemo(() => {
+  const filteredAndSortedJobs = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const minSal = filters.minSalary !== "" ? Number(filters.minSalary) : null;
     const maxSal = filters.maxSalary !== "" ? Number(filters.maxSalary) : null;
 
-    return (MOCK_JOB_POSTINGS || []).filter((job: MockJobPosting) => {
+    const list = (MOCK_JOB_POSTINGS || []).filter((job: MockJobPosting) => {
       if (q) {
         const matchTitle = job.title.toLowerCase().includes(q);
         const matchCompany = job.company.name.toLowerCase().includes(q);
         const matchSkill = job.skills?.some((s) => s.toLowerCase().includes(q));
         if (!matchTitle && !matchCompany && !matchSkill) return false;
+      }
+
+      if (selectedLocation.province) {
+        if (job.location.provinceName !== selectedLocation.province) {
+          return false;
+        }
+        if (
+          selectedLocation.ward &&
+          job.location.wardName !== selectedLocation.ward
+        ) {
+          return false;
+        }
+      }
+
+      if (filters.industries.length > 0) {
+        const hasMatchingIndustry = job.industries?.some((ind) =>
+          filters.industries.includes(ind),
+        );
+        if (!hasMatchingIndustry) return false;
       }
 
       if (
@@ -92,13 +178,6 @@ export default function SearchJobPage() {
         return false;
       }
 
-      if (
-        filters.provinces.length > 0 &&
-        !filters.provinces.includes(job.location.provinceName)
-      ) {
-        return false;
-      }
-
       if (filters.negotiableOnly && !job.salaryNegotiable) {
         return false;
       }
@@ -113,41 +192,128 @@ export default function SearchJobPage() {
 
       return true;
     });
-  }, [searchQuery, filters]);
+
+    return [...list].sort((a, b) => {
+      switch (sortBy) {
+        case "AI_MATCH":
+          return (b.aiMatchScore ?? 0) - (a.aiMatchScore ?? 0);
+        case "NEWEST":
+          return (
+            new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
+          );
+        case "SALARY_DESC":
+          return (b.salaryMax ?? 0) - (a.salaryMax ?? 0);
+        case "SALARY_ASC":
+          return (a.salaryMin ?? 0) - (b.salaryMin ?? 0);
+        default:
+          return 0;
+      }
+    });
+  }, [searchQuery, selectedLocation, filters, sortBy]);
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="relative flex flex-1 items-center">
-        <Search className="pointer-events-none absolute left-3.5 size-4.5 text-text-muted" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Tìm theo vị trí công việc hoặc tên công ty..."
-          className="w-full rounded-2xl border border-border bg-bg py-2.5 pr-9 pl-10 text-sm font-medium text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
-        />
-        {searchQuery && (
-          <button
+      <div className="flex flex-col gap-3 rounded-3xl md:flex-row md:items-center">
+        <div className="relative flex flex-1 items-center">
+          <Search className="pointer-events-none absolute left-3.5 size-4.5 text-text-muted" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Tìm theo vị trí công việc, công ty hoặc kỹ năng..."
+            className="w-full rounded-2xl border border-border bg-bg py-2.5 pr-9 pl-10 text-xs font-medium text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none sm:text-sm"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 cursor-pointer text-text-muted hover:text-text-main"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5 sm:flex-nowrap">
+          <LocationCombobox
+            value={selectedLocation}
+            onChange={setSelectedLocation}
+            groups={locationHierarchy}
+          />
+
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-bg px-3.5 py-2.5">
+            <ArrowUpDown className="size-3.5 shrink-0 text-text-muted" />
+            <span className="text-xs whitespace-nowrap text-text-muted">
+              Sắp xếp:
+            </span>
+
+            <Select.Root
+              items={SORT_OPTIONS}
+              value={sortBy}
+              onValueChange={(val) => {
+                if (val) setSortBy(val as SortKey);
+              }}
+            >
+              <Select.Trigger
+                aria-label="Sắp xếp công việc"
+                className="group flex cursor-pointer items-center gap-1.5 text-xs font-semibold whitespace-nowrap text-text-main focus:outline-none"
+              >
+                <Select.Value />
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                  <ChevronDown className="size-3.5" />
+                </Select.Icon>
+              </Select.Trigger>
+
+              <Select.Portal>
+                <Select.Positioner alignItemWithTrigger={false} sideOffset={6}>
+                  <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
+                    <Select.List>
+                      {SORT_OPTIONS.map((opt) => (
+                        <Select.Item
+                          key={opt.value}
+                          value={opt.value}
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        >
+                          <Select.ItemText>{opt.label}</Select.ItemText>
+                          <Select.ItemIndicator
+                            animation="pop"
+                            className="ml-2 text-xs text-primary"
+                          >
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          </div>
+
+          <Button
             type="button"
-            onClick={() => setSearchQuery("")}
-            className="absolute right-3 cursor-pointer text-text-muted hover:text-text-main"
+            variant="secondary"
+            icon={SlidersHorizontal}
+            iconSize={14}
+            onClick={() => setIsMobileFilterOpen(true)}
+            className="shrink-0 rounded-2xl! px-3.5! py-2.5! text-xs! lg:hidden!"
           >
-            <X className="size-4" />
-          </button>
-        )}
+            Bộ lọc
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col items-start gap-6 lg:flex-row">
-        <div className="hidden w-68 shrink-0 lg:block">
+        <div className="sticky top-20 hidden w-72 shrink-0 lg:block">
           <JobFilterSidebar
             filters={filters}
             onToggleArrayFilter={handleToggleArrayFilter}
+            onToggleIndustryGroup={handleToggleIndustryGroup}
             onSalaryRangeChange={handleSalaryRangeChange}
             onToggleNegotiable={(checked) =>
               setFilters((prev) => ({ ...prev, negotiableOnly: checked }))
             }
             onReset={handleResetFilters}
-            provinceOptions={provinceOptions}
           />
         </div>
 
@@ -173,12 +339,12 @@ export default function SearchJobPage() {
               <JobFilterSidebar
                 filters={filters}
                 onToggleArrayFilter={handleToggleArrayFilter}
+                onToggleIndustryGroup={handleToggleIndustryGroup}
                 onSalaryRangeChange={handleSalaryRangeChange}
                 onToggleNegotiable={(checked) =>
                   setFilters((prev) => ({ ...prev, negotiableOnly: checked }))
                 }
                 onReset={handleResetFilters}
-                provinceOptions={provinceOptions}
               />
             </div>
           </div>
@@ -189,13 +355,13 @@ export default function SearchJobPage() {
             <p className="text-xs font-medium text-text-muted">
               Tìm thấy{" "}
               <span className="font-bold text-text-main">
-                {filteredJobs.length}
+                {filteredAndSortedJobs.length}
               </span>{" "}
               công việc phù hợp
             </p>
           </div>
 
-          {filteredJobs.length === 0 ? (
+          {filteredAndSortedJobs.length === 0 ? (
             <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-surface p-8 text-center">
               <div className="flex size-12 items-center justify-center rounded-full bg-secondary-light text-primary">
                 <BriefcaseBusiness className="size-6" />
@@ -205,8 +371,8 @@ export default function SearchJobPage() {
                   Không tìm thấy công việc phù hợp
                 </h3>
                 <p className="max-w-md text-xs text-text-muted">
-                  Thử thay đổi từ khóa tìm kiếm hoặc xóa bớt các điều kiện lọc
-                  để xem thêm nhiều cơ hội việc làm khác.
+                  Thử thay đổi từ khóa tìm kiếm, khu vực hoặc xóa bớt các điều
+                  kiện lọc để xem thêm cơ hội việc làm.
                 </p>
               </div>
               <Button
@@ -219,14 +385,10 @@ export default function SearchJobPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 xl:grid-cols-4">
-              {filteredJobs.slice(0, 1).map((job) => (
+            <div className="grid grid-cols-1 justify-items-center gap-5 lg:grid-cols-2 xl:grid-cols-4">
+              {filteredAndSortedJobs.map((job) => (
                 <JobCard key={job.id} job={job} />
-              ))}
-
-              {filteredJobs.slice(1).map((job) => (
-                <JobCard key={job.id} job={job} />
-              ))}
+              ))}{" "}
             </div>
           )}
         </div>
