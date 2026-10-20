@@ -8,6 +8,7 @@ using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.JobPostings.Commands.CreateJobPosting;
 using SmartHire.Application.Features.JobPostings.Commands.UpdateJobPosting;
+using SmartHire.Application.Features.JobPostings.Commands.UpdateJobPostingStatus;
 using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Application.Features.JobPostings.Queries.GetJobPostingDetail;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
@@ -172,6 +173,17 @@ public sealed class JobPostingController : ControllerBase {
             request.SkillIds,
             request.SkillIdsProvided);
 
+        var result = await _sender.Send(command, cancellationToken);
+        return Ok(_responseFactory.Success(result));
+    }
+
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(
+        [FromRoute] string id,
+        [FromBody] UpdateJobPostingStatusRequest? request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateJobPostingStatusCommand(id, request?.Status);
         var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));
     }

@@ -28,6 +28,8 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting> {
         builder.Property(x => x.Status)
             .HasConversion<string>();
 
+        builder.HasIndex(x => x.Status);
+
         builder.Property<NpgsqlTsVector>("SearchVector")
             .HasColumnType("tsvector")
             .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(title, ''::text))", stored: true);

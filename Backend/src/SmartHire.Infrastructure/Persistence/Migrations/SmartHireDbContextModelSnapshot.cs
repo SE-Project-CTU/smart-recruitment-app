@@ -923,6 +923,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
 
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_job_postings_status");
+
                     b.HasIndex("WardId")
                         .HasDatabaseName("ix_job_postings_ward_id");
 

@@ -254,6 +254,22 @@ public class JobPosting {
         UpdatedAt = now;
     }
 
+    public void Close(DateTimeOffset now) {
+        if (Status == JobPostingStatus.Closed || Status == JobPostingStatus.Expired) {
+            throw new InvalidOperationException($"Cannot close a job posting that is already in '{Status}' status.");
+        }
+        Status = JobPostingStatus.Closed;
+        UpdatedAt = now;
+    }
+
+    public void Expire(DateTimeOffset now) {
+        if (Status != JobPostingStatus.Published) {
+            return;
+        }
+        Status = JobPostingStatus.Expired;
+        UpdatedAt = now;
+    }
+
     public void UpdateIndustries(IEnumerable<Guid> industryIds) {
         var distinctIds = industryIds.Where(id => id != Guid.Empty).Distinct().ToHashSet();
         
