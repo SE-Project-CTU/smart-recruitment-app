@@ -4,15 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Applications.Queries.GetApplicationDetail;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 
 namespace SmartHire.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = RoleNames.Candidate)]
-[Route("api/v1/me/applications")]
+[Route("api/v1/applications")]
 public sealed class ApplicationsController(ISender sender, ApiResponseFactory responseFactory) : ControllerBase {
-    [HttpGet]
+    [Authorize(Roles = RoleNames.Candidate)]
+    [HttpGet("me")]
     public async Task<IActionResult> List(
         [FromQuery] string? status,
         [FromQuery] int page = PagedListQueryValidator.FirstPage,
@@ -29,5 +30,14 @@ public sealed class ApplicationsController(ISender sender, ApiResponseFactory re
             result.Page,
             result.PageSize,
             result.TotalItems));
+    }
+
+    [Authorize]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(
+        Guid id,
+        CancellationToken cancellationToken) {
+        var result = await sender.Send(new GetApplicationDetailQuery(id), cancellationToken);
+        return Ok(responseFactory.Success(result));
     }
 }

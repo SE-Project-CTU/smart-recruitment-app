@@ -82,6 +82,25 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         CancellationToken cancellationToken) =>
         ApplyJobFilters(jobId, status).CountAsync(cancellationToken);
 
+    public Task<ApplicationDetailData?> GetDetailByIdAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications
+            .AsNoTracking()
+            .Where(application => application.Id == applicationId)
+            .Select(application => new ApplicationDetailData(
+                application.Id,
+                application.JobId,
+                application.CandidateId,
+                application.Job.CompanyId,
+                application.CvVersionId,
+                application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
+                application.CoverLetter,
+                application.Status,
+                application.AppliedAt,
+                application.UpdatedAt))
+            .SingleOrDefaultAsync(cancellationToken);
+
     public Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
         Guid jobId,
         ApplicationStatus? status,

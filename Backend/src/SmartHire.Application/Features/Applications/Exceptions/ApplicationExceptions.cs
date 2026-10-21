@@ -16,6 +16,32 @@ internal static class ApplicationExceptions {
         "Application query contains invalid parameters.",
         details.ToArray());
 
+    public static AppException InvalidApplicationId() => new(
+        AppErrorKind.BadRequest,
+        ApplicationErrorCodes.InvalidApplicationId,
+        "Application ID has an invalid format.",
+        [new AppErrorDetail("id", ValidationReasons.InvalidFormat,
+            "The id path parameter must be a valid UUID.")]);
+
+    public static AppException ApplicationNotFound(Guid id) => new(
+        AppErrorKind.NotFound,
+        ApplicationErrorCodes.ApplicationNotFound,
+        "Application was not found.",
+        [new AppErrorDetail("id", ErrorDetailReasons.NotFound,
+            $"No application with ID '{id}' exists.")]);
+
+    public static AppException ApplicationForbidden() => new(
+        AppErrorKind.Forbidden,
+        ApplicationErrorCodes.ApplicationForbidden,
+        "You do not have permission to view this application.");
+
+    public static AppException InvalidAccessToken() => new(
+        AppErrorKind.Unauthorized,
+        AuthErrorCodes.InvalidAccessToken,
+        "The access token does not contain a valid user ID.",
+        [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
+            "A valid user identity is required.")]);
+
     public static AppException JobNotFound(Guid id) => new(
         AppErrorKind.NotFound,
         ApplicationErrorCodes.JobNotFound,
