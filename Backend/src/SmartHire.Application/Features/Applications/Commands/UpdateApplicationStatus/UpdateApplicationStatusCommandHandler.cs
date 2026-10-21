@@ -1,10 +1,14 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
+using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Applications.DTOs;
 using SmartHire.Application.Features.Applications.Exceptions;
 using SmartHire.Application.Features.Applications.Mapping;
+using SmartHire.Application.Features.Applications.Notifications;
+using SmartHire.Application.Features.Notifications.Jobs.DispatchNotificationBatch;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -15,17 +19,26 @@ public sealed class UpdateApplicationStatusCommandHandler
     private readonly ICurrentUser _currentUser;
     private readonly IJobApplicationRepository _applicationRepository;
     private readonly ICompanyRepository _companyRepository;
+    private readonly INotificationRepository _notificationRepository;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<UpdateApplicationStatusCommandHandler> _logger;
 
     public UpdateApplicationStatusCommandHandler(
         ICurrentUser currentUser,
         IJobApplicationRepository applicationRepository,
         ICompanyRepository companyRepository,
-        IUnitOfWork unitOfWork) {
+        INotificationRepository notificationRepository,
+        IBackgroundJobScheduler backgroundJobScheduler,
+        IUnitOfWork unitOfWork,
+        ILogger<UpdateApplicationStatusCommandHandler> logger) {
         _currentUser = currentUser;
         _applicationRepository = applicationRepository;
         _companyRepository = companyRepository;
+        _notificationRepository = notificationRepository;
+        _backgroundJobScheduler = backgroundJobScheduler;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<UpdateApplicationStatusResult> Handle(
@@ -50,15 +63,35 @@ public sealed class UpdateApplicationStatusCommandHandler
         }
 
         var now = DateTimeOffset.UtcNow;
-        if (!application.TryChangeStatus(validated.Status, now)) {
-            throw ApplicationExceptions.InvalidStatusTransition(application.Status, validated.Status);
+        var transactionResult = await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+            if (!application.TryChangeStatus(validated.Status, now)) {
+                throw ApplicationExceptions.InvalidStatusTransition(application.Status, validated.Status);
+            }
+
+            var history = ApplicationStatusHistory.Create(application, userId, validated.Note, now);
+            application.StatusHistories.Add(history);
+
+            var notification = ApplicationStatusUpdateNotificationFactory.Create(application, now);
+            await _notificationRepository.AddAsync(notification, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            return (
+                Result: UpdateApplicationStatusMapper.ToResult(application, history),
+                NotificationId: notification.Id);
+        }, cancellationToken);
+
+        try {
+            _backgroundJobScheduler.Enqueue<DispatchNotificationBatchJob, DispatchNotificationBatchJobArgs>(
+                new DispatchNotificationBatchJobArgs([transactionResult.NotificationId]));
+        }
+        catch (Exception exception) {
+            _logger.LogError(
+                exception,
+                "Could not enqueue realtime dispatch for application {ApplicationId} status update notification {NotificationId}.",
+                application.Id,
+                transactionResult.NotificationId);
         }
 
-        var history = ApplicationStatusHistory.Create(application, userId, validated.Note, now);
-        application.StatusHistories.Add(history);
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return UpdateApplicationStatusMapper.ToResult(application, history);
+        return transactionResult.Result;
     }
 }

@@ -106,6 +106,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         CancellationToken cancellationToken) =>
         dbContext.Applications
             .Include(application => application.Job)
+                .ThenInclude(job => job.Company)
             .Include(application => application.UploadedCvFile)
             .SingleOrDefaultAsync(application => application.Id == applicationId, cancellationToken);
 
