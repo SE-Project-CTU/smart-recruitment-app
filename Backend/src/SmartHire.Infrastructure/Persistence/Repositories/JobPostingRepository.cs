@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 using SmartHire.Domain.Entities;
@@ -164,6 +165,23 @@ public sealed class JobPostingRepository : IJobPostingRepository
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
+    public Task<JobPosting?> GetForApplicationByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.JobPostings
+            .AsNoTracking()
+            .Include(posting => posting.Company)
+            .SingleOrDefaultAsync(posting => posting.Id == id, cancellationToken);
+    }
+
+    public Task<Guid?> GetCompanyIdByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.JobPostings
+            .AsNoTracking()
+            .Where(posting => posting.Id == id)
+            .Select(posting => (Guid?)posting.CompanyId)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<JobPosting>> GetPublishedOverduePostingsAsync(
         DateTimeOffset now,
         CancellationToken cancellationToken)
@@ -178,12 +196,12 @@ public sealed class JobPostingRepository : IJobPostingRepository
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         SearchJobPostingsSort sort,
-        SearchJobPostingsDirection direction)
+        SortDirection direction)
     {
         if (sort == SearchJobPostingsSort.SalaryMax)
         {
             // Keep postings without a disclosed maximum salary last in both directions.
-            return direction == SearchJobPostingsDirection.Asc
+            return direction == SortDirection.Asc
                 ? query.OrderBy(posting => posting.SalaryMax == null)
                     .ThenBy(posting => posting.SalaryMax)
                     .ThenBy(posting => posting.Id)
@@ -192,7 +210,7 @@ public sealed class JobPostingRepository : IJobPostingRepository
                     .ThenBy(posting => posting.Id);
         }
 
-        return direction == SearchJobPostingsDirection.Asc
+        return direction == SortDirection.Asc
             ? query.OrderBy(posting => posting.CreatedAt).ThenBy(posting => posting.Id)
             : query.OrderByDescending(posting => posting.CreatedAt).ThenBy(posting => posting.Id);
     }

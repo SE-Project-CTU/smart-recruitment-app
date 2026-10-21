@@ -18,7 +18,7 @@ public interface IUserRepository {
         User user,
         CancellationToken cancellationToken
     );
-    
+
     Task SaveChangeAsync(CancellationToken cancellationToken);
     
     Task<User?> GetByEmailWithRolesAsync(

@@ -728,9 +728,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_applications");
 
-                    b.HasIndex("CandidateId")
-                        .HasDatabaseName("ix_applications_candidate_id");
-
                     b.HasIndex("CvVersionId")
                         .HasDatabaseName("ix_applications_cv_version_id");
 
@@ -740,6 +737,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("UploadedCvFileId")
                         .IsUnique()
                         .HasDatabaseName("ix_applications_uploaded_cv_file_id");
+
+                    b.HasIndex("CandidateId", "JobId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_applications_candidate_id_job_id");
 
                     b.ToTable("applications", null, t =>
                         {

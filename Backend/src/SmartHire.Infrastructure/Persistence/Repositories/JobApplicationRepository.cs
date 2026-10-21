@@ -1,0 +1,180 @@
+using Microsoft.EntityFrameworkCore;
+using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Abstractions.Persistence.ReadModels;
+using SmartHire.Application.Common.Sorting;
+using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
+using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
+using SmartHire.Domain.Entities;
+using SmartHire.Domain.Enums;
+
+namespace SmartHire.Infrastructure.Persistence.Repositories;
+
+public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJobApplicationRepository {
+    public Task<bool> ExistsForCandidateAsync(
+        Guid jobId,
+        Guid candidateId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications.AsNoTracking()
+            .AnyAsync(application => application.JobId == jobId && application.CandidateId == candidateId,
+                cancellationToken);
+
+    public Task<bool> IsUploadedCvFileInUseAsync(Guid fileId, CancellationToken cancellationToken) =>
+        dbContext.Applications.AsNoTracking()
+            .AnyAsync(application => application.UploadedCvFileId == fileId, cancellationToken);
+
+    public async Task AddAsync(JobApplication application, CancellationToken cancellationToken) =>
+        await dbContext.Applications.AddAsync(application, cancellationToken);
+
+    public Task<int> CountMineAsync(
+        Guid candidateId,
+        ApplicationStatus? status,
+        CancellationToken cancellationToken) =>
+        ApplyMineFilters(candidateId, status).CountAsync(cancellationToken);
+
+    public Task<List<ApplicationListItemData>> GetMinePageAsync(
+        Guid candidateId,
+        ApplicationStatus? status,
+        MyApplicationsSort sort,
+        SortDirection direction,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = ApplyMineFilters(candidateId, status);
+        IOrderedQueryable<JobApplication> ordered = (sort, direction) switch {
+            (MyApplicationsSort.AppliedAt, SortDirection.Asc) =>
+                query.OrderBy(application => application.AppliedAt).ThenBy(application => application.Id),
+            (MyApplicationsSort.AppliedAt, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.AppliedAt).ThenBy(application => application.Id),
+            (MyApplicationsSort.UpdatedAt, SortDirection.Asc) =>
+                query.OrderBy(application => application.UpdatedAt).ThenBy(application => application.Id),
+            (MyApplicationsSort.UpdatedAt, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.UpdatedAt).ThenBy(application => application.Id),
+            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unsupported application ordering.")
+        };
+
+        return ordered
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(application => new ApplicationListItemData(
+                application.Id,
+                application.JobId,
+                application.CandidateId,
+                application.CvVersionId,
+                application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
+                application.CoverLetter,
+                application.Status,
+                application.AppliedAt,
+                application.UpdatedAt))
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<JobApplication> ApplyMineFilters(Guid candidateId, ApplicationStatus? status) {
+        var query = dbContext.Applications
+            .AsNoTracking()
+            .Where(application => application.CandidateId == candidateId);
+        if (status.HasValue) query = query.Where(application => application.Status == status.Value);
+        return query;
+    }
+
+    public Task<int> CountByJobIdAsync(
+        Guid jobId,
+        ApplicationStatus? status,
+        CancellationToken cancellationToken) =>
+        ApplyJobFilters(jobId, status).CountAsync(cancellationToken);
+
+    public Task<ApplicationDetailData?> GetDetailByIdAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications
+            .AsNoTracking()
+            .Where(application => application.Id == applicationId)
+            .Select(application => new ApplicationDetailData(
+                application.Id,
+                application.JobId,
+                application.CandidateId,
+                application.Job.CompanyId,
+                application.CvVersionId,
+                application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
+                application.CoverLetter,
+                application.Status,
+                application.AppliedAt,
+                application.UpdatedAt))
+            .SingleOrDefaultAsync(cancellationToken);
+
+    public Task<int> CountStatusHistoryAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        dbContext.ApplicationStatusHistories
+            .CountAsync(history => history.ApplicationId == applicationId, cancellationToken);
+
+    public Task<List<ApplicationStatusHistoryData>> GetStatusHistoryPageAsync(
+        Guid applicationId,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken) =>
+        dbContext.ApplicationStatusHistories
+            .AsNoTracking()
+            .Where(history => history.ApplicationId == applicationId)
+            .OrderBy(history => history.CreatedAt)
+            .ThenBy(history => history.Id)
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(history => new ApplicationStatusHistoryData(
+                history.Id,
+                history.ApplicationId,
+                history.Status,
+                history.ChangedBy,
+                history.Note,
+                history.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+    public Task<JobApplication?> GetForStatusUpdateByIdAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications
+            .Include(application => application.Job)
+                .ThenInclude(job => job.Company)
+            .Include(application => application.UploadedCvFile)
+            .SingleOrDefaultAsync(application => application.Id == applicationId, cancellationToken);
+
+    public Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
+        Guid jobId,
+        ApplicationStatus? status,
+        JobApplicationsSort sort,
+        SortDirection direction,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = ApplyJobFilters(jobId, status);
+        IOrderedQueryable<JobApplication> ordered = (sort, direction) switch {
+            (JobApplicationsSort.CreatedAt, SortDirection.Asc) =>
+                query.OrderBy(application => application.AppliedAt).ThenBy(application => application.Id),
+            (JobApplicationsSort.CreatedAt, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.AppliedAt).ThenBy(application => application.Id),
+            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unsupported job application ordering.")
+        };
+
+        return ordered
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(application => new ApplicationListItemData(
+                application.Id,
+                application.JobId,
+                application.CandidateId,
+                application.CvVersionId,
+                application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
+                application.CoverLetter,
+                application.Status,
+                application.AppliedAt,
+                application.UpdatedAt))
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<JobApplication> ApplyJobFilters(Guid jobId, ApplicationStatus? status) {
+        var query = dbContext.Applications
+            .AsNoTracking()
+            .Where(application => application.JobId == jobId);
+        if (status.HasValue) query = query.Where(application => application.Status == status.Value);
+        return query;
+    }
+}

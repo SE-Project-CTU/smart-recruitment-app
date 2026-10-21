@@ -6,17 +6,19 @@ using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.JobPostings.Commands.CreateJobPosting;
 using SmartHire.Application.Features.JobPostings.Commands.UpdateJobPosting;
 using SmartHire.Application.Features.JobPostings.Commands.UpdateJobPostingStatus;
 using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Application.Features.JobPostings.Queries.GetJobPostingDetail;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
+using SmartHire.Application.Features.Applications.Commands.ApplyToJobPosting;
+using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
 
 namespace SmartHire.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = RoleNames.Recruiter)]
 [Route("api/v1/job-postings")]
 public sealed class JobPostingController : ControllerBase {
     private readonly ISender _sender;
@@ -56,6 +58,7 @@ public sealed class JobPostingController : ControllerBase {
     }
     
     [HttpPost]
+    [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> Create(
         [FromBody] CreateJobPostingRequest request,
         CancellationToken cancellationToken) {
@@ -106,6 +109,7 @@ public sealed class JobPostingController : ControllerBase {
     /// Disallowed fields (companyId, createdBy, status, createdAt, updatedAt) are rejected with 422.
     /// </summary>
     [HttpPatch("{id}")]
+    [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> Update(
         [FromRoute] string id,
         [FromBody] UpdateJobPostingRequest? request,
@@ -178,6 +182,7 @@ public sealed class JobPostingController : ControllerBase {
     }
 
     [HttpPatch("{id}/status")]
+    [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> UpdateStatus(
         [FromRoute] string id,
         [FromBody] UpdateJobPostingStatusRequest? request,
@@ -186,5 +191,48 @@ public sealed class JobPostingController : ControllerBase {
         var command = new UpdateJobPostingStatusCommand(id, request?.Status);
         var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));
+    }
+
+    [HttpPost("{id}/applications")]
+    [Authorize(Roles = RoleNames.Candidate)]
+    public async Task<IActionResult> Apply(
+        [FromRoute] string id,
+        [FromBody] ApplyToJobPostingRequest? request,
+        CancellationToken cancellationToken) {
+        if (request is null) {
+            throw new AppException(
+                AppErrorKind.BadRequest,
+                CommonErrorCodes.InvalidRequestBody,
+                "Request body is required.");
+        }
+
+        var result = await _sender.Send(new ApplyToJobPostingCommand(
+            id,
+            request.CvVersionId,
+            request.UploadedCvFileId,
+            request.CoverLetter), cancellationToken);
+
+        return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
+    }
+
+    [HttpGet("{id}/applications")]
+    [Authorize(Roles = RoleNames.Recruiter)]
+    public async Task<IActionResult> ListApplications(
+        [FromRoute] string id,
+        [FromQuery] string? status,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? sort = null,
+        [FromQuery] string? direction = null,
+        CancellationToken cancellationToken = default) {
+        var result = await _sender.Send(
+            new ListApplicationsForJobQuery(id, status, page, pageSize, sort, direction),
+            cancellationToken);
+
+        return Ok(_responseFactory.PagedOneBased(
+            result.Items,
+            result.Page,
+            result.PageSize,
+            result.TotalItems));
     }
 }
