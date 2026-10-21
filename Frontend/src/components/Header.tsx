@@ -25,6 +25,7 @@ import {
   MenuItem,
   MenuSeparator,
 } from "@/components/animate-ui/components/base/menu";
+import { UserAvatar } from "./UserAvatar";
 
 const headerItems = [
   { title: "Việc làm", href: PATHS.SEARCH_JOB },
@@ -81,11 +82,7 @@ function Header() {
                 openOnHover
                 className="flex cursor-pointer items-center gap-2.5 rounded-full p-1 shadow-2xs backdrop-blur-xs transition-transform focus:outline-none active:scale-95"
               >
-                <img
-                  src={user?.avatarUrl || getLoremAvt(user?.fullName)}
-                  alt={user?.fullName || "User Avatar"}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
+                <UserAvatar src={user?.avatarUrl || ""} name={user?.fullName} />
               </MenuTrigger>
 
               <MenuPanel align="end" className="min-w-52">

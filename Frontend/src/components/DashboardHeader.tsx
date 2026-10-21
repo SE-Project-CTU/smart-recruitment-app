@@ -14,7 +14,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SmartHire_default } from "@/assets/images/logo";
 import { useAuthStore } from "@/stores/authStore";
 import { PATHS } from "@/constants/paths";
-import { getLoremAvt, getProfilePathByRole } from "@/utils/helper";
+import { getProfilePathByRole } from "@/utils/helper";
 import Button from "./Button";
 import {
   Menu,
@@ -25,6 +25,7 @@ import {
   MenuSeparator,
 } from "@/components/animate-ui/components/base/menu";
 import { useLogout } from "@/hooks/queries/useAccount";
+import { UserAvatar } from "./UserAvatar";
 
 function DashboardHeader() {
   const { user } = useAuthStore();
@@ -113,11 +114,7 @@ function DashboardHeader() {
               openOnHover
               className="flex cursor-pointer items-center gap-2.5 rounded-lg p-1 transition-colors hover:bg-slate-100/80 focus:outline-none"
             >
-              <img
-                src={user?.avatarUrl || getLoremAvt(user?.fullName)}
-                alt={user?.fullName || "User Avatar"}
-                className="aspect-square h-8 w-8 min-w-8 rounded-full object-cover"
-              />
+              <UserAvatar src={user?.avatarUrl || ""} name={user?.fullName} />
               <div className="hidden flex-col text-left md:flex">
                 <span className="text-xs leading-tight font-semibold text-slate-800">
                   {displayName}
