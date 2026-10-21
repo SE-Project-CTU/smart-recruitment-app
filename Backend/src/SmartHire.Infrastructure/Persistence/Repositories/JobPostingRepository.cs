@@ -164,6 +164,14 @@ public sealed class JobPostingRepository : IJobPostingRepository
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
+    public Task<JobPosting?> GetForApplicationByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.JobPostings
+            .AsNoTracking()
+            .Include(posting => posting.Company)
+            .SingleOrDefaultAsync(posting => posting.Id == id, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<JobPosting>> GetPublishedOverduePostingsAsync(
         DateTimeOffset now,
         CancellationToken cancellationToken)

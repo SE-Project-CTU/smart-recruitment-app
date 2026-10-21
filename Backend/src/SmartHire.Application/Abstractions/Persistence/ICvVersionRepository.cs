@@ -16,4 +16,5 @@ public interface ICvVersionRepository {
         Guid cvId,
         Guid versionId,
         CancellationToken cancellationToken);
+    Task<bool> IsOwnedByCandidateAsync(Guid versionId, Guid candidateId, CancellationToken cancellationToken);
 }

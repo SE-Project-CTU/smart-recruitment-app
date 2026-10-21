@@ -86,6 +86,8 @@ public sealed class ApiExceptionHandler(
             AppErrorKind.NotFound => StatusCodes.Status404NotFound,
             AppErrorKind.Conflict => StatusCodes.Status409Conflict,
             AppErrorKind.Gone => StatusCodes.Status410Gone,
+            AppErrorKind.PayloadTooLarge => StatusCodes.Status413PayloadTooLarge,
+            AppErrorKind.UnsupportedMediaType => StatusCodes.Status415UnsupportedMediaType,
             _ => StatusCodes.Status500InternalServerError
         };
     }

@@ -66,4 +66,14 @@ public sealed class CvVersionRepository : ICvVersionRepository {
                 version => version.CvId == cvId && version.Id == versionId,
                 cancellationToken);
     }
+
+    public Task<bool> IsOwnedByCandidateAsync(
+        Guid versionId,
+        Guid candidateId,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .AnyAsync(version => version.Id == versionId && version.Cv.CandidateId == candidateId,
+                cancellationToken);
+    }
 }

@@ -13,4 +13,21 @@ public class ApplicationStatusHistory {
     public DateTimeOffset CreatedAt { get; private set; }
 
     private ApplicationStatusHistory() { }
+
+    public static ApplicationStatusHistory Create(
+        JobApplication application,
+        Guid changedBy,
+        string? note,
+        DateTimeOffset now) {
+        ArgumentNullException.ThrowIfNull(application);
+        if (changedBy == Guid.Empty) throw new ArgumentException("User ID is required.", nameof(changedBy));
+
+        return new ApplicationStatusHistory {
+            Application = application,
+            Status = application.Status,
+            ChangedBy = changedBy,
+            Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
+            CreatedAt = now
+        };
+    }
 }
