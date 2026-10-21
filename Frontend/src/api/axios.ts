@@ -6,6 +6,7 @@ import axios, {
 import { config } from "@/api/env";
 import { handleApiError } from "./errorHandler";
 import { useAuthStore } from "@/stores/authStore";
+import { getRefreshToken } from "@/utils/cookie";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 const axiosClient = axios.create({
@@ -104,7 +105,8 @@ axiosClient.interceptors.response.use(
         originalRequest._retry = true;
       }
 
-      const refreshToken = useAuthStore.getState().refreshToken;
+      const refreshToken =
+        useAuthStore.getState().refreshToken || getRefreshToken();
 
       // Không có refresh token -> xóa phiên và reject
       if (!refreshToken) {
@@ -130,10 +132,22 @@ axiosClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        const correlationId =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : "550e8400-e29b-41d4-a716-446655440000";
+
+        const refreshUrl = `${config.api.baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`;
+
         const refreshResponse = await axios.post(
-          `${config.api.baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`,
+          refreshUrl,
           { refreshToken },
-          { headers: { "Content-Type": "application/json" } },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-Correlation-ID": correlationId,
+            },
+          },
         );
 
         const newAuthData = refreshResponse.data?.data;
