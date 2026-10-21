@@ -2,6 +2,7 @@
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Application.Features.Cv.Mapping;
 

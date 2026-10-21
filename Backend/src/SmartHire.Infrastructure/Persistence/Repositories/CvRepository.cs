@@ -3,6 +3,7 @@ using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.Queries.GetMyCvs;
 using SmartHire.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
