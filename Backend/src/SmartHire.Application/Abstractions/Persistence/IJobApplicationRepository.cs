@@ -1,6 +1,7 @@
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 
 namespace SmartHire.Application.Abstractions.Persistence;
@@ -14,7 +15,7 @@ public interface IJobApplicationRepository {
         Guid candidateId,
         ApplicationStatus? status,
         MyApplicationsSort sort,
-        MyApplicationsDirection direction,
+        SortDirection direction,
         int skip,
         int pageSize,
         CancellationToken cancellationToken);

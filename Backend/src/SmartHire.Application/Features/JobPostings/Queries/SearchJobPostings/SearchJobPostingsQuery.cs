@@ -1,5 +1,6 @@
 using MediatR;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.JobPostings.DTOs;
 
 namespace SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
@@ -38,7 +39,7 @@ public sealed record SearchJobPostingsCriteria(
     SmartHire.Domain.Enums.WorkMode? WorkMode,
     int? ExperienceYears,
     SearchJobPostingsSort Sort,
-    SearchJobPostingsDirection Direction,
+    SortDirection Direction,
     int Skip,
     int PageSize,
     DateTimeOffset Now);
@@ -46,9 +47,4 @@ public sealed record SearchJobPostingsCriteria(
 public enum SearchJobPostingsSort {
     CreatedAt,
     SalaryMax
-}
-
-public enum SearchJobPostingsDirection {
-    Asc,
-    Desc
 }

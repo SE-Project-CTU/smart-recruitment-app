@@ -1,6 +1,7 @@
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Exceptions;
 using SmartHire.Application.Features.Applications.Mapping;
 using SmartHire.Domain.Enums;
@@ -25,7 +26,7 @@ internal static class ListMyApplicationsQueryValidator {
         }
 
         var sort = ParseSort(query.Sort, details);
-        var direction = ParseDirection(query.Direction, details);
+        var direction = SortDirectionValidator.Parse(query.Direction, details);
         if (details.Count > 0) {
             throw new AppException(
                 AppErrorKind.BadRequest,
@@ -48,14 +49,4 @@ internal static class ListMyApplicationsQueryValidator {
         return MyApplicationsSort.AppliedAt;
     }
 
-    private static MyApplicationsDirection ParseDirection(string? value, ICollection<AppErrorDetail> details) {
-        if (string.IsNullOrWhiteSpace(value) || value.Equals("desc", StringComparison.OrdinalIgnoreCase))
-            return MyApplicationsDirection.Desc;
-        if (value.Equals("asc", StringComparison.OrdinalIgnoreCase))
-            return MyApplicationsDirection.Asc;
-
-        details.Add(new AppErrorDetail("direction", ValidationReasons.InvalidFormat,
-            "Direction must be 'asc' or 'desc'."));
-        return MyApplicationsDirection.Desc;
-    }
 }

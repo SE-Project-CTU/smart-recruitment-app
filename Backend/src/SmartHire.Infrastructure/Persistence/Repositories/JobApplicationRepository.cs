@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -33,19 +34,19 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         Guid candidateId,
         ApplicationStatus? status,
         MyApplicationsSort sort,
-        MyApplicationsDirection direction,
+        SortDirection direction,
         int skip,
         int pageSize,
         CancellationToken cancellationToken) {
         var query = ApplyMineFilters(candidateId, status);
         IOrderedQueryable<JobApplication> ordered = (sort, direction) switch {
-            (MyApplicationsSort.AppliedAt, MyApplicationsDirection.Asc) =>
+            (MyApplicationsSort.AppliedAt, SortDirection.Asc) =>
                 query.OrderBy(application => application.AppliedAt).ThenBy(application => application.Id),
-            (MyApplicationsSort.AppliedAt, MyApplicationsDirection.Desc) =>
+            (MyApplicationsSort.AppliedAt, SortDirection.Desc) =>
                 query.OrderByDescending(application => application.AppliedAt).ThenBy(application => application.Id),
-            (MyApplicationsSort.UpdatedAt, MyApplicationsDirection.Asc) =>
+            (MyApplicationsSort.UpdatedAt, SortDirection.Asc) =>
                 query.OrderBy(application => application.UpdatedAt).ThenBy(application => application.Id),
-            (MyApplicationsSort.UpdatedAt, MyApplicationsDirection.Desc) =>
+            (MyApplicationsSort.UpdatedAt, SortDirection.Desc) =>
                 query.OrderByDescending(application => application.UpdatedAt).ThenBy(application => application.Id),
             _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unsupported application ordering.")
         };

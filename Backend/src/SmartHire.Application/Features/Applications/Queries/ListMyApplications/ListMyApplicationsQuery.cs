@@ -1,5 +1,6 @@
 using MediatR;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.DTOs;
 using SmartHire.Domain.Enums;
 
@@ -17,15 +18,10 @@ public enum MyApplicationsSort {
     UpdatedAt
 }
 
-public enum MyApplicationsDirection {
-    Asc,
-    Desc
-}
-
 public sealed record ValidatedListMyApplicationsQuery(
     int Page,
     int PageSize,
     int Skip,
     ApplicationStatus? Status,
     MyApplicationsSort Sort,
-    MyApplicationsDirection Direction);
+    SortDirection Direction);

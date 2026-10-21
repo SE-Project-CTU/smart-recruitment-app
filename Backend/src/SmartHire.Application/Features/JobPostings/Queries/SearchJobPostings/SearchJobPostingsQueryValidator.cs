@@ -1,5 +1,6 @@
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Application.Features.JobPostings.Validation;
 using SmartHire.Domain.Enums;
@@ -29,7 +30,7 @@ internal static class SearchJobPostingsQueryValidator {
         var jobType = JobPostingValidator.ParseApiEnum<JobType>(query.JobType, "jobType", details);
         var workMode = JobPostingValidator.ParseApiEnum<WorkMode>(query.WorkMode, "workMode", details);
         var sort = ParseSort(query.Sort, details);
-        var direction = ParseDirection(query.Direction, details);
+        var direction = SortDirectionValidator.Parse(query.Direction, details);
         
         var page = PagedListQueryValidator.ValidatePage(query.Page);
         var pageSize = PagedListQueryValidator.ValidatePageSize(query.PageSize);
@@ -65,18 +66,6 @@ internal static class SearchJobPostingsQueryValidator {
         
         details.Add(JobPostingValidator.Invalid("sort", "Sort must be 'createdAt' or 'salaryMax'."));
         return SearchJobPostingsSort.CreatedAt;
-    }
-    
-    private static SearchJobPostingsDirection ParseDirection(
-        string? value,
-        ICollection<AppErrorDetail> details) {
-        if (string.IsNullOrWhiteSpace(value) || value.Equals("desc", StringComparison.OrdinalIgnoreCase))
-            return SearchJobPostingsDirection.Desc;
-        if (value.Equals("asc", StringComparison.OrdinalIgnoreCase))
-            return SearchJobPostingsDirection.Asc;
-        
-        details.Add(JobPostingValidator.Invalid("direction", "Direction must be 'asc' or 'desc'."));
-        return SearchJobPostingsDirection.Desc;
     }
     
 }
