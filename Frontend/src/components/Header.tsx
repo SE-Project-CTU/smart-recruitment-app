@@ -27,7 +27,7 @@ import {
 } from "@/components/animate-ui/components/base/menu";
 
 const headerItems = [
-  { title: "Việc làm", href: PATHS.HOME },
+  { title: "Việc làm", href: PATHS.SEARCH_JOB },
   { title: "Tạo CV", href: PATHS.CREATE_CV },
   { title: "Blog nghề nghiệp", href: PATHS.HOME },
   { title: "Liên hệ", href: PATHS.HOME },

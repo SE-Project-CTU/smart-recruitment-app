@@ -11,6 +11,22 @@ export interface TestimonialItem {
   comment: string;
 }
 
+export interface CompanyItem {
+  id: string;
+  name: string;
+  taxCode: string;
+  email: string;
+  phone: string;
+  address: string;
+  website: string;
+  description: string;
+  logoUrl: string | null;
+  verificationStatus: "Verified" | "Pending" | "Rejected";
+  verifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface MockJobPosting {
   id: string;
   company: {
@@ -533,5 +549,95 @@ export const MOCK_CVS: CVItem[] = [
     updatedAt: "2026-09-25T10:30:00Z",
     thumbnailUrl:
       "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-clarity-_A1QFA1EGBwJXUVcACgcPAA1RVAVcUlcBBwYEAg90e5.webp?t=1751514549&color=2E2E2E&template_name=clarity&lang=vi",
+  },
+];
+
+export const MOCK_COMPANIES: CompanyItem[] = [
+  {
+    id: "a6a0e6ce-c1dd-4bb8-bf2a-5f7d4c6d7b55",
+    name: "SmartHire Technology",
+    taxCode: "0123456789",
+    email: "contact@smarthire.example",
+    phone: "+842812345678",
+    address: "123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+    website: "https://smarthire.example",
+    description:
+      "Tập đoàn công nghệ tiên phong phát triển nền tảng tuyển dụng thông minh ứng dụng AI Matching và tự động hóa quy trình sàng lọc hồ sơ ứng viên.",
+    logoUrl:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
+    verificationStatus: "Verified",
+    verifiedAt: "2026-09-29T08:00:00Z",
+    createdAt: "2026-09-28T10:30:00Z",
+    updatedAt: "2026-09-29T08:00:00Z",
+  },
+  {
+    id: "b7b1f7df-d2ee-4cc9-c03b-6f8e5d7e8c66",
+    name: "TechNova Solutions Vietnam",
+    taxCode: "0314987654",
+    email: "hr@technova.vn",
+    phone: "+842838229988",
+    address:
+      "Tòa nhà Saigon Centre, 65 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+    website: "https://technova.vn",
+    description:
+      "Công ty phát triển phần mềm và giải pháp chuyển đổi số cho các doanh nghiệp tài chính, bán lẻ hàng đầu khu vực Đông Nam Á.",
+    logoUrl:
+      "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop&q=80",
+    verificationStatus: "Verified",
+    verifiedAt: "2026-08-15T09:15:00Z",
+    createdAt: "2026-08-10T04:20:00Z",
+    updatedAt: "2026-08-15T09:15:00Z",
+  },
+  {
+    id: "c8c2e8ea-e3ff-4dd0-d14c-7a9f6e8f9d77",
+    name: "NexFin Technology & Securities",
+    taxCode: "0109876543",
+    email: "careers@nexfin.io",
+    phone: "+842439871122",
+    address:
+      "Tầng 18, Keangnam Landmark 72, Đường Phạm Hùng, Quận Nam Từ Liêm, Hà Nội",
+    website: "https://nexfin.io",
+    description:
+      "Kỳ lân Fintech chuyên cung cấp giải pháp thanh toán số, hạ tầng blockchain cho ngân hàng và giao dịch đầu tư thông minh.",
+    logoUrl:
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&auto=format&fit=crop&q=80",
+    verificationStatus: "Verified",
+    verifiedAt: "2026-07-20T14:00:00Z",
+    createdAt: "2026-07-18T11:00:00Z",
+    updatedAt: "2026-07-20T14:00:00Z",
+  },
+  {
+    id: "d9d3f9fb-f4aa-4ee1-e25d-8b0a7f9a0e88",
+    name: "LogiChain Express Global",
+    taxCode: "0401239876",
+    email: "recruitment@logichain.com",
+    phone: "+842363556677",
+    address: "Khu Công nghệ cao Đà Nẵng, Huyện Hòa Vang, TP. Đà Nẵng",
+    website: "https://logichain.com",
+    description:
+      "Tập đoàn công nghệ vận tải và chuỗi cung ứng thông minh, số hóa quy trình logistics xuyên biên giới và kho bãi tự động.",
+    logoUrl:
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=200&auto=format&fit=crop&q=80",
+    verificationStatus: "Pending",
+    verifiedAt: null,
+    createdAt: "2026-10-01T08:10:00Z",
+    updatedAt: "2026-10-01T08:10:00Z",
+  },
+  {
+    id: "e0e4a0ac-a5bb-4ff2-f36e-9c1b8a0b1f99",
+    name: "ZetaCommerce Retail Platform",
+    taxCode: "0305678912",
+    email: "talent@zetacommerce.vn",
+    phone: "+842871098877",
+    address:
+      "Tòa nhà Viettel Complex, 285 Cách Mạng Tháng 8, Quận 10, TP. Hồ Chí Minh",
+    website: "https://zetacommerce.vn",
+    description:
+      "Hệ sinh thái thương mại điện tử đa kênh thế hệ mới, tối ưu hóa trải nghiệm mua sắm thông minh và dữ liệu tiêu dùng cá nhân hóa.",
+    logoUrl: null, // Demo trường hợp công ty chưa tải logo lên (để test fallback placeholder/initials)
+    verificationStatus: "Verified",
+    verifiedAt: "2026-09-12T10:00:00Z",
+    createdAt: "2026-09-10T07:45:00Z",
+    updatedAt: "2026-09-12T10:00:00Z",
   },
 ];

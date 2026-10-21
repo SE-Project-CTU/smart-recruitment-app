@@ -92,7 +92,7 @@ function FilterCheckboxItem({
       </Checkbox.Root>
       <span
         className={`truncate transition-colors group-hover:text-primary ${
-          isParent ? "font-bold text-text-main" : "font-medium text-text-muted"
+          isParent ? "font-medium text-text-main" : "text-text-muted"
         }`}
       >
         {label}
@@ -181,9 +181,8 @@ export function JobFilterSidebar({
         </button>
       </div>
 
-      {/* Lĩnh vực (Phân cấp thu gọn mặc định & lưới 2 cột) */}
       <div className="flex flex-col gap-3">
-        <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
+        <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Lĩnh vực
         </h3>
         <div className="flex flex-col gap-2">
@@ -242,10 +241,9 @@ export function JobFilterSidebar({
         </div>
       </div>
 
-      {/* Mức lương kèm nút chọn nhanh */}
       <div className="flex flex-col gap-3 border-t border-border pt-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
+          <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
             Mức lương
           </h3>
           <span className="text-[11px] font-semibold text-primary">
@@ -256,7 +254,6 @@ export function JobFilterSidebar({
           </span>
         </div>
 
-        {/* Các mức lương chọn nhanh */}
         <div className="grid grid-cols-3 gap-1.5">
           {SALARY_PRESETS.map((preset) => {
             const isActive =
@@ -292,7 +289,7 @@ export function JobFilterSidebar({
                   key={idx}
                   style={{ height: `${height}%` }}
                   className={`flex-1 rounded-t-xs transition-colors duration-150 ${
-                    isInRange ? "bg-primary/70" : "bg-border"
+                    isInRange ? "bg-secondary-dark" : "bg-border"
                   }`}
                 />
               );
@@ -363,9 +360,8 @@ export function JobFilterSidebar({
         />
       </div>
 
-      {/* Loại hình công việc dạng Grid 2 cột */}
       <div className="flex flex-col gap-2.5 border-t border-border pt-4">
-        <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
+        <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Loại hình công việc
         </h3>
         <div className="grid grid-cols-2 gap-1.5">
@@ -380,9 +376,8 @@ export function JobFilterSidebar({
         </div>
       </div>
 
-      {/* Môi trường làm việc (Thuần tiếng Anh) dạng Grid 3 cột */}
       <div className="flex flex-col gap-2.5 border-t border-border pt-4">
-        <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
+        <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Môi trường làm việc
         </h3>
         <div className="grid grid-cols-3 gap-1.5">
@@ -397,9 +392,8 @@ export function JobFilterSidebar({
         </div>
       </div>
 
-      {/* Cấp bậc dạng Grid 2 cột */}
       <div className="flex flex-col gap-2.5 border-t border-border pt-4">
-        <h3 className="text-xs font-bold tracking-wide text-text-main uppercase">
+        <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Cấp bậc
         </h3>
         <div className="grid grid-cols-2 gap-1.5">

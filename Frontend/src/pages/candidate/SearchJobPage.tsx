@@ -18,6 +18,7 @@ import {
   LocationCombobox,
   type SelectedLocation,
 } from "@/components/LocationCombobox";
+import { JobDetailDrawer } from "@/components/job";
 import {
   MOCK_JOB_POSTINGS,
   MOCK_LOCATION_HIERARCHY,
@@ -53,6 +54,12 @@ export default function SearchJobPage() {
   const [sortBy, setSortBy] = useState<SortKey>("AI_MATCH");
   const [filters, setFilters] = useState<JobFilterState>(INITIAL_FILTERS);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  const [selectedJob, setSelectedJob] = useState<MockJobPosting | null>(null);
+  const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
+  const [bookmarkedJobIds, setBookmarkedJobIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const locationHierarchy = useMemo<LocationGroup[]>(() => {
     const map = new Map<string, Set<string>>();
@@ -211,6 +218,24 @@ export default function SearchJobPage() {
     });
   }, [searchQuery, selectedLocation, filters, sortBy]);
 
+  const handleSelectJob = (job: MockJobPosting) => {
+    setSelectedJob(job);
+    setIsDetailDrawerOpen(true);
+  };
+
+  const handleToggleBookmark = (jobId: string) => {
+    setBookmarkedJobIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(jobId)) next.delete(jobId);
+      else next.add(jobId);
+      return next;
+    });
+  };
+
+  const handleApply = (jobId: string) => {
+    console.log("Applying to job:", jobId);
+  };
+
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex flex-col gap-3 rounded-3xl md:flex-row md:items-center">
@@ -220,8 +245,8 @@ export default function SearchJobPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo vị trí công việc, công ty hoặc kỹ năng..."
-            className="w-full rounded-2xl border border-border bg-bg py-2.5 pr-9 pl-10 text-xs font-medium text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none sm:text-sm"
+            placeholder="Tìm theo vị trí công việc hoặc công ty..."
+            className="w-full rounded-xl border border-border bg-bg py-2.5 pr-9 pl-10 text-xs font-medium text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none sm:text-sm"
           />
           {searchQuery && (
             <button
@@ -241,7 +266,7 @@ export default function SearchJobPage() {
             groups={locationHierarchy}
           />
 
-          <div className="flex items-center gap-2 rounded-2xl border border-border bg-bg px-3.5 py-2.5">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-bg px-3.5 py-2.5">
             <ArrowUpDown className="size-3.5 shrink-0 text-text-muted" />
             <span className="text-xs whitespace-nowrap text-text-muted">
               Sắp xếp:
@@ -296,7 +321,7 @@ export default function SearchJobPage() {
             icon={SlidersHorizontal}
             iconSize={14}
             onClick={() => setIsMobileFilterOpen(true)}
-            className="shrink-0 rounded-2xl! px-3.5! py-2.5! text-xs! lg:hidden!"
+            className="shrink-0 rounded-xl! px-3.5! py-2.5! text-xs! lg:hidden!"
           >
             Bộ lọc
           </Button>
@@ -325,7 +350,7 @@ export default function SearchJobPage() {
             />
             <div className="relative z-10 flex h-full w-80 max-w-[85vw] flex-col overflow-y-auto bg-surface p-4 shadow-xl">
               <div className="mb-2 flex items-center justify-between px-2">
-                <span className="text-sm font-bold text-text-main">
+                <span className="text-sm font-semibold text-text-main">
                   Tùy chỉnh bộ lọc
                 </span>
                 <button
@@ -354,7 +379,7 @@ export default function SearchJobPage() {
           <div className="flex items-center justify-between px-1">
             <p className="text-xs font-medium text-text-muted">
               Tìm thấy{" "}
-              <span className="font-bold text-text-main">
+              <span className="font-semibold text-text-main">
                 {filteredAndSortedJobs.length}
               </span>{" "}
               công việc phù hợp
@@ -367,7 +392,7 @@ export default function SearchJobPage() {
                 <BriefcaseBusiness className="size-6" />
               </div>
               <div className="flex flex-col gap-1">
-                <h3 className="text-base font-bold text-text-main">
+                <h3 className="text-base font-semibold text-text-main">
                   Không tìm thấy công việc phù hợp
                 </h3>
                 <p className="max-w-md text-xs text-text-muted">
@@ -385,14 +410,33 @@ export default function SearchJobPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 justify-items-center gap-5 lg:grid-cols-2 xl:grid-cols-4">
+            <div className="flex flex-wrap justify-items-center gap-5">
               {filteredAndSortedJobs.map((job) => (
-                <JobCard key={job.id} job={job} />
-              ))}{" "}
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
+                  onSelect={handleSelectJob}
+                  isBookmarked={bookmarkedJobIds.has(job.id)}
+                  onToggleBookmark={handleToggleBookmark}
+                  onApply={() => handleApply(job.id)}
+                />
+              ))}
             </div>
           )}
         </div>
       </div>
+
+      <JobDetailDrawer
+        job={selectedJob}
+        open={isDetailDrawerOpen}
+        onClose={() => setIsDetailDrawerOpen(false)}
+        isBookmarked={
+          selectedJob ? bookmarkedJobIds.has(selectedJob.id) : false
+        }
+        onToggleBookmark={handleToggleBookmark}
+        onApply={handleApply}
+      />
     </div>
   );
 }

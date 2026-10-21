@@ -3,7 +3,7 @@ export const PATHS = {
   HOME: "/",
   SIGN_IN: "/sign-in",
   SIGN_UP: "/sign-up",
-  SEARCH_JOB: "/search",
+  SEARCH_JOB: "/search-job",
 
   //candidateee
   CANDIDATE: {

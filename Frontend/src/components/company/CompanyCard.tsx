@@ -1,0 +1,97 @@
+import { Globe, MapPin, ChevronRight } from "lucide-react";
+import { MorphIcon } from "morphicons/react";
+import { BookmarkCheck, Bookmark } from "lucide";
+import {
+  Tooltip,
+  TooltipPanel,
+  TooltipTrigger,
+} from "@/components/animate-ui/components/base/tooltip";
+import Button from "@/components/Button";
+import { CompanyLogo } from "./CompanyLogo";
+import type { CompanyItem } from "@/constants/mockData";
+
+export interface CompanyCardProps {
+  company: CompanyItem;
+  isBookmarked: boolean;
+  onToggleBookmark: (id: string) => void;
+  onViewDetail: (company: CompanyItem) => void;
+}
+
+export function CompanyCard({
+  company,
+  isBookmarked,
+  onToggleBookmark,
+  onViewDetail,
+}: CompanyCardProps) {
+  return (
+    <div className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 shadow-xs transition-all duration-200 hover:border-sky-300 hover:shadow-sm">
+      <div className="flex items-start gap-3.5">
+        <CompanyLogo logoUrl={company.logoUrl} name={company.name} size="md" />
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-sm leading-snug font-semibold text-text-main transition-colors group-hover:text-primary">
+                {company.name}
+              </h3>
+              <p className="mt-0.5 text-xs text-text-muted">
+                MST: {company.taxCode}
+              </p>
+            </div>
+
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <button
+                    onClick={() => onToggleBookmark(company.id)}
+                    type="button"
+                    className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:bg-secondary-light/40 hover:text-primary"
+                  >
+                    <MorphIcon
+                      className="size-4"
+                      icon={isBookmarked ? BookmarkCheck : Bookmark}
+                    />
+                  </button>
+                }
+              />
+              <TooltipPanel>{isBookmarked ? "Bỏ lưu" : "Lưu"}</TooltipPanel>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
+      <p className="line-clamp-2 text-xs leading-relaxed text-text-main">
+        {company.description}
+      </p>
+
+      <div className="flex flex-col gap-1.5 text-xs text-text-muted">
+        <div className="flex items-center gap-2">
+          <MapPin className="size-3.5 shrink-0" />
+          <span className="truncate">{company.address}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Globe className="size-3.5 shrink-0" />
+          <a
+            href={company.website}
+            target="_blank"
+            rel="noreferrer"
+            className="truncate text-primary hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {company.website.replace(/^https?:\/\//, "")}
+          </a>
+        </div>
+      </div>
+
+      <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-3.5">
+        <Button
+          variant="secondary"
+          icon={ChevronRight}
+          onClick={() => onViewDetail(company)}
+        >
+          Xem chi tiết
+        </Button>
+      </div>
+    </div>
+  );
+}

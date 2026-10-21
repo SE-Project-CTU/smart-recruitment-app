@@ -72,7 +72,7 @@ export function LocationCombobox({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-border bg-bg px-3.5 py-2.5 text-xs font-semibold text-text-main transition-colors hover:border-primary focus:border-primary focus:bg-surface focus:outline-none"
+        className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-border bg-bg px-3.5 py-2.5 text-xs font-semibold text-text-main transition-colors hover:border-primary focus:border-primary focus:bg-surface focus:outline-none"
       >
         <span className="flex items-center gap-2 truncate">
           <MapPin className="size-4 shrink-0 text-primary" />

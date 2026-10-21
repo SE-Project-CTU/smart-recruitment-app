@@ -14,6 +14,9 @@ import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { PATHS } from "@/constants/paths";
 import SearchJobPage from "@/pages/candidate/SearchJobPage";
+import SearchJob from "@/pages/SearchJobPublic";
+import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
+import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -22,7 +25,7 @@ const router = createBrowserRouter([
     element: <BaseLayout />,
     children: [
       { index: true, element: <LandingPage /> },
-      { path: PATHS.SEARCH_JOB, element: <SearchJobPage /> },
+      { path: PATHS.SEARCH_JOB, element: <SearchJob /> },
     ],
   },
 
@@ -63,11 +66,11 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.BOOKMARK_COMPANIES,
-            element: <Page title="Mục đã lưu 1" />,
+            element: <BookmarkCompanies />,
           },
           {
             path: PATHS.CANDIDATE.BOOKMARK_JOBS,
-            element: <Page title="Mục đã lưu 2" />,
+            element: <BookmarkJobs />,
           },
           {
             path: PATHS.CANDIDATE.COMPANY_REVIEWS,

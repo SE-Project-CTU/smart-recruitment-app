@@ -1,6 +1,5 @@
 import { getTimeAgo } from "@/utils/helper";
 import Button from "@/components/Button";
-
 import type { MockJobPosting } from "@/constants/mockData";
 import { Ellipsis, MapPin, Clock } from "lucide-react";
 import {
@@ -12,15 +11,58 @@ import { MorphIcon } from "morphicons/react";
 import { Bookmark, BookmarkCheck } from "lucide";
 import { useState } from "react";
 
-interface JobCardProps {
+export interface JobCardProps {
   job: MockJobPosting;
+  isSelected?: boolean;
+  onSelect?: (job: MockJobPosting) => void;
+  onApply?: (job: MockJobPosting) => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: (jobId: string) => void;
 }
 
-export const JobCard = ({ job }: JobCardProps) => {
-  //local state
-  const [isMarked, setIsMarked] = useState(false);
+export const JobCard = ({
+  job,
+  isSelected = false,
+  onSelect,
+  onApply,
+  isBookmarked: externalIsBookmarked,
+  onToggleBookmark,
+}: JobCardProps) => {
+  const [internalMarked, setInternalMarked] = useState(false);
+  const isMarked =
+    externalIsBookmarked !== undefined ? externalIsBookmarked : internalMarked;
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onToggleBookmark) {
+      onToggleBookmark(job.id);
+    } else {
+      setInternalMarked(!internalMarked);
+    }
+  };
+
+  const handleCardClick = () => {
+    onSelect?.(job);
+  };
+
+  const handleApplyClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onApply) {
+      onApply(job);
+    } else {
+      console.log("Apply for job:", job.id);
+    }
+  };
+
   return (
-    <div className="group relative flex min-h-80.5 w-full max-w-85 min-w-70 flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-xs transition-all duration-300 hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200">
+    <div
+      onClick={handleCardClick}
+      className={`group relative flex min-h-80.5 max-w-90 min-w-90 cursor-pointer flex-col justify-between rounded-3xl border p-6 shadow-xs transition-all duration-300 ${
+        isSelected
+          ? "border-primary bg-secondary-light/20 shadow-md ring-2 ring-primary/20"
+          : "border-border bg-surface hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200"
+      }`}
+    >
       <div>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-baseline gap-1">
@@ -45,7 +87,7 @@ export const JobCard = ({ job }: JobCardProps) => {
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <div className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-bold text-primary-dark">
+                    <div className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
                       <span>{job.aiMatchScore}%</span>
                     </div>
                   }
@@ -58,9 +100,10 @@ export const JobCard = ({ job }: JobCardProps) => {
               <TooltipTrigger
                 render={
                   <button
-                    onClick={() =>
-                      console.log("Open Detail Sidebar for job:", job.id)
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect?.(job);
+                    }}
                     type="button"
                     className="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:text-text-main"
                   >
@@ -125,7 +168,7 @@ export const JobCard = ({ job }: JobCardProps) => {
       <div className="mt-6 flex items-center gap-2.5">
         <Button
           className="flex-1 justify-center py-2.5! text-xs!"
-          onClick={() => console.log("Apply for job:", job.id)}
+          onClick={handleApplyClick}
         >
           Ứng tuyển ngay
         </Button>
@@ -137,10 +180,7 @@ export const JobCard = ({ job }: JobCardProps) => {
                 variant="secondary"
                 className="p-2.5!"
                 aria-label="Lưu công việc"
-                onClick={() => {
-                  console.log("Bookmark job:", job.id);
-                  setIsMarked(!isMarked);
-                }}
+                onClick={handleBookmarkClick}
               >
                 <MorphIcon
                   className="size-4"
