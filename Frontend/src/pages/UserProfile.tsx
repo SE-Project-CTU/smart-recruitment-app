@@ -23,6 +23,7 @@ import {
 } from "@/hooks/queries/useAccount";
 import { useDeleteMedia, useUploadImage } from "@/hooks/queries/useMedia";
 import { MorphIcon } from "morphicons/react";
+import { UserAvatar } from "@/components/UserAvatar";
 
 type TabKey = "profile" | "security" | "delete";
 
@@ -309,12 +310,6 @@ export default function UserProfile() {
   }
 
   const displayAvatar = isEditingProfile ? pendingAvatarUrl : currentAvatar;
-  const initials = account.fullName
-    .split(" ")
-    .filter(Boolean)
-    .slice(-2)
-    .map((n) => n[0]?.toUpperCase())
-    .join("");
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -380,17 +375,11 @@ export default function UserProfile() {
                   <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
                       <div className="relative -mt-12 size-36 shrink-0 rounded-full border-4 border-white bg-white shadow-sm">
-                        {displayAvatar ? (
-                          <img
-                            src={displayAvatar}
-                            alt={account.fullName}
-                            className="size-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex size-full items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
-                            {initials || "U"}
-                          </div>
-                        )}
+                        <UserAvatar
+                          src={displayAvatar || ""}
+                          name={account.fullName}
+                          className="size-full! rounded-full!"
+                        />
 
                         <input
                           ref={fileInputRef}
