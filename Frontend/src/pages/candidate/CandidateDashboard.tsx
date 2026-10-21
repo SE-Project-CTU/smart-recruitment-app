@@ -58,7 +58,7 @@ function CandidateDashboard() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col gap-8">
+    <div className="flex h-full w-full flex-col gap-8 overflow-hidden">
       <div className="relative flex min-h-65 w-full overflow-hidden rounded-3xl p-8 lg:p-10 xl:p-12">
         <CTAMeshGradient />
 

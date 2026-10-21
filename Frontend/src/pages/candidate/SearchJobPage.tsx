@@ -329,7 +329,7 @@ export default function SearchJobPage() {
       </div>
 
       <div className="flex flex-col items-start gap-6 lg:flex-row">
-        <div className="sticky top-20 hidden w-72 shrink-0 lg:block">
+        <div className="sticky top-4 hidden w-72 shrink-0 lg:block">
           <JobFilterSidebar
             filters={filters}
             onToggleArrayFilter={handleToggleArrayFilter}
@@ -411,6 +411,39 @@ export default function SearchJobPage() {
             </div>
           ) : (
             <div className="flex flex-wrap justify-items-center gap-5">
+              {filteredAndSortedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
+                  onSelect={handleSelectJob}
+                  isBookmarked={bookmarkedJobIds.has(job.id)}
+                  onToggleBookmark={handleToggleBookmark}
+                  onApply={() => handleApply(job.id)}
+                />
+              ))}
+              {filteredAndSortedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
+                  onSelect={handleSelectJob}
+                  isBookmarked={bookmarkedJobIds.has(job.id)}
+                  onToggleBookmark={handleToggleBookmark}
+                  onApply={() => handleApply(job.id)}
+                />
+              ))}
+              {filteredAndSortedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
+                  onSelect={handleSelectJob}
+                  isBookmarked={bookmarkedJobIds.has(job.id)}
+                  onToggleBookmark={handleToggleBookmark}
+                  onApply={() => handleApply(job.id)}
+                />
+              ))}
               {filteredAndSortedJobs.map((job) => (
                 <JobCard
                   key={job.id}
