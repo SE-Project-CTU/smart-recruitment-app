@@ -50,6 +50,8 @@ public sealed class ListApplicationsForJobQueryHandler
         var rows = await _applicationRepository.GetPageByJobIdAsync(
             validated.JobPostingId,
             validated.Status,
+            validated.Sort,
+            validated.Direction,
             validated.Skip,
             validated.PageSize,
             cancellationToken);

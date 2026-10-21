@@ -1,5 +1,5 @@
 using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Applications.Exceptions;
 using SmartHire.Application.Features.Applications.Validation;
@@ -17,19 +17,29 @@ internal static class ListApplicationsForJobQueryValidator {
         var pageSize = PagedListQueryValidator.ValidatePageSize(query.PageSize);
         var details = new List<AppErrorDetail>();
         var status = ApplicationValidator.Parse(query.Status, details);
+        var sort = ParseSort(query.Sort, details);
+        var direction = SortDirectionValidator.Parse(query.Direction, details);
         if (details.Count > 0) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                ApplicationErrorCodes.InvalidApplicationQuery,
-                "Application query contains invalid parameters.",
-                details);
+            throw ApplicationExceptions.InvalidQuery(details);
         }
 
         return new ValidatedListApplicationsForJobQuery(
             jobPostingId,
             status,
+            sort,
+            direction,
             page,
             pageSize,
             PagedListQueryValidator.CalculateSkip(page, pageSize));
+    }
+
+    private static JobApplicationsSort ParseSort(string? value, ICollection<AppErrorDetail> details) {
+        if (string.IsNullOrWhiteSpace(value) || value.Equals("createdAt", StringComparison.OrdinalIgnoreCase)) {
+            return JobApplicationsSort.CreatedAt;
+        }
+
+        details.Add(new AppErrorDetail("sort", ValidationReasons.InvalidFormat,
+            "Sort must be 'createdAt'."));
+        return JobApplicationsSort.CreatedAt;
     }
 }

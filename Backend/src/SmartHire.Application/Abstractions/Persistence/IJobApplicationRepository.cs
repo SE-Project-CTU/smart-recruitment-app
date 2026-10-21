@@ -3,6 +3,7 @@ using SmartHire.Domain.Enums;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
+using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
 
 namespace SmartHire.Application.Abstractions.Persistence;
 
@@ -23,6 +24,8 @@ public interface IJobApplicationRepository {
     Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
         Guid jobId,
         ApplicationStatus? status,
+        JobApplicationsSort sort,
+        SortDirection direction,
         int skip,
         int pageSize,
         CancellationToken cancellationToken);

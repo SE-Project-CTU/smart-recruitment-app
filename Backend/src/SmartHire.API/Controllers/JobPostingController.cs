@@ -222,9 +222,11 @@ public sealed class JobPostingController : ControllerBase {
         [FromQuery] string? status,
         [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
+        [FromQuery] string? sort = null,
+        [FromQuery] string? direction = null,
         CancellationToken cancellationToken = default) {
         var result = await _sender.Send(
-            new ListApplicationsForJobQuery(id, status, page, pageSize),
+            new ListApplicationsForJobQuery(id, status, page, pageSize, sort, direction),
             cancellationToken);
 
         return Ok(_responseFactory.PagedOneBased(

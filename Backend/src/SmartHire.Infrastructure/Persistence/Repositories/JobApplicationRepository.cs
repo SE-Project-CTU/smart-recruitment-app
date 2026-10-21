@@ -3,6 +3,7 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
+using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -84,12 +85,21 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
     public Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
         Guid jobId,
         ApplicationStatus? status,
+        JobApplicationsSort sort,
+        SortDirection direction,
         int skip,
         int pageSize,
-        CancellationToken cancellationToken) =>
-        ApplyJobFilters(jobId, status)
-            .OrderByDescending(application => application.AppliedAt)
-            .ThenBy(application => application.Id)
+        CancellationToken cancellationToken) {
+        var query = ApplyJobFilters(jobId, status);
+        IOrderedQueryable<JobApplication> ordered = (sort, direction) switch {
+            (JobApplicationsSort.CreatedAt, SortDirection.Asc) =>
+                query.OrderBy(application => application.AppliedAt).ThenBy(application => application.Id),
+            (JobApplicationsSort.CreatedAt, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.AppliedAt).ThenBy(application => application.Id),
+            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unsupported job application ordering.")
+        };
+
+        return ordered
             .Skip(skip)
             .Take(pageSize)
             .Select(application => new ApplicationListItemData(
@@ -103,6 +113,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                 application.AppliedAt,
                 application.UpdatedAt))
             .ToListAsync(cancellationToken);
+    }
 
     private IQueryable<JobApplication> ApplyJobFilters(Guid jobId, ApplicationStatus? status) {
         var query = dbContext.Applications

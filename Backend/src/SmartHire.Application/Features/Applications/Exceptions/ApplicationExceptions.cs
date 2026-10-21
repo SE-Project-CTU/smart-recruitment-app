@@ -10,6 +10,12 @@ internal static class ApplicationExceptions {
         "Application request contains invalid fields.",
         details.ToArray());
 
+    public static AppException InvalidQuery(IEnumerable<AppErrorDetail> details) => new(
+        AppErrorKind.BadRequest,
+        ApplicationErrorCodes.InvalidApplicationQuery,
+        "Application query contains invalid parameters.",
+        details.ToArray());
+
     public static AppException JobNotFound(Guid id) => new(
         AppErrorKind.NotFound,
         ApplicationErrorCodes.JobNotFound,

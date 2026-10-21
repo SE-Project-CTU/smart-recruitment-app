@@ -1,5 +1,4 @@
 using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Exceptions;
@@ -20,11 +19,7 @@ internal static class ListMyApplicationsQueryValidator {
         var sort = ParseSort(query.Sort, details);
         var direction = SortDirectionValidator.Parse(query.Direction, details);
         if (details.Count > 0) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                ApplicationErrorCodes.InvalidApplicationQuery,
-                "Application query contains invalid parameters.",
-                details);
+            throw ApplicationExceptions.InvalidQuery(details);
         }
 
         return new ValidatedListMyApplicationsQuery(page, pageSize, skip, status, sort, direction);
@@ -40,5 +35,4 @@ internal static class ListMyApplicationsQueryValidator {
             "Sort must be 'appliedAt' or 'updatedAt'."));
         return MyApplicationsSort.AppliedAt;
     }
-
 }

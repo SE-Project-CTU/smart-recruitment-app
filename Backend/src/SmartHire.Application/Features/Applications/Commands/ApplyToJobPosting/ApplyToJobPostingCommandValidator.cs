@@ -1,5 +1,6 @@
 using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Applications.Exceptions;
+using SmartHire.Application.Features.JobPostings.Exceptions;
 
 namespace SmartHire.Application.Features.Applications.Commands.ApplyToJobPosting;
 
@@ -8,14 +9,7 @@ internal static class ApplyToJobPostingCommandValidator {
     
     public static Guid Validate(ApplyToJobPostingCommand command) {
         if (!Guid.TryParse(command.JobPostingId, out var jobPostingId) || jobPostingId == Guid.Empty) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                "INVALID_JOB_POSTING_ID",
-                "Job posting ID has an invalid format.",
-                [
-                    new AppErrorDetail("id", ValidationReasons.InvalidFormat,
-                        "The id path parameter must be a valid UUID.")
-                ]);
+            throw JobPostingExceptions.InvalidJobPostingId();
         }
         
         var details = new List<AppErrorDetail>();
@@ -48,11 +42,7 @@ internal static class ApplyToJobPostingCommandValidator {
         }
         
         if (details.Count > 0) {
-            throw new AppException(
-                AppErrorKind.Validation,
-                "INVALID_APPLICATION",
-                "Application request contains invalid fields.",
-                details);
+            throw ApplicationExceptions.InvalidRequest(details);
         }
         
         return jobPostingId;
