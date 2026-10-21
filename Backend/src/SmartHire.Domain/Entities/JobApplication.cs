@@ -25,6 +25,28 @@ public class JobApplication {
     /// </summary>
     private JobApplication() { }
 
+    public bool TryChangeStatus(ApplicationStatus status, DateTimeOffset now) {
+        var isAllowed = (Status, status) switch {
+            (ApplicationStatus.Submitted, ApplicationStatus.Reviewing or ApplicationStatus.Withdrawn) => true,
+            (ApplicationStatus.Reviewing, ApplicationStatus.Shortlisted or ApplicationStatus.Rejected or ApplicationStatus.Withdrawn) => true,
+            (ApplicationStatus.Shortlisted, ApplicationStatus.Interviewing or ApplicationStatus.Rejected or ApplicationStatus.Withdrawn) => true,
+            (ApplicationStatus.Interviewing, ApplicationStatus.Offered or ApplicationStatus.Rejected or ApplicationStatus.Withdrawn) => true,
+            (ApplicationStatus.Offered, ApplicationStatus.Hired or ApplicationStatus.Rejected or ApplicationStatus.Withdrawn) => true,
+            // Keep applications written by the earlier API status names movable along the same workflow.
+            (ApplicationStatus.Received, ApplicationStatus.Shortlisted or ApplicationStatus.Rejected or ApplicationStatus.Withdrawn) => true,
+            (ApplicationStatus.Approved, ApplicationStatus.Interviewing or ApplicationStatus.Rejected or ApplicationStatus.Withdrawn) => true,
+            _ => false
+        };
+
+        if (!isAllowed) {
+            return false;
+        }
+
+        Status = status;
+        UpdatedAt = now;
+        return true;
+    }
+
     public static JobApplication Create(
         Guid jobId,
         Guid candidateId,

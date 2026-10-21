@@ -1,5 +1,6 @@
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Applications.Exceptions;
 
@@ -34,6 +35,18 @@ internal static class ApplicationExceptions {
         AppErrorKind.Forbidden,
         ApplicationErrorCodes.ApplicationForbidden,
         "You do not have permission to view this application.");
+
+    public static AppException ApplicationManagementForbidden() => new(
+        AppErrorKind.Forbidden,
+        ApplicationErrorCodes.ApplicationForbidden,
+        "You do not have permission to manage this application.");
+
+    public static AppException InvalidStatusTransition(ApplicationStatus current, ApplicationStatus target) => new(
+        AppErrorKind.Conflict,
+        ApplicationErrorCodes.InvalidApplicationStatusTransition,
+        $"Application status cannot be changed from '{current}' to '{target}'.",
+        [new AppErrorDetail("status", ValidationReasons.NotAllowed,
+            "The requested status transition is not allowed by the application workflow.")]);
 
     public static AppException InvalidAccessToken() => new(
         AppErrorKind.Unauthorized,

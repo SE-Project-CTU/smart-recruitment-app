@@ -101,6 +101,14 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                 application.UpdatedAt))
             .SingleOrDefaultAsync(cancellationToken);
 
+    public Task<JobApplication?> GetForStatusUpdateByIdAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications
+            .Include(application => application.Job)
+            .Include(application => application.UploadedCvFile)
+            .SingleOrDefaultAsync(application => application.Id == applicationId, cancellationToken);
+
     public Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
         Guid jobId,
         ApplicationStatus? status,
