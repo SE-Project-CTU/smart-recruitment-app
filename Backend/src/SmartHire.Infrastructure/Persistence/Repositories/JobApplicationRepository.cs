@@ -30,7 +30,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         CancellationToken cancellationToken) =>
         ApplyMineFilters(candidateId, status).CountAsync(cancellationToken);
 
-    public Task<List<MyApplicationListItemData>> GetMinePageAsync(
+    public Task<List<ApplicationListItemData>> GetMinePageAsync(
         Guid candidateId,
         ApplicationStatus? status,
         MyApplicationsSort sort,
@@ -54,7 +54,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         return ordered
             .Skip(skip)
             .Take(pageSize)
-            .Select(application => new MyApplicationListItemData(
+            .Select(application => new ApplicationListItemData(
                 application.Id,
                 application.JobId,
                 application.CandidateId,
@@ -71,6 +71,43 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         var query = dbContext.Applications
             .AsNoTracking()
             .Where(application => application.CandidateId == candidateId);
+        if (status.HasValue) query = query.Where(application => application.Status == status.Value);
+        return query;
+    }
+
+    public Task<int> CountByJobIdAsync(
+        Guid jobId,
+        ApplicationStatus? status,
+        CancellationToken cancellationToken) =>
+        ApplyJobFilters(jobId, status).CountAsync(cancellationToken);
+
+    public Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
+        Guid jobId,
+        ApplicationStatus? status,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken) =>
+        ApplyJobFilters(jobId, status)
+            .OrderByDescending(application => application.AppliedAt)
+            .ThenBy(application => application.Id)
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(application => new ApplicationListItemData(
+                application.Id,
+                application.JobId,
+                application.CandidateId,
+                application.CvVersionId,
+                application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
+                application.CoverLetter,
+                application.Status,
+                application.AppliedAt,
+                application.UpdatedAt))
+            .ToListAsync(cancellationToken);
+
+    private IQueryable<JobApplication> ApplyJobFilters(Guid jobId, ApplicationStatus? status) {
+        var query = dbContext.Applications
+            .AsNoTracking()
+            .Where(application => application.JobId == jobId);
         if (status.HasValue) query = query.Where(application => application.Status == status.Value);
         return query;
     }

@@ -39,16 +39,7 @@ public sealed class ListMyApplicationsQueryHandler
             validated.PageSize,
             cancellationToken);
 
-        var items = rows.Select(row => new MyApplicationListItemResult(
-            row.Id,
-            row.JobId,
-            row.CandidateId,
-            row.CvVersionId,
-            row.UploadedCvUrl,
-            row.CoverLetter,
-            ApplicationStatusContract.ToApiValue(row.Status),
-            row.AppliedAt,
-            row.UpdatedAt)).ToArray();
+        var items = rows.Select(ApplicationListItemMapper.ToResult).ToArray();
 
         return new MyApplicationsPageResult(items, validated.Page, validated.PageSize, totalItems);
     }

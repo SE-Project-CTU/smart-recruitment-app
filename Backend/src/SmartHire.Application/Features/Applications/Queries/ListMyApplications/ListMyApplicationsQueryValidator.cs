@@ -3,7 +3,7 @@ using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Exceptions;
-using SmartHire.Application.Features.Applications.Mapping;
+using SmartHire.Application.Features.Applications.Validation;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Applications.Queries.ListMyApplications;
@@ -15,15 +15,7 @@ internal static class ListMyApplicationsQueryValidator {
         var skip = PagedListQueryValidator.CalculateSkip(page, pageSize);
         var details = new List<AppErrorDetail>();
 
-        ApplicationStatus? status = null;
-        if (!string.IsNullOrWhiteSpace(query.Status)) {
-            if (ApplicationStatusContract.TryParse(query.Status, out var parsedStatus)) {
-                status = parsedStatus;
-            } else {
-                details.Add(new AppErrorDetail("status", ValidationReasons.InvalidFormat,
-                    "Status is not supported."));
-            }
-        }
+        var status = ApplicationValidator.Parse(query.Status, details);
 
         var sort = ParseSort(query.Sort, details);
         var direction = SortDirectionValidator.Parse(query.Direction, details);

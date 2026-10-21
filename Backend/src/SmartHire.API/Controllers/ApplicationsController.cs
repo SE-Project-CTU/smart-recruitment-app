@@ -11,7 +11,7 @@ namespace SmartHire.Api.Controllers;
 [ApiController]
 [Authorize(Roles = RoleNames.Candidate)]
 [Route("api/v1/me/applications")]
-public sealed class MyApplicationsController(ISender sender, ApiResponseFactory responseFactory) : ControllerBase {
+public sealed class ApplicationsController(ISender sender, ApiResponseFactory responseFactory) : ControllerBase {
     [HttpGet]
     public async Task<IActionResult> List(
         [FromQuery] string? status,

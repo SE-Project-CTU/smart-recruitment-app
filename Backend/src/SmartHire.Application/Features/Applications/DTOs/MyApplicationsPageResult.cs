@@ -1,12 +1,12 @@
 namespace SmartHire.Application.Features.Applications.DTOs;
 
 public sealed record MyApplicationsPageResult(
-    IReadOnlyList<MyApplicationListItemResult> Items,
+    IReadOnlyList<ApplicationListItemResult> Items,
     int Page,
     int PageSize,
     int TotalItems);
 
-public sealed record MyApplicationListItemResult(
+public sealed record ApplicationListItemResult(
     Guid Id,
     Guid JobId,
     Guid CandidateId,

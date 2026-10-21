@@ -6,6 +6,7 @@ using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.JobPostings.Commands.CreateJobPosting;
 using SmartHire.Application.Features.JobPostings.Commands.UpdateJobPosting;
 using SmartHire.Application.Features.JobPostings.Commands.UpdateJobPostingStatus;
@@ -13,6 +14,7 @@ using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Application.Features.JobPostings.Queries.GetJobPostingDetail;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 using SmartHire.Application.Features.Applications.Commands.ApplyToJobPosting;
+using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
 
 namespace SmartHire.Api.Controllers;
 
@@ -211,5 +213,24 @@ public sealed class JobPostingController : ControllerBase {
             request.CoverLetter), cancellationToken);
 
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
+    }
+
+    [HttpGet("{id}/applications")]
+    [Authorize(Roles = RoleNames.Recruiter)]
+    public async Task<IActionResult> ListApplications(
+        [FromRoute] string id,
+        [FromQuery] string? status,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default) {
+        var result = await _sender.Send(
+            new ListApplicationsForJobQuery(id, status, page, pageSize),
+            cancellationToken);
+
+        return Ok(_responseFactory.PagedOneBased(
+            result.Items,
+            result.Page,
+            result.PageSize,
+            result.TotalItems));
     }
 }

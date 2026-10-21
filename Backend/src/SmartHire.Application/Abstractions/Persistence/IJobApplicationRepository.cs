@@ -11,11 +11,18 @@ public interface IJobApplicationRepository {
     Task<bool> IsUploadedCvFileInUseAsync(Guid fileId, CancellationToken cancellationToken);
     Task AddAsync(JobApplication application, CancellationToken cancellationToken);
     Task<int> CountMineAsync(Guid candidateId, ApplicationStatus? status, CancellationToken cancellationToken);
-    Task<List<MyApplicationListItemData>> GetMinePageAsync(
+    Task<List<ApplicationListItemData>> GetMinePageAsync(
         Guid candidateId,
         ApplicationStatus? status,
         MyApplicationsSort sort,
         SortDirection direction,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<int> CountByJobIdAsync(Guid jobId, ApplicationStatus? status, CancellationToken cancellationToken);
+    Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
+        Guid jobId,
+        ApplicationStatus? status,
         int skip,
         int pageSize,
         CancellationToken cancellationToken);

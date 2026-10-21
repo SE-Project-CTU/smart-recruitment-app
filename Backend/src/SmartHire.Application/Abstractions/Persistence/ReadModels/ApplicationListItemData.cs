@@ -2,7 +2,7 @@ using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Abstractions.Persistence.ReadModels;
 
-public sealed record MyApplicationListItemData(
+public sealed record ApplicationListItemData(
     Guid Id,
     Guid JobId,
     Guid CandidateId,
