@@ -17,6 +17,8 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<JobApplication>
         builder.Property(x => x.Status)
             .HasConversion<string>()
             .HasMaxLength(32);
+        builder.Property(x => x.UpdatedAt)
+            .IsConcurrencyToken();
         
         builder.HasOne(x => x.Job)
             .WithMany(x => x.Applications)

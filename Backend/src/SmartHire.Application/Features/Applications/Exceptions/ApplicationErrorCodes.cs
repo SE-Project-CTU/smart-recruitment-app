@@ -15,4 +15,5 @@ public static class ApplicationErrorCodes {
     public const string ApplicationNotFound = "APPLICATION_NOT_FOUND";
     public const string ApplicationForbidden = "APPLICATION_FORBIDDEN";
     public const string InvalidApplicationStatusTransition = "INVALID_APPLICATION_STATUS_TRANSITION";
+    public const string ApplicationStatusConflict = "APPLICATION_STATUS_CONFLICT";
 }

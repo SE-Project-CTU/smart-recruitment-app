@@ -48,6 +48,13 @@ internal static class ApplicationExceptions {
         [new AppErrorDetail("status", ValidationReasons.NotAllowed,
             "The requested status transition is not allowed by the application workflow.")]);
 
+    public static AppException ApplicationStatusConflict() => new(
+        AppErrorKind.Conflict,
+        ApplicationErrorCodes.ApplicationStatusConflict,
+        "Application status was updated by another request. Reload it and retry.",
+        [new AppErrorDetail("status", ErrorDetailReasons.ConcurrentModification,
+            "The application changed while this status update was being saved. Reload it before retrying.")]);
+
     public static AppException InvalidAccessToken() => new(
         AppErrorKind.Unauthorized,
         AuthErrorCodes.InvalidAccessToken,

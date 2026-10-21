@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Applications.DTOs;
 using SmartHire.Application.Features.Applications.Exceptions;
@@ -63,22 +64,28 @@ public sealed class UpdateApplicationStatusCommandHandler
         }
 
         var now = DateTimeOffset.UtcNow;
-        var transactionResult = await _unitOfWork.ExecuteInTransactionAsync(async ct => {
-            if (!application.TryChangeStatus(validated.Status, now)) {
-                throw ApplicationExceptions.InvalidStatusTransition(application.Status, validated.Status);
-            }
+        (UpdateApplicationStatusResult Result, Guid NotificationId) transactionResult;
+        try {
+            transactionResult = await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+                if (!application.TryChangeStatus(validated.Status, now)) {
+                    throw ApplicationExceptions.InvalidStatusTransition(application.Status, validated.Status);
+                }
 
-            var history = ApplicationStatusHistory.Create(application, userId, validated.Note, now);
-            application.StatusHistories.Add(history);
+                var history = ApplicationStatusHistory.Create(application, userId, validated.Note, now);
+                application.StatusHistories.Add(history);
 
-            var notification = ApplicationStatusUpdateNotificationFactory.Create(application, now);
-            await _notificationRepository.AddAsync(notification, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
+                var notification = ApplicationStatusUpdateNotificationFactory.Create(application, now);
+                await _notificationRepository.AddAsync(notification, ct);
+                await _unitOfWork.SaveChangesAsync(ct);
 
-            return (
-                Result: UpdateApplicationStatusMapper.ToResult(application, history),
-                NotificationId: notification.Id);
-        }, cancellationToken);
+                return (
+                    Result: UpdateApplicationStatusMapper.ToResult(application, history),
+                    NotificationId: notification.Id);
+            }, cancellationToken);
+        }
+        catch (OptimisticConcurrencyException) {
+            throw ApplicationExceptions.ApplicationStatusConflict();
+        }
 
         try {
             _backgroundJobScheduler.Enqueue<DispatchNotificationBatchJob, DispatchNotificationBatchJobArgs>(
