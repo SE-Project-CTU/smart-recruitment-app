@@ -10,4 +10,5 @@ public static class ApplicationErrorCodes {
     public const string UploadedCvNotPdf = "UPLOADED_CV_NOT_PDF";
     public const string UploadedCvTooLarge = "UPLOADED_CV_TOO_LARGE";
     public const string UploadedCvAlreadyUsed = "UPLOADED_CV_ALREADY_USED";
+    public const string InvalidApplicationQuery = "INVALID_APPLICATION_QUERY";
 }
