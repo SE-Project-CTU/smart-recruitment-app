@@ -9,6 +9,7 @@ using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Applications.Commands.UpdateApplicationStatus;
 using SmartHire.Application.Features.Applications.Queries.GetApplicationDetail;
+using SmartHire.Application.Features.Applications.Queries.ListApplicationStatusHistory;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 
 namespace SmartHire.Api.Controllers;
@@ -43,6 +44,23 @@ public sealed class ApplicationsController(ISender sender, ApiResponseFactory re
         CancellationToken cancellationToken) {
         var result = await sender.Send(new GetApplicationDetailQuery(id), cancellationToken);
         return Ok(responseFactory.Success(result));
+    }
+
+    [Authorize]
+    [HttpGet("{id}/status-history")]
+    public async Task<IActionResult> ListStatusHistory(
+        Guid id,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default) {
+        var result = await sender.Send(
+            new ListApplicationStatusHistoryQuery(id, page, pageSize),
+            cancellationToken);
+        return Ok(responseFactory.PagedOneBased(
+            result.Items,
+            result.Page,
+            result.PageSize,
+            result.TotalItems));
     }
 
     [Authorize(Roles = RoleNames.Recruiter)]

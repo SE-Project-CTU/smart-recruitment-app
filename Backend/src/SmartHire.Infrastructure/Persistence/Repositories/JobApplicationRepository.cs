@@ -101,6 +101,33 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                 application.UpdatedAt))
             .SingleOrDefaultAsync(cancellationToken);
 
+    public Task<int> CountStatusHistoryAsync(
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        dbContext.ApplicationStatusHistories
+            .CountAsync(history => history.ApplicationId == applicationId, cancellationToken);
+
+    public Task<List<ApplicationStatusHistoryData>> GetStatusHistoryPageAsync(
+        Guid applicationId,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken) =>
+        dbContext.ApplicationStatusHistories
+            .AsNoTracking()
+            .Where(history => history.ApplicationId == applicationId)
+            .OrderBy(history => history.CreatedAt)
+            .ThenBy(history => history.Id)
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(history => new ApplicationStatusHistoryData(
+                history.Id,
+                history.ApplicationId,
+                history.Status,
+                history.ChangedBy,
+                history.Note,
+                history.CreatedAt))
+            .ToListAsync(cancellationToken);
+
     public Task<JobApplication?> GetForStatusUpdateByIdAsync(
         Guid applicationId,
         CancellationToken cancellationToken) =>
