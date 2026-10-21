@@ -3,6 +3,9 @@ using SmartHire.Application;
 using SmartHire.Infrastructure;
 using SmartHire.Infrastructure.BackgroundJobs;
 using SmartHire.Infrastructure.Persistence;
+using SmartHire.Infrastructure.Seeding;
+using SmartHire.Application.Abstractions.BackgroundJobs;
+using SmartHire.Application.Features.JobPostings.Jobs.ExpireOverdueJobPostings;
 using NLog.Web;
 using DotNetEnv;
 using SmartHire.Api;
@@ -60,6 +63,19 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 using (var scope = app.Services.CreateScope()) {
     var db = scope.ServiceProvider.GetRequiredService<SmartHireDbContext>();
     db.Database.Migrate();
+
+    var adminAccountSeeder = scope.ServiceProvider.GetRequiredService<AdminAccountSeeder>();
+    await adminAccountSeeder.SeedAsync();
+
+    var jobScheduler = scope.ServiceProvider.GetRequiredService<IBackgroundJobScheduler>();
+    jobScheduler.AddOrUpdateRecurring<ExpireOverdueJobPostingsJob, ExpireOverdueJobPostingsJobArgs>(
+        "expire-overdue-job-postings",
+        new ExpireOverdueJobPostingsJobArgs(),
+        new RecurringSchedule(
+            RecurringScheduleKind.Daily,
+            TimeOfDay: new TimeOnly(0, 5),
+            TimeZoneId: "Asia/Ho_Chi_Minh")
+    );
 }
 
 // ── OpenAPI / Swagger UI ──

@@ -8,4 +8,13 @@ public class JobIndustry {
     public Industry Industry { get; private set; } = null!;
     
     private JobIndustry() { }
+
+    public static JobIndustry Create(JobPosting job, Guid industryId) {
+        ArgumentNullException.ThrowIfNull(job);
+        if (industryId == Guid.Empty) {
+            throw new ArgumentException("IndustryId is required.", nameof(industryId));
+        }
+
+        return new JobIndustry { Job = job, IndustryId = industryId };
+    }
 }

@@ -7,6 +7,7 @@ public class Province {
     
     public string Name { get; private set; } = string.Empty;
     public LocationStatus Status { get; private set; }
+    public bool IsCentrallyGoverned { get; private set; }
     
     public ICollection<Ward> Wards { get; private set; }
         = new List<Ward>();

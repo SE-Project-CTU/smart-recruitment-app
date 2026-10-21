@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Requests;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.Commands.DeleteCv;
 using SmartHire.Application.Features.Cv.Commands.UpdateCv;
@@ -42,7 +43,7 @@ public sealed class CvController : ControllerBase {
     
     [HttpGet]
     public async Task<IActionResult> GetMyCvs(
-        [FromQuery] int page = 0,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
         [FromQuery] bool? isPublic = null,
         [FromQuery] string? language = null,
@@ -52,7 +53,7 @@ public sealed class CvController : ControllerBase {
             new GetMyCvsQuery(page, pageSize, isPublic, language),
             cancellationToken);
         
-        return Ok(_responseFactory.Paged(
+        return Ok(_responseFactory.PagedOneBased(
             result.Items,
             result.Page,
             result.PageSize,
@@ -76,7 +77,7 @@ public sealed class CvController : ControllerBase {
     [HttpGet("{id}/versions")]
     public async Task<IActionResult> GetCvVersions(
         Guid id,
-        [FromQuery] int page = 0,
+        [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
@@ -84,7 +85,7 @@ public sealed class CvController : ControllerBase {
             new GetCvVersionsQuery(id, page, pageSize),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(
+        return Ok(_responseFactory.PagedOneBased(
             result.Items,
             result.Page,
             result.PageSize,

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using NpgsqlTypes;
 using Pgvector;
 using SmartHire.Infrastructure.Persistence;
 
@@ -151,6 +152,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("phone");
 
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasColumnName("search_vector")
+                        .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(name, ''::text))", true);
+
                     b.Property<string>("TaxCode")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -181,6 +188,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("LogoFileId")
                         .IsUnique()
                         .HasDatabaseName("ix_companies_logo_file_id");
+
+                    b.HasIndex("SearchVector")
+                        .HasDatabaseName("ix_companies_search_vector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
 
                     b.HasIndex("TaxCode")
                         .IsUnique()
@@ -370,13 +382,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("content_hash");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean")
@@ -867,6 +879,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("salary_negotiable");
 
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasColumnName("search_vector")
+                        .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(title, ''::text))", true);
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -899,6 +917,14 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProvinceId")
                         .HasDatabaseName("ix_job_postings_province_id");
+
+                    b.HasIndex("SearchVector")
+                        .HasDatabaseName("ix_job_postings_search_vector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_job_postings_status");
 
                     b.HasIndex("WardId")
                         .HasDatabaseName("ix_job_postings_ward_id");
@@ -1047,6 +1073,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("read_at");
 
+                    b.Property<DateTimeOffset?>("RealtimeDispatchedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("realtime_dispatched_at");
+
                     b.Property<Guid>("RecipientId")
                         .HasColumnType("uuid")
                         .HasColumnName("recipient_id");
@@ -1093,6 +1123,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<bool>("IsCentrallyGoverned")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_centrally_governed");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1304,6 +1338,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<bool>("IsCommune")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_commune");
 
                     b.Property<string>("Name")
                         .IsRequired()

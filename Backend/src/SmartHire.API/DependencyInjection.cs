@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Services;
+using SmartHire.Api.Middleware;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Infrastructure.Persistence.Json;
 
@@ -21,6 +23,7 @@ public static class DependencyInjection {
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, HttpCurrentUser>();
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, ApiAuthorizationMiddlewareResultHandler>();
 
         // SignalR
         services.AddSignalR();

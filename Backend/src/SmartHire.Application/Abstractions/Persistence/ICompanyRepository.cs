@@ -57,6 +57,7 @@ public interface ICompanyRepository {
         int pageSize,
         CancellationToken cancellationToken);
     Task<int> CountFollowersAsync(Guid companyId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Guid>> GetFollowerUserIdsAsync(Guid companyId, CancellationToken cancellationToken);
     Task AddFollowAsync(CompanyFollow follow, CancellationToken cancellationToken);
     void DeleteFollow(CompanyFollow follow);
 }

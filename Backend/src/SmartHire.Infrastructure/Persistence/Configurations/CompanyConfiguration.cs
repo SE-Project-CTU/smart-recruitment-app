@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartHire.Domain.Entities;
+using NpgsqlTypes;
 
 namespace SmartHire.Infrastructure.Persistence.Configurations;
 
@@ -26,6 +27,11 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company> {
         builder.Property(x => x.Website).HasMaxLength(500);
         builder.Property(x => x.Description).HasColumnType("text");
         builder.HasIndex(x => x.TaxCode).IsUnique();
+
+        builder.Property<NpgsqlTsVector>("SearchVector")
+            .HasColumnType("tsvector")
+            .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(name, ''::text))", stored: true);
+        builder.HasIndex("SearchVector").HasMethod("GIN");
         
         builder.HasOne(x => x.LogoFile)
             .WithOne(x => x.LogoCompany)

@@ -4,6 +4,7 @@ using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Validation;
 
 namespace SmartHire.Api.Controllers;
 
@@ -48,13 +49,13 @@ public sealed class ResponseTestController : ControllerBase {
     [AllowAnonymous]
     [HttpGet("pagination")]
     public IActionResult SuccessWithPagination() {
-        return Ok(_responseFactory.Paged(
+        return Ok(_responseFactory.PagedOneBased(
             new[] {
                 new {
                     message = "The success endpoint is working."
                 }
             },
-            0,
+            PagedListQueryValidator.FirstPage,
             10,
             20
         ));
