@@ -88,11 +88,20 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         var initialHistory = ApplicationStatusHistory.Create(application, candidateId, null, now);
         application.StatusHistories.Add(initialHistory);
 
-        await _unitOfWork.ExecuteInTransactionAsync(async ct => {
-            await _applicationRepository.AddAsync(application, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
-            return true;
-        }, cancellationToken);
+        try {
+            await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+                await _applicationRepository.AddAsync(application, ct);
+                await _unitOfWork.SaveChangesAsync(ct);
+                return true;
+            }, cancellationToken);
+        }
+        catch (PersistenceUniqueConstraintViolationException exception) when (
+            string.Equals(
+                exception.ConstraintName,
+                "ix_applications_candidate_id_job_id",
+                StringComparison.OrdinalIgnoreCase)) {
+            throw ApplicationExceptions.DuplicateApplication();
+        }
 
         return new JobApplicationResult(
             application.Id,
