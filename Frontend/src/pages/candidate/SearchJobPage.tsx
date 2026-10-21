@@ -422,39 +422,6 @@ export default function SearchJobPage() {
                   onApply={() => handleApply(job.id)}
                 />
               ))}
-              {filteredAndSortedJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
-                  onSelect={handleSelectJob}
-                  isBookmarked={bookmarkedJobIds.has(job.id)}
-                  onToggleBookmark={handleToggleBookmark}
-                  onApply={() => handleApply(job.id)}
-                />
-              ))}
-              {filteredAndSortedJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
-                  onSelect={handleSelectJob}
-                  isBookmarked={bookmarkedJobIds.has(job.id)}
-                  onToggleBookmark={handleToggleBookmark}
-                  onApply={() => handleApply(job.id)}
-                />
-              ))}
-              {filteredAndSortedJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
-                  onSelect={handleSelectJob}
-                  isBookmarked={bookmarkedJobIds.has(job.id)}
-                  onToggleBookmark={handleToggleBookmark}
-                  onApply={() => handleApply(job.id)}
-                />
-              ))}
             </div>
           )}
         </div>
