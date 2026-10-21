@@ -4,6 +4,7 @@ import {
   FIELD_LABELS,
   HTTP_STATUS_MESSAGES,
 } from "@/constants/apiErrorsMessage";
+
 type UnknownRecord = Record<string, unknown>;
 
 const isRecord = (value: unknown): value is UnknownRecord =>
@@ -104,6 +105,10 @@ export const getApiErrorMessage = (
     const nestedError = payload.error ?? payload.Error;
     const errorBody = isRecord(nestedError) ? nestedError : payload;
     const code = getString(errorBody, "code", "Code");
+    const serverMessage =
+      getString(errorBody, "message", "Message") ??
+      getString(payload, "message", "Message");
+
     const validationMessages = getValidationMessages(
       errorBody.details ?? errorBody.Details,
     );
@@ -121,6 +126,10 @@ export const getApiErrorMessage = (
 
     if (code && API_ERROR_MESSAGES[code]) {
       return API_ERROR_MESSAGES[code];
+    }
+
+    if (serverMessage) {
+      return serverMessage;
     }
   }
 

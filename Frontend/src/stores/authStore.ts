@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AuthUser, LoginResult, RefreshResult } from "@/types/auth";
+import type { UserAccount, LoginResult, RefreshResult } from "@/types/auth";
 import {
   clearAuthCookies,
   getAccessToken,
@@ -10,7 +10,7 @@ import { STORAGE_KEYS } from "@/constants/storage";
 import { authService } from "@/services/authService";
 
 export interface AuthState {
-  user: AuthUser | null;
+  user: UserAccount | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -18,16 +18,17 @@ export interface AuthState {
 
   setAuth: (data: LoginResult) => void;
   updateTokens: (data: RefreshResult) => void;
-  setUser: (user: AuthUser | null) => void;
+  setUser: (user: UserAccount | null) => void;
+  updateUser: (partialUser: Partial<UserAccount>) => void;
   clearAuth: () => void;
   logout: (allSessions?: boolean) => Promise<void>;
 }
 
-const getStoredUser = (): AuthUser | null => {
+const getStoredUser = (): UserAccount | null => {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
+    return raw ? (JSON.parse(raw) as UserAccount) : null;
   } catch {
     return null;
   }
@@ -76,13 +77,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  setUser: (user: AuthUser | null) => {
+  setUser: (user: UserAccount | null) => {
     if (user) {
       localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
     } else {
       localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     }
     set({ user });
+  },
+
+  updateUser: (partialUser: Partial<UserAccount>) => {
+    const current = get().user;
+    if (!current) return;
+    const updated = { ...current, ...partialUser };
+    localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(updated));
+    set({ user: updated });
   },
 
   clearAuth: () => {

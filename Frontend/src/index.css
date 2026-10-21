@@ -2,7 +2,6 @@
 @import "tailwindcss";
 @plugin "lightswind/plugin";
 @plugin "@tailwindcss/typography";
-
 @theme {
   --font-sans: "Montserrat", sans-serif;
 
@@ -35,7 +34,15 @@
   --color-status-warning: #f59e0b;
   --color-status-error: #ef4444;
   --color-status-info: #3b82f6;
-  --color-status-active: #38bdf8;
+  --color-status-active: #a6e1fa;
+
+  /* Sidebar */
+  --color-sidebar: var(--color-bg);
+  --color-sidebar-foreground: var(--color-text-main);
+  --color-sidebar-accent: #eaf0f6;
+  --color-sidebar-accent-foreground: var(--color-text-main);
+  --color-sidebar-border: var(--color-border);
+  --color-sidebar-ring: var(--color-primary);
 }
 
 /* Base Style Setup */

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@animate-ui/react':
+        specifier: ^2.0.0
+        version: 2.0.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(motion@12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@base-ui-components/react':
         specifier: 1.0.0-rc.0
         version: 1.0.0-rc.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -20,6 +23,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.104.1
         version: 5.104.1(react@19.3.0)
+      '@tanstack/react-table':
+        specifier: ^9.3.1
+        version: 9.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@tiptap/extension-bubble-menu':
         specifier: ^3.31.3
         version: 3.31.3(@tiptap/core@3.31.3(@tiptap/pm@3.31.3))(@tiptap/pm@3.31.3)
@@ -56,6 +62,9 @@ importers:
       cn:
         specifier: ^0.4.0
         version: 0.4.0
+      dayjs:
+        specifier: ^1.11.23
+        version: 1.11.23
       dotenv:
         specifier: ^18.0.3
         version: 18.0.3
@@ -152,6 +161,35 @@ importers:
         version: 8.3.0(@types/node@24.13.6)(jiti@2.7.0)
 
 packages:
+
+  '@animate-ui/react@2.0.0':
+    resolution: {integrity: sha512-xwSVXnT+QYtlYBMcrUrRSKWfm039A7OIWsv0jA0po9fdqPScdRSFok8phH8f6Lb7xDWaoiHbqEZhFjV68EFprg==}
+    peerDependencies:
+      '@base-ui/react': ^1.8.0
+      '@floating-ui/react': ^0.27.20
+      '@shadcn/react': ^0.3.1
+      input-otp: ^1.5.0
+      motion: ^14.0.0
+      radix-ui: ^1.6.0
+      react: ^19.0.0
+      react-aria-components: ^1.21.0
+      react-dom: ^19.0.0
+      shiki: ^4.5.0
+    peerDependenciesMeta:
+      '@base-ui/react':
+        optional: true
+      '@floating-ui/react':
+        optional: true
+      '@shadcn/react':
+        optional: true
+      input-otp:
+        optional: true
+      radix-ui:
+        optional: true
+      react-aria-components:
+        optional: true
+      shiki:
+        optional: true
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -594,6 +632,25 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
+  '@tanstack/react-store@0.11.2':
+    resolution: {integrity: sha512-oj5O5DmiMWE+ih+SioX2ayC1kbK7d3fpLx0B75fPJr9nY3zU+hoW010yr64qXsY/9fyiLVE2bn5mGNV3owm8RQ==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  '@tanstack/react-table@9.3.1':
+    resolution: {integrity: sha512-E6Ya5TnY6EaGyZYIUqig/29Lr/gJSAubQkLJFqiWkUl5nRCr0Xr9hvJot+NiRTtG+TzGxHTiqUW3bnLtQxlHug==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      react: '>=18'
+
+  '@tanstack/store@0.11.2':
+    resolution: {integrity: sha512-sJ4mjol8uQsHV0gOJzzjwXfh2Fwm+Sz0+8deqiTm4jGbMdjzNSW+xZCFm0kUa870uhd8yi+DpKnZb5Kc4apa0Q==}
+
+  '@tanstack/table-core@9.3.1':
+    resolution: {integrity: sha512-zQvlxSNi2qGM3L4jh85Z6hqMfdIR5qOfD9KHOU32nuKFJGN0RlJ7UvV1lsPb1fPVhpFYI0VP3jJGxLdLDpTKjQ==}
+    engines: {node: '>=20'}
+
   '@tiptap/core@3.31.3':
     resolution: {integrity: sha512-Cz50pvciQrxdSxgTkHOVz0uD0Yl/8Xt0QatGD6ILm47jW8EzyHR9RkUGs/D5IqzXKuVPntfw1ttaT926vXfiRg==}
     peerDependencies:
@@ -945,6 +1002,9 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  dayjs@1.11.23:
+    resolution: {integrity: sha512-QDTCU0M0MxR3hQfnlDJfwekQiaanm1ubOD231u73WBckQ/fsamwRLiE2GBz6D3a/xF1NgfiDLJjXBa1hYOYTtQ==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1943,6 +2003,14 @@ packages:
 
 snapshots:
 
+  '@animate-ui/react@2.0.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(motion@12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      motion: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+    optionalDependencies:
+      '@base-ui/react': 1.9.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+
   '@babel/code-frame@7.29.7':
     dependencies:
       '@babel/helper-validator-identifier': 7.29.7
@@ -2340,6 +2408,27 @@ snapshots:
       '@tanstack/query-core': 5.104.1
       react: 19.3.0
 
+  '@tanstack/react-store@0.11.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@tanstack/store': 0.11.2
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+      use-sync-external-store: 1.7.0(react@19.3.0)
+
+  '@tanstack/react-table@9.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@tanstack/react-store': 0.11.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@tanstack/table-core': 9.3.1
+      react: 19.3.0
+    transitivePeerDependencies:
+      - react-dom
+
+  '@tanstack/store@0.11.2': {}
+
+  '@tanstack/table-core@9.3.1':
+    dependencies:
+      '@tanstack/store': 0.11.2
+
   '@tiptap/core@3.31.3(@tiptap/pm@3.31.3)':
     dependencies:
       '@tiptap/pm': 3.31.3
@@ -2731,6 +2820,8 @@ snapshots:
   cssesc@3.0.0: {}
 
   csstype@3.2.3: {}
+
+  dayjs@1.11.23: {}
 
   debug@4.4.3:
     dependencies:

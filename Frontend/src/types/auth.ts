@@ -1,3 +1,5 @@
+export type UserRole = "Candidate" | "Recruiter" | "Admin";
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -19,12 +21,16 @@ export interface RefreshRequest {
   refreshToken: string;
 }
 
-export interface AuthUser {
+export interface UserAccount {
   id: string;
   email: string;
   fullName: string;
-  roles: string[];
+  roles: UserRole[];
   status: string;
+  avatarUrl: string | null;
+  phone?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginResult {
@@ -33,7 +39,7 @@ export interface LoginResult {
   expiresIn: number;
   refreshToken: string;
   refreshTokenExpiresAt: string;
-  user: AuthUser;
+  user: UserAccount;
 }
 
 export interface RegisterResult {
