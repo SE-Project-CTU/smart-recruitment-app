@@ -8,6 +8,7 @@ using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -42,64 +43,49 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
 
     public async Task<CompanyInvitationResult> Handle(InviteRecruiterCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
-        if (request.InviteeId == Guid.Empty) {
-            throw CompanyExceptions.Validation("Invitee id is required.", [new AppErrorDetail("inviteeId", ValidationReasons.Required, "Invitee id must be a valid UUID.")]);
+        if (string.IsNullOrWhiteSpace(request.Email)) {
+            throw CompanyExceptions.Validation("Email is required.", [new AppErrorDetail("email", ValidationReasons.Required, "Email is required.")]);
         }
+
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         // Caller phải là Owner Active
         var ownerMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, userId, cancellationToken);
         if (ownerMembership is null || ownerMembership.Role != CompanyMemberRole.Owner || ownerMembership.Status != CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CompanyErrorCodes.CompanyForbidden,
-                "Only an active Company Owner can send invitations.");
+            throw CompanyExceptions.CompanyForbidden("Only an active Company Owner can send invitations.");
         }
 
-        // Kiểm tra Invitee tồn tại
-        var invitee = await _userRepository.GetByIdAsync(request.InviteeId, cancellationToken);
+        // Kiểm tra Invitee tồn tại bằng Email
+        var invitee = await _userRepository.GetByEmailWithRolesAsync(normalizedEmail, cancellationToken);
         if (invitee is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.UserNotFound,
-                "Invitee user not found.");
+            throw CompanyExceptions.UserNotFound("email");
         }
 
         // Kiểm tra Invitee phải có role Recruiter (Spec: 422 Unprocessable Entity)
-        var inviteeRoles = await _userRoleRepository.GetAllByUserIdAsync(request.InviteeId, cancellationToken);
-        if (inviteeRoles.All(r => r.Role.Name != RoleNames.Recruiter)) {
+        if (invitee.UserRoles.All(r => r.Role.Name != RoleNames.Recruiter)) {
             throw CompanyExceptions.InviteeRoleRequired();
         }
 
+        var inviteeId = invitee.Id;
+
         // Invitee đã là thành viên của công ty
-        var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, request.InviteeId, cancellationToken);
+        var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, inviteeId, cancellationToken);
         if (existingMembership is not null && existingMembership.Status == CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyMembershipAlreadyExists,
-                "User is already an active member of this company.");
+            throw CompanyExceptions.CompanyMembershipAlreadyExists();
         }
 
         // Không được có invitation Pending nào trước đó
-        var pendingInvitation = await _companyRepository.GetPendingInvitationAsync(request.CompanyId, request.InviteeId, cancellationToken);
+        var pendingInvitation = await _companyRepository.GetPendingInvitationAsync(request.CompanyId, inviteeId, cancellationToken);
         if (pendingInvitation is not null) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyInvitationAlreadyExists,
-                "A pending invitation already exists for this user.");
+            throw CompanyExceptions.CompanyInvitationAlreadyExists();
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -110,52 +96,51 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
                 [new AppErrorDetail("expiresAt", ValidationReasons.InvalidFormat, "Expiration date must be in the future.")]);
         }
 
-        var invitation = CompanyInvitation.Create(
-            companyId: request.CompanyId,
-            inviterId: userId,
-            inviteeId: request.InviteeId,
-            expiresAt: expiresAt,
-            now: now);
-
-        await _companyRepository.AddInvitationAsync(invitation, cancellationToken);
-
         var inviter = await _userRepository.GetByIdAsync(userId, cancellationToken);
         var inviterName = inviter?.FullName ?? "Chủ doanh nghiệp";
-        var payloadObj = new {
-            company_id = company.Id,
-            company_name = company.Name,
-            invitation_status = "Pending"
-        };
-        var payloadJson = JsonSerializer.Serialize(payloadObj);
 
-        var notification = Notification.Create(
-            recipientId: request.InviteeId,
-            type: NotificationType.CompanyInvitation,
-            title: "Lời mời gia nhập công ty",
-            body: $"{inviterName} đã mời bạn gia nhập công ty {company.Name}.",
-            payload: payloadJson,
-            resourceType: "CompanyInvitation",
-            resourceId: invitation.Id,
-            expiresAt: invitation.ExpiresAt,
-            now: now);
+        var (invitation, notification) = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+            var invitation = CompanyInvitation.Create(
+                companyId: request.CompanyId,
+                inviterId: userId,
+                inviteeId: inviteeId,
+                expiresAt: expiresAt,
+                now: now);
 
-        await _notificationRepository.AddAsync(notification, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _companyRepository.AddInvitationAsync(invitation, cancellationToken);
+
+            var payloadObj = new {
+                company_id = company.Id,
+                company_name = company.Name,
+                invitation_status = "Pending"
+            };
+            var payloadJson = JsonSerializer.Serialize(payloadObj);
+
+            var notification = Notification.Create(
+                recipientId: inviteeId,
+                type: NotificationType.CompanyInvitation,
+                title: "Lời mời gia nhập công ty",
+                body: $"{inviterName} đã mời bạn gia nhập công ty {company.Name}.",
+                payload: payloadJson,
+                resourceType: "CompanyInvitation",
+                resourceId: invitation.Id,
+                expiresAt: invitation.ExpiresAt,
+                now: now);
+
+            await _notificationRepository.AddAsync(notification, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return (invitation, notification);
+        }, cancellationToken);
 
         if (_notificationDispatcher is not null) {
-            var notificationDto = NotificationResultMapper.ToDto(notification);
-
-            await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            try {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
+            }
         }
 
-        return new CompanyInvitationResult(
-            invitation.Id,
-            invitation.CompanyId,
-            invitation.InviterId,
-            invitation.InviteeId,
-            invitation.Status.ToString(),
-            invitation.ExpiresAt,
-            invitation.CreatedAt,
-            new CompanyBriefSummary(company.Id, company.Name, company.VerificationStatus.ToString()));
+        return CompanyResultMapper.ToCompanyInvitationResult(invitation, company);
     }
 }

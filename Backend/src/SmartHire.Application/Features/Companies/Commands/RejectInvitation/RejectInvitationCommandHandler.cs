@@ -3,8 +3,7 @@ using MediatR;
 using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -36,75 +35,69 @@ public sealed class RejectInvitationCommandHandler : IRequestHandler<RejectInvit
 
     public async Task Handle(RejectInvitationCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         var invitation = await _companyRepository.GetInvitationByIdAsync(request.InvitationId, cancellationToken);
         if (invitation is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyInvitationNotFound,
-                "Company invitation not found.");
+            throw CompanyExceptions.CompanyInvitationNotFound();
         }
 
         if (invitation.InviteeId != userId) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CompanyErrorCodes.CompanyForbidden,
-                "You are not the invitee of this invitation.");
+            throw CompanyExceptions.CompanyForbidden("You are not the invitee of this invitation.");
         }
 
         var now = DateTimeOffset.UtcNow;
         if (invitation.Status != CompanyInvitationStatus.Pending) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyInvitationAlreadyProcessed,
-                "This invitation has already been processed.");
+            throw CompanyExceptions.CompanyInvitationAlreadyProcessed();
         }
 
+        // Trường hợp hết hạn: cập nhật trạng thái Expired ngay lập tức 
         if (invitation.ExpiresAt <= now) {
             invitation.Expire();
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CompanyErrorCodes.CompanyInvitationExpired,
-                "This invitation has expired.");
+            throw CompanyExceptions.CompanyInvitationExpired();
         }
 
-        invitation.Reject();
-
+        // Đọc dữ liệu phụ trợ trước khi vào transaction
         var company = await _companyRepository.GetByIdAsync(invitation.CompanyId, cancellationToken);
         var companyName = company?.Name ?? "công ty";
         var inviteeUser = await _userRepository.GetByIdAsync(userId, cancellationToken);
         var inviteeName = inviteeUser?.FullName ?? "Ứng viên";
 
-        var payloadObj = new {
-            company_id = invitation.CompanyId,
-            company_name = companyName,
-            invitation_status = "Rejected"
-        };
-        var payloadJson = JsonSerializer.Serialize(payloadObj);
+        // Reject invitation + tạo notification trong cùng 1 transaction
+        var notification = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+            invitation.Reject();
 
-        var notification = Notification.Create(
-            recipientId: invitation.InviterId,
-            type: NotificationType.CompanyInvitation,
-            title: "Lời mời bị từ chối",
-            body: $"{inviteeName} đã từ chối lời mời gia nhập công ty {companyName}.",
-            payload: payloadJson,
-            resourceType: "CompanyInvitation",
-            resourceId: invitation.Id,
-            now: now);
+            var payloadObj = new {
+                company_id = invitation.CompanyId,
+                company_name = companyName,
+                invitation_status = "Rejected"
+            };
+            var payloadJson = JsonSerializer.Serialize(payloadObj);
 
-        await _notificationRepository.AddAsync(notification, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var notification = Notification.Create(
+                recipientId: invitation.InviterId,
+                type: NotificationType.CompanyInvitation,
+                title: "Lời mời bị từ chối",
+                body: $"{inviteeName} đã từ chối lời mời gia nhập công ty {companyName}.",
+                payload: payloadJson,
+                resourceType: "CompanyInvitation",
+                resourceId: invitation.Id,
+                now: now);
+
+            await _notificationRepository.AddAsync(notification, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return notification;
+        }, cancellationToken);
 
         if (_notificationDispatcher is not null) {
-            var notificationDto = NotificationResultMapper.ToDto(notification);
-
-            await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            try {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
+            }
         }
     }
 }

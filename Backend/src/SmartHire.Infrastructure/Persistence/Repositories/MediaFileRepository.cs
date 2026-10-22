@@ -13,8 +13,19 @@ public class MediaFileRepository : IMediaFileRepository {
     
     public Task<MediaFile?> GetByIdAsync(Guid fileId, CancellationToken cancellationToken) {
         return _dbContext.MediaFiles
-            .AsNoTracking()
+            .SingleOrDefaultAsync(file => file.Id == fileId && file.DeletedAt == null, cancellationToken);
+    }
+
+    public Task<MediaFile?> GetByIdIncludingDeletedAsync(Guid fileId, CancellationToken cancellationToken) {
+        return _dbContext.MediaFiles
             .SingleOrDefaultAsync(file => file.Id == fileId, cancellationToken);
+    }
+
+    public async Task<bool> IsReferencedAsync(Guid fileId, CancellationToken cancellationToken) {
+        return await _dbContext.Users.AnyAsync(u => u.AvatarFileId == fileId, cancellationToken)
+            || await _dbContext.Companies.AnyAsync(c => c.LogoFileId == fileId, cancellationToken)
+            || await _dbContext.CvTemplates.AnyAsync(t => t.ThumbnailFileId == fileId, cancellationToken)
+            || await _dbContext.Applications.AnyAsync(a => a.UploadedCvFileId == fileId, cancellationToken);
     }
 
     public async Task AddAsync(MediaFile mediaFile, CancellationToken cancellationToken) {

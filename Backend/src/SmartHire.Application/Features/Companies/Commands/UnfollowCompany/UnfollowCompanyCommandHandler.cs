@@ -1,8 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Companies.Exceptions;
 
 namespace SmartHire.Application.Features.Companies.Commands.UnfollowCompany;
 
@@ -22,26 +21,17 @@ public sealed class UnfollowCompanyCommandHandler : IRequestHandler<UnfollowComp
 
     public async Task Handle(UnfollowCompanyCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         var follow = await _companyRepository.GetFollowAsync(userId, request.CompanyId, cancellationToken);
         if (follow is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFollowed,
-                "You are not following this company.");
+            throw CompanyExceptions.CompanyNotFollowed();
         }
 
         _companyRepository.DeleteFollow(follow);

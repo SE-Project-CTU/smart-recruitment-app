@@ -1,10 +1,9 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Companies.Commands.TransferOwnership;
@@ -25,10 +24,7 @@ public sealed class TransferOwnershipCommandHandler : IRequestHandler<TransferOw
 
     public async Task<TransferOwnershipResult> Handle(TransferOwnershipCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         if (request.NewOwnerId == userId) {
@@ -37,39 +33,30 @@ public sealed class TransferOwnershipCommandHandler : IRequestHandler<TransferOw
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         // Caller phải là Owner
         var currentOwnerMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, userId, cancellationToken);
         if (currentOwnerMembership is null || currentOwnerMembership.Role != CompanyMemberRole.Owner || currentOwnerMembership.Status != CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CompanyErrorCodes.CompanyForbidden,
-                "Only an active Company Owner can transfer ownership.");
+            throw CompanyExceptions.CompanyForbidden("Only an active Company Owner can transfer ownership.");
         }
 
         // New owner phải là thành viên hiện tại của công ty
         var newOwnerMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, request.NewOwnerId, cancellationToken);
         if (newOwnerMembership is null || newOwnerMembership.Status != CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyNewOwnerInvalid,
-                "New owner must be an active member of this company.");
+            throw CompanyExceptions.CompanyNewOwnerInvalid("New owner must be an active member of this company.");
         }
 
         var now = DateTimeOffset.UtcNow;
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             currentOwnerMembership.UpdateRole(CompanyMemberRole.Recruiter);
             newOwnerMembership.UpdateRole(CompanyMemberRole.Owner);
 
-            await _unitOfWork.SaveChangesAsync(ct);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new TransferOwnershipResult(
+            return CompanyResultMapper.ToTransferOwnershipResult(
                 request.CompanyId,
                 userId,
                 request.NewOwnerId,

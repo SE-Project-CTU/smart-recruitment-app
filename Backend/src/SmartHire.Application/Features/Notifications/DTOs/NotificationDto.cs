@@ -16,5 +16,3 @@ public sealed record NotificationDto(
     DateTimeOffset? ExpiresAt,
     bool IsRead
 );
-
-public sealed record UnreadCountResult(int UnreadCount);

@@ -101,7 +101,7 @@ public sealed class UpdateCompanyRequest {
 }
 
 public sealed class InviteRecruiterRequest {
-    public Guid InviteeId { get; init; }
+    public string Email { get; init; } = string.Empty;
     public DateTimeOffset? ExpiresAt { get; init; }
 }
 

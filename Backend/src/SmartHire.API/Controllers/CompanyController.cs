@@ -171,7 +171,7 @@ public sealed class CompanyController : ControllerBase {
                 "Request body is required.");
         }
 
-        var command = new InviteRecruiterCommand(id, request.InviteeId, request.ExpiresAt);
+        var command = new InviteRecruiterCommand(id, request.Email, request.ExpiresAt);
         var result = await _sender.Send(command, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }

@@ -113,6 +113,15 @@ public sealed class CompanyRepository : ICompanyRepository {
         return (items, totalCount);
     }
 
+    public async Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken) {
+        return await _dbContext.CompanyMemberships
+            .CountAsync(
+                m => m.UserId == userId &&
+                     m.Role == CompanyMemberRole.Owner &&
+                     m.Status == CompanyMembershipStatus.Active,
+                cancellationToken);
+    }
+
     public async Task AddMembershipAsync(CompanyMembership membership, CancellationToken cancellationToken) {
         await _dbContext.CompanyMemberships.AddAsync(membership, cancellationToken);
     }

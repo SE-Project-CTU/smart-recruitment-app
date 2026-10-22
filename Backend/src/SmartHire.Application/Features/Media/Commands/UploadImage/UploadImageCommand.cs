@@ -1,5 +1,5 @@
 using MediatR;
-using SmartHire.Application.Features.Media;
+using SmartHire.Application.Features.Media.DTOs;
 
 namespace SmartHire.Application.Features.Media.Commands.UploadImage;
 

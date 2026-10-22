@@ -1,4 +1,4 @@
-namespace SmartHire.Application.Features.Media;
+namespace SmartHire.Application.Features.Media.DTOs;
 
 public sealed record MediaFileResult(
     Guid Id,

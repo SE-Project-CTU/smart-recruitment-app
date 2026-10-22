@@ -9,7 +9,9 @@ public sealed class DeleteMediaFileJob : IBackgroundJob<DeleteMediaFileJobArgs> 
     private readonly IFileStorageService _fileStorageService;
     private readonly IUnitOfWork _unitOfWork;
     
-    public DeleteMediaFileJob(IMediaFileRepository mediaFileRepository, IFileStorageService fileStorageService,
+    public DeleteMediaFileJob(
+        IMediaFileRepository mediaFileRepository,
+        IFileStorageService fileStorageService,
         IUnitOfWork unitOfWork) {
         _mediaFileRepository = mediaFileRepository;
         _fileStorageService = fileStorageService;
@@ -17,21 +19,21 @@ public sealed class DeleteMediaFileJob : IBackgroundJob<DeleteMediaFileJobArgs> 
     }
     
     public async Task ExecuteAsync(DeleteMediaFileJobArgs args, CancellationToken cancellationToken) {
-        var mediaFile = await _mediaFileRepository.GetByIdAsync(args.MediaFileId, cancellationToken);
+        var mediaFile = await _mediaFileRepository.GetByIdIncludingDeletedAsync(args.MediaFileId, cancellationToken);
         
         if (mediaFile is null) {
             return;
         }
+        
+        // Xóa file vật lý trên Cloudinary
+        if (!string.IsNullOrWhiteSpace(mediaFile.PublicId)) {
+            await _fileStorageService.DeleteAsync(mediaFile.PublicId, cancellationToken);
+        }
 
-        var publicId = mediaFile.PublicId;
-        
-        // 1. Xóa record trong DB trước để kiểm tra ràng buộc khóa ngoại
-        _mediaFileRepository.Delete(mediaFile);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-        
-        // 2. Sau khi DB đã xóa thành công, mới tiến hành xóa file vật lý trên Cloudinary
-        if (!string.IsNullOrWhiteSpace(publicId)) {
-            await _fileStorageService.DeleteAsync(publicId, cancellationToken);
+        // Đảm bảo trạng thái soft delete đã được lưu
+        if (!mediaFile.IsDeleted) {
+            mediaFile.MarkAsDeleted(DateTimeOffset.UtcNow);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }
