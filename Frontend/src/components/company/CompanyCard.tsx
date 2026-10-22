@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  Plus,
 } from "lucide-react";
 import { MorphIcon } from "morphicons/react";
 import { BookmarkCheck, Bookmark } from "lucide";
@@ -22,6 +23,7 @@ export interface CompanyCardProps {
   isBookmarked?: boolean;
   onToggleBookmark?: (id: string) => void;
   onViewDetail: (company: CompanyItem) => void;
+  onCreateJob?: (company: CompanyItem) => void;
   userRole?: "Owner" | "Member";
   actionText?: string;
   showBookmark?: boolean;
@@ -32,6 +34,7 @@ export function CompanyCard({
   isBookmarked = false,
   onToggleBookmark,
   onViewDetail,
+  onCreateJob,
   userRole,
   actionText = "Xem chi tiết",
   showBookmark = true,
@@ -40,7 +43,7 @@ export function CompanyCard({
   const status = company.verificationStatus;
 
   return (
-    <div className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 shadow-xs transition-all duration-200 hover:border-sky-300 hover:shadow-sm">
+    <div className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 transition-colors duration-200 hover:border-primary/40">
       <div className="flex items-start gap-3.5">
         <CompanyLogo logoUrl={company.logoUrl} name={company.name} size="md" />
 
@@ -136,11 +139,39 @@ export function CompanyCard({
         )}
       </div>
 
-      <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-3.5">
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3.5">
+        {onCreateJob && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="secondary"
+                  icon={Plus}
+                  disabled={status !== "Verified"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCreateJob(company);
+                  }}
+                  className="px-3 py-1.5 text-xs"
+                >
+                  Tạo JD nhanh
+                </Button>
+              }
+            />
+            {status !== "Verified" && (
+              <TooltipPanel>
+                Doanh nghiệp cần được duyệt trước khi đăng tin tuyển dụng
+                (BR-01)
+              </TooltipPanel>
+            )}
+          </Tooltip>
+        )}
+
         <Button
           variant="secondary"
           icon={ChevronRight}
           onClick={() => onViewDetail(company)}
+          className="ml-auto px-3 py-1.5 text-xs"
         >
           {actionText}
         </Button>

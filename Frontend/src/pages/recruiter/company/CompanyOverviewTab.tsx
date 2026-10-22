@@ -48,7 +48,7 @@ export function CompanyOverviewTab() {
     <div className="space-y-6">
       {/* Banner Cảnh báo Trạng thái Duyệt */}
       {isPending && (
-        <div className="flex items-start gap-3.5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-amber-900 shadow-2xs">
+        <div className="flex items-start gap-3.5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-amber-900">
           <Clock className="size-5 shrink-0 text-amber-600 mt-0.5" />
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-semibold text-amber-900">
@@ -62,7 +62,7 @@ export function CompanyOverviewTab() {
       )}
 
       {isRejected && (
-        <div className="flex items-start gap-3.5 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-rose-900 shadow-2xs">
+        <div className="flex items-start gap-3.5 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-rose-900">
           <AlertCircle className="size-5 shrink-0 text-rose-600 mt-0.5" />
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-semibold text-rose-900">
@@ -78,7 +78,7 @@ export function CompanyOverviewTab() {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Stat 1: Số lượng thành viên */}
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-text-muted">Thành viên HR</span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
@@ -90,7 +90,7 @@ export function CompanyOverviewTab() {
         </div>
 
         {/* Stat 2: Trạng thái pháp lý */}
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-text-muted">Xác thực pháp lý</span>
             <div
@@ -124,7 +124,7 @@ export function CompanyOverviewTab() {
         </div>
 
         {/* Stat 3: Ngày tạo hồ sơ */}
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-text-muted">Ngày khởi tạo</span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
@@ -140,7 +140,7 @@ export function CompanyOverviewTab() {
         </div>
 
         {/* Stat 4: Tích hợp Đăng tin tuyển dụng (Tạo JD) */}
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-5 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-text-muted">Chiến dịch tuyển dụng</span>
             <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
@@ -171,7 +171,7 @@ export function CompanyOverviewTab() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Cột trái: Giới thiệu & Văn hóa */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-3xl border border-border bg-surface p-6 shadow-2xs">
+          <div className="rounded-3xl border border-border bg-surface p-6">
             <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted mb-3">
               Giới thiệu doanh nghiệp
             </h2>
@@ -181,7 +181,7 @@ export function CompanyOverviewTab() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-surface p-6 shadow-2xs">
+          <div className="rounded-3xl border border-border bg-surface p-6">
             <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted mb-3">
               Chính sách tuyển dụng tại {company.name}
             </h2>
@@ -204,7 +204,7 @@ export function CompanyOverviewTab() {
 
         {/* Cột phải: Thông tin liên hệ & Pháp lý */}
         <div className="space-y-6">
-          <div className="rounded-3xl border border-border bg-surface p-6 shadow-2xs space-y-4">
+          <div className="rounded-3xl border border-border bg-surface p-6 space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">
               Thông tin liên hệ
             </h2>
@@ -267,7 +267,7 @@ export function CompanyOverviewTab() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-surface p-6 shadow-2xs space-y-3">
+          <div className="rounded-3xl border border-border bg-surface p-6 space-y-3">
             <h2 className="text-sm font-bold uppercase tracking-wider text-text-muted">
               Hồ sơ pháp lý
             </h2>

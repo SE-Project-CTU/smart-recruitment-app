@@ -64,7 +64,7 @@ export function CompanyDetailLayout() {
         <button
           onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
           type="button"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary-hover"
         >
           <ArrowLeft className="size-4" />
           Về danh sách công ty
@@ -91,10 +91,10 @@ export function CompanyDetailLayout() {
       </div>
 
       {/* 2. Banner Header Công ty: Logo, Tên, MST, Status & Role */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-xs sm:p-8">
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4 sm:items-center">
-            <div className="shrink-0 rounded-2xl border border-border p-1 bg-white shadow-2xs">
+            <div className="shrink-0 rounded-2xl border border-border p-1 bg-white">
               <CompanyLogo logoUrl={company.logoUrl} name={company.name} size="lg" />
             </div>
 

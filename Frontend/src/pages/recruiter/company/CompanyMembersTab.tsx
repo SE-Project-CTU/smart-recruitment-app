@@ -201,7 +201,7 @@ export function CompanyMembersTab() {
       </div>
 
       {/* Toolbar & Filters */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1">
           <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-text-muted" />
           <input
@@ -258,7 +258,7 @@ export function CompanyMembersTab() {
       {/* Modal Xác nhận Chuyển quyền Chủ sở hữu */}
       {transferTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center gap-3 text-amber-600 mb-3">
               <div className="flex size-10 items-center justify-center rounded-xl bg-amber-50">
                 <AlertCircle className="size-6" />
