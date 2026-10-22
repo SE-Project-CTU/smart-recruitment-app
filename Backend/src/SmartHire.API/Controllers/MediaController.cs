@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Media.Commands.DeleteMediaFile;
@@ -29,6 +30,7 @@ public sealed class MediaController : ControllerBase {
 
     // Upload ảnh
     [HttpPost("upload/image")]
+    [EnableRateLimiting("media-upload")]
     public async Task<IActionResult> UploadImage(
         IFormFile? file,
         CancellationToken cancellationToken) {
@@ -51,6 +53,7 @@ public sealed class MediaController : ControllerBase {
 
     // Upload pdf
     [HttpPost("upload/pdf")]
+    [EnableRateLimiting("media-upload")]
     public async Task<IActionResult> UploadPdf(
         IFormFile? file,
         CancellationToken cancellationToken) {

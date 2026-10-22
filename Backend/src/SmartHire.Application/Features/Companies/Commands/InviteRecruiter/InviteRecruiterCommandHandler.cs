@@ -46,9 +46,11 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
             throw CompanyExceptions.InvalidAccessToken();
         }
 
-        if (request.InviteeId == Guid.Empty) {
-            throw CompanyExceptions.Validation("Invitee id is required.", [new AppErrorDetail("inviteeId", ValidationReasons.Required, "Invitee id must be a valid UUID.")]);
+        if (string.IsNullOrWhiteSpace(request.Email)) {
+            throw CompanyExceptions.Validation("Email is required.", [new AppErrorDetail("email", ValidationReasons.Required, "Email is required.")]);
         }
+
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
@@ -61,26 +63,27 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
             throw CompanyExceptions.CompanyForbidden("Only an active Company Owner can send invitations.");
         }
 
-        // Kiểm tra Invitee tồn tại
-        var invitee = await _userRepository.GetByIdAsync(request.InviteeId, cancellationToken);
+        // Kiểm tra Invitee tồn tại bằng Email
+        var invitee = await _userRepository.GetByEmailWithRolesAsync(normalizedEmail, cancellationToken);
         if (invitee is null) {
-            throw CompanyExceptions.UserNotFound("inviteeId");
+            throw CompanyExceptions.UserNotFound("email");
         }
 
         // Kiểm tra Invitee phải có role Recruiter (Spec: 422 Unprocessable Entity)
-        var inviteeRoles = await _userRoleRepository.GetAllByUserIdAsync(request.InviteeId, cancellationToken);
-        if (inviteeRoles.All(r => r.Role.Name != RoleNames.Recruiter)) {
+        if (invitee.UserRoles.All(r => r.Role.Name != RoleNames.Recruiter)) {
             throw CompanyExceptions.InviteeRoleRequired();
         }
 
+        var inviteeId = invitee.Id;
+
         // Invitee đã là thành viên của công ty
-        var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, request.InviteeId, cancellationToken);
+        var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, inviteeId, cancellationToken);
         if (existingMembership is not null && existingMembership.Status == CompanyMembershipStatus.Active) {
             throw CompanyExceptions.CompanyMembershipAlreadyExists();
         }
 
         // Không được có invitation Pending nào trước đó
-        var pendingInvitation = await _companyRepository.GetPendingInvitationAsync(request.CompanyId, request.InviteeId, cancellationToken);
+        var pendingInvitation = await _companyRepository.GetPendingInvitationAsync(request.CompanyId, inviteeId, cancellationToken);
         if (pendingInvitation is not null) {
             throw CompanyExceptions.CompanyInvitationAlreadyExists();
         }
@@ -100,7 +103,7 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
             var invitation = CompanyInvitation.Create(
                 companyId: request.CompanyId,
                 inviterId: userId,
-                inviteeId: request.InviteeId,
+                inviteeId: inviteeId,
                 expiresAt: expiresAt,
                 now: now);
 
@@ -114,7 +117,7 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
             var payloadJson = JsonSerializer.Serialize(payloadObj);
 
             var notification = Notification.Create(
-                recipientId: request.InviteeId,
+                recipientId: inviteeId,
                 type: NotificationType.CompanyInvitation,
                 title: "Lời mời gia nhập công ty",
                 body: $"{inviterName} đã mời bạn gia nhập công ty {company.Name}.",

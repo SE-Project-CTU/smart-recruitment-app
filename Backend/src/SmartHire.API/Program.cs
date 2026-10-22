@@ -11,6 +11,9 @@ using DotNetEnv;
 using SmartHire.Api;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using DependencyInjection = SmartHire.Api.DependencyInjection;
 
 Env.TraversePath().Load();
@@ -51,6 +54,24 @@ builder.Services.AddScoped<ApiResponseFactory>();
 
 builder.Services.AddJwtBearerAuthentication(builder.Configuration);
 
+builder.Services.AddRateLimiter(options => {
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("media-upload", httpContext => {
+        var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                     ?? httpContext.User.FindFirst("sub")?.Value
+                     ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                     ?? "anonymous";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: userId,
+            factory: _ => new FixedWindowRateLimiterOptions {
+                PermitLimit = 20,
+                Window = TimeSpan.FromHours(1),
+                QueueLimit = 0
+            });
+    });
+});
+
 var app = builder.Build();
 
 app.UseCors(DependencyInjection.PolicyName);
@@ -87,6 +108,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.UseBackgroundJobDashboard();
 

@@ -40,6 +40,13 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
             throw CompanyExceptions.CompanyTaxCodeAlreadyExists();
         }
 
+        // Giới hạn số lượng công ty một Recruiter được phép tạo <=5
+        const int maxOwnedCompanies = 5;
+        var ownedCompanyCount = await _companyRepository.CountOwnedCompaniesAsync(userId, cancellationToken);
+        if (ownedCompanyCount >= maxOwnedCompanies) {
+            throw CompanyExceptions.MaxOwnedCompaniesReached(maxOwnedCompanies);
+        }
+
         string? resolvedLogoUrl = null;
         if (request.LogoFileId is Guid logoFileId) {
             var logoFile = await _mediaFileRepository.GetByIdAsync(logoFileId, cancellationToken);
