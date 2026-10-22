@@ -420,6 +420,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("presentation_hash");
 
+                    b.Property<Guid?>("PreviewFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("preview_file_id");
+
                     b.Property<Guid>("TemplateId")
                         .HasColumnType("uuid")
                         .HasColumnName("template_id");
@@ -440,6 +444,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CandidateId")
                         .HasDatabaseName("ix_cvs_candidate_id");
+
+                    b.HasIndex("PreviewFileId")
+                        .HasDatabaseName("ix_cvs_preview_file_id");
 
                     b.HasIndex("TemplateId")
                         .HasDatabaseName("ix_cvs_template_id");
@@ -718,6 +725,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("status");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
@@ -1534,6 +1542,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_cvs_users_candidate_id");
 
+                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "PreviewFile")
+                        .WithMany()
+                        .HasForeignKey("PreviewFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_cvs_media_files_preview_file_id");
+
                     b.HasOne("SmartHire.Domain.Entities.CvTemplate", "Template")
                         .WithMany("Cvs")
                         .HasForeignKey("TemplateId")
@@ -1542,6 +1556,8 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_cvs_cv_templates_template_id");
 
                     b.Navigation("Candidate");
+
+                    b.Navigation("PreviewFile");
 
                     b.Navigation("Template");
                 });

@@ -15,11 +15,17 @@ public sealed record CvResult(
     CvLanguage Language,
     bool IsPublic,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    CvPreviewFileResult? PreviewFile = null
 );
 
 public sealed record CvTemplateSummaryResult(
     Guid Id,
     string Code,
     string Name
+);
+
+public sealed record CvPreviewFileResult(
+    Guid Id,
+    string Url
 );

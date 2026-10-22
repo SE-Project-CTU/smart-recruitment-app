@@ -19,5 +19,7 @@ public sealed record UpdateCvCommand(
     string? Language,
     bool? IsPublic,
     bool IsPublicProvided,
+    bool PreviewFileIdProvided,
+    Guid? PreviewFileId,
     IReadOnlyList<string> AdditionalFieldNames
 ) : IRequest<CvResult>;

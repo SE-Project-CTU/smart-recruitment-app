@@ -11,10 +11,18 @@ namespace SmartHire.Application.Features.Cv.Mapping;
 /// </summary>
 public static class CvResultMapper
 {
-    public static CvResult ToResult(CvEntity cv, CvTemplateEntity template)
+    public static CvResult ToResult(
+        CvEntity cv,
+        CvTemplateEntity template,
+        CvPreviewFileResult? previewFileOverride = null)
     {
         ArgumentNullException.ThrowIfNull(cv);
         ArgumentNullException.ThrowIfNull(template);
+
+        var previewFile = previewFileOverride
+            ?? (cv.PreviewFile is not null
+                ? new CvPreviewFileResult(cv.PreviewFile.Id, cv.PreviewFile.FileUrl)
+                : null);
 
         return new CvResult(
             cv.Id,
@@ -31,7 +39,7 @@ public static class CvResultMapper
             cv.Language,
             cv.IsPublic,
             cv.CreatedAt,
-            cv.UpdatedAt);
+            cv.UpdatedAt,
+            previewFile);
     }
-
 }

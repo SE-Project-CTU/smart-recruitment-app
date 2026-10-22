@@ -103,4 +103,18 @@ internal static class CvExceptions
         CommonErrorCodes.ValidationError,
         message,
         [new AppErrorDetail(field, ValidationReasons.InvalidFormat, message)]);
+
+    public static AppException MediaFileNotFound(string fieldName, Guid fileId) => new(
+        AppErrorKind.NotFound,
+        MediaErrorCodes.MediaFileNotFound,
+        "Media file was not found.",
+        [new AppErrorDetail(fieldName, ErrorDetailReasons.NotFound,
+            $"The specified media file '{fileId}' does not exist.")]);
+
+    public static AppException MediaFileForbidden(string fieldName) => new(
+        AppErrorKind.Forbidden,
+        MediaErrorCodes.MediaFileForbidden,
+        "You do not have permission to use this media file.",
+        [new AppErrorDetail(fieldName, ValidationReasons.NotAllowed,
+            "The media file does not belong to the current user.")]);
 }

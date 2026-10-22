@@ -25,6 +25,7 @@ public sealed class CvRepository : ICvRepository {
             .AsNoTracking()
             .Where(cv => cv.Id == cvId && cv.DeletedAt == null)
             .Include(cv => cv.Template)
+            .Include(cv => cv.PreviewFile)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -41,6 +42,7 @@ public sealed class CvRepository : ICvRepository {
     public Task<Cv?> GetForUpdateByIdAsync(Guid cvId, CancellationToken cancellationToken) {
         return _dbContext.Cvs
             .Include(cv => cv.Template)
+            .Include(cv => cv.PreviewFile)
             .SingleOrDefaultAsync(
                 cv => cv.Id == cvId && cv.DeletedAt == null,
                 cancellationToken);
@@ -76,7 +78,8 @@ public sealed class CvRepository : ICvRepository {
                 cv.Language,
                 cv.IsPublic,
                 cv.CreatedAt,
-                cv.UpdatedAt))
+                cv.UpdatedAt,
+                cv.PreviewFile != null ? new CvPreviewFileResult(cv.PreviewFile.Id, cv.PreviewFile.FileUrl) : null))
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

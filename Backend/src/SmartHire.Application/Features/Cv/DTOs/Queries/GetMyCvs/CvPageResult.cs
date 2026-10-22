@@ -19,5 +19,6 @@ public sealed record CvListItemResult(
     CvLanguage Language,
     bool IsPublic,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    CvPreviewFileResult? PreviewFile = null
 );

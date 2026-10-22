@@ -1,4 +1,5 @@
 using MediatR;
+using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Serialization;
 using SmartHire.Application.Abstractions.Security;
@@ -7,8 +8,10 @@ using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.DTOs;
+using SmartHire.Domain.Entities;
 using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Application.Features.Cv.Mapping;
+using SmartHire.Application.Features.Media.Jobs.DeleteMediaFile;
 
 namespace SmartHire.Application.Features.Cv.Commands.UpdateCv;
 
@@ -18,19 +21,25 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICvVersionRepository _cvVersionRepository;
     private readonly ICvDocumentHasher _cvDocumentHasher;
+    private readonly IMediaFileRepository _mediaFileRepository;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     
     public UpdateCvCommandHandler(
         ICurrentUser currentUser,
         ICvRepository cvRepository,
         ICvVersionRepository cvVersionRepository,
         IUnitOfWork unitOfWork,
-        ICvDocumentHasher cvDocumentHasher
+        ICvDocumentHasher cvDocumentHasher,
+        IMediaFileRepository mediaFileRepository,
+        IBackgroundJobScheduler backgroundJobScheduler
     ) {
         _currentUser = currentUser;
         _cvRepository = cvRepository;
         _cvVersionRepository = cvVersionRepository;
         _unitOfWork = unitOfWork;
         _cvDocumentHasher = cvDocumentHasher;
+        _mediaFileRepository = mediaFileRepository;
+        _backgroundJobScheduler = backgroundJobScheduler;
     }
     
     public async Task<CvResult> Handle(
@@ -46,6 +55,23 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         
         if (cv.CandidateId != candidateId) {
             throw CvExceptions.CvNotOwned("update");
+        }
+
+        var oldPreviewFileId = cv.PreviewFileId;
+
+        // Validate new preview file if provided
+        MediaFile? newPreviewFile = null;
+        if (validated.PreviewFileIdProvided && validated.PreviewFileId.HasValue) {
+            newPreviewFile = await _mediaFileRepository.GetByIdAsync(
+                validated.PreviewFileId.Value, cancellationToken);
+
+            if (newPreviewFile is null) {
+                throw CvExceptions.MediaFileNotFound("previewFileId", validated.PreviewFileId.Value);
+            }
+
+            if (newPreviewFile.OwnerId != candidateId) {
+                throw CvExceptions.MediaFileForbidden("previewFileId");
+            }
         }
         
         var content = validated.ContentProvided ? validated.Content! : cv.Content;
@@ -130,7 +156,12 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         var title = validated.TitleProvided ? validated.Title! : cv.Title;
         var titleChanged = !string.Equals(title, cv.Title, StringComparison.Ordinal);
         var visibilityChanged = isPublic != cv.IsPublic;
-        
+        var previewChanged = validated.PreviewFileIdProvided && validated.PreviewFileId != cv.PreviewFileId;
+
+        CvPreviewFileResult? previewFileResult = validated.PreviewFileIdProvided
+            ? (newPreviewFile is not null ? new CvPreviewFileResult(newPreviewFile.Id, newPreviewFile.FileUrl) : null)
+            : (cv.PreviewFile is not null ? new CvPreviewFileResult(cv.PreviewFile.Id, cv.PreviewFile.FileUrl) : null);
+
         try {
             if (isVersioningRequired) {
                 var latestVersionNumber = await _cvVersionRepository.GetLatestVersionNumberAsync(
@@ -141,11 +172,16 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                     throw CvExceptions.CvUpdateConflict();
                 }
                 
-                return await HandleUpdateWithVersioning(
+                var result = await HandleUpdateWithVersioning(
                     cv,
                     latestVersionNumber,
+                    previewFileResult,
                     () => {
                         cv.Update(title, isPublic, now);
+                        if (validated.PreviewFileIdProvided) {
+                            cv.SetPreviewFile(validated.PreviewFileId);
+                        }
+
                         cv.UpdateDocuments(
                             content,
                             layout,
@@ -166,6 +202,17 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                     },
                     now,
                     cancellationToken);
+
+                // Enqueue background job to delete old preview file only on update with versioning
+                if (validated.PreviewFileIdProvided &&
+                    oldPreviewFileId.HasValue &&
+                    oldPreviewFileId.Value != validated.PreviewFileId) {
+                    _backgroundJobScheduler.Enqueue<DeleteMediaFileJob, DeleteMediaFileJobArgs>(
+                        new DeleteMediaFileJobArgs(oldPreviewFileId.Value)
+                    );
+                }
+
+                return result;
             }
             else {
                 return await HandlerSimpleUpdate(
@@ -174,7 +221,7 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                         if (titleChanged || visibilityChanged) {
                             cv.Update(title, isPublic, now);
                         }
-
+                        
                         cv.SetDocumentHashes(
                             proposedHashes.ContentHash,
                             proposedHashes.PresentationHash,
@@ -203,6 +250,7 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
     private async Task<CvResult> HandleUpdateWithVersioning(
         Domain.Entities.Cv cv,
         int latestVersionNumber,
+        CvPreviewFileResult? previewFileResult,
         Action updateAction,
         DateTimeOffset now,
         CancellationToken cancellationToken
@@ -228,7 +276,7 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                 await _cvVersionRepository.Add(version);
                 await _unitOfWork.SaveChangesAsync(transactionToken);
                 
-                return CvResultMapper.ToResult(cv, cv.Template);
+                return CvResultMapper.ToResult(cv, cv.Template, previewFileResult);
             },
             cancellationToken);
     }
@@ -244,5 +292,4 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         
         return userId;
     }
-    
 }

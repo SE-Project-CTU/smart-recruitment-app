@@ -14,6 +14,7 @@ public sealed class UpdateCvRequest {
     private CvPresentationDocument? _presentation;
     private string? _language;
     private bool? _isPublic;
+    private Guid? _previewFileId;
     
     [StringLength(150, MinimumLength = 1,
         ErrorMessage = "Title must contain between 1 and 150 characters.")]
@@ -79,6 +80,16 @@ public sealed class UpdateCvRequest {
     }
     
     [JsonIgnore] public bool IsPublicProvided { get; private set; }
+
+    public Guid? PreviewFileId {
+        get => _previewFileId;
+        init {
+            _previewFileId = value;
+            PreviewFileIdProvided = true;
+        }
+    }
+
+    [JsonIgnore] public bool PreviewFileIdProvided { get; private set; }
     
     [JsonExtensionData] public Dictionary<string, JsonElement>? AdditionalFields { get; init; }
 }
