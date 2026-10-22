@@ -110,52 +110,54 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
                 [new AppErrorDetail("expiresAt", ValidationReasons.InvalidFormat, "Expiration date must be in the future.")]);
         }
 
-        var invitation = CompanyInvitation.Create(
-            companyId: request.CompanyId,
-            inviterId: userId,
-            inviteeId: request.InviteeId,
-            expiresAt: expiresAt,
-            now: now);
-
-        await _companyRepository.AddInvitationAsync(invitation, cancellationToken);
-
         var inviter = await _userRepository.GetByIdAsync(userId, cancellationToken);
         var inviterName = inviter?.FullName ?? "Chủ doanh nghiệp";
-        var payloadObj = new {
-            company_id = company.Id,
-            company_name = company.Name,
-            invitation_status = "Pending"
-        };
-        var payloadJson = JsonSerializer.Serialize(payloadObj);
 
-        var notification = Notification.Create(
-            recipientId: request.InviteeId,
-            type: NotificationType.CompanyInvitation,
-            title: "Lời mời gia nhập công ty",
-            body: $"{inviterName} đã mời bạn gia nhập công ty {company.Name}.",
-            payload: payloadJson,
-            resourceType: "CompanyInvitation",
-            resourceId: invitation.Id,
-            expiresAt: invitation.ExpiresAt,
-            now: now);
+        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+            var invitation = CompanyInvitation.Create(
+                companyId: request.CompanyId,
+                inviterId: userId,
+                inviteeId: request.InviteeId,
+                expiresAt: expiresAt,
+                now: now);
 
-        await _notificationRepository.AddAsync(notification, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _companyRepository.AddInvitationAsync(invitation, cancellationToken);
 
-        if (_notificationDispatcher is not null) {
-            var notificationDto = NotificationResultMapper.ToDto(notification);
+            var payloadObj = new {
+                company_id = company.Id,
+                company_name = company.Name,
+                invitation_status = "Pending"
+            };
+            var payloadJson = JsonSerializer.Serialize(payloadObj);
 
-            await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
-        }
+            var notification = Notification.Create(
+                recipientId: request.InviteeId,
+                type: NotificationType.CompanyInvitation,
+                title: "Lời mời gia nhập công ty",
+                body: $"{inviterName} đã mời bạn gia nhập công ty {company.Name}.",
+                payload: payloadJson,
+                resourceType: "CompanyInvitation",
+                resourceId: invitation.Id,
+                expiresAt: invitation.ExpiresAt,
+                now: now);
 
-        return new CompanyInvitationResult(
-            invitation.Id,
-            invitation.CompanyId,
-            invitation.InviterId,
-            invitation.InviteeId,
-            invitation.Status.ToString(),
-            invitation.ExpiresAt,
-            invitation.CreatedAt,
-            new CompanyBriefSummary(company.Id, company.Name, company.VerificationStatus.ToString()));
+            await _notificationRepository.AddAsync(notification, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (_notificationDispatcher is not null) {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            }
+
+            return new CompanyInvitationResult(
+                invitation.Id,
+                invitation.CompanyId,
+                invitation.InviterId,
+                invitation.InviteeId,
+                invitation.Status.ToString(),
+                invitation.ExpiresAt,
+                invitation.CreatedAt,
+                new CompanyBriefSummary(company.Id, company.Name, company.VerificationStatus.ToString()));
+        }, cancellationToken);
     }
 }

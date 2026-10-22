@@ -65,6 +65,7 @@ public sealed class RejectInvitationCommandHandler : IRequestHandler<RejectInvit
                 "This invitation has already been processed.");
         }
 
+        // Trường hợp hết hạn: cập nhật trạng thái Expired ngay lập tức 
         if (invitation.ExpiresAt <= now) {
             invitation.Expire();
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -74,37 +75,42 @@ public sealed class RejectInvitationCommandHandler : IRequestHandler<RejectInvit
                 "This invitation has expired.");
         }
 
-        invitation.Reject();
-
+        // Đọc dữ liệu phụ trợ trước khi vào transaction
         var company = await _companyRepository.GetByIdAsync(invitation.CompanyId, cancellationToken);
         var companyName = company?.Name ?? "công ty";
         var inviteeUser = await _userRepository.GetByIdAsync(userId, cancellationToken);
         var inviteeName = inviteeUser?.FullName ?? "Ứng viên";
 
-        var payloadObj = new {
-            company_id = invitation.CompanyId,
-            company_name = companyName,
-            invitation_status = "Rejected"
-        };
-        var payloadJson = JsonSerializer.Serialize(payloadObj);
+        // Reject invitation + tạo notification trong cùng 1 transaction
+        await _unitOfWork.ExecuteInTransactionAsync<bool>(async cancellationToken => {
+            invitation.Reject();
 
-        var notification = Notification.Create(
-            recipientId: invitation.InviterId,
-            type: NotificationType.CompanyInvitation,
-            title: "Lời mời bị từ chối",
-            body: $"{inviteeName} đã từ chối lời mời gia nhập công ty {companyName}.",
-            payload: payloadJson,
-            resourceType: "CompanyInvitation",
-            resourceId: invitation.Id,
-            now: now);
+            var payloadObj = new {
+                company_id = invitation.CompanyId,
+                company_name = companyName,
+                invitation_status = "Rejected"
+            };
+            var payloadJson = JsonSerializer.Serialize(payloadObj);
 
-        await _notificationRepository.AddAsync(notification, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var notification = Notification.Create(
+                recipientId: invitation.InviterId,
+                type: NotificationType.CompanyInvitation,
+                title: "Lời mời bị từ chối",
+                body: $"{inviteeName} đã từ chối lời mời gia nhập công ty {companyName}.",
+                payload: payloadJson,
+                resourceType: "CompanyInvitation",
+                resourceId: invitation.Id,
+                now: now);
 
-        if (_notificationDispatcher is not null) {
-            var notificationDto = NotificationResultMapper.ToDto(notification);
+            await _notificationRepository.AddAsync(notification, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
-        }
+            if (_notificationDispatcher is not null) {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            }
+
+            return true;
+        }, cancellationToken);
     }
 }

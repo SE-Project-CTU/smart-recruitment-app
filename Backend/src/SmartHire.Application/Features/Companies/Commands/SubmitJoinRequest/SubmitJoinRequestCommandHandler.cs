@@ -70,52 +70,56 @@ public sealed class SubmitJoinRequestCommandHandler : IRequestHandler<SubmitJoin
         }
 
         var now = DateTimeOffset.UtcNow;
-        var joinRequest = CompanyJoinRequest.Create(request.CompanyId, userId, now);
 
-        await _companyRepository.AddJoinRequestAsync(joinRequest, cancellationToken);
-
-        // Gửi thông báo đến Owner của công ty
+        // Đọc dữ liệu cần thiết trước khi vào transaction
         var ownerMembership = await _companyRepository.GetActiveOwnerMembershipAsync(request.CompanyId, cancellationToken);
-        Notification? notification = null;
-        if (ownerMembership is not null) {
-            var applicant = await _userRepository.GetByIdAsync(userId, cancellationToken);
-            var applicantName = applicant?.FullName ?? "Ứng viên";
+        var applicant = ownerMembership is not null
+            ? await _userRepository.GetByIdAsync(userId, cancellationToken)
+            : null;
+        var applicantName = applicant?.FullName ?? "Ứng viên";
 
-            var payloadObj = new {
-                company_id = company.Id,
-                company_name = company.Name,
-                applicant_id = userId,
-                applicant_name = applicantName,
-                request_status = "Pending"
-            };
-            var payloadJson = JsonSerializer.Serialize(payloadObj);
+        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+            var joinRequest = CompanyJoinRequest.Create(request.CompanyId, userId, now);
+            await _companyRepository.AddJoinRequestAsync(joinRequest, cancellationToken);
 
-            notification = Notification.Create(
-                recipientId: ownerMembership.UserId,
-                type: NotificationType.CompanyJoinRequest,
-                title: "Yêu cầu gia nhập công ty mới",
-                body: $"{applicantName} đã gửi yêu cầu gia nhập công ty {company.Name}.",
-                payload: payloadJson,
-                resourceType: "CompanyJoinRequest",
-                resourceId: joinRequest.Id,
-                now: now);
+            // Gửi thông báo đến Owner của công ty (nếu có)
+            Notification? notification = null;
+            if (ownerMembership is not null) {
+                var payloadObj = new {
+                    company_id = company.Id,
+                    company_name = company.Name,
+                    applicant_id = userId,
+                    applicant_name = applicantName,
+                    request_status = "Pending"
+                };
+                var payloadJson = JsonSerializer.Serialize(payloadObj);
 
-            await _notificationRepository.AddAsync(notification, cancellationToken);
-        }
+                notification = Notification.Create(
+                    recipientId: ownerMembership.UserId,
+                    type: NotificationType.CompanyJoinRequest,
+                    title: "Yêu cầu gia nhập công ty mới",
+                    body: $"{applicantName} đã gửi yêu cầu gia nhập công ty {company.Name}.",
+                    payload: payloadJson,
+                    resourceType: "CompanyJoinRequest",
+                    resourceId: joinRequest.Id,
+                    now: now);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _notificationRepository.AddAsync(notification, cancellationToken);
+            }
 
-        if (notification is not null && _notificationDispatcher is not null) {
-            var notificationDto = NotificationResultMapper.ToDto(notification);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
-        }
+            if (notification is not null && _notificationDispatcher is not null) {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            }
 
-        return new CompanyJoinRequestResult(
-            joinRequest.Id,
-            joinRequest.CompanyId,
-            joinRequest.UserId,
-            joinRequest.Status.ToString(),
-            joinRequest.CreatedAt);
+            return new CompanyJoinRequestResult(
+                joinRequest.Id,
+                joinRequest.CompanyId,
+                joinRequest.UserId,
+                joinRequest.Status.ToString(),
+                joinRequest.CreatedAt);
+        }, cancellationToken);
     }
 }
