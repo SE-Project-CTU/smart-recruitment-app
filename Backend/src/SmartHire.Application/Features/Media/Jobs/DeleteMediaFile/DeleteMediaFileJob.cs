@@ -1,4 +1,4 @@
-﻿using SmartHire.Application.Abstractions.BackgroundJobs;
+using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Storage;
 
@@ -22,10 +22,16 @@ public sealed class DeleteMediaFileJob : IBackgroundJob<DeleteMediaFileJobArgs> 
         if (mediaFile is null) {
             return;
         }
+
+        var publicId = mediaFile.PublicId;
         
-        await _fileStorageService.DeleteAsync(mediaFile.PublicId, cancellationToken);
-        
+        // 1. Xóa record trong DB trước để kiểm tra ràng buộc khóa ngoại
         _mediaFileRepository.Delete(mediaFile);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        // 2. Sau khi DB đã xóa thành công, mới tiến hành xóa file vật lý trên Cloudinary
+        if (!string.IsNullOrWhiteSpace(publicId)) {
+            await _fileStorageService.DeleteAsync(publicId, cancellationToken);
+        }
     }
 }

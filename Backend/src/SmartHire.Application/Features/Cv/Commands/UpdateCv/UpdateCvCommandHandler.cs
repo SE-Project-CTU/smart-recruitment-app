@@ -72,6 +72,15 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
             if (newPreviewFile.OwnerId != candidateId) {
                 throw CvExceptions.MediaFileForbidden("previewFileId");
             }
+
+            var isAlreadyInUse = await _cvRepository.IsPreviewFileInUseAsync(
+                validated.PreviewFileId.Value,
+                cv.Id,
+                cancellationToken);
+
+            if (isAlreadyInUse) {
+                throw CvExceptions.PreviewFileConflict("previewFileId");
+            }
         }
         
         var content = validated.ContentProvided ? validated.Content! : cv.Content;
@@ -156,7 +165,6 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         var title = validated.TitleProvided ? validated.Title! : cv.Title;
         var titleChanged = !string.Equals(title, cv.Title, StringComparison.Ordinal);
         var visibilityChanged = isPublic != cv.IsPublic;
-        var previewChanged = validated.PreviewFileIdProvided && validated.PreviewFileId != cv.PreviewFileId;
 
         CvPreviewFileResult? previewFileResult = validated.PreviewFileIdProvided
             ? (newPreviewFile is not null ? new CvPreviewFileResult(newPreviewFile.Id, newPreviewFile.FileUrl) : null)

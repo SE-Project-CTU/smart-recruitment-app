@@ -1,4 +1,4 @@
-﻿using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.Queries.GetMyCvs;
 using SmartHire.Domain.Enums;
@@ -83,6 +83,21 @@ public sealed class CvRepository : ICvRepository {
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<bool> IsPreviewFileInUseAsync(
+        Guid previewFileId,
+        Guid? excludeCvId,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.Cvs
+            .AsNoTracking()
+            .Where(cv => cv.PreviewFileId == previewFileId && cv.DeletedAt == null);
+
+        if (excludeCvId.HasValue) {
+            query = query.Where(cv => cv.Id != excludeCvId.Value);
+        }
+
+        return query.AnyAsync(cancellationToken);
     }
     
     private IQueryable<Cv> ApplyMineFilters(

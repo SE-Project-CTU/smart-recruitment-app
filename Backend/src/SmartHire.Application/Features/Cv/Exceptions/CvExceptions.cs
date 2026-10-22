@@ -117,4 +117,11 @@ internal static class CvExceptions
         "You do not have permission to use this media file.",
         [new AppErrorDetail(fieldName, ValidationReasons.NotAllowed,
             "The media file does not belong to the current user.")]);
+
+    public static AppException PreviewFileConflict(string fieldName) => new(
+        AppErrorKind.Conflict,
+        CvErrorCodes.PreviewFileAlreadyInUse,
+        "The preview file is already associated with another CV.",
+        [new AppErrorDetail(fieldName, ErrorDetailReasons.AlreadyExists,
+            "This preview file is already in use by another CV.")]);
 }
