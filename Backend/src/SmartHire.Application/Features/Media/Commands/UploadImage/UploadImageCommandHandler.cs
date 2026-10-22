@@ -2,9 +2,8 @@ using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Abstractions.Storage;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Media.Exceptions;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Features.Media.Commands.UploadImage;
@@ -35,51 +34,25 @@ public sealed class UploadImageCommandHandler
         UploadImageCommand request,
         CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.",
-                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
-                    "A valid user id claim is required.")]);
+            throw MediaExceptions.InvalidAccessToken();
         }
 
         // Validate type
         if (!AllowedImageMimeTypes.Contains(
                 request.ContentType,
                 StringComparer.OrdinalIgnoreCase)) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "Unsupported image format. Accepted: jpg, jpeg, png, webp.",
-                [new AppErrorDetail(
-                    "file",
-                    ValidationReasons.InvalidFormat,
-                    $"Content type '{request.ContentType}' is not allowed.")]);
+            throw MediaExceptions.UnsupportedImageFormat(request.ContentType);
         }
 
         // Validate kích thước
         if (request.FileSize > MaxImageSizeBytes) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "Image file exceeds the maximum allowed size of 5 MB.",
-                [new AppErrorDetail(
-                    "file",
-                    ValidationReasons.MaxLength,
-                    $"File size {request.FileSize} bytes exceeds limit of {MaxImageSizeBytes} bytes.")]);
+            throw MediaExceptions.ImageSizeExceeded(request.FileSize, MaxImageSizeBytes);
         }
 
         // Validate Magic Bytes
         var detectedContentType = FileSignatureValidator.DetectImageContentType(request.FileStream);
         if (detectedContentType is null) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "The file content does not match a valid image signature (JPEG, PNG, WEBP).",
-                [new AppErrorDetail(
-                    "file",
-                    ValidationReasons.InvalidFormat,
-                    "File binary signature does not match allowed image formats.")]);
+            throw MediaExceptions.InvalidImageSignature();
         }
 
         // Tự động chuẩn hóa
@@ -111,12 +84,7 @@ public sealed class UploadImageCommandHandler
                 folder: "images",
                 cancellationToken);
         } catch (Exception) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                MediaErrorCodes.MediaFileStorageError,
-                "Failed to upload image to storage.",
-                [new AppErrorDetail("file", ErrorDetailReasons.StorageError,
-                    "The storage provider could not store the image.")]);
+            throw MediaExceptions.StorageUploadError("image");
         }
 
         // Lưu metadata vào DB với actualContentType và sanitizedFileName
@@ -128,8 +96,13 @@ public sealed class UploadImageCommandHandler
             fileSize: request.FileSize,
             publicId: uploadResult.PublicId);
 
-        await _mediaFileRepository.AddAsync(mediaFile, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        try {
+            await _mediaFileRepository.AddAsync(mediaFile, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        } catch {
+            await _storageService.DeleteAsync(uploadResult.PublicId, CancellationToken.None);
+            throw;
+        }
 
         return new MediaFileResult(
             mediaFile.Id,

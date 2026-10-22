@@ -2,9 +2,8 @@ using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Abstractions.Storage;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Features.Media.Exceptions;
 
 namespace SmartHire.Application.Features.Media.Commands.DeleteMediaFile;
 
@@ -30,12 +29,7 @@ public sealed class DeleteMediaFileCommandHandler
         DeleteMediaFileCommand request,
         CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.",
-                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
-                    "A valid user id claim is required.")]);
+            throw MediaExceptions.InvalidAccessToken();
         }
 
         var mediaFile = await _mediaFileRepository.GetByIdAsync(
@@ -43,12 +37,7 @@ public sealed class DeleteMediaFileCommandHandler
             cancellationToken);
 
         if (mediaFile is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                MediaErrorCodes.MediaFileNotFound,
-                "Media file was not found.",
-                [new AppErrorDetail("fileId", ErrorDetailReasons.NotFound,
-                    "The specified media file could not be found.")]);
+            throw MediaExceptions.MediaFileNotFound();
         }
 
         // Kiểm tra quyền sở hữu
@@ -57,24 +46,14 @@ public sealed class DeleteMediaFileCommandHandler
             StringComparer.OrdinalIgnoreCase);
 
         if (!isAdmin && mediaFile.OwnerId != userId) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                MediaErrorCodes.MediaFileForbidden,
-                "You do not have permission to delete this file.",
-                [new AppErrorDetail("fileId", ValidationReasons.NotAllowed,
-                    "The current account does not own this media file.")]);
+            throw MediaExceptions.MediaFileForbidden();
         }
 
         // Xóa trên Cloudinary trước
         try {
             await _storageService.DeleteAsync(mediaFile.PublicId, cancellationToken);
         } catch (Exception) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                MediaErrorCodes.MediaFileDeleteStorageError,
-                "Failed to delete file from storage.",
-                [new AppErrorDetail("file", ErrorDetailReasons.StorageError,
-                    "The storage provider could not delete the file.")]);
+            throw MediaExceptions.StorageDeleteError();
         }
 
         _mediaFileRepository.Delete(mediaFile);

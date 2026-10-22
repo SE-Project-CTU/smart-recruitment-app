@@ -2,9 +2,8 @@ using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Abstractions.Storage;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Media.Exceptions;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Features.Media.Commands.UploadPdf;
@@ -34,12 +33,7 @@ public sealed class UploadPdfCommandHandler
         UploadPdfCommand request,
         CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.",
-                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
-                    "A valid user id claim is required.")]);
+            throw MediaExceptions.InvalidAccessToken();
         }
 
         // Validate type
@@ -47,38 +41,17 @@ public sealed class UploadPdfCommandHandler
                 request.ContentType,
                 AllowedPdfMimeType,
                 StringComparison.OrdinalIgnoreCase)) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "Only PDF files are accepted for this endpoint.",
-                [new AppErrorDetail(
-                    "file",
-                    ValidationReasons.InvalidFormat,
-                    $"Content type '{request.ContentType}' is not allowed. Expected: application/pdf.")]);
+            throw MediaExceptions.UnsupportedPdfFormat(request.ContentType);
         }
 
         // Validate kích thước
         if (request.FileSize > MaxPdfSizeBytes) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "PDF file exceeds the maximum allowed size of 10 MB.",
-                [new AppErrorDetail(
-                    "file",
-                    ValidationReasons.MaxLength,
-                    $"File size {request.FileSize} bytes exceeds limit of {MaxPdfSizeBytes} bytes.")]);
+            throw MediaExceptions.PdfSizeExceeded(request.FileSize, MaxPdfSizeBytes);
         }
 
         // Validate Magic Bytes
         if (!FileSignatureValidator.IsValidPdf(request.FileStream)) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CommonErrorCodes.ValidationError,
-                "The file content does not match a valid PDF signature.",
-                [new AppErrorDetail(
-                    "file",
-                    ValidationReasons.InvalidFormat,
-                    "File binary signature does not match PDF format (%PDF-).")]);
+            throw MediaExceptions.InvalidPdfSignature();
         }
 
         // Chuẩn hóa tên tệp luôn có phần mở rộng .pdf
@@ -96,12 +69,7 @@ public sealed class UploadPdfCommandHandler
                 folder: "documents",
                 cancellationToken);
         } catch (Exception) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                MediaErrorCodes.MediaFileStorageError,
-                "Failed to upload PDF to storage.",
-                [new AppErrorDetail("file", ErrorDetailReasons.StorageError,
-                    "The storage provider could not store the PDF.")]);
+            throw MediaExceptions.StorageUploadError("PDF");
         }
 
         var mediaFile = MediaFile.Create(
@@ -112,8 +80,13 @@ public sealed class UploadPdfCommandHandler
             fileSize: request.FileSize,
             publicId: uploadResult.PublicId);
 
-        await _mediaFileRepository.AddAsync(mediaFile, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        try {
+            await _mediaFileRepository.AddAsync(mediaFile, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        } catch {
+            await _storageService.DeleteAsync(uploadResult.PublicId, CancellationToken.None);
+            throw;
+        }
 
         return new MediaFileResult(
             mediaFile.Id,
