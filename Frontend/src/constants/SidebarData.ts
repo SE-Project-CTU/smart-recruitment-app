@@ -7,10 +7,12 @@ import {
   FileChartLine,
   FileText,
   Home,
+  icons,
   LayoutList,
   LibraryBig,
   ListCheck,
   Search,
+  Settings,
   Star,
   UserRound,
   UserRoundGroup,
@@ -97,8 +99,8 @@ export const recruiterSidebarData = {
       url: "#",
       icon: BuildingComplex,
       items: [
-        { title: "Quản lý", url: "#" },
-        { title: "Lời mời", url: "#" },
+        { title: "Quản lý", url: PATHS.RECRUITER.COMPANY_MANAGEMENT },
+        { title: "Lời mời", url: PATHS.RECRUITER.COMPANY_INVITATION },
       ],
     },
   ],
@@ -106,6 +108,7 @@ export const recruiterSidebarData = {
   setting: [
     {
       title: "Cài đặt",
+      icon: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },
@@ -151,6 +154,7 @@ export const adminSidebarData = {
   setting: [
     {
       title: "Cài đặt",
+      icons: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },
