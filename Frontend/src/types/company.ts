@@ -64,6 +64,7 @@ export interface UpdateCompanyPayload {
 }
 
 export interface InviteRecruiterPayload {
-  inviteeId: string;
+  email: string;
   expiresAt?: string;
 }
+

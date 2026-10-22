@@ -101,7 +101,7 @@ export const companyService = {
   },
 
   /**
-   * Gửi lời mời gia nhập công ty (Yêu cầu ID của tài khoản Recruiter)
+   * Gửi lời mời gia nhập công ty (Yêu cầu Email của tài khoản Recruiter)
    */
   async inviteMember(
     id: string,

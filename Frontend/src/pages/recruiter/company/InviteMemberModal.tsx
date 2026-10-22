@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { UserPlus, X, Send, AlertCircle, Info } from "lucide-react";
+import { UserPlus, X, Send, AlertCircle, Info, Mail, ChevronDown } from "lucide-react";
+import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import Button from "@/components/Button";
+import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { useInviteMember } from "@/hooks/queries/useCompany";
 
@@ -12,8 +14,14 @@ interface InviteMemberModalProps {
   onSuccess: () => void;
 }
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const EXPIRE_DAYS_OPTIONS = [
+  { value: "3", label: "3 ngày" },
+  { value: "7", label: "7 ngày (Mặc định)" },
+  { value: "14", label: "14 ngày" },
+  { value: "30", label: "30 ngày" },
+];
 
 export function InviteMemberModal({
   isOpen,
@@ -22,27 +30,33 @@ export function InviteMemberModal({
   companyName,
   onSuccess,
 }: InviteMemberModalProps) {
-  const [inviteeId, setInviteeId] = useState("");
-  const [expireDays, setExpireDays] = useState(7);
+  const [email, setEmail] = useState("");
+  const [expireDays, setExpireDays] = useState("7");
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const { mutateAsync: inviteMember, isPending } = useInviteMember();
 
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    if (isPending) return;
+    setError(null);
+    setEmail("");
+    onClose();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanId = inviteeId.trim();
+    const cleanEmail = email.trim().toLowerCase();
 
-    if (!cleanId) {
-      setError("Vui lòng nhập User ID của tài khoản Nhà tuyển dụng");
+    if (!cleanEmail) {
+      setError("Vui lòng nhập địa chỉ email của Nhà tuyển dụng.");
       return;
     }
 
-    if (!UUID_REGEX.test(cleanId)) {
+    if (!EMAIL_REGEX.test(cleanEmail)) {
       setError(
-        "Định dạng không hợp lệ! Backend yêu cầu mã UUID của tài khoản (Ví dụ: e2c5a5c7-3658-442d-87c1-cf8ff34d2d8b), không dùng địa chỉ email.",
+        "Địa chỉ email không đúng định dạng (ví dụ: recruiter@example.com).",
       );
       return;
     }
@@ -50,29 +64,37 @@ export function InviteMemberModal({
     try {
       setError(null);
       const expiresAt = new Date(
-        Date.now() + expireDays * 24 * 60 * 60 * 1000,
+        Date.now() + Number(expireDays) * 24 * 60 * 60 * 1000,
       ).toISOString();
 
       await inviteMember({
         companyId,
         payload: {
-          inviteeId: cleanId,
+          email: cleanEmail,
           expiresAt,
         },
       });
 
-      setSuccessMsg("Đã gửi lời mời tham gia doanh nghiệp thành công!");
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1200);
+      toast.add({
+        type: "success",
+        title: "Gửi lời mời thành công",
+        description: `Đã gửi lời mời tham gia công ty đến ${cleanEmail}.`,
+      });
+
+      setEmail("");
+      onSuccess();
+      onClose();
     } catch (err: unknown) {
-      setError(
-        getApiErrorMessage(
-          err,
-          "Gửi lời mời thất bại. Tài khoản phải có vai trò Recruiter và chưa gia nhập công ty.",
-        ),
+      const message = getApiErrorMessage(
+        err,
+        "Gửi lời mời thất bại. Tài khoản phải có vai trò Nhà tuyển dụng (Recruiter) và chưa gia nhập công ty.",
       );
+      setError(message);
+      toast.add({
+        type: "destructive",
+        title: "Gửi lời mời thất bại",
+        description: message,
+      });
     }
   };
 
@@ -81,7 +103,7 @@ export function InviteMemberModal({
       <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex size-10 items-center justify-center rounded-xl">
               <UserPlus className="size-5" />
             </div>
             <div>
@@ -94,9 +116,10 @@ export function InviteMemberModal({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             type="button"
-            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main"
+            disabled={isPending}
+            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main disabled:opacity-50"
           >
             <X className="size-5" />
           </button>
@@ -109,33 +132,34 @@ export function InviteMemberModal({
           </div>
         )}
 
-        {successMsg && (
-          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
-            {successMsg}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-text-main">
-              Mã User ID của Recruiter <span className="text-rose-500">*</span>
+              Email Nhà tuyển dụng (Recruiter){" "}
+              <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="text"
-              value={inviteeId}
-              onChange={(e) => {
-                setInviteeId(e.target.value);
-                if (error) setError(null);
-              }}
-              placeholder="e.g. 7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a"
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 font-mono text-sm text-text-main outline-none placeholder:font-sans placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
-              required
-            />
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-text-muted">
+                <Mail className="size-4" />
+              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError(null);
+                }}
+                placeholder="recruiter@example.com"
+                className="w-full rounded-xl border border-border bg-bg py-2.5 pr-3.5 pl-10 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
+                required
+                autoFocus
+              />
+            </div>
             <div className="mt-2 flex items-start gap-1.5 text-[11px] text-text-muted">
               <Info className="mt-0.5 size-3.5 shrink-0 text-sky-600" />
               <span>
-                Backend API chỉ nhận mã <strong>UUID</strong> của tài khoản đã
-                đăng ký vai trò <strong>Nhà tuyển dụng (Recruiter)</strong>.
+                Hệ thống sẽ gửi thông báo và lời mời đến tài khoản này. Người
+                nhận cần có tài khoản vai trò <strong>Nhà tuyển dụng </strong>.
               </span>
             </div>
           </div>
@@ -144,20 +168,55 @@ export function InviteMemberModal({
             <label className="mb-1.5 block text-xs font-semibold text-text-main">
               Thời hạn hiệu lực của lời mời
             </label>
-            <select
+            <Select.Root
+              items={EXPIRE_DAYS_OPTIONS}
               value={expireDays}
-              onChange={(e) => setExpireDays(Number(e.target.value))}
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              onValueChange={(val) => {
+                if (val) setExpireDays(val);
+              }}
             >
-              <option value={3}>3 ngày</option>
-              <option value={7}>7 ngày (Mặc định)</option>
-              <option value={14}>14 ngày</option>
-              <option value={30}>30 ngày</option>
-            </select>
+              <Select.Trigger
+                aria-label="Thời hạn hiệu lực của lời mời"
+                className="group flex w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main focus:border-primary focus:outline-none"
+              >
+                <Select.Value />
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                  <ChevronDown className="size-4" />
+                </Select.Icon>
+              </Select.Trigger>
+
+              <Select.Portal>
+                <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
+                  <Select.Popup className="z-50 w-(--anchor-width) min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
+                    <Select.List>
+                      {EXPIRE_DAYS_OPTIONS.map((opt) => (
+                        <Select.Item
+                          key={opt.value}
+                          value={opt.value}
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        >
+                          <Select.ItemText>{opt.label}</Select.ItemText>
+                          <Select.ItemIndicator
+                            animation="pop"
+                            className="ml-2 text-xs text-primary"
+                          >
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
           </div>
 
           <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
-            <Button variant="secondary" onClick={onClose} disabled={isPending}>
+            <Button
+              variant="secondary"
+              onClick={handleClose}
+              disabled={isPending}
+            >
               Hủy
             </Button>
             <Button
