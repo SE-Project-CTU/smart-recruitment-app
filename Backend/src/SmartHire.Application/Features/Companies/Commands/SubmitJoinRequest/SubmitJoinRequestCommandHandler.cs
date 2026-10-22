@@ -66,7 +66,7 @@ public sealed class SubmitJoinRequestCommandHandler : IRequestHandler<SubmitJoin
             : null;
         var applicantName = applicant?.FullName ?? "Ứng viên";
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+        var (joinRequest, notification) = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             var joinRequest = CompanyJoinRequest.Create(request.CompanyId, userId, now);
             await _companyRepository.AddJoinRequestAsync(joinRequest, cancellationToken);
 
@@ -97,12 +97,17 @@ public sealed class SubmitJoinRequestCommandHandler : IRequestHandler<SubmitJoin
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (notification is not null && _notificationDispatcher is not null) {
+            return (joinRequest, notification);
+        }, cancellationToken);
+
+        if (notification is not null && _notificationDispatcher is not null) {
+            try {
                 var notificationDto = NotificationResultMapper.ToDto(notification);
                 await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
             }
+        }
 
-            return CompanyResultMapper.ToCompanyJoinRequestResult(joinRequest);
-        }, cancellationToken);
+        return CompanyResultMapper.ToCompanyJoinRequestResult(joinRequest);
     }
 }

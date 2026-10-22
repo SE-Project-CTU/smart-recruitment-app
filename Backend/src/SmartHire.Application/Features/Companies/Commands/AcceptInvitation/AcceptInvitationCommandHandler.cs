@@ -65,7 +65,7 @@ public sealed class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvit
             throw CompanyExceptions.CompanyMembershipAlreadyExists();
         }
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+        var (membership, notification) = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             invitation.Accept();
 
             CompanyMembership membership;
@@ -109,13 +109,17 @@ public sealed class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvit
             await _notificationRepository.AddAsync(notification, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (_notificationDispatcher is not null) {
-                var notificationDto = NotificationResultMapper.ToDto(notification);
-
-                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
-            }
-
-            return CompanyResultMapper.ToAcceptInvitationResult(invitation, membership);
+            return (membership, notification);
         }, cancellationToken);
+
+        if (_notificationDispatcher is not null) {
+            try {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
+            }
+        }
+
+        return CompanyResultMapper.ToAcceptInvitationResult(invitation, membership);
     }
 }

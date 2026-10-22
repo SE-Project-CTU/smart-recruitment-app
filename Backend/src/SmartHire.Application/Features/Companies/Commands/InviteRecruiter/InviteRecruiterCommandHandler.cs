@@ -99,7 +99,7 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
         var inviter = await _userRepository.GetByIdAsync(userId, cancellationToken);
         var inviterName = inviter?.FullName ?? "Chủ doanh nghiệp";
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+        var (invitation, notification) = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             var invitation = CompanyInvitation.Create(
                 companyId: request.CompanyId,
                 inviterId: userId,
@@ -130,12 +130,17 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
             await _notificationRepository.AddAsync(notification, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (_notificationDispatcher is not null) {
+            return (invitation, notification);
+        }, cancellationToken);
+
+        if (_notificationDispatcher is not null) {
+            try {
                 var notificationDto = NotificationResultMapper.ToDto(notification);
                 await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
             }
+        }
 
-            return CompanyResultMapper.ToCompanyInvitationResult(invitation, company);
-        }, cancellationToken);
+        return CompanyResultMapper.ToCompanyInvitationResult(invitation, company);
     }
 }

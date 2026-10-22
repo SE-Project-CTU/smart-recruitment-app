@@ -67,7 +67,7 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
 
         var now = DateTimeOffset.UtcNow;
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
+        var (membershipResult, notification) = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             AcceptInvitationMembershipResult? membershipResult = null;
             var isApproved = normalizedStatus == "APPROVED";
 
@@ -125,16 +125,20 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
             await _notificationRepository.AddAsync(notification, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (_notificationDispatcher is not null) {
-                var notificationDto = NotificationResultMapper.ToDto(notification);
-
-                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
-            }
-
-            return CompanyResultMapper.ToReviewJoinRequestResult(
-                joinRequest,
-                normalizedStatus,
-                membershipResult);
+            return (membershipResult, notification);
         }, cancellationToken);
+
+        if (_notificationDispatcher is not null) {
+            try {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
+            }
+        }
+
+        return CompanyResultMapper.ToReviewJoinRequestResult(
+            joinRequest,
+            normalizedStatus,
+            membershipResult);
     }
 }

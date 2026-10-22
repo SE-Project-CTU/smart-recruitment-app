@@ -66,7 +66,7 @@ public sealed class RejectInvitationCommandHandler : IRequestHandler<RejectInvit
         var inviteeName = inviteeUser?.FullName ?? "Ứng viên";
 
         // Reject invitation + tạo notification trong cùng 1 transaction
-        await _unitOfWork.ExecuteInTransactionAsync<bool>(async cancellationToken => {
+        var notification = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             invitation.Reject();
 
             var payloadObj = new {
@@ -89,12 +89,15 @@ public sealed class RejectInvitationCommandHandler : IRequestHandler<RejectInvit
             await _notificationRepository.AddAsync(notification, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (_notificationDispatcher is not null) {
+            return notification;
+        }, cancellationToken);
+
+        if (_notificationDispatcher is not null) {
+            try {
                 var notificationDto = NotificationResultMapper.ToDto(notification);
                 await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
             }
-
-            return true;
-        }, cancellationToken);
+        }
     }
 }
