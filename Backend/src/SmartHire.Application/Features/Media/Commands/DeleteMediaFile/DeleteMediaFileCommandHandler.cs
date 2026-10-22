@@ -3,6 +3,7 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Abstractions.Storage;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Features.Media.DTOs;
 using SmartHire.Application.Features.Media.Exceptions;
 
 namespace SmartHire.Application.Features.Media.Commands.DeleteMediaFile;

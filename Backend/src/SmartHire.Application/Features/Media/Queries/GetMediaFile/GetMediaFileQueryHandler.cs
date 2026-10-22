@@ -1,6 +1,8 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Features.Media.DTOs;
 using SmartHire.Application.Features.Media.Exceptions;
+using SmartHire.Application.Features.Media.Mapping;
 
 namespace SmartHire.Application.Features.Media.Queries.GetMediaFile;
 
@@ -23,13 +25,6 @@ public sealed class GetMediaFileQueryHandler
             throw MediaExceptions.MediaFileNotFound();
         }
 
-        return new MediaFileResult(
-            mediaFile.Id,
-            mediaFile.OwnerId,
-            mediaFile.FileName,
-            mediaFile.FileUrl,
-            mediaFile.FileType,
-            mediaFile.FileSize,
-            mediaFile.CreatedAt);
+        return MediaResultMapper.ToMediaFileResult(mediaFile);
     }
 }

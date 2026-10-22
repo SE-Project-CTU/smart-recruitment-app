@@ -1,4 +1,4 @@
-namespace SmartHire.Application.Features.Media;
+namespace SmartHire.Application.Features.Media.DTOs;
 
 public sealed record MediaFileResult(
     Guid Id,
@@ -8,4 +8,9 @@ public sealed record MediaFileResult(
     string FileType,
     long FileSize,
     DateTimeOffset CreatedAt
+);
+
+public sealed record DeleteMediaFileResult(
+    Guid Id,
+    bool Deleted
 );

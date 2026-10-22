@@ -2,16 +2,15 @@ using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Abstractions.Storage;
-using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Media.DTOs;
 using SmartHire.Application.Features.Media.Exceptions;
+using SmartHire.Application.Features.Media.Mapping;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Features.Media.Commands.UploadPdf;
 
 public sealed class UploadPdfCommandHandler
     : IRequestHandler<UploadPdfCommand, MediaFileResult> {
-    private const long MaxPdfSizeBytes = 10 * 1024 * 1024; 
-    private const string AllowedPdfMimeType = "application/pdf";
 
     private readonly ICurrentUser _currentUser;
     private readonly IFileStorageService _storageService;
@@ -36,28 +35,7 @@ public sealed class UploadPdfCommandHandler
             throw MediaExceptions.InvalidAccessToken();
         }
 
-        // Validate type
-        if (!string.Equals(
-                request.ContentType,
-                AllowedPdfMimeType,
-                StringComparison.OrdinalIgnoreCase)) {
-            throw MediaExceptions.UnsupportedPdfFormat(request.ContentType);
-        }
-
-        // Validate kích thước
-        if (request.FileSize > MaxPdfSizeBytes) {
-            throw MediaExceptions.PdfSizeExceeded(request.FileSize, MaxPdfSizeBytes);
-        }
-
-        // Validate Magic Bytes
-        if (!FileSignatureValidator.IsValidPdf(request.FileStream)) {
-            throw MediaExceptions.InvalidPdfSignature();
-        }
-
-        // Chuẩn hóa tên tệp luôn có phần mở rộng .pdf
-        var sanitizedFileName = Path.GetExtension(request.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase)
-            ? request.FileName
-            : Path.ChangeExtension(request.FileName, ".pdf");
+        var sanitizedFileName = UploadPdfCommandValidator.Validate(request);
 
         // Upload lên storage
         FileUploadResult uploadResult;
@@ -65,7 +43,7 @@ public sealed class UploadPdfCommandHandler
             uploadResult = await _storageService.UploadAsync(
                 request.FileStream,
                 sanitizedFileName,
-                AllowedPdfMimeType,
+                UploadPdfCommandValidator.AllowedPdfMimeType,
                 folder: "documents",
                 cancellationToken);
         } catch (Exception) {
@@ -76,7 +54,7 @@ public sealed class UploadPdfCommandHandler
             ownerId: userId,
             fileName: sanitizedFileName,
             fileUrl: uploadResult.FileUrl,
-            fileType: AllowedPdfMimeType,
+            fileType: UploadPdfCommandValidator.AllowedPdfMimeType,
             fileSize: request.FileSize,
             publicId: uploadResult.PublicId);
 
@@ -88,13 +66,6 @@ public sealed class UploadPdfCommandHandler
             throw;
         }
 
-        return new MediaFileResult(
-            mediaFile.Id,
-            mediaFile.OwnerId,
-            mediaFile.FileName,
-            mediaFile.FileUrl,
-            mediaFile.FileType,
-            mediaFile.FileSize,
-            mediaFile.CreatedAt);
+        return MediaResultMapper.ToMediaFileResult(mediaFile);
     }
 }
