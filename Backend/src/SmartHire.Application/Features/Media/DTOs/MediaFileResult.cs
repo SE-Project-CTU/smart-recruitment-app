@@ -9,8 +9,3 @@ public sealed record MediaFileResult(
     long FileSize,
     DateTimeOffset CreatedAt
 );
-
-public sealed record DeleteMediaFileResult(
-    Guid Id,
-    bool Deleted
-);

@@ -7,135 +7,46 @@ public static class CompanyResultMapper {
     public static CompanyResult ToCompanyResult(
         Company company,
         string? logoUrl = null,
-        CompanyMembershipSummary? membership = null) {
-        ArgumentNullException.ThrowIfNull(company);
+        CompanyMembershipSummary? membership = null) =>
+        CompanyDetailMapper.ToResult(company, logoUrl, membership);
 
-        return new CompanyResult(
-            company.Id,
-            company.Name,
-            company.TaxCode,
-            company.Email,
-            company.Phone,
-            company.Address,
-            company.Website,
-            company.Description,
-            logoUrl ?? company.LogoFile?.FileUrl,
-            company.VerificationStatus.ToString(),
-            company.VerifiedAt,
-            company.CreatedAt,
-            company.UpdatedAt,
-            membership);
-    }
+    public static CompanyMemberResult ToCompanyMemberResult(CompanyMembership membership) =>
+        CompanyMemberMapper.ToResult(membership);
 
-    public static CompanyMemberResult ToCompanyMemberResult(CompanyMembership membership) {
-        ArgumentNullException.ThrowIfNull(membership);
+    public static CompanyInvitationResult ToCompanyInvitationResult(CompanyInvitation invitation, Company? company = null) =>
+        CompanyInvitationMapper.ToResult(invitation, company);
 
-        return new CompanyMemberResult(
-            membership.Id,
-            new CompanyMemberUserSummary(
-                membership.User.Id,
-                membership.User.FullName,
-                membership.User.Email,
-                membership.User.AvatarFile?.FileUrl),
-            membership.Role.ToString(),
-            membership.Status.ToString(),
-            membership.JoinedAt);
-    }
+    public static AcceptInvitationResult ToAcceptInvitationResult(CompanyInvitation invitation, CompanyMembership membership) =>
+        CompanyInvitationMapper.ToAcceptResult(invitation, membership);
 
-    public static CompanyInvitationResult ToCompanyInvitationResult(CompanyInvitation invitation, Company? company = null) {
-        ArgumentNullException.ThrowIfNull(invitation);
+    public static CompanyJoinRequestResult ToCompanyJoinRequestResult(CompanyJoinRequest request) =>
+        CompanyJoinRequestMapper.ToResult(request);
 
-        CompanyBriefSummary? briefCompany = null;
-        var comp = company ?? invitation.Company;
-        if (comp is not null) {
-            briefCompany = new CompanyBriefSummary(comp.Id, comp.Name, comp.VerificationStatus.ToString());
-        }
-
-        return new CompanyInvitationResult(
-            invitation.Id,
-            invitation.CompanyId,
-            invitation.InviterId,
-            invitation.InviteeId,
-            invitation.Status.ToString(),
-            invitation.ExpiresAt,
-            invitation.CreatedAt,
-            briefCompany);
-    }
-
-    public static CompanyJoinRequestResult ToCompanyJoinRequestResult(CompanyJoinRequest request) {
-        ArgumentNullException.ThrowIfNull(request);
-
-        CompanyJoinRequestUserSummary? userSummary = null;
-        if (request.User is not null) {
-            userSummary = new CompanyJoinRequestUserSummary(request.User.Id, request.User.Email, request.User.FullName);
-        }
-
-        return new CompanyJoinRequestResult(
-            request.Id,
-            request.CompanyId,
-            request.UserId,
-            request.Status.ToString(),
-            request.CreatedAt,
-            userSummary);
-    }
-
-    public static AcceptInvitationResult ToAcceptInvitationResult(CompanyInvitation invitation, CompanyMembership membership) {
-        ArgumentNullException.ThrowIfNull(invitation);
-        ArgumentNullException.ThrowIfNull(membership);
-
-        return new AcceptInvitationResult(
-            invitation.Id,
-            invitation.Status.ToString(),
-            new AcceptInvitationMembershipResult(
-                membership.Id,
-                membership.CompanyId,
-                membership.UserId,
-                membership.Role.ToString(),
-                membership.Status.ToString(),
-                membership.JoinedAt));
-    }
+    public static ReviewJoinRequestResult ToReviewJoinRequestResult(
+        CompanyJoinRequest joinRequest,
+        string status,
+        AcceptInvitationMembershipResult? membership = null) =>
+        CompanyJoinRequestMapper.ToReviewResult(joinRequest, status, membership);
 
     public static TransferOwnershipResult ToTransferOwnershipResult(
         Guid companyId,
         Guid previousOwnerId,
         Guid newOwnerId,
         DateTimeOffset transferredAt) =>
-        new(companyId, previousOwnerId, newOwnerId, transferredAt);
-
-    public static ReviewJoinRequestResult ToReviewJoinRequestResult(
-        CompanyJoinRequest joinRequest,
-        string status,
-        AcceptInvitationMembershipResult? membership = null) {
-        ArgumentNullException.ThrowIfNull(joinRequest);
-
-        return new ReviewJoinRequestResult(
-            joinRequest.Id,
-            joinRequest.CompanyId,
-            status,
-            joinRequest.ReviewedBy,
-            joinRequest.ReviewedAt,
-            membership);
-    }
+        CompanyOwnershipMapper.ToTransferResult(companyId, previousOwnerId, newOwnerId, transferredAt);
 
     public static FollowCompanyResult ToFollowCompanyResult(
         Guid companyId,
         bool followed,
         DateTimeOffset createdAt) =>
-        new(companyId, followed, createdAt);
+        CompanyFollowerMapper.ToFollowResult(companyId, followed, createdAt);
 
-    public static CompanyFollowerItem ToCompanyFollowerItem(CompanyFollow follow) {
-        ArgumentNullException.ThrowIfNull(follow);
-
-        return new CompanyFollowerItem(
-            follow.UserId,
-            follow.User.FullName,
-            follow.User.AvatarFile?.FileUrl,
-            follow.CreatedAt);
-    }
+    public static CompanyFollowerItem ToCompanyFollowerItem(CompanyFollow follow) =>
+        CompanyFollowerMapper.ToFollowerItem(follow);
 
     public static CompanyFollowersResponse ToCompanyFollowersResponse(
         Guid companyId,
         int followerCount,
         IReadOnlyList<CompanyFollowerItem> followers) =>
-        new(companyId, followerCount, followers);
+        CompanyFollowerMapper.ToFollowersResponse(companyId, followerCount, followers);
 }

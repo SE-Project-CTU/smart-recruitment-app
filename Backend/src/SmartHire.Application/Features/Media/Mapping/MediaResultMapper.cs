@@ -4,24 +4,12 @@ using SmartHire.Domain.Entities;
 namespace SmartHire.Application.Features.Media.Mapping;
 
 public static class MediaResultMapper {
-    public static MediaFileResult ToMediaFileResult(MediaFile file) {
-        ArgumentNullException.ThrowIfNull(file);
-
-        return new MediaFileResult(
-            file.Id,
-            file.OwnerId,
-            file.FileName,
-            file.FileUrl,
-            file.FileType,
-            file.FileSize,
-            file.CreatedAt);
-    }
+    public static MediaFileResult ToMediaFileResult(MediaFile file) =>
+        MediaFileResultMapper.ToResult(file);
 
     public static DeleteMediaFileResult ToDeleteMediaFileResult(Guid fileId, bool deleted = true) =>
-        new(fileId, deleted);
+        DeleteMediaFileMapper.ToResult(fileId, deleted);
 
-    public static DeleteMediaFileResult ToDeleteMediaFileResult(MediaFile file, bool deleted = true) {
-        ArgumentNullException.ThrowIfNull(file);
-        return new DeleteMediaFileResult(file.Id, deleted);
-    }
+    public static DeleteMediaFileResult ToDeleteMediaFileResult(MediaFile file, bool deleted = true) =>
+        DeleteMediaFileMapper.ToResult(file, deleted);
 }
