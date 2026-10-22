@@ -1,5 +1,6 @@
 using MediatR;
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.Cv.DTOs;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 

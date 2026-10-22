@@ -125,6 +125,8 @@ public sealed class CvController : ControllerBase {
             request.Language,
             request.IsPublic,
             request.IsPublicProvided,
+            request.PreviewFileIdProvided,
+            request.PreviewFileId,
             request.AdditionalFields?.Keys.ToArray() ?? Array.Empty<string>()
         );
         

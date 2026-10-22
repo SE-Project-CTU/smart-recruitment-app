@@ -1,4 +1,5 @@
 using MediatR;
+using SmartHire.Application.Features.Cv.DTOs;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvVersion;
 

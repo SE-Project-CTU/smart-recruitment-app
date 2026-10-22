@@ -1,8 +1,9 @@
-﻿using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.Queries.GetMyCvs;
 using SmartHire.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -24,6 +25,7 @@ public sealed class CvRepository : ICvRepository {
             .AsNoTracking()
             .Where(cv => cv.Id == cvId && cv.DeletedAt == null)
             .Include(cv => cv.Template)
+            .Include(cv => cv.PreviewFile)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -40,6 +42,7 @@ public sealed class CvRepository : ICvRepository {
     public Task<Cv?> GetForUpdateByIdAsync(Guid cvId, CancellationToken cancellationToken) {
         return _dbContext.Cvs
             .Include(cv => cv.Template)
+            .Include(cv => cv.PreviewFile)
             .SingleOrDefaultAsync(
                 cv => cv.Id == cvId && cv.DeletedAt == null,
                 cancellationToken);
@@ -75,10 +78,26 @@ public sealed class CvRepository : ICvRepository {
                 cv.Language,
                 cv.IsPublic,
                 cv.CreatedAt,
-                cv.UpdatedAt))
+                cv.UpdatedAt,
+                cv.PreviewFile != null ? new CvPreviewFileResult(cv.PreviewFile.Id, cv.PreviewFile.FileUrl) : null))
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<bool> IsPreviewFileInUseAsync(
+        Guid previewFileId,
+        Guid? excludeCvId,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.Cvs
+            .AsNoTracking()
+            .Where(cv => cv.PreviewFileId == previewFileId && cv.DeletedAt == null);
+
+        if (excludeCvId.HasValue) {
+            query = query.Where(cv => cv.Id != excludeCvId.Value);
+        }
+
+        return query.AnyAsync(cancellationToken);
     }
     
     private IQueryable<Cv> ApplyMineFilters(

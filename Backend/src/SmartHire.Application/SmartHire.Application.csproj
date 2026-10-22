@@ -12,8 +12,6 @@
     <Folder Include="Features\Account\Commands\" />
     <Folder Include="Features\Account\Queries\" />
     <Folder Include="Features\CvTemplate\Commands\" />
-    <Folder Include="Features\CvTemplate\DTOs\Commands\" />
-    <Folder Include="Features\Cv\DTOs\Commands\" />
     <Folder Include="Features\LocationCatalog\Commands\" />
     <Folder Include="Features\LocationCatalog\DTOs\" />
     <Folder Include="Features\LocationCatalog\Queries\" />

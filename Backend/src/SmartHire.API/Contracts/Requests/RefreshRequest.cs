@@ -1,7 +1,8 @@
-﻿namespace SmartHire.Api.Contracts.Requests;
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartHire.Api.Contracts.Requests;
 
 public sealed record RefreshRequest(
-    [Required(ErrorMessage = "Refresh token is required.")]
-    [MinLength(1, ErrorMessage = "Refresh token must not be empty.")]
-    string RefreshToken
+    [MinLength(1, ErrorMessage = "Refresh token must not be empty when provided.")]
+    string? RefreshToken = null
 );

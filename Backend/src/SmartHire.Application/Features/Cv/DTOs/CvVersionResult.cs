@@ -1,7 +1,7 @@
 using SmartHire.Domain.Enums;
 using SmartHire.Domain.ValueObjects.Cv;
 
-namespace SmartHire.Application.Features.Cv.Queries.GetCvVersion;
+namespace SmartHire.Application.Features.Cv.DTOs;
 
 public sealed record CvVersionResult(
     Guid Id,

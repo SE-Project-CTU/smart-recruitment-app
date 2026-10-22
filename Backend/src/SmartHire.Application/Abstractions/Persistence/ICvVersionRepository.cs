@@ -1,3 +1,4 @@
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 

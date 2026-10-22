@@ -1,7 +1,6 @@
-using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Domain.Enums;
 
-namespace SmartHire.Application.Features.Cv.Queries.GetMyCvs;
+namespace SmartHire.Application.Features.Cv.DTOs;
 
 public sealed record CvPageResult(
     IReadOnlyList<CvListItemResult> Items,
@@ -18,5 +17,6 @@ public sealed record CvListItemResult(
     CvLanguage Language,
     bool IsPublic,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    CvPreviewFileResult? PreviewFile = null
 );

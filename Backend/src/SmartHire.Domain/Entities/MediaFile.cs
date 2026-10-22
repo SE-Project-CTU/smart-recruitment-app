@@ -21,6 +21,8 @@ public class MediaFile {
     public Company? LogoCompany { get; private set; }
     public CvTemplate? CvTemplate { get; private set; }
     public JobApplication? UploadedCvApplication { get; private set; }
+    
+    public Cv? PreviewCv { get; private set; }
 
     private MediaFile() { }
 

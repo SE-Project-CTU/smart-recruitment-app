@@ -23,12 +23,12 @@ export const authService = {
   },
 
   /**
-   * Refresh access token using refresh token
+   * Refresh access token using refresh token (via HttpOnly Cookie or optional payload)
    */
-  async refresh(payload: RefreshRequest): Promise<ApiResponse<RefreshResult>> {
+  async refresh(payload?: RefreshRequest): Promise<ApiResponse<RefreshResult>> {
     return await axiosClient.post<never, ApiResponse<RefreshResult>>(
       API_ENDPOINTS.AUTH.REFRESH,
-      payload,
+      payload ?? {},
     );
   },
 

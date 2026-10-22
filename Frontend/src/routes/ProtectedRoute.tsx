@@ -7,12 +7,22 @@ interface ProtectedRouteProps {
   allowRoles?: string[];
   userRole?: string;
 }
+
 export const ProtectedRoute = ({
   allowRoles = ["candidate", "admin", "recruiter"],
 }: ProtectedRouteProps) => {
   const location = useLocation();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const userRole = useAuthStore().user?.roles[0].toLowerCase();
+  const { isAuthenticated, isInitializing, user } = useAuthStore();
+  const userRole = user?.roles?.[0]?.toLowerCase();
+
+  // Đang kiểm tra phiên làm việc khi F5 -> Chờ kết quả, không chuyển hướng vội
+  if (isInitializing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to={PATHS.SIGN_IN} state={{ from: location }} replace />;

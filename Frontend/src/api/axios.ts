@@ -6,18 +6,17 @@ import axios, {
 import { config } from "@/api/env";
 import { handleApiError } from "./errorHandler";
 import { useAuthStore } from "@/stores/authStore";
-import { getRefreshToken } from "@/utils/cookie";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 const axiosClient = axios.create({
   baseURL: config.api.baseUrl,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // Flag & queue để xử lý nhiều request đồng thời khi token hết hạn
-let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
@@ -32,6 +31,53 @@ const processQueue = (error: unknown, token: string | null = null) => {
     }
   });
   failedQueue = [];
+};
+
+// Singleton promise để đảm bảo tại 1 thời điểm chỉ có duy nhất 1 request refresh chạy ngầm
+let refreshPromise: Promise<string | null> | null = null;
+
+export const getOrRefreshAccessToken = async (): Promise<string | null> => {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const correlationId =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : "550e8400-e29b-41d4-a716-446655440000";
+
+      const refreshUrl = `${config.api.baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`;
+
+      // Trình duyệt tự động gửi kèm HttpOnly Cookie "refreshToken" qua withCredentials: true
+      const refreshResponse = await axios.post(
+        refreshUrl,
+        {},
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Correlation-ID": correlationId,
+          },
+        },
+      );
+
+      const newAuthData = refreshResponse.data?.data;
+      if (newAuthData?.accessToken) {
+        useAuthStore.getState().updateTokens(newAuthData);
+        processQueue(null, newAuthData.accessToken);
+        return newAuthData.accessToken as string;
+      }
+      return null;
+    } catch (refreshErr) {
+      processQueue(refreshErr, null);
+      useAuthStore.getState().clearAuth();
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 };
 
 // ----------------------------------------------------------------------
@@ -105,18 +151,8 @@ axiosClient.interceptors.response.use(
         originalRequest._retry = true;
       }
 
-      const refreshToken =
-        useAuthStore.getState().refreshToken || getRefreshToken();
-
-      // Không có refresh token -> xóa phiên và reject
-      if (!refreshToken) {
-        useAuthStore.getState().clearAuth();
-        handleApiError(error);
-        return Promise.reject(error);
-      }
-
       // Nếu đang có 1 request refresh chạy ngầm, đưa các request sau vào hàng đợi
-      if (isRefreshing) {
+      if (refreshPromise) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -129,48 +165,15 @@ axiosClient.interceptors.response.use(
           .catch((err) => Promise.reject(err));
       }
 
-      isRefreshing = true;
-
-      try {
-        const correlationId =
-          typeof crypto !== "undefined" && crypto.randomUUID
-            ? crypto.randomUUID()
-            : "550e8400-e29b-41d4-a716-446655440000";
-
-        const refreshUrl = `${config.api.baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`;
-
-        const refreshResponse = await axios.post(
-          refreshUrl,
-          { refreshToken },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-Correlation-ID": correlationId,
-            },
-          },
-        );
-
-        const newAuthData = refreshResponse.data?.data;
-        if (newAuthData?.accessToken) {
-          useAuthStore.getState().updateTokens(newAuthData);
-
-          processQueue(null, newAuthData.accessToken);
-
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newAuthData.accessToken}`;
-          }
-
-          return axiosClient(originalRequest);
-        } else {
-          throw new Error("Dữ liệu refresh token trả về không hợp lệ");
+      const newToken = await getOrRefreshAccessToken();
+      if (newToken) {
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
         }
-      } catch (refreshErr) {
-        processQueue(refreshErr, null);
-        useAuthStore.getState().clearAuth();
-        handleApiError(refreshErr);
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
+        return axiosClient(originalRequest);
+      } else {
+        handleApiError(error);
+        return Promise.reject(error);
       }
     }
 

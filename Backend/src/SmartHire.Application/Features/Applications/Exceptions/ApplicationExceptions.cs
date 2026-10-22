@@ -1,4 +1,5 @@
 using SmartHire.Application.Common.Errors;
+using SmartHire.Application.Common.Errors.ErrorCodes;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Domain.Enums;
 
