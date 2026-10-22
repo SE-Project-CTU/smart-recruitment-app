@@ -8,13 +8,29 @@ import {
   MailCheck,
   ShieldCheck,
   Users,
+  ChevronDown,
 } from "lucide-react";
+import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import Button from "@/components/Button";
 import { CompanyCard } from "@/components/company";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import { CreateCompanyModal } from "./CreateCompanyModal";
 import type { CompanyItem } from "@/types/company";
 import { PATHS } from "@/constants/paths";
+import { EmptyState } from "@/assets/images/decoration";
+
+const ROLE_OPTIONS = [
+  { value: "ALL", label: "Tất cả vai trò" },
+  { value: "Owner", label: "Chủ sở hữu (Owner)" },
+  { value: "Member", label: "Thành viên (HR)" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "Tất cả trạng thái" },
+  { value: "Verified", label: "Đã duyệt (Verified)" },
+  { value: "Pending", label: "Chờ duyệt (Pending)" },
+  { value: "Rejected", label: "Từ chối (Rejected)" },
+];
 
 export function CompanyListPage() {
   const navigate = useNavigate();
@@ -61,8 +77,12 @@ export function CompanyListPage() {
   }, [companies, roleFilter, statusFilter, searchQuery]);
 
   // Count stats
-  const ownerCount = companies.filter((c) => c.membership?.role === "Owner").length;
-  const memberCount = companies.filter((c) => c.membership?.role === "Member").length;
+  const ownerCount = companies.filter(
+    (c) => c.membership?.role === "Owner",
+  ).length;
+  const memberCount = companies.filter(
+    (c) => c.membership?.role === "Member",
+  ).length;
 
   return (
     <div className="min-h-full space-y-6">
@@ -78,7 +98,8 @@ export function CompanyListPage() {
             </h1>
           </div>
           <p className="mt-1 text-xs text-text-muted sm:text-sm">
-            Quản lý hồ sơ công ty bạn làm Chủ sở hữu (Owner) hoặc trực thuộc chuyên viên tuyển dụng (HR)
+            Quản lý hồ sơ công ty bạn làm Chủ sở hữu (Owner) hoặc trực thuộc
+            chuyên viên tuyển dụng (HR)
           </p>
         </div>
 
@@ -102,7 +123,9 @@ export function CompanyListPage() {
             </div>
             <div>
               <p className="text-xs text-text-muted">Tổng doanh nghiệp</p>
-              <p className="text-lg font-bold text-text-main">{companies.length}</p>
+              <p className="text-lg font-bold text-text-main">
+                {companies.length}
+              </p>
             </div>
           </div>
 
@@ -116,13 +139,15 @@ export function CompanyListPage() {
             </div>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4">
+          <div className="col-span-2 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 sm:col-span-1">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
               <Users className="size-5" />
             </div>
             <div>
               <p className="text-xs text-text-muted">Thành viên (HR)</p>
-              <p className="text-lg font-bold text-emerald-700">{memberCount}</p>
+              <p className="text-lg font-bold text-emerald-700">
+                {memberCount}
+              </p>
             </div>
           </div>
         </div>
@@ -152,26 +177,91 @@ export function CompanyListPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            {/* Filter Vai trò */}
+            <Select.Root
+              items={ROLE_OPTIONS}
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="rounded-xl border border-border bg-bg px-3 py-2 text-xs text-text-main outline-none focus:border-primary"
+              onValueChange={(val) => {
+                if (val) setRoleFilter(val);
+              }}
             >
-              <option value="ALL">Tất cả vai trò</option>
-              <option value="Owner">Chủ sở hữu (Owner)</option>
-              <option value="Member">Thành viên (HR)</option>
-            </select>
+              <Select.Trigger
+                aria-label="Lọc theo vai trò"
+                className="group flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-xs font-medium text-text-main focus:border-primary focus:outline-none"
+              >
+                <Select.Value />
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                  <ChevronDown className="size-3.5" />
+                </Select.Icon>
+              </Select.Trigger>
 
-            <select
+              <Select.Portal>
+                <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
+                  <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
+                    <Select.List>
+                      {ROLE_OPTIONS.map((opt) => (
+                        <Select.Item
+                          key={opt.value}
+                          value={opt.value}
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        >
+                          <Select.ItemText>{opt.label}</Select.ItemText>
+                          <Select.ItemIndicator
+                            animation="pop"
+                            className="ml-2 text-xs text-primary"
+                          >
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+
+            {/* Filter Trạng thái */}
+            <Select.Root
+              items={STATUS_OPTIONS}
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-border bg-bg px-3 py-2 text-xs text-text-main outline-none focus:border-primary"
+              onValueChange={(val) => {
+                if (val) setStatusFilter(val);
+              }}
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="Verified">Đã duyệt (Verified)</option>
-              <option value="Pending">Chờ duyệt (Pending)</option>
-              <option value="Rejected">Từ chối (Rejected)</option>
-            </select>
+              <Select.Trigger
+                aria-label="Lọc theo trạng thái"
+                className="group flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-xs font-medium text-text-main focus:border-primary focus:outline-none"
+              >
+                <Select.Value />
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                  <ChevronDown className="size-3.5" />
+                </Select.Icon>
+              </Select.Trigger>
+
+              <Select.Portal>
+                <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
+                  <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
+                    <Select.List>
+                      {STATUS_OPTIONS.map((opt) => (
+                        <Select.Item
+                          key={opt.value}
+                          value={opt.value}
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        >
+                          <Select.ItemText>{opt.label}</Select.ItemText>
+                          <Select.ItemIndicator
+                            animation="pop"
+                            className="ml-2 text-xs text-primary"
+                          >
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
           </div>
         </div>
       )}
@@ -189,14 +279,15 @@ export function CompanyListPage() {
       ) : companies.length === 0 ? (
         /* Empty State: Recruiter chưa thuộc công ty nào */
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface/60 px-6 py-20 text-center">
-          <div className="mb-4 flex size-20 items-center justify-center rounded-3xl bg-primary/10 text-primary">
-            <Building2 className="size-10" />
+          <div className="mb-4 flex size-70 items-center justify-center md:size-100">
+            <img src={EmptyState} className="object-cover" />
           </div>
           <h2 className="text-lg font-bold text-text-main sm:text-xl">
             Bạn chưa thuộc doanh nghiệp nào
           </h2>
           <p className="mt-2 max-w-md text-xs leading-relaxed text-text-muted sm:text-sm">
-            Để bắt đầu đăng tin tuyển dụng và tìm kiếm ứng viên, bạn có thể tạo hồ sơ doanh nghiệp mới hoặc tham gia bằng lời mời từ đồng nghiệp.
+            Để bắt đầu đăng tin tuyển dụng và tìm kiếm ứng viên, bạn có thể tạo
+            hồ sơ doanh nghiệp mới hoặc tham gia bằng lời mời từ đồng nghiệp.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">

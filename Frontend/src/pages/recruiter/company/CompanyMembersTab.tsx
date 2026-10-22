@@ -9,8 +9,10 @@ import {
   ArrowRightLeft,
   Calendar,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 import dayjs from "dayjs";
+import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import Button from "@/components/Button";
 import { DataTable, type DataTableFeatures } from "@/components/DataTable";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -22,6 +24,12 @@ import {
 import { InviteMemberModal } from "./InviteMemberModal";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 import type { CompanyMember } from "@/types/company";
+
+const ROLE_OPTIONS = [
+  { value: "ALL", label: "Tất cả vai trò" },
+  { value: "Owner", label: "Chủ sở hữu (Owner)" },
+  { value: "Member", label: "Thành viên (HR)" },
+];
 
 const columnHelper = createColumnHelper<DataTableFeatures, CompanyMember>();
 
@@ -223,15 +231,47 @@ export function CompanyMembersTab() {
         </div>
 
         <div className="flex items-center gap-2">
-          <select
+          <Select.Root
+            items={ROLE_OPTIONS}
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="rounded-xl border border-border bg-bg px-3 py-2 text-xs text-text-main outline-none focus:border-primary"
+            onValueChange={(val) => {
+              if (val) setRoleFilter(val);
+            }}
           >
-            <option value="ALL">Tất cả vai trò</option>
-            <option value="Owner">Chủ sở hữu (Owner)</option>
-            <option value="Member">Thành viên (HR)</option>
-          </select>
+            <Select.Trigger
+              aria-label="Lọc theo vai trò"
+              className="group flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-xs font-medium text-text-main focus:border-primary focus:outline-none"
+            >
+              <Select.Value />
+              <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                <ChevronDown className="size-3.5" />
+              </Select.Icon>
+            </Select.Trigger>
+
+            <Select.Portal>
+              <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
+                <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
+                  <Select.List>
+                    {ROLE_OPTIONS.map((opt) => (
+                      <Select.Item
+                        key={opt.value}
+                        value={opt.value}
+                        className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                      >
+                        <Select.ItemText>{opt.label}</Select.ItemText>
+                        <Select.ItemIndicator
+                          animation="pop"
+                          className="ml-2 text-xs text-primary"
+                        >
+                          ✓
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                  </Select.List>
+                </Select.Popup>
+              </Select.Positioner>
+            </Select.Portal>
+          </Select.Root>
         </div>
       </div>
 
