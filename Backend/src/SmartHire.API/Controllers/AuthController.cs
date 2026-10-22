@@ -1,8 +1,9 @@
-﻿using MediatR;
+using MediatR;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Requests;
+using SmartHire.Api.Contracts.Responses;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
@@ -18,6 +19,7 @@ namespace SmartHire.Api.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 public sealed class AuthController : ControllerBase {
+    private const string RefreshTokenCookieName = "refreshToken";
     private readonly ISender _sender;
     private readonly ApiResponseFactory _responseFactory;
     
@@ -97,7 +99,16 @@ public sealed class AuthController : ControllerBase {
             cancellationToken
         );
         
-        return Ok(_responseFactory.Success(result));
+        SetRefreshTokenCookie(result.RefreshToken);
+        
+        var response = new LoginResponse(
+            result.AccessToken,
+            result.TokenType,
+            result.ExpiresIn,
+            result.User
+        );
+        
+        return Ok(_responseFactory.Success(response));
     }
     
     [AllowAnonymous]
@@ -106,12 +117,22 @@ public sealed class AuthController : ControllerBase {
         [FromBody] RefreshRequest? request,
         CancellationToken cancellationToken
     ) {
+        var refreshToken = Request.Cookies[RefreshTokenCookieName] ?? request?.RefreshToken;
+        
         var result = await _sender.Send(
-            new RefreshCommand(request?.RefreshToken),
+            new RefreshCommand(refreshToken),
             cancellationToken
         );
         
-        return Ok(_responseFactory.Success(result));
+        SetRefreshTokenCookie(result.RefreshToken);
+        
+        var response = new RefreshResponse(
+            result.AccessToken,
+            result.TokenType,
+            result.ExpiresIn
+        );
+        
+        return Ok(_responseFactory.Success(response));
     }
     
     [Authorize(Roles = RoleNames.Candidate + "," + RoleNames.Recruiter + "," + RoleNames.Admin)]
@@ -120,13 +141,41 @@ public sealed class AuthController : ControllerBase {
         [FromBody] LogoutRequest? request,
         CancellationToken cancellationToken
     ) {
+        var refreshToken = Request.Cookies[RefreshTokenCookieName] ?? request?.RefreshToken;
+        
         await _sender.Send(
             new LogoutCommand(
-                request?.RefreshToken,
+                refreshToken,
                 request?.AllSessions ?? false),
             cancellationToken
         );
         
+        DeleteRefreshTokenCookie();
+        
         return NoContent();
+    }
+    
+    private void SetRefreshTokenCookie(string refreshToken) {
+        var cookieOptions = new CookieOptions {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddDays(7),
+            Path = "/",
+            IsEssential = true
+        };
+        
+        Response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
+    }
+    
+    private void DeleteRefreshTokenCookie() {
+        var cookieOptions = new CookieOptions {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        };
+        
+        Response.Cookies.Delete(RefreshTokenCookieName, cookieOptions);
     }
 }
