@@ -103,7 +103,7 @@ Frontend/src/
 
 - Ưu tiên tái sử dụng component có sẵn. Cần thêm component mới từ shadcn hay animate-ui thì hỏi user trước khi cài.
 - **Tách nhỏ component ở mức vừa phải:** Giảm phụ thuộc và giảm tải state phức tạp trong 1 file.
-- `Button.tsx` ở `components/` là component button dùng chung mặc định, ưu tiên dùng.
+- `Button.tsx` ở `components/` là component button dùng chung mặc định, ưu tiên dùng, nhưng riêng `Button.tsx` nếu có ghi className thêm khi gọi thì phải dùng thêm ! (ví dụ font-light!)
 
 ### Icon & Hình ảnh
 
