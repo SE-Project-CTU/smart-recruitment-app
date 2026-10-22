@@ -161,7 +161,7 @@ export function CompanyMembersTab() {
             return (
               <Button
                 variant="outline"
-                className="py-1 px-2.5 text-xs font-medium border-slate-200 hover:border-purple-300 hover:text-purple-700"
+                className="py-1! px-2.5! text-xs! font-medium! border-slate-200! ring-slate-200! text-slate-700! hover:border-purple-300! hover:text-purple-700! hover:ring-purple-300!"
                 icon={ArrowRightLeft}
                 onClick={() => setTransferTarget(member)}
               >

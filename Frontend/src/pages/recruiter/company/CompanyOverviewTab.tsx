@@ -152,7 +152,7 @@ export function CompanyOverviewTab() {
             <Button
               variant="primary"
               icon={Plus}
-              className="w-full text-xs font-semibold"
+              className="w-full! text-xs! font-semibold!"
               disabled={!isVerified}
               onClick={handleCreateJob}
             >

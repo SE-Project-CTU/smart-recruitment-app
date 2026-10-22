@@ -152,7 +152,7 @@ export function CompanyCard({
                     e.stopPropagation();
                     onCreateJob(company);
                   }}
-                  className="px-3 py-1.5 text-xs"
+                  className="px-3! py-1.5! text-xs!"
                 >
                   Tạo JD nhanh
                 </Button>
@@ -171,7 +171,7 @@ export function CompanyCard({
           variant="secondary"
           icon={ChevronRight}
           onClick={() => onViewDetail(company)}
-          className="ml-auto px-3 py-1.5 text-xs"
+          className="ml-auto! px-3! py-1.5! text-xs!"
         >
           {actionText}
         </Button>

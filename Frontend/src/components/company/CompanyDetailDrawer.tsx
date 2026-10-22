@@ -97,7 +97,7 @@ export function CompanyDetailDrawer({
           <div className="mt-4 flex items-center gap-2.5">
             <Button
               icon={ExternalLink}
-              className="flex-1"
+              className="flex-1!"
               onClick={() => window.open(company.website, "_blank")}
             >
               Truy cập website
