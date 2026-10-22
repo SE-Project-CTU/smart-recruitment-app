@@ -24,6 +24,8 @@ public static class NotificationResultMapper {
             notification.ReadAt.HasValue);
     }
 
+    public static UnreadCountResult ToUnreadCountResult(int count) => new(count);
+
     private static JsonElement? ParsePayload(string? payload) {
         if (string.IsNullOrWhiteSpace(payload)) {
             return null;

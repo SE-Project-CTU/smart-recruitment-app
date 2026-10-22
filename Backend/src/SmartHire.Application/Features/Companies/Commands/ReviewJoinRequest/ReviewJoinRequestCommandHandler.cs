@@ -4,9 +4,9 @@ using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -131,12 +131,9 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
                 await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
             }
 
-            return new ReviewJoinRequestResult(
-                joinRequest.Id,
-                joinRequest.CompanyId,
+            return CompanyResultMapper.ToReviewJoinRequestResult(
+                joinRequest,
                 normalizedStatus,
-                joinRequest.ReviewedBy,
-                joinRequest.ReviewedAt,
                 membershipResult);
         }, cancellationToken);
     }

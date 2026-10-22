@@ -16,4 +16,12 @@ public static class MediaResultMapper {
             file.FileSize,
             file.CreatedAt);
     }
+
+    public static DeleteMediaFileResult ToDeleteMediaFileResult(Guid fileId, bool deleted = true) =>
+        new(fileId, deleted);
+
+    public static DeleteMediaFileResult ToDeleteMediaFileResult(MediaFile file, bool deleted = true) {
+        ArgumentNullException.ThrowIfNull(file);
+        return new DeleteMediaFileResult(file.Id, deleted);
+    }
 }

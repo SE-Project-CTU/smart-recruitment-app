@@ -94,4 +94,48 @@ public static class CompanyResultMapper {
                 membership.Status.ToString(),
                 membership.JoinedAt));
     }
+
+    public static TransferOwnershipResult ToTransferOwnershipResult(
+        Guid companyId,
+        Guid previousOwnerId,
+        Guid newOwnerId,
+        DateTimeOffset transferredAt) =>
+        new(companyId, previousOwnerId, newOwnerId, transferredAt);
+
+    public static ReviewJoinRequestResult ToReviewJoinRequestResult(
+        CompanyJoinRequest joinRequest,
+        string status,
+        AcceptInvitationMembershipResult? membership = null) {
+        ArgumentNullException.ThrowIfNull(joinRequest);
+
+        return new ReviewJoinRequestResult(
+            joinRequest.Id,
+            joinRequest.CompanyId,
+            status,
+            joinRequest.ReviewedBy,
+            joinRequest.ReviewedAt,
+            membership);
+    }
+
+    public static FollowCompanyResult ToFollowCompanyResult(
+        Guid companyId,
+        bool followed,
+        DateTimeOffset createdAt) =>
+        new(companyId, followed, createdAt);
+
+    public static CompanyFollowerItem ToCompanyFollowerItem(CompanyFollow follow) {
+        ArgumentNullException.ThrowIfNull(follow);
+
+        return new CompanyFollowerItem(
+            follow.UserId,
+            follow.User.FullName,
+            follow.User.AvatarFile?.FileUrl,
+            follow.CreatedAt);
+    }
+
+    public static CompanyFollowersResponse ToCompanyFollowersResponse(
+        Guid companyId,
+        int followerCount,
+        IReadOnlyList<CompanyFollowerItem> followers) =>
+        new(companyId, followerCount, followers);
 }

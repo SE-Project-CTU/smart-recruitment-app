@@ -2,6 +2,7 @@ using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 
 namespace SmartHire.Application.Features.Companies.Queries.ListCompanyFollowers;
 
@@ -25,14 +26,8 @@ public sealed class ListCompanyFollowersQueryHandler : IRequestHandler<ListCompa
             request.PageSize,
             cancellationToken);
 
-        var followersList = items.Select(f => new CompanyFollowerItem(
-            f.UserId,
-            f.User.FullName,
-            f.User.AvatarFile?.FileUrl,
-            f.CreatedAt
-        )).ToList();
-
-        var response = new CompanyFollowersResponse(
+        var followersList = items.Select(CompanyResultMapper.ToCompanyFollowerItem).ToList();
+        var response = CompanyResultMapper.ToCompanyFollowersResponse(
             request.CompanyId,
             totalFollowers,
             followersList);

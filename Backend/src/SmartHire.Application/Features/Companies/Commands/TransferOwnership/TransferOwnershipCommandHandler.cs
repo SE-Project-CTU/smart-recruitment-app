@@ -3,6 +3,7 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Companies.Commands.TransferOwnership;
@@ -55,7 +56,7 @@ public sealed class TransferOwnershipCommandHandler : IRequestHandler<TransferOw
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new TransferOwnershipResult(
+            return CompanyResultMapper.ToTransferOwnershipResult(
                 request.CompanyId,
                 userId,
                 request.NewOwnerId,

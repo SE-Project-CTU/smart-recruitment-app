@@ -5,6 +5,7 @@ using SmartHire.Application.Abstractions.Storage;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Media.DTOs;
 using SmartHire.Application.Features.Media.Exceptions;
+using SmartHire.Application.Features.Media.Mapping;
 
 namespace SmartHire.Application.Features.Media.Commands.DeleteMediaFile;
 
@@ -60,6 +61,6 @@ public sealed class DeleteMediaFileCommandHandler
         _mediaFileRepository.Delete(mediaFile);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new DeleteMediaFileResult(mediaFile.Id, Deleted: true);
+        return MediaResultMapper.ToDeleteMediaFileResult(mediaFile);
     }
 }

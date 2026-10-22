@@ -3,6 +3,7 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Features.Companies.Commands.FollowCompany;
@@ -42,9 +43,9 @@ public sealed class FollowCompanyCommandHandler : IRequestHandler<FollowCompanyC
         await _companyRepository.AddFollowAsync(follow, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new FollowCompanyResult(
+        return CompanyResultMapper.ToFollowCompanyResult(
             request.CompanyId,
-            Followed: true,
-            CreatedAt: now);
+            followed: true,
+            now);
     }
 }
