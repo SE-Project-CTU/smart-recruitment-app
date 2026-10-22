@@ -8,6 +8,16 @@ public interface IMediaFileRepository {
         CancellationToken cancellationToken
     );
 
+    Task<MediaFile?> GetByIdIncludingDeletedAsync(
+        Guid fileId,
+        CancellationToken cancellationToken
+    );
+
+    Task<bool> IsReferencedAsync(
+        Guid fileId,
+        CancellationToken cancellationToken
+    );
+
     Task AddAsync(
         MediaFile mediaFile, 
         CancellationToken cancellationToken

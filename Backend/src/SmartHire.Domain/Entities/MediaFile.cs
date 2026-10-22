@@ -10,6 +10,12 @@ public class MediaFile {
     public long FileSize { get; private set; }
     public string PublicId { get; private set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public bool IsDeleted => DeletedAt.HasValue;
+
+    public void MarkAsDeleted(DateTimeOffset now) {
+        DeletedAt = now;
+    }
 
     public User? AvatarUser { get; private set; }
     public Company? LogoCompany { get; private set; }

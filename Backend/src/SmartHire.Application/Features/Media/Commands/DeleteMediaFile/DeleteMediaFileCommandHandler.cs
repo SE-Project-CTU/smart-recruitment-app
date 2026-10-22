@@ -1,10 +1,11 @@
 using MediatR;
+using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Abstractions.Storage;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Media.DTOs;
 using SmartHire.Application.Features.Media.Exceptions;
+using SmartHire.Application.Features.Media.Jobs.DeleteMediaFile;
 using SmartHire.Application.Features.Media.Mapping;
 
 namespace SmartHire.Application.Features.Media.Commands.DeleteMediaFile;
@@ -13,17 +14,17 @@ public sealed class DeleteMediaFileCommandHandler
     : IRequestHandler<DeleteMediaFileCommand, DeleteMediaFileResult> {
     private readonly ICurrentUser _currentUser;
     private readonly IMediaFileRepository _mediaFileRepository;
-    private readonly IFileStorageService _storageService;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     private readonly IUnitOfWork _unitOfWork;
 
     public DeleteMediaFileCommandHandler(
         ICurrentUser currentUser,
         IMediaFileRepository mediaFileRepository,
-        IFileStorageService storageService,
+        IBackgroundJobScheduler backgroundJobScheduler,
         IUnitOfWork unitOfWork) {
         _currentUser = currentUser;
         _mediaFileRepository = mediaFileRepository;
-        _storageService = storageService;
+        _backgroundJobScheduler = backgroundJobScheduler;
         _unitOfWork = unitOfWork;
     }
 
@@ -51,15 +52,20 @@ public sealed class DeleteMediaFileCommandHandler
             throw MediaExceptions.MediaFileForbidden();
         }
 
-        // Xóa trên Cloudinary trước
-        try {
-            await _storageService.DeleteAsync(mediaFile.PublicId, cancellationToken);
-        } catch (Exception) {
-            throw MediaExceptions.StorageDeleteError();
+        // Kiểm tra ràng buộc khóa ngoại trước khi xóa
+        var isReferenced = await _mediaFileRepository.IsReferencedAsync(request.FileId, cancellationToken);
+        if (isReferenced) {
+            throw MediaExceptions.MediaFileInUse();
         }
 
-        _mediaFileRepository.Delete(mediaFile);
+        // Soft delete trong database trước
+        mediaFile.MarkAsDeleted(DateTimeOffset.UtcNow);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Gọi xóa vật lý trên Cloudinary qua Hangfire background job
+        _backgroundJobScheduler.Enqueue<DeleteMediaFileJob, DeleteMediaFileJobArgs>(
+            new DeleteMediaFileJobArgs(mediaFile.Id)
+        );
 
         return MediaResultMapper.ToDeleteMediaFileResult(mediaFile);
     }

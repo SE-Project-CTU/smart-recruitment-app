@@ -81,4 +81,10 @@ public static class MediaExceptions {
         MediaErrorCodes.MediaFileDeleteStorageError,
         "Failed to delete file from storage.",
         [new AppErrorDetail("file", ErrorDetailReasons.StorageError, "The storage provider could not delete the file.")]);
+
+    public static AppException MediaFileInUse() => new(
+        AppErrorKind.Conflict,
+        MediaErrorCodes.MediaFileInUse,
+        "Cannot delete media file because it is currently in use.",
+        [new AppErrorDetail("fileId", ValidationReasons.NotAllowed, "The media file is referenced by another entity and cannot be deleted.")]);
 }
