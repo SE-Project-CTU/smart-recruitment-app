@@ -18,7 +18,7 @@ export interface LogoutRequest {
 }
 
 export interface RefreshRequest {
-  refreshToken: string;
+  refreshToken?: string | null;
 }
 
 export interface UserAccount {
@@ -37,9 +37,9 @@ export interface LoginResult {
   accessToken: string;
   tokenType: string;
   expiresIn: number;
-  refreshToken: string;
-  refreshTokenExpiresAt: string;
   user: UserAccount;
+  refreshToken?: string;
+  refreshTokenExpiresAt?: string;
 }
 
 export interface RegisterResult {
@@ -56,8 +56,8 @@ export interface RefreshResult {
   accessToken: string;
   tokenType: string;
   expiresIn: number;
-  refreshToken: string;
-  refreshTokenExpiresAt: string;
+  refreshToken?: string;
+  refreshTokenExpiresAt?: string;
 }
 
 export interface ApiResponse<T> {

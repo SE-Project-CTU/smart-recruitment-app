@@ -1,13 +1,9 @@
 import { create } from "zustand";
 import type { UserAccount, LoginResult, RefreshResult } from "@/types/auth";
-import {
-  clearAuthCookies,
-  getAccessToken,
-  getRefreshToken,
-  setAuthCookies,
-} from "@/utils/cookie";
 import { STORAGE_KEYS } from "@/constants/storage";
 import { authService } from "@/services/authService";
+import { accountService } from "@/services/accountService";
+import { getOrRefreshAccessToken } from "@/api/axios";
 
 export interface AuthState {
   user: UserAccount | null;
@@ -15,6 +11,7 @@ export interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitializing: boolean;
 
   setAuth: (data: LoginResult) => void;
   updateTokens: (data: RefreshResult) => void;
@@ -22,6 +19,7 @@ export interface AuthState {
   updateUser: (partialUser: Partial<UserAccount>) => void;
   clearAuth: () => void;
   logout: (allSessions?: boolean) => Promise<void>;
+  initAuth: () => Promise<void>;
 }
 
 const getStoredUser = (): UserAccount | null => {
@@ -34,46 +32,33 @@ const getStoredUser = (): UserAccount | null => {
   }
 };
 
-const initialAccessToken = getAccessToken();
-const initialRefreshToken = getRefreshToken();
-const initialUser = getStoredUser();
-
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: initialUser,
-  accessToken: initialAccessToken,
-  refreshToken: initialRefreshToken,
-  isAuthenticated: Boolean(initialAccessToken || initialRefreshToken),
+  user: getStoredUser(),
+  accessToken: null,
+  refreshToken: null,
+  isAuthenticated: false,
   isLoading: false,
+  isInitializing: true,
 
   setAuth: (data: LoginResult) => {
-    setAuthCookies(
-      data.accessToken,
-      data.refreshToken,
-      data.refreshTokenExpiresAt,
-    );
-
     localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(data.user));
 
     set({
       user: data.user,
       accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
+      refreshToken: null,
       isAuthenticated: true,
       isLoading: false,
+      isInitializing: false,
     });
   },
 
   updateTokens: (data: RefreshResult) => {
-    setAuthCookies(
-      data.accessToken,
-      data.refreshToken,
-      data.refreshTokenExpiresAt,
-    );
-
     set({
       accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
+      refreshToken: null,
       isAuthenticated: true,
+      isInitializing: false,
     });
   },
 
@@ -95,7 +80,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   clearAuth: () => {
-    clearAuthCookies();
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     set({
       user: null,
@@ -103,14 +87,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitializing: false,
     });
   },
 
   logout: async (allSessions: boolean = false) => {
-    const { refreshToken, clearAuth } = get();
+    const { clearAuth } = get();
     try {
       await authService.logout({
-        refreshToken: refreshToken || null,
         allSessions,
       });
     } catch (err) {
@@ -119,9 +103,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       clearAuth();
     }
   },
+
+  initAuth: async () => {
+    try {
+      const token = await getOrRefreshAccessToken();
+      if (token) {
+        // Tự động đồng bộ profile mới nhất từ backend
+        try {
+          const meRes = await accountService.getMe();
+          if (meRes.data) {
+            get().setUser(meRes.data);
+          }
+        } catch {
+          // Nếu getMe lỗi tạm thời, user vẫn được giữ từ localStorage
+        }
+      } else {
+        get().clearAuth();
+      }
+    } catch {
+      get().clearAuth();
+    } finally {
+      set({ isInitializing: false });
+    }
+  },
 }));
 
 /** Helper lấy token nhanh cho các tác vụ bên ngoài React Hook (vd: Axios Interceptor) */
 export const getAuthToken = (): string | null => {
-  return useAuthStore.getState().accessToken || getAccessToken();
+  return useAuthStore.getState().accessToken;
 };
