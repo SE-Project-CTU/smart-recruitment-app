@@ -17,6 +17,7 @@ import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
+import CompanyManagement from "@/pages/recruiter/CompanyManagement";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -99,6 +100,14 @@ const router = createBrowserRouter([
           {
             path: PATHS.RECRUITER.DASHBOARD,
             element: <Page title="Recruiter Dashboard Overview" />,
+          },
+          {
+            path: PATHS.RECRUITER.COMPANY_MANAGEMENT,
+            element: <CompanyManagement />,
+          },
+          {
+            path: PATHS.RECRUITER.COMPANY_INVITATION,
+            element: <Page title="Recruiter Dashboard Overviaaaaaew" />,
           },
           {
             path: PATHS.RECRUITER.USER_PROFILE,
