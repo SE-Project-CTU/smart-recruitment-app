@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   useParams,
   useNavigate,
@@ -17,15 +16,14 @@ import {
   ShieldCheck,
   UserCheck,
 } from "lucide-react";
-import { companyService } from "@/services/companyService";
+import { useCompanyDetail } from "@/hooks/queries/useCompany";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import type { CompanyItem } from "@/types/company";
 import { PATHS } from "@/constants/paths";
 
 export interface CompanyOutletContext {
   company: CompanyItem;
-  setCompany: React.Dispatch<React.SetStateAction<CompanyItem | null>>;
-  refreshCompany: () => Promise<void>;
+  refreshCompany: () => Promise<unknown>;
   isOwner: boolean;
 }
 
@@ -33,31 +31,12 @@ export function CompanyDetailLayout() {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
 
-  const [company, setCompany] = useState<CompanyItem | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchDetail = async () => {
-    if (!companyId) return;
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await companyService.getCompanyDetail(companyId);
-      setCompany(data);
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Không thể tải thông tin doanh nghiệp",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDetail();
-  }, [companyId]);
+  const {
+    data: company,
+    isLoading,
+    error,
+    refetch: refreshCompany,
+  } = useCompanyDetail(companyId);
 
   if (isLoading) {
     return (
@@ -77,7 +56,7 @@ export function CompanyDetailLayout() {
           <AlertCircle className="size-7" />
         </div>
         <h2 className="text-lg font-bold text-text-main">
-          {error || "Doanh nghiệp không tồn tại"}
+          {error?.message || "Doanh nghiệp không tồn tại"}
         </h2>
         <p className="mt-1.5 text-xs text-text-muted">
           Vui lòng kiểm tra lại đường dẫn hoặc quay về danh sách công ty.
@@ -250,8 +229,7 @@ export function CompanyDetailLayout() {
         <Outlet
           context={{
             company,
-            setCompany,
-            refreshCompany: fetchDetail,
+            refreshCompany,
             isOwner,
           }}
         />

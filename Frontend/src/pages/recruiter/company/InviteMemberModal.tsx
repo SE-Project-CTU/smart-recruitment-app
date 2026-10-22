@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { UserPlus, X, Send } from "lucide-react";
+import { UserPlus, X, Send, AlertCircle, Info } from "lucide-react";
 import Button from "@/components/Button";
-import { companyService } from "@/services/companyService";
+import { getApiErrorMessage } from "@/api/errorHandler";
+import { useInviteMember } from "@/hooks/queries/useCompany";
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -10,6 +11,9 @@ interface InviteMemberModalProps {
   companyName: string;
   onSuccess: () => void;
 }
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function InviteMemberModal({
   isOpen,
@@ -20,44 +24,55 @@ export function InviteMemberModal({
 }: InviteMemberModalProps) {
   const [inviteeId, setInviteeId] = useState("");
   const [expireDays, setExpireDays] = useState(7);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const { mutateAsync: inviteMember, isPending } = useInviteMember();
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteeId.trim()) {
-      setError("Vui lòng nhập ID hoặc Email tài khoản Nhà tuyển dụng");
+    const cleanId = inviteeId.trim();
+
+    if (!cleanId) {
+      setError("Vui lòng nhập User ID của tài khoản Nhà tuyển dụng");
+      return;
+    }
+
+    if (!UUID_REGEX.test(cleanId)) {
+      setError(
+        "Định dạng không hợp lệ! Backend yêu cầu mã UUID của tài khoản (Ví dụ: e2c5a5c7-3658-442d-87c1-cf8ff34d2d8b), không dùng địa chỉ email.",
+      );
       return;
     }
 
     try {
-      setIsLoading(true);
       setError(null);
       const expiresAt = new Date(
         Date.now() + expireDays * 24 * 60 * 60 * 1000,
       ).toISOString();
 
-      const result = await companyService.inviteMember(companyId, {
-        inviteeId: inviteeId.trim(),
-        expiresAt,
+      await inviteMember({
+        companyId,
+        payload: {
+          inviteeId: cleanId,
+          expiresAt,
+        },
       });
 
-      setSuccessMsg(result.message || "Đã gửi lời mời thành công!");
+      setSuccessMsg("Đã gửi lời mời tham gia doanh nghiệp thành công!");
       setTimeout(() => {
         onSuccess();
         onClose();
-      }, 1500);
+      }, 1200);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Không thể gửi lời mời. Vui lòng kiểm tra lại.";
-      setError(msg);
-    } finally {
-      setIsLoading(false);
+      setError(
+        getApiErrorMessage(
+          err,
+          "Gửi lời mời thất bại. Tài khoản phải có vai trò Recruiter và chưa gia nhập công ty.",
+        ),
+      );
     }
   };
 
@@ -88,8 +103,9 @@ export function InviteMemberModal({
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-            {error}
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <AlertCircle className="size-4 shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{error}</span>
           </div>
         )}
 
@@ -102,19 +118,25 @@ export function InviteMemberModal({
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-text-main mb-1.5">
-              Tài khoản Recruiter (ID hoặc Email) <span className="text-rose-500">*</span>
+              Mã User ID của Recruiter <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={inviteeId}
-              onChange={(e) => setInviteeId(e.target.value)}
-              placeholder="Nhập UUID hoặc email chuyên viên..."
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+              onChange={(e) => {
+                setInviteeId(e.target.value);
+                if (error) setError(null);
+              }}
+              placeholder="e.g. 7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a"
+              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main font-mono placeholder:font-sans placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
               required
             />
-            <p className="mt-1 text-[11px] text-text-muted">
-              Người được mời phải có tài khoản vai trò Nhà tuyển dụng (Recruiter) trong hệ thống.
-            </p>
+            <div className="mt-2 flex items-start gap-1.5 text-[11px] text-text-muted">
+              <Info className="size-3.5 shrink-0 text-sky-600 mt-0.5" />
+              <span>
+                Backend API chỉ nhận mã <strong>UUID</strong> của tài khoản đã đăng ký vai trò <strong>Nhà tuyển dụng (Recruiter)</strong>.
+              </span>
+            </div>
           </div>
 
           <div>
@@ -134,14 +156,14 @@ export function InviteMemberModal({
           </div>
 
           <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
-            <Button variant="secondary" onClick={onClose} disabled={isLoading}>
+            <Button variant="secondary" onClick={onClose} disabled={isPending}>
               Hủy
             </Button>
             <Button
               type="submit"
               variant="primary"
               icon={Send}
-              isLoading={isLoading}
+              isLoading={isPending}
             >
               Gửi lời mời
             </Button>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -11,42 +11,24 @@ import {
 } from "lucide-react";
 import Button from "@/components/Button";
 import { CompanyCard } from "@/components/company";
-import { companyService } from "@/services/companyService";
+import { useMyCompanies } from "@/hooks/queries/useCompany";
 import { CreateCompanyModal } from "./CreateCompanyModal";
 import type { CompanyItem } from "@/types/company";
 import { PATHS } from "@/constants/paths";
 
 export function CompanyListPage() {
   const navigate = useNavigate();
-  const [companies, setCompanies] = useState<CompanyItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: companies = [], isLoading } = useMyCompanies();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  const fetchCompanies = async () => {
-    try {
-      setIsLoading(true);
-      const res = await companyService.getMyCompanies();
-      setCompanies(res.items);
-    } catch (err) {
-      console.error("Failed to load companies:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
 
   const handleSelectCompany = (company: CompanyItem) => {
     navigate(`/recruiter/company-management/${company.id}/overview`);
   };
 
   const handleCompanyCreated = (newCompany: CompanyItem) => {
-    setCompanies((prev) => [newCompany, ...prev]);
     navigate(`/recruiter/company-management/${newCompany.id}/overview`);
   };
 
