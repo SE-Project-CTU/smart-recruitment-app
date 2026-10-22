@@ -1,4 +1,4 @@
-namespace SmartHire.Application.Features.Cv.Queries.GetCvVersions;
+namespace SmartHire.Application.Features.Cv.DTOs;
 
 public sealed record CvVersionPageResult(
     IReadOnlyList<CvVersionSummaryResult> Items,

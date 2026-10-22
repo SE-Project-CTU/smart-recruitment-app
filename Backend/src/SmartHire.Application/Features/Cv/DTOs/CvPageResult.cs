@@ -1,8 +1,6 @@
-using SmartHire.Application.Features.Cv.Commands.CreateCv;
-using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Enums;
 
-namespace SmartHire.Application.Features.Cv.Queries.GetMyCvs;
+namespace SmartHire.Application.Features.Cv.DTOs;
 
 public sealed record CvPageResult(
     IReadOnlyList<CvListItemResult> Items,

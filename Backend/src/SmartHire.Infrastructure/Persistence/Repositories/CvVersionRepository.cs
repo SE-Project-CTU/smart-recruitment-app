@@ -1,7 +1,7 @@
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Domain.Entities;
-using SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 using Microsoft.EntityFrameworkCore;
+using SmartHire.Application.Features.Cv.DTOs;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
 

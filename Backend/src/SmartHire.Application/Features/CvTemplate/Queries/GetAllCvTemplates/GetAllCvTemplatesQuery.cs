@@ -1,6 +1,7 @@
 ﻿using MediatR;
 
 using SmartHire.Application.Common.Validation;
+using SmartHire.Application.Features.CvTemplate.DTOs;
 
 namespace SmartHire.Application.Features.CvTemplate.Queries.Queries.GetAllCvTemplates;
 

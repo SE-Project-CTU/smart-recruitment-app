@@ -1,4 +1,4 @@
-using SmartHire.Application.Features.Cv.Queries.GetMyCvs;
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 

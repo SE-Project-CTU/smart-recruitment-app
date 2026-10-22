@@ -1,5 +1,6 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Features.CvTemplate.DTOs;
 using SmartHire.Application.Features.CvTemplate.Queries;
 
 namespace SmartHire.Application.Features.CvTemplate.Queries.Queries.GetAllCvTemplates;

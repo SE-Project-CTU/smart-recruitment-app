@@ -1,6 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Application.Features.Cv.Exceptions;
 
 namespace SmartHire.Application.Features.Cv.Queries.GetCvVersion;

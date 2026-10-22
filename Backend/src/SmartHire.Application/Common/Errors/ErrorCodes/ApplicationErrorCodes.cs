@@ -1,4 +1,4 @@
-namespace SmartHire.Application.Features.Applications.Exceptions;
+namespace SmartHire.Application.Common.Errors.ErrorCodes;
 
 public static class ApplicationErrorCodes {
     public const string InvalidApplication = "INVALID_APPLICATION";
