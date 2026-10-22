@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Save,
@@ -7,10 +7,15 @@ import {
   ArrowLeft,
   CheckCircle2,
   AlertCircle,
+  Upload,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import Button from "@/components/Button";
+import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { useUpdateCompany } from "@/hooks/queries/useCompany";
+import { useUploadImage } from "@/hooks/queries/useMedia";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 import type { UpdateCompanyPayload } from "@/types/company";
 
@@ -19,7 +24,13 @@ export function CompanySettingsTab() {
     useOutletContext<CompanyOutletContext>();
   const navigate = useNavigate();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync: updateCompany, isPending: isLoading } = useUpdateCompany();
+  const { mutateAsync: uploadImage, isPending: isUploadingLogo } = useUploadImage();
+
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    company.logoUrl ?? null,
+  );
 
   const [formData, setFormData] = useState<UpdateCompanyPayload>({
     name: company.name,
@@ -28,6 +39,8 @@ export function CompanySettingsTab() {
     address: company.address,
     website: company.website,
     description: company.description,
+    logoUrl: company.logoUrl,
+    logoFileId: company.logoFileId,
   });
 
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -41,7 +54,10 @@ export function CompanySettingsTab() {
       address: company.address,
       website: company.website,
       description: company.description,
+      logoUrl: company.logoUrl,
+      logoFileId: company.logoFileId,
     });
+    setLogoPreview(company.logoUrl ?? null);
   }, [company]);
 
   // Role Guard: Nếu không phải Owner, từ chối quyền truy cập
@@ -60,7 +76,7 @@ export function CompanySettingsTab() {
         <button
           onClick={() => navigate("../overview")}
           type="button"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover"
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary-hover"
         >
           <ArrowLeft className="size-4" />
           Về trang Tổng quan
@@ -76,6 +92,45 @@ export function CompanySettingsTab() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     setSuccessMsg(null);
     setErrorMsg(null);
+  };
+
+  const handleLogoFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setErrorMsg(null);
+      setSuccessMsg(null);
+      const media = await uploadImage(file);
+      setLogoPreview(media.fileUrl);
+      setFormData((prev) => ({
+        ...prev,
+        logoUrl: media.fileUrl,
+        logoFileId: media.id,
+      }));
+      setSuccessMsg("Đã tải logo lên thành công! Nhấn 'Lưu thay đổi' để hoàn tất cập nhật.");
+    } catch (err: unknown) {
+      setErrorMsg(
+        getApiErrorMessage(
+          err,
+          "Tải ảnh logo thất bại. Vui lòng kiểm tra định dạng và kích thước ảnh.",
+        ),
+      );
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoPreview(null);
+    setFormData((prev) => ({
+      ...prev,
+      logoUrl: null,
+      logoFileId: null,
+    }));
+    setSuccessMsg("Đã gỡ logo. Nhấn 'Lưu thay đổi' để hoàn tất cập nhật.");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,26 +163,99 @@ export function CompanySettingsTab() {
           Cập nhật thông tin doanh nghiệp
         </h2>
         <p className="text-xs text-text-muted">
-          Chỉnh sửa thông tin liên hệ, hồ sơ giới thiệu công ty (dành riêng cho Chủ sở hữu)
+          Chỉnh sửa nhận diện thương hiệu, thông tin liên hệ và hồ sơ giới thiệu công ty (dành riêng cho Chủ sở hữu)
         </p>
       </div>
 
       {successMsg && (
-        <div className="flex items-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-xs font-medium text-emerald-800 shadow-2xs">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-xs font-medium text-emerald-800">
           <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-2.5 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-xs font-medium text-rose-800 shadow-2xs">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-xs font-medium text-rose-800">
           <AlertCircle className="size-4 shrink-0 text-rose-600" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="rounded-3xl border border-border bg-surface p-6 shadow-2xs space-y-5">
+        {/* Card 1: Logo & Nhận diện thương hiệu */}
+        <div className="rounded-3xl border border-border bg-surface p-6 space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+            Logo & Nhận diện thương hiệu
+          </h3>
+
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+            <div className="relative group shrink-0">
+              <div className="overflow-hidden rounded-2xl border border-border bg-white p-1">
+                <CompanyLogo
+                  logoUrl={logoPreview}
+                  name={formData.name || company.name}
+                  size="lg"
+                />
+              </div>
+              {isUploadingLogo && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur-xs">
+                  <Loader2 className="size-6 animate-spin" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <div>
+                <p className="text-sm font-semibold text-text-main">
+                  Logo chính thức của doanh nghiệp
+                </p>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  Logo sẽ hiển thị trên trang tin tuyển dụng công khai, danh thiếp công ty và thông báo gửi đến ứng viên. Định dạng hỗ trợ: JPG, PNG, WEBP (tối đa 5 MB).
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleLogoFileChange}
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  icon={isUploadingLogo ? Loader2 : Upload}
+                  disabled={isUploadingLogo}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="py-1.5 px-3 text-xs"
+                >
+                  {isUploadingLogo
+                    ? "Đang tải ảnh lên..."
+                    : logoPreview
+                    ? "Thay đổi logo"
+                    : "Tải logo lên"}
+                </Button>
+
+                {logoPreview && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    icon={Trash2}
+                    disabled={isUploadingLogo}
+                    onClick={handleRemoveLogo}
+                    className="py-1.5 px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                  >
+                    Gỡ logo
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Thông tin định danh pháp lý */}
+        <div className="rounded-3xl border border-border bg-surface p-6 space-y-5">
           <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
             Thông tin định danh pháp lý
           </h3>
@@ -168,7 +296,8 @@ export function CompanySettingsTab() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border bg-surface p-6 shadow-2xs space-y-5">
+        {/* Card 3: Thông tin liên hệ & Địa điểm */}
+        <div className="rounded-3xl border border-border bg-surface p-6 space-y-5">
           <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
             Thông tin liên hệ & Địa điểm
           </h3>
@@ -252,7 +381,7 @@ export function CompanySettingsTab() {
             type="submit"
             variant="primary"
             icon={Save}
-            isLoading={isLoading}
+            isLoading={isLoading || isUploadingLogo}
             className="px-6"
           >
             Lưu thay đổi

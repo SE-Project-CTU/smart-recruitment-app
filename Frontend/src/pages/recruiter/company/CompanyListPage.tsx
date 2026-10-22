@@ -32,6 +32,11 @@ export function CompanyListPage() {
     navigate(`/recruiter/company-management/${newCompany.id}/overview`);
   };
 
+  const handleCreateJob = (company: CompanyItem) => {
+    // Quick job creation hook / notification
+    alert(`Mở giao diện tạo tin tuyển dụng (JD) cho công ty: ${company.name}`);
+  };
+
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
       // Role filter
@@ -91,7 +96,7 @@ export function CompanyListPage() {
       {/* Stats summary bar if has companies */}
       {companies.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-2xs">
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
               <Building2 className="size-5" />
             </div>
@@ -101,7 +106,7 @@ export function CompanyListPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-2xs">
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
               <ShieldCheck className="size-5" />
             </div>
@@ -111,7 +116,7 @@ export function CompanyListPage() {
             </div>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-2xs">
+          <div className="col-span-2 sm:col-span-1 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
               <Users className="size-5" />
             </div>
@@ -125,7 +130,7 @@ export function CompanyListPage() {
 
       {/* Search and Filters */}
       {companies.length > 0 && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-text-muted" />
             <input
@@ -183,8 +188,8 @@ export function CompanyListPage() {
         </div>
       ) : companies.length === 0 ? (
         /* Empty State: Recruiter chưa thuộc công ty nào */
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface/60 px-6 py-20 text-center shadow-xs">
-          <div className="mb-4 flex size-20 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-inner">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-surface/60 px-6 py-20 text-center">
+          <div className="mb-4 flex size-20 items-center justify-center rounded-3xl bg-primary/10 text-primary">
             <Building2 className="size-10" />
           </div>
           <h2 className="text-lg font-bold text-text-main sm:text-xl">
@@ -245,6 +250,7 @@ export function CompanyListPage() {
               showBookmark={false}
               actionText="Quản trị công ty"
               onViewDetail={handleSelectCompany}
+              onCreateJob={handleCreateJob}
             />
           ))}
         </div>

@@ -78,7 +78,7 @@ export function InviteMemberModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">

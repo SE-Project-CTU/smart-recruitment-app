@@ -16,6 +16,7 @@ export interface CompanyItem {
   address: string;
   website: string;
   description: string;
+  logoFileId?: string | null;
   logoUrl: string | null;
   verificationStatus: CompanyVerificationStatus;
   verifiedAt: string | null;
