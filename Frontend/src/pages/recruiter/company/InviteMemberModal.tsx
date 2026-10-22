@@ -77,7 +77,7 @@ export function InviteMemberModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
       <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ export function InviteMemberModal({
               <h2 className="text-base font-semibold text-text-main">
                 Mời nhân sự tuyển dụng
               </h2>
-              <p className="text-xs text-text-muted truncate max-w-[240px]">
+              <p className="max-w-60 truncate text-xs text-text-muted">
                 {companyName}
               </p>
             </div>
@@ -96,7 +96,7 @@ export function InviteMemberModal({
           <button
             onClick={onClose}
             type="button"
-            className="rounded-lg p-1.5 text-text-muted hover:bg-slate-100 hover:text-text-main transition-colors"
+            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main"
           >
             <X className="size-5" />
           </button>
@@ -104,7 +104,7 @@ export function InviteMemberModal({
 
         {error && (
           <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-            <AlertCircle className="size-4 shrink-0 mt-0.5" />
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
             <span className="leading-relaxed">{error}</span>
           </div>
         )}
@@ -117,7 +117,7 @@ export function InviteMemberModal({
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-text-main mb-1.5">
+            <label className="mb-1.5 block text-xs font-semibold text-text-main">
               Mã User ID của Recruiter <span className="text-rose-500">*</span>
             </label>
             <input
@@ -128,25 +128,26 @@ export function InviteMemberModal({
                 if (error) setError(null);
               }}
               placeholder="e.g. 7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a"
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main font-mono placeholder:font-sans placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 font-mono text-sm text-text-main outline-none placeholder:font-sans placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
               required
             />
             <div className="mt-2 flex items-start gap-1.5 text-[11px] text-text-muted">
-              <Info className="size-3.5 shrink-0 text-sky-600 mt-0.5" />
+              <Info className="mt-0.5 size-3.5 shrink-0 text-sky-600" />
               <span>
-                Backend API chỉ nhận mã <strong>UUID</strong> của tài khoản đã đăng ký vai trò <strong>Nhà tuyển dụng (Recruiter)</strong>.
+                Backend API chỉ nhận mã <strong>UUID</strong> của tài khoản đã
+                đăng ký vai trò <strong>Nhà tuyển dụng (Recruiter)</strong>.
               </span>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-text-main mb-1.5">
+            <label className="mb-1.5 block text-xs font-semibold text-text-main">
               Thời hạn hiệu lực của lời mời
             </label>
             <select
               value={expireDays}
               onChange={(e) => setExpireDays(Number(e.target.value))}
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
             >
               <option value={3}>3 ngày</option>
               <option value={7}>7 ngày (Mặc định)</option>

@@ -175,7 +175,7 @@ export function CreateCompanyModal({
                   icon={isUploadingLogo ? Loader2 : Upload}
                   disabled={isUploadingLogo}
                   onClick={() => fileInputRef.current?.click()}
-                  className="py-1.5 px-3 text-xs"
+                  className="px-3! py-1.5! text-xs!"
                 >
                   {isUploadingLogo
                     ? "Đang tải ảnh..."
@@ -191,7 +191,7 @@ export function CreateCompanyModal({
                     icon={Trash2}
                     disabled={isUploadingLogo}
                     onClick={handleRemoveLogo}
-                    className="py-1.5 px-3 text-xs text-rose-600 hover:bg-rose-50 border-rose-200"
+                    className="border-rose-200! px-3! py-1.5! text-xs! text-rose-600! ring-rose-200! hover:bg-rose-50! hover:text-rose-700!"
                   >
                     Gỡ
                   </Button>

@@ -238,7 +238,7 @@ export function CompanySettingsTab() {
                   icon={isUploadingLogo ? Loader2 : Upload}
                   disabled={isUploadingLogo}
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 text-xs"
+                  className="px-3! py-1.5! text-xs!"
                 >
                   {isUploadingLogo
                     ? "Đang tải ảnh lên..."
@@ -254,7 +254,7 @@ export function CompanySettingsTab() {
                     icon={Trash2}
                     disabled={isUploadingLogo}
                     onClick={handleRemoveLogo}
-                    className="border-rose-200 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    className="border-rose-200! px-3! py-1.5! text-xs! text-rose-600! ring-rose-200! hover:bg-rose-50! hover:text-rose-700!"
                   >
                     Gỡ logo
                   </Button>
@@ -393,7 +393,7 @@ export function CompanySettingsTab() {
             variant="primary"
             icon={Save}
             isLoading={isLoading || isUploadingLogo}
-            className="px-6"
+            className="px-6!"
           >
             Lưu thay đổi
           </Button>
