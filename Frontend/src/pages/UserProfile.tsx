@@ -24,8 +24,19 @@ import {
 import { useDeleteMedia, useUploadImage } from "@/hooks/queries/useMedia";
 import { MorphIcon } from "morphicons/react";
 import { UserAvatar } from "@/components/UserAvatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type TabKey = "profile" | "security" | "delete";
+type PendingProfileAction = "cancel-edit" | "remove-avatar";
 
 interface ProfileErrors {
   avatar?: string;
@@ -68,6 +79,8 @@ export default function UserProfile() {
   );
   const currentAvatar = account?.avatarUrl ?? null;
 
+  const [pendingProfileAction, setPendingProfileAction] =
+    useState<PendingProfileAction | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -93,6 +106,20 @@ export default function UserProfile() {
       }
     };
   }, [deleteMedia]);
+
+  useEffect(() => {
+    if (!isUploadingAvatar && !pendingAvatarFileId) return;
+
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", warnBeforeUnload);
+    };
+  }, [isUploadingAvatar, pendingAvatarFileId]);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -135,11 +162,22 @@ export default function UserProfile() {
 
   const handleRemovePendingAvatar = async () => {
     // Nếu vừa upload ảnh mới -> xóa ảnh đó khỏi server và khôi phục ảnh cũ ban đầu
+
     if (pendingAvatarFileId) {
       await safeDeleteMedia(pendingAvatarFileId);
     }
     setPendingAvatarUrl(currentAvatar);
     setPendingAvatarFileId(null);
+  };
+
+  const handleConfirmProfileAction = async () => {
+    if (pendingProfileAction === "cancel-edit") {
+      await handleCancelEdit();
+    } else if (pendingProfileAction === "remove-avatar") {
+      await handleRemovePendingAvatar();
+    }
+
+    setPendingProfileAction(null);
   };
 
   const handleAvatarFileChange = async (
@@ -415,7 +453,9 @@ export default function UserProfile() {
                         pendingAvatarUrl !== currentAvatar && (
                           <Button
                             variant="secondary"
-                            onClick={handleRemovePendingAvatar}
+                            onClick={() =>
+                              setPendingProfileAction("remove-avatar")
+                            }
                             className="h-9! rounded-full! px-3! py-1.5! text-xs!"
                           >
                             Gỡ ảnh
@@ -473,7 +513,7 @@ export default function UserProfile() {
                     <div className="flex items-center gap-2">
                       <Button
                         variant="secondary"
-                        onClick={handleCancelEdit}
+                        onClick={() => setPendingProfileAction("cancel-edit")}
                         className="h-9! rounded-full! px-3.5! py-1.5! text-xs!"
                       >
                         Hủy
@@ -826,6 +866,35 @@ export default function UserProfile() {
           )}
         </main>
       </div>
+      <AlertDialog
+        open={pendingProfileAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingProfileAction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingProfileAction === "cancel-edit"
+                ? "Hủy chỉnh sửa hồ sơ?"
+                : "Gỡ ảnh đại diện?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingProfileAction === "cancel-edit"
+                ? "Các thay đổi chưa lưu sẽ bị mất. Ảnh vừa tải lên cũng sẽ bị xóa."
+                : "Ảnh vừa tải lên sẽ bị xóa và ảnh đại diện đã lưu trước đó được khôi phục."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Tiếp tục chỉnh sửa</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmProfileAction}>
+              {pendingProfileAction === "cancel-edit"
+                ? "Hủy chỉnh sửa"
+                : "Gỡ ảnh"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
