@@ -1,9 +1,9 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Companies.Queries.ListCompanyMembers;
@@ -21,27 +21,18 @@ public sealed class ListCompanyMembersQueryHandler : IRequestHandler<ListCompany
 
     public async Task<(IReadOnlyList<CompanyMemberResult> Items, int TotalCount)> Handle(ListCompanyMembersQuery request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         // Caller phải là member
         var callerMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, userId, cancellationToken);
         if (callerMembership is null || callerMembership.Status != CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CompanyErrorCodes.CompanyForbidden,
-                "You must be an active member of this company to view member list.");
+            throw CompanyExceptions.CompanyForbidden("You must be an active member of this company to view member list.");
         }
 
         CompanyMembershipStatus? filterStatus = null;
@@ -57,17 +48,7 @@ public sealed class ListCompanyMembersQueryHandler : IRequestHandler<ListCompany
             request.PageSize,
             cancellationToken);
 
-        var results = items.Select(m => new CompanyMemberResult(
-            m.Id,
-            new CompanyMemberUserSummary(
-                m.User.Id,
-                m.User.FullName,
-                m.User.Email,
-                m.User.AvatarFile?.FileUrl),
-            m.Role.ToString(),
-            m.Status.ToString(),
-            m.JoinedAt
-        )).ToList();
+        var results = items.Select(CompanyResultMapper.ToCompanyMemberResult).ToList();
 
         return (results, totalCount);
     }

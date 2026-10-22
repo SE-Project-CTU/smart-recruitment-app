@@ -69,8 +69,8 @@ internal static class CompanyExceptions {
         "This invitation has already been processed.",
         [new AppErrorDetail("invitation", ValidationReasons.NotAllowed, "Invitation is not in pending status.")]);
 
-    public static AppException CompanyInvitationExpired() => new(
-        AppErrorKind.Gone,
+    public static AppException CompanyInvitationExpired(AppErrorKind kind = AppErrorKind.BadRequest) => new(
+        kind,
         CompanyErrorCodes.CompanyInvitationExpired,
         "This invitation has expired.",
         [new AppErrorDetail("invitation", ErrorDetailReasons.Expired, "The invitation validity period has ended.")]);

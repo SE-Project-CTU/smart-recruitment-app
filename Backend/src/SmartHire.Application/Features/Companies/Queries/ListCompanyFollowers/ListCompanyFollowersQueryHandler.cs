@@ -1,8 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
 
 namespace SmartHire.Application.Features.Companies.Queries.ListCompanyFollowers;
 
@@ -16,10 +15,7 @@ public sealed class ListCompanyFollowersQueryHandler : IRequestHandler<ListCompa
     public async Task<(CompanyFollowersResponse Response, int TotalCount)> Handle(ListCompanyFollowersQuery request, CancellationToken cancellationToken) {
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         var totalFollowers = await _companyRepository.CountFollowersAsync(request.CompanyId, cancellationToken);

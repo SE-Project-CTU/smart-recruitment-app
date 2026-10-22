@@ -3,9 +3,9 @@ using MediatR;
 using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -37,36 +37,24 @@ public sealed class SubmitJoinRequestCommandHandler : IRequestHandler<SubmitJoin
 
     public async Task<CompanyJoinRequestResult> Handle(SubmitJoinRequestCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         // Kiểm tra caller đã là member chưa
         var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, userId, cancellationToken);
         if (existingMembership is not null && existingMembership.Status == CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyMembershipAlreadyExists,
-                "You are already an active member of this company.");
+            throw CompanyExceptions.CompanyMembershipAlreadyExists();
         }
 
         // Kiểm tra đã có request Pending chưa
         var pendingRequest = await _companyRepository.GetPendingJoinRequestAsync(request.CompanyId, userId, cancellationToken);
         if (pendingRequest is not null) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyJoinRequestAlreadyExists,
-                "You already have a pending join request for this company.");
+            throw CompanyExceptions.CompanyJoinRequestAlreadyExists();
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -114,12 +102,7 @@ public sealed class SubmitJoinRequestCommandHandler : IRequestHandler<SubmitJoin
                 await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
             }
 
-            return new CompanyJoinRequestResult(
-                joinRequest.Id,
-                joinRequest.CompanyId,
-                joinRequest.UserId,
-                joinRequest.Status.ToString(),
-                joinRequest.CreatedAt);
+            return CompanyResultMapper.ToCompanyJoinRequestResult(joinRequest);
         }, cancellationToken);
     }
 }

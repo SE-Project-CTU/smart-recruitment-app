@@ -65,7 +65,7 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
 
         var now = DateTimeOffset.UtcNow;
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             var company = Company.Create(
                 name: request.Name,
                 taxCode: request.TaxCode,
@@ -77,7 +77,7 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
                 logoFileId: request.LogoFileId,
                 now: now);
 
-            await _companyRepository.AddAsync(company, ct);
+            await _companyRepository.AddAsync(company, cancellationToken);
 
             var membership = CompanyMembership.Create(
                 companyId: company.Id,
@@ -87,8 +87,8 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
                 joinedAt: now,
                 now: now);
 
-            await _companyRepository.AddMembershipAsync(membership, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
+            await _companyRepository.AddMembershipAsync(membership, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return CompanyResultMapper.ToCompanyResult(
                 company,

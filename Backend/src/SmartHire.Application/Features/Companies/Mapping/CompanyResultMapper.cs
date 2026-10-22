@@ -78,4 +78,20 @@ public static class CompanyResultMapper {
             request.CreatedAt,
             userSummary);
     }
+
+    public static AcceptInvitationResult ToAcceptInvitationResult(CompanyInvitation invitation, CompanyMembership membership) {
+        ArgumentNullException.ThrowIfNull(invitation);
+        ArgumentNullException.ThrowIfNull(membership);
+
+        return new AcceptInvitationResult(
+            invitation.Id,
+            invitation.Status.ToString(),
+            new AcceptInvitationMembershipResult(
+                membership.Id,
+                membership.CompanyId,
+                membership.UserId,
+                membership.Role.ToString(),
+                membership.Status.ToString(),
+                membership.JoinedAt));
+    }
 }

@@ -35,10 +35,7 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
 
     public async Task<ReviewJoinRequestResult> Handle(ReviewJoinRequestCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         var normalizedStatus = request.Status?.Trim().ToUpperInvariant();
@@ -50,46 +47,34 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
 
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         // Caller phải là Owner
         var ownerMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, userId, cancellationToken);
         if (ownerMembership is null || ownerMembership.Role != CompanyMemberRole.Owner || ownerMembership.Status != CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CompanyErrorCodes.CompanyForbidden,
-                "Only an active Company Owner can review join requests.");
+            throw CompanyExceptions.CompanyForbidden("Only an active Company Owner can review join requests.");
         }
 
         var joinRequest = await _companyRepository.GetJoinRequestByIdAsync(request.RequestId, cancellationToken);
         if (joinRequest is null || joinRequest.CompanyId != request.CompanyId) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyJoinRequestNotFound,
-                "Join request not found for this company.");
+            throw CompanyExceptions.CompanyJoinRequestNotFound();
         }
 
         if (joinRequest.Status != CompanyJoinRequestStatus.Pending) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyJoinRequestAlreadyProcessed,
-                "This join request has already been processed.");
+            throw CompanyExceptions.CompanyJoinRequestAlreadyProcessed();
         }
 
         var now = DateTimeOffset.UtcNow;
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+        return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             AcceptInvitationMembershipResult? membershipResult = null;
             var isApproved = normalizedStatus == "APPROVED";
 
             if (isApproved) {
                 joinRequest.Approve(userId, now);
 
-                var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, joinRequest.UserId, ct);
+                var existingMembership = await _companyRepository.GetMembershipAsync(request.CompanyId, joinRequest.UserId, cancellationToken);
                 CompanyMembership membership;
                 if (existingMembership is not null) {
                     existingMembership.UpdateRole(CompanyMemberRole.Recruiter);
@@ -103,7 +88,7 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
                         status: CompanyMembershipStatus.Active,
                         joinedAt: now,
                         now: now);
-                    await _companyRepository.AddMembershipAsync(membership, ct);
+                    await _companyRepository.AddMembershipAsync(membership, cancellationToken);
                 }
 
                 membershipResult = new AcceptInvitationMembershipResult(
@@ -137,13 +122,13 @@ public sealed class ReviewJoinRequestCommandHandler : IRequestHandler<ReviewJoin
                 resourceId: joinRequest.Id,
                 now: now);
 
-            await _notificationRepository.AddAsync(notification, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
+            await _notificationRepository.AddAsync(notification, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             if (_notificationDispatcher is not null) {
                 var notificationDto = NotificationResultMapper.ToDto(notification);
 
-                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, ct);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
             }
 
             return new ReviewJoinRequestResult(

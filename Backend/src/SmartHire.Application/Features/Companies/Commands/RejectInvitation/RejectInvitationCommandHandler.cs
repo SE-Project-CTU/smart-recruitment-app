@@ -3,8 +3,7 @@ using MediatR;
 using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -36,43 +35,28 @@ public sealed class RejectInvitationCommandHandler : IRequestHandler<RejectInvit
 
     public async Task Handle(RejectInvitationCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         var invitation = await _companyRepository.GetInvitationByIdAsync(request.InvitationId, cancellationToken);
         if (invitation is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyInvitationNotFound,
-                "Company invitation not found.");
+            throw CompanyExceptions.CompanyInvitationNotFound();
         }
 
         if (invitation.InviteeId != userId) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CompanyErrorCodes.CompanyForbidden,
-                "You are not the invitee of this invitation.");
+            throw CompanyExceptions.CompanyForbidden("You are not the invitee of this invitation.");
         }
 
         var now = DateTimeOffset.UtcNow;
         if (invitation.Status != CompanyInvitationStatus.Pending) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyInvitationAlreadyProcessed,
-                "This invitation has already been processed.");
+            throw CompanyExceptions.CompanyInvitationAlreadyProcessed();
         }
 
         // Trường hợp hết hạn: cập nhật trạng thái Expired ngay lập tức 
         if (invitation.ExpiresAt <= now) {
             invitation.Expire();
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CompanyErrorCodes.CompanyInvitationExpired,
-                "This invitation has expired.");
+            throw CompanyExceptions.CompanyInvitationExpired();
         }
 
         // Đọc dữ liệu phụ trợ trước khi vào transaction
