@@ -33,7 +33,8 @@ export function CreateCompanyModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: createCompany, isPending } = useCreateCompany();
-  const { mutateAsync: uploadImage, isPending: isUploadingLogo } = useUploadImage();
+  const { mutateAsync: uploadImage, isPending: isUploadingLogo } =
+    useUploadImage();
 
   if (!isOpen) return null;
 
@@ -110,8 +111,8 @@ export function CreateCompanyModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl rounded-2xl border border-border bg-surface p-6 sm:p-7 max-h-[90vh] overflow-y-auto">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
+      <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 sm:p-7">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -129,7 +130,7 @@ export function CreateCompanyModal({
           <button
             onClick={onClose}
             type="button"
-            className="rounded-lg p-1.5 text-text-muted hover:bg-slate-100 hover:text-text-main transition-colors"
+            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main"
           >
             <X className="size-5" />
           </button>
@@ -144,7 +145,7 @@ export function CreateCompanyModal({
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {/* Logo Upload Section */}
           <div className="rounded-xl border border-border bg-bg/50 p-3.5">
-            <label className="block text-xs font-semibold text-text-main mb-2">
+            <label className="mb-2 block text-xs font-semibold text-text-main">
               Logo doanh nghiệp (Không bắt buộc)
             </label>
             <div className="flex items-center gap-4">
@@ -171,7 +172,7 @@ export function CreateCompanyModal({
                 />
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   icon={isUploadingLogo ? Loader2 : Upload}
                   disabled={isUploadingLogo}
                   onClick={() => fileInputRef.current?.click()}
@@ -180,8 +181,8 @@ export function CreateCompanyModal({
                   {isUploadingLogo
                     ? "Đang tải ảnh..."
                     : logoPreview
-                    ? "Đổi logo"
-                    : "Tải logo"}
+                      ? "Đổi logo"
+                      : "Tải logo"}
                 </Button>
 
                 {logoPreview && (
@@ -205,7 +206,7 @@ export function CreateCompanyModal({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-text-main mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Tên doanh nghiệp <span className="text-rose-500">*</span>
               </label>
               <input
@@ -214,13 +215,13 @@ export function CreateCompanyModal({
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Ví dụ: Công ty Cổ phần Công nghệ SmartHire"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-main mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Mã số thuế (MST) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -229,13 +230,13 @@ export function CreateCompanyModal({
                 value={formData.taxCode}
                 onChange={handleChange}
                 placeholder="Ví dụ: 0102030405"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-main mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Email liên hệ <span className="text-rose-500">*</span>
               </label>
               <input
@@ -244,13 +245,13 @@ export function CreateCompanyModal({
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="contact@company.com"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-main mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Số điện thoại <span className="text-rose-500">*</span>
               </label>
               <input
@@ -259,13 +260,13 @@ export function CreateCompanyModal({
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+84 28 1234 5678"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-text-main mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Website chính thức
               </label>
               <input
@@ -274,12 +275,12 @@ export function CreateCompanyModal({
                 value={formData.website}
                 onChange={handleChange}
                 placeholder="https://company.com"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-text-main mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Địa chỉ trụ sở chính <span className="text-rose-500">*</span>
               </label>
               <input
@@ -288,13 +289,13 @@ export function CreateCompanyModal({
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện, Tỉnh/TP"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
+                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
                 required
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-text-main mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Giới thiệu về doanh nghiệp
               </label>
               <textarea
@@ -303,13 +304,17 @@ export function CreateCompanyModal({
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Mô tả ngắn về sứ mệnh, lĩnh vực hoạt động, văn hóa công ty..."
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none resize-none"
+                className="w-full resize-none rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
               />
             </div>
           </div>
 
           <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
-            <Button variant="secondary" onClick={onClose} disabled={isPending || isUploadingLogo}>
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              disabled={isPending || isUploadingLogo}
+            >
               Hủy
             </Button>
             <Button
