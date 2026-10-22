@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Services;
 using SmartHire.Api.Middleware;
@@ -56,6 +59,28 @@ public static class DependencyInjection {
                 .AllowCredentials();
             });
         });
+        return services;
+    }
+
+    public static IServiceCollection AddAppRateLimiter(this IServiceCollection services) {
+        services.AddRateLimiter(options => {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.AddPolicy("media-upload", httpContext => {
+                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                             ?? httpContext.User.FindFirst("sub")?.Value
+                             ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                             ?? "anonymous";
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: userId,
+                    factory: _ => new FixedWindowRateLimiterOptions {
+                        PermitLimit = 20,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0
+                    });
+            });
+        });
+
         return services;
     }
 }

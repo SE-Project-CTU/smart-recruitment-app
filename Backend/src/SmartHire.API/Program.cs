@@ -51,6 +51,8 @@ builder.Services.AddScoped<ApiResponseFactory>();
 
 builder.Services.AddJwtBearerAuthentication(builder.Configuration);
 
+builder.Services.AddAppRateLimiter();
+
 var app = builder.Build();
 
 app.UseCors(DependencyInjection.PolicyName);
@@ -87,6 +89,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.UseBackgroundJobDashboard();
 

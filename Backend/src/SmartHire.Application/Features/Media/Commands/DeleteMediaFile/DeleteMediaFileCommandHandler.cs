@@ -1,10 +1,12 @@
 using MediatR;
+using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Abstractions.Storage;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Features.Media.DTOs;
+using SmartHire.Application.Features.Media.Exceptions;
+using SmartHire.Application.Features.Media.Jobs.DeleteMediaFile;
+using SmartHire.Application.Features.Media.Mapping;
 
 namespace SmartHire.Application.Features.Media.Commands.DeleteMediaFile;
 
@@ -12,17 +14,17 @@ public sealed class DeleteMediaFileCommandHandler
     : IRequestHandler<DeleteMediaFileCommand, DeleteMediaFileResult> {
     private readonly ICurrentUser _currentUser;
     private readonly IMediaFileRepository _mediaFileRepository;
-    private readonly IFileStorageService _storageService;
+    private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     private readonly IUnitOfWork _unitOfWork;
 
     public DeleteMediaFileCommandHandler(
         ICurrentUser currentUser,
         IMediaFileRepository mediaFileRepository,
-        IFileStorageService storageService,
+        IBackgroundJobScheduler backgroundJobScheduler,
         IUnitOfWork unitOfWork) {
         _currentUser = currentUser;
         _mediaFileRepository = mediaFileRepository;
-        _storageService = storageService;
+        _backgroundJobScheduler = backgroundJobScheduler;
         _unitOfWork = unitOfWork;
     }
 
@@ -30,12 +32,7 @@ public sealed class DeleteMediaFileCommandHandler
         DeleteMediaFileCommand request,
         CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.",
-                [new AppErrorDetail("userId", ValidationReasons.InvalidFormat,
-                    "A valid user id claim is required.")]);
+            throw MediaExceptions.InvalidAccessToken();
         }
 
         var mediaFile = await _mediaFileRepository.GetByIdAsync(
@@ -43,12 +40,7 @@ public sealed class DeleteMediaFileCommandHandler
             cancellationToken);
 
         if (mediaFile is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                MediaErrorCodes.MediaFileNotFound,
-                "Media file was not found.",
-                [new AppErrorDetail("fileId", ErrorDetailReasons.NotFound,
-                    "The specified media file could not be found.")]);
+            throw MediaExceptions.MediaFileNotFound();
         }
 
         // Kiểm tra quyền sở hữu
@@ -57,29 +49,24 @@ public sealed class DeleteMediaFileCommandHandler
             StringComparer.OrdinalIgnoreCase);
 
         if (!isAdmin && mediaFile.OwnerId != userId) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                MediaErrorCodes.MediaFileForbidden,
-                "You do not have permission to delete this file.",
-                [new AppErrorDetail("fileId", ValidationReasons.NotAllowed,
-                    "The current account does not own this media file.")]);
+            throw MediaExceptions.MediaFileForbidden();
         }
 
-        // Xóa trên Cloudinary trước
-        try {
-            await _storageService.DeleteAsync(mediaFile.PublicId, cancellationToken);
-        } catch (Exception) {
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                MediaErrorCodes.MediaFileDeleteStorageError,
-                "Failed to delete file from storage.",
-                [new AppErrorDetail("file", ErrorDetailReasons.StorageError,
-                    "The storage provider could not delete the file.")]);
+        // Kiểm tra ràng buộc khóa ngoại trước khi xóa
+        var isReferenced = await _mediaFileRepository.IsReferencedAsync(request.FileId, cancellationToken);
+        if (isReferenced) {
+            throw MediaExceptions.MediaFileInUse();
         }
 
-        _mediaFileRepository.Delete(mediaFile);
+        // Soft delete trong database trước
+        mediaFile.MarkAsDeleted(DateTimeOffset.UtcNow);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new DeleteMediaFileResult(mediaFile.Id, Deleted: true);
+        // Gọi xóa vật lý trên Cloudinary qua Hangfire background job
+        _backgroundJobScheduler.Enqueue<DeleteMediaFileJob, DeleteMediaFileJobArgs>(
+            new DeleteMediaFileJobArgs(mediaFile.Id)
+        );
+
+        return MediaResultMapper.ToDeleteMediaFileResult(mediaFile);
     }
 }

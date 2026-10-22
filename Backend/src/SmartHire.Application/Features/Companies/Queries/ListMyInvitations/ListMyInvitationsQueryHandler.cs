@@ -1,9 +1,9 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Companies.Queries.ListMyInvitations;
@@ -21,10 +21,7 @@ public sealed class ListMyInvitationsQueryHandler : IRequestHandler<ListMyInvita
 
     public async Task<(IReadOnlyList<CompanyInvitationResult> Items, int TotalCount)> Handle(ListMyInvitationsQuery request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         CompanyInvitationStatus? filterStatus = CompanyInvitationStatus.Pending;
@@ -40,16 +37,7 @@ public sealed class ListMyInvitationsQueryHandler : IRequestHandler<ListMyInvita
             request.PageSize,
             cancellationToken);
 
-        var results = items.Select(i => new CompanyInvitationResult(
-            i.Id,
-            i.CompanyId,
-            i.InviterId,
-            i.InviteeId,
-            i.Status.ToString(),
-            i.ExpiresAt,
-            i.CreatedAt,
-            new CompanyBriefSummary(i.Company.Id, i.Company.Name, i.Company.VerificationStatus.ToString())
-        )).ToList();
+        var results = items.Select(i => CompanyResultMapper.ToCompanyInvitationResult(i, i.Company)).ToList();
 
         return (results, totalCount);
     }

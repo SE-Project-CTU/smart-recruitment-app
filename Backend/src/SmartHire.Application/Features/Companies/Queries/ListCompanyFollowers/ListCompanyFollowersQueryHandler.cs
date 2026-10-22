@@ -1,8 +1,8 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
 
 namespace SmartHire.Application.Features.Companies.Queries.ListCompanyFollowers;
 
@@ -16,10 +16,7 @@ public sealed class ListCompanyFollowersQueryHandler : IRequestHandler<ListCompa
     public async Task<(CompanyFollowersResponse Response, int TotalCount)> Handle(ListCompanyFollowersQuery request, CancellationToken cancellationToken) {
         var company = await _companyRepository.GetByIdAsync(request.CompanyId, cancellationToken);
         if (company is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyNotFound,
-                "Company not found.");
+            throw CompanyExceptions.CompanyNotFound();
         }
 
         var totalFollowers = await _companyRepository.CountFollowersAsync(request.CompanyId, cancellationToken);
@@ -29,14 +26,8 @@ public sealed class ListCompanyFollowersQueryHandler : IRequestHandler<ListCompa
             request.PageSize,
             cancellationToken);
 
-        var followersList = items.Select(f => new CompanyFollowerItem(
-            f.UserId,
-            f.User.FullName,
-            f.User.AvatarFile?.FileUrl,
-            f.CreatedAt
-        )).ToList();
-
-        var response = new CompanyFollowersResponse(
+        var followersList = items.Select(CompanyResultMapper.ToCompanyFollowerItem).ToList();
+        var response = CompanyResultMapper.ToCompanyFollowersResponse(
             request.CompanyId,
             totalFollowers,
             followersList);
