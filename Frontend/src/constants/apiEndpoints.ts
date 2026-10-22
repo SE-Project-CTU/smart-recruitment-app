@@ -17,4 +17,17 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/media/${id}`,
     DELETE: (id: string) => `/media/${id}`,
   },
+  COMPANY: {
+    LIST: "/companies",
+    DETAIL: (id: string) => `/companies/${id}`,
+    CREATE: "/companies",
+    UPDATE: (id: string) => `/companies/${id}`,
+    MEMBERS: (id: string) => `/companies/${id}/members`,
+    INVITATIONS: (id: string) => `/companies/${id}/invitations`,
+    MY_INVITATIONS: "/me/company-invitations",
+    ACCEPT_INVITATION: (id: string) => `/company-invitations/${id}/accept`,
+    REJECT_INVITATION: (id: string) => `/company-invitations/${id}/reject`,
+    JOIN_REQUESTS: (id: string) => `/companies/${id}/join-requests`,
+    TRANSFER_OWNERSHIP: (id: string) => `/companies/${id}/ownership`,
+  },
 } as const;

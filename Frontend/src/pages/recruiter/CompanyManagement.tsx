@@ -1,5 +1,7 @@
+import { Outlet } from "react-router-dom";
+
 function CompanyManagement() {
-  return <div>CompanyManagement</div>;
+  return <Outlet />;
 }
 
 export default CompanyManagement;
