@@ -7,7 +7,6 @@ import {
   FileChartLine,
   FileText,
   Home,
-  icons,
   LayoutList,
   LibraryBig,
   ListCheck,

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/Page";
@@ -18,6 +18,13 @@ import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
+import {
+  CompanyListPage,
+  CompanyDetailLayout,
+  CompanyOverviewTab,
+  CompanyMembersTab,
+  CompanySettingsTab,
+} from "@/pages/recruiter/company";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -104,6 +111,34 @@ const router = createBrowserRouter([
           {
             path: PATHS.RECRUITER.COMPANY_MANAGEMENT,
             element: <CompanyManagement />,
+            children: [
+              {
+                index: true,
+                element: <CompanyListPage />,
+              },
+              {
+                path: ":companyId",
+                element: <CompanyDetailLayout />,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate to="overview" replace />,
+                  },
+                  {
+                    path: "overview",
+                    element: <CompanyOverviewTab />,
+                  },
+                  {
+                    path: "members",
+                    element: <CompanyMembersTab />,
+                  },
+                  {
+                    path: "settings",
+                    element: <CompanySettingsTab />,
+                  },
+                ],
+              },
+            ],
           },
           {
             path: PATHS.RECRUITER.COMPANY_INVITATION,

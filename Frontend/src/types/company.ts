@@ -1,0 +1,68 @@
+export type CompanyVerificationStatus = "Verified" | "Pending" | "Rejected";
+export type CompanyMemberRole = "Owner" | "Member";
+export type CompanyMembershipStatus = "Active" | "Inactive";
+
+export interface CompanyMembershipSummary {
+  role: CompanyMemberRole;
+  status: CompanyMembershipStatus;
+}
+
+export interface CompanyItem {
+  id: string;
+  name: string;
+  taxCode: string;
+  email: string;
+  phone: string;
+  address: string;
+  website: string;
+  description: string;
+  logoUrl: string | null;
+  verificationStatus: CompanyVerificationStatus;
+  verifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  membership?: CompanyMembershipSummary | null;
+}
+
+export interface CompanyMemberUser {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+}
+
+export interface CompanyMember {
+  id: string;
+  user: CompanyMemberUser;
+  role: CompanyMemberRole;
+  status: CompanyMembershipStatus;
+  joinedAt: string;
+}
+
+export interface CreateCompanyPayload {
+  name: string;
+  taxCode: string;
+  email: string;
+  phone: string;
+  address: string;
+  website?: string;
+  description?: string;
+  logoFileId?: string;
+  logoUrl?: string;
+}
+
+export interface UpdateCompanyPayload {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  website?: string;
+  description?: string;
+  logoFileId?: string | null;
+  logoUrl?: string | null;
+}
+
+export interface InviteRecruiterPayload {
+  inviteeId: string;
+  expiresAt?: string;
+}

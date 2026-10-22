@@ -1,4 +1,11 @@
-import { Globe, MapPin, ChevronRight } from "lucide-react";
+import {
+  Globe,
+  MapPin,
+  ChevronRight,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import { MorphIcon } from "morphicons/react";
 import { BookmarkCheck, Bookmark } from "lucide";
 import {
@@ -8,21 +15,30 @@ import {
 } from "@/components/animate-ui/components/base/tooltip";
 import Button from "@/components/Button";
 import { CompanyLogo } from "./CompanyLogo";
-import type { CompanyItem } from "@/constants/mockData";
+import type { CompanyItem } from "@/types/company";
 
 export interface CompanyCardProps {
   company: CompanyItem;
-  isBookmarked: boolean;
-  onToggleBookmark: (id: string) => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: (id: string) => void;
   onViewDetail: (company: CompanyItem) => void;
+  userRole?: "Owner" | "Member";
+  actionText?: string;
+  showBookmark?: boolean;
 }
 
 export function CompanyCard({
   company,
-  isBookmarked,
+  isBookmarked = false,
   onToggleBookmark,
   onViewDetail,
+  userRole,
+  actionText = "Xem chi tiết",
+  showBookmark = true,
 }: CompanyCardProps) {
+  const role = userRole || company.membership?.role;
+  const status = company.verificationStatus;
+
   return (
     <div className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 shadow-xs transition-all duration-200 hover:border-sky-300 hover:shadow-sm">
       <div className="flex items-start gap-3.5">
@@ -39,29 +55,64 @@ export function CompanyCard({
               </p>
             </div>
 
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <button
-                    onClick={() => onToggleBookmark(company.id)}
-                    type="button"
-                    className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:bg-secondary-light/40 hover:text-primary"
-                  >
-                    <MorphIcon
-                      className="size-4"
-                      icon={isBookmarked ? BookmarkCheck : Bookmark}
-                    />
-                  </button>
-                }
-              />
-              <TooltipPanel>{isBookmarked ? "Bỏ lưu" : "Lưu"}</TooltipPanel>
-            </Tooltip>
+            {showBookmark && onToggleBookmark && (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <button
+                      onClick={() => onToggleBookmark(company.id)}
+                      type="button"
+                      className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:bg-secondary-light/40 hover:text-primary"
+                    >
+                      <MorphIcon
+                        className="size-4"
+                        icon={isBookmarked ? BookmarkCheck : Bookmark}
+                      />
+                    </button>
+                  }
+                />
+                <TooltipPanel>{isBookmarked ? "Bỏ lưu" : "Lưu"}</TooltipPanel>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Badges: Trạng thái duyệt & Vai trò thành viên */}
+      <div className="flex flex-wrap items-center gap-2">
+        {status === "Verified" && (
+          <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+            <CheckCircle2 className="size-3" />
+            Đã duyệt
+          </span>
+        )}
+        {status === "Pending" && (
+          <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+            <Clock className="size-3" />
+            Chờ duyệt
+          </span>
+        )}
+        {status === "Rejected" && (
+          <span className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-700">
+            <AlertCircle className="size-3" />
+            Từ chối
+          </span>
+        )}
+
+        {role === "Owner" && (
+          <span className="inline-flex items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-[11px] font-semibold text-purple-700">
+            Chủ sở hữu
+          </span>
+        )}
+        {role === "Member" && (
+          <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+            Thành viên
+          </span>
+        )}
+      </div>
+
       <p className="line-clamp-2 text-xs leading-relaxed text-text-main">
-        {company.description}
+        {company.description || "Chưa có phần giới thiệu chi tiết."}
       </p>
 
       <div className="flex flex-col gap-1.5 text-xs text-text-muted">
@@ -69,18 +120,20 @@ export function CompanyCard({
           <MapPin className="size-3.5 shrink-0" />
           <span className="truncate">{company.address}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Globe className="size-3.5 shrink-0" />
-          <a
-            href={company.website}
-            target="_blank"
-            rel="noreferrer"
-            className="truncate text-primary hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {company.website.replace(/^https?:\/\//, "")}
-          </a>
-        </div>
+        {company.website && (
+          <div className="flex items-center gap-2">
+            <Globe className="size-3.5 shrink-0" />
+            <a
+              href={company.website}
+              target="_blank"
+              rel="noreferrer"
+              className="truncate text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {company.website.replace(/^https?:\/\//, "")}
+            </a>
+          </div>
+        )}
       </div>
 
       <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-3.5">
@@ -89,7 +142,7 @@ export function CompanyCard({
           icon={ChevronRight}
           onClick={() => onViewDetail(company)}
         >
-          Xem chi tiết
+          {actionText}
         </Button>
       </div>
     </div>
