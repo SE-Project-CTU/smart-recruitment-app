@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
   Users,
@@ -15,19 +14,13 @@ import {
   Plus,
 } from "lucide-react";
 import Button from "@/components/Button";
-import { companyService } from "@/services/companyService";
+import { useCompanyMembers } from "@/hooks/queries/useCompany";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 
 export function CompanyOverviewTab() {
   const { company } = useOutletContext<CompanyOutletContext>();
-  const [memberCount, setMemberCount] = useState<number>(1);
-
-  useEffect(() => {
-    companyService
-      .getCompanyMembers(company.id)
-      .then((res) => setMemberCount(res.totalCount))
-      .catch(() => {});
-  }, [company.id]);
+  const { data: membersData } = useCompanyMembers(company.id);
+  const memberCount = membersData?.totalCount ?? 1;
 
   const isVerified = company.verificationStatus === "Verified";
   const isPending = company.verificationStatus === "Pending";

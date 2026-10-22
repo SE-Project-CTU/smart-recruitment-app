@@ -9,14 +9,17 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Button from "@/components/Button";
-import { companyService } from "@/services/companyService";
+import { getApiErrorMessage } from "@/api/errorHandler";
+import { useUpdateCompany } from "@/hooks/queries/useCompany";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 import type { UpdateCompanyPayload } from "@/types/company";
 
 export function CompanySettingsTab() {
-  const { company, isOwner, setCompany, refreshCompany } =
+  const { company, isOwner, refreshCompany } =
     useOutletContext<CompanyOutletContext>();
   const navigate = useNavigate();
+
+  const { mutateAsync: updateCompany, isPending: isLoading } = useUpdateCompany();
 
   const [formData, setFormData] = useState<UpdateCompanyPayload>({
     name: company.name,
@@ -27,7 +30,6 @@ export function CompanySettingsTab() {
     description: company.description,
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -84,21 +86,18 @@ export function CompanySettingsTab() {
     }
 
     try {
-      setIsLoading(true);
       setErrorMsg(null);
       setSuccessMsg(null);
-      const updated = await companyService.updateCompany(company.id, formData);
-      setCompany(updated);
+      await updateCompany({ id: company.id, payload: formData });
       await refreshCompany();
       setSuccessMsg("Cập nhật thông tin doanh nghiệp thành công!");
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error
-          ? err.message
-          : "Có lỗi xảy ra khi lưu thông tin. Vui lòng thử lại.",
+        getApiErrorMessage(
+          err,
+          "Có lỗi xảy ra khi lưu thông tin. Vui lòng thử lại.",
+        ),
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 

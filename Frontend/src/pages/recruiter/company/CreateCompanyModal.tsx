@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Building2, X, Plus } from "lucide-react";
 import Button from "@/components/Button";
-import { companyService } from "@/services/companyService";
+import { useCreateCompany } from "@/hooks/queries/useCompany";
 import type { CompanyItem, CreateCompanyPayload } from "@/types/company";
 
 interface CreateCompanyModalProps {
@@ -25,8 +25,8 @@ export function CreateCompanyModal({
     description: "",
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { mutateAsync: createCompany, isPending } = useCreateCompany();
 
   if (!isOpen) return null;
 
@@ -52,19 +52,20 @@ export function CreateCompanyModal({
     }
 
     try {
-      setIsLoading(true);
       setError(null);
-      const created = await companyService.createCompany(formData);
+      const created = await createCompany(formData);
       onSuccess(created);
       onClose();
     } catch (err: unknown) {
+      const errObj = err as {
+        response?: { data?: { error?: { message?: string } } };
+        message?: string;
+      };
       const msg =
-        err instanceof Error
-          ? err.message
-          : "Có lỗi xảy ra khi tạo doanh nghiệp. Vui lòng thử lại.";
+        errObj.response?.data?.error?.message ||
+        errObj.message ||
+        "Có lỗi xảy ra khi tạo doanh nghiệp. Vui lòng thử lại.";
       setError(msg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -207,14 +208,14 @@ export function CreateCompanyModal({
           </div>
 
           <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
-            <Button variant="secondary" onClick={onClose} disabled={isLoading}>
+            <Button variant="secondary" onClick={onClose} disabled={isPending}>
               Hủy
             </Button>
             <Button
               type="submit"
               variant="primary"
               icon={Plus}
-              isLoading={isLoading}
+              isLoading={isPending}
             >
               Tạo doanh nghiệp
             </Button>

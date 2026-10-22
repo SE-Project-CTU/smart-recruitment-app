@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
@@ -14,7 +14,11 @@ import dayjs from "dayjs";
 import Button from "@/components/Button";
 import { DataTable, type DataTableFeatures } from "@/components/DataTable";
 import { UserAvatar } from "@/components/UserAvatar";
-import { companyService } from "@/services/companyService";
+import { getApiErrorMessage } from "@/api/errorHandler";
+import {
+  useCompanyMembers,
+  useTransferOwnership,
+} from "@/hooks/queries/useCompany";
 import { InviteMemberModal } from "./InviteMemberModal";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 import type { CompanyMember } from "@/types/company";
@@ -25,50 +29,40 @@ export function CompanyMembersTab() {
   const { company, isOwner, refreshCompany } =
     useOutletContext<CompanyOutletContext>();
 
-  const [members, setMembers] = useState<CompanyMember[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: membersData, isLoading, refetch: refetchMembers } =
+    useCompanyMembers(company.id);
+  const members = membersData?.items ?? [];
+
+  const { mutateAsync: transferOwnership, isPending: isTransferring } =
+    useTransferOwnership();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // Transfer ownership modal state
   const [transferTarget, setTransferTarget] = useState<CompanyMember | null>(null);
-  const [isTransferring, setIsTransferring] = useState(false);
   const [transferMessage, setTransferMessage] = useState<string | null>(null);
-
-  const fetchMembers = async () => {
-    try {
-      setIsLoading(true);
-      const res = await companyService.getCompanyMembers(company.id);
-      setMembers(res.items);
-    } catch (err) {
-      console.error("Failed to load members:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMembers();
-  }, [company.id]);
+  const [transferError, setTransferError] = useState<string | null>(null);
 
   const handleTransferOwnership = async () => {
     if (!transferTarget) return;
     try {
-      setIsTransferring(true);
-      await companyService.transferOwnership(company.id, transferTarget.user.id);
+      setTransferError(null);
+      await transferOwnership({
+        companyId: company.id,
+        newOwnerId: transferTarget.user.id,
+      });
       setTransferMessage(`Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`);
       setTimeout(async () => {
         setTransferTarget(null);
         setTransferMessage(null);
-        await fetchMembers();
         await refreshCompany();
       }, 1500);
-    } catch (err) {
-      console.error(err);
-      alert("Chuyển quyền thất bại. Vui lòng thử lại!");
-    } finally {
-      setIsTransferring(false);
+    } catch (err: unknown) {
+      setTransferError(
+        getApiErrorMessage(err, "Chuyển quyền thất bại. Vui lòng thử lại!"),
+      );
     }
   };
 
@@ -194,14 +188,16 @@ export function CompanyMembersTab() {
           </p>
         </div>
 
-        {/* Nút mời thành viên: Cả Owner lẫn HR thông thường đều có thể mời */}
-        <Button
-          variant="primary"
-          icon={UserPlus}
-          onClick={() => setIsInviteModalOpen(true)}
-        >
-          Mời thành viên mới
-        </Button>
+        {/* Nút mời thành viên: Chỉ Owner mới có quyền mời theo tài liệu nghiệp vụ & backend */}
+        {isOwner && (
+          <Button
+            variant="primary"
+            icon={UserPlus}
+            onClick={() => setIsInviteModalOpen(true)}
+          >
+            Mời thành viên mới
+          </Button>
+        )}
       </div>
 
       {/* Toolbar & Filters */}
@@ -256,7 +252,7 @@ export function CompanyMembersTab() {
         onClose={() => setIsInviteModalOpen(false)}
         companyId={company.id}
         companyName={company.name}
-        onSuccess={fetchMembers}
+        onSuccess={refetchMembers}
       />
 
       {/* Modal Xác nhận Chuyển quyền Chủ sở hữu */}
@@ -276,6 +272,13 @@ export function CompanyMembersTab() {
                 </p>
               </div>
             </div>
+
+            {transferError && (
+              <div className="my-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <span>{transferError}</span>
+              </div>
+            )}
 
             {transferMessage ? (
               <div className="my-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
