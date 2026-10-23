@@ -145,6 +145,71 @@ export const getApiErrorMessage = (
   return fallbackMessage;
 };
 
+export const getApiFieldErrors = (error: unknown): Record<string, string> => {
+  const result: Record<string, string> = {};
+  const payload = getErrorPayload(error);
+  if (!isRecord(payload)) return result;
+
+  const nestedError = payload.error ?? payload.Error;
+  const errorBody = isRecord(nestedError) ? nestedError : payload;
+  const code = getString(errorBody, "code", "Code");
+
+  // 1. Process details array: [{ field, reason, message }]
+  const details = errorBody.details ?? errorBody.Details;
+  if (Array.isArray(details)) {
+    for (const item of details) {
+      if (isRecord(item)) {
+        const field = getString(item, "field", "Field");
+        const reason = getString(item, "reason", "Reason");
+        const message = getString(item, "message", "Message");
+        if (field) {
+          const normalizedField =
+            field.charAt(0).toLowerCase() + field.slice(1);
+          result[normalizedField] =
+            getValidationMessage(field, reason) ||
+            message ||
+            "Giá trị không hợp lệ.";
+        }
+      }
+    }
+  }
+
+  // 2. Process ProblemDetails errors object: { field: string[] | string }
+  const errors =
+    errorBody.errors ?? errorBody.Errors ?? payload.errors ?? payload.Errors;
+  if (isRecord(errors)) {
+    for (const [field, val] of Object.entries(errors)) {
+      const normalizedField = field.charAt(0).toLowerCase() + field.slice(1);
+      if (!result[normalizedField]) {
+        if (Array.isArray(val) && val.length > 0 && typeof val[0] === "string") {
+          result[normalizedField] = val[0];
+        } else if (typeof val === "string") {
+          result[normalizedField] = val;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback mappings for specific known error codes if field wasn't populated yet
+  if (code) {
+    if (code === "COMPANY_TAX_CODE_ALREADY_EXISTS" && !result.taxCode) {
+      result.taxCode = API_ERROR_MESSAGES.COMPANY_TAX_CODE_ALREADY_EXISTS;
+    } else if (code === "AUTH_EMAIL_ALREADY_EXISTS" && !result.email) {
+      result.email = API_ERROR_MESSAGES.AUTH_EMAIL_ALREADY_EXISTS;
+    } else if (code === "USER_NOT_FOUND" && !result.email) {
+      result.email = API_ERROR_MESSAGES.USER_NOT_FOUND;
+    } else if (code === "INVITEE_ROLE_REQUIRED" && !result.email) {
+      result.email = API_ERROR_MESSAGES.INVITEE_ROLE_REQUIRED;
+    } else if (code === "COMPANY_MEMBERSHIP_ALREADY_EXISTS" && !result.email) {
+      result.email = API_ERROR_MESSAGES.COMPANY_MEMBERSHIP_ALREADY_EXISTS;
+    } else if (code === "COMPANY_INVITATION_ALREADY_EXISTS" && !result.email) {
+      result.email = API_ERROR_MESSAGES.COMPANY_INVITATION_ALREADY_EXISTS;
+    }
+  }
+
+  return result;
+};
+
 export const handleApiError = (error: unknown): void => {
   if (isAxiosError(error)) {
     if (error.response) {
