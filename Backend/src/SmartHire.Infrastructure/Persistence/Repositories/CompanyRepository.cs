@@ -75,6 +75,7 @@ public sealed class CompanyRepository : ICompanyRepository {
     public async Task<CompanyMembership?> GetMembershipAsync(Guid companyId, Guid userId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyMemberships
             .Include(m => m.User)
+            .ThenInclude(u => u.AvatarFile)
             .FirstOrDefaultAsync(m => m.CompanyId == companyId && m.UserId == userId, cancellationToken);
     }
 
