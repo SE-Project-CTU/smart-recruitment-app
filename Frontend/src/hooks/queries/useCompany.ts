@@ -8,6 +8,7 @@ import { companyService } from "@/services/companyService";
 import type {
   CreateCompanyPayload,
   InviteRecruiterPayload,
+  ReviewJoinRequestPayload,
   UpdateCompanyPayload,
 } from "@/types/company";
 
@@ -31,6 +32,29 @@ export const useCompanyDetail = (companyId?: string) => {
     queryFn: () => companyService.getCompanyDetail(companyId!),
     enabled: Boolean(companyId),
     staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Lấy danh sách các công ty công khai (hỗ trợ avatar & thông tin doanh nghiệp, tránh N+1 query)
+ */
+export const usePublicCompanies = (params?: {
+  search?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}) => {
+  return useQuery({
+    queryKey: [
+      "companies",
+      "public",
+      params?.search,
+      params?.status,
+      params?.page ?? 1,
+      params?.pageSize ?? 100,
+    ],
+    queryFn: () => companyService.getPublicCompanies(params),
+    staleTime: 5 * 60 * 1000, // Cache 5 phút
   });
 };
 
@@ -249,6 +273,46 @@ export const useRejectInvitation = () => {
       companyService.rejectInvitation(invitationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-invitations"] });
+    },
+  });
+};
+
+/**
+ * Hook Query: Lấy danh sách yêu cầu gia nhập công ty (Chỉ Owner - API 10)
+ */
+export const useCompanyJoinRequests = (companyId?: string, status?: string) => {
+  return useQuery({
+    queryKey: ["companies", "join-requests", companyId, status],
+    queryFn: () =>
+      companyService.getCompanyJoinRequests(companyId!, { status }),
+    enabled: Boolean(companyId),
+    staleTime: 1 * 60 * 1000,
+  });
+};
+
+/**
+ * Hook Mutation: Phê duyệt hoặc từ chối yêu cầu gia nhập (Chỉ Owner - API 11)
+ */
+export const useReviewJoinRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      companyId,
+      requestId,
+      payload,
+    }: {
+      companyId: string;
+      requestId: string;
+      payload: ReviewJoinRequestPayload;
+    }) => companyService.reviewJoinRequest(companyId, requestId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "join-requests", variables.companyId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "members", variables.companyId],
+      });
     },
   });
 };

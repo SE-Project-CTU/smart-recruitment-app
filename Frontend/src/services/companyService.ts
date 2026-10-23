@@ -5,9 +5,12 @@ import type {
   ApiResponse,
   CompanyInvitationItem,
   CompanyItem,
+  CompanyJoinRequestItem,
   CompanyMember,
   CreateCompanyPayload,
   InviteRecruiterPayload,
+  ReviewJoinRequestPayload,
+  ReviewJoinRequestResult,
   UpdateCompanyPayload,
 } from "@/types";
 
@@ -48,6 +51,22 @@ export const companyService = {
       (comp): comp is CompanyItem =>
         Boolean(comp && comp.membership && comp.membership.status === "Active"),
     );
+  },
+
+  /**
+   * Lấy danh sách tất cả các công ty công khai (dùng cho map dữ liệu, tránh N+1 query)
+   */
+  async getPublicCompanies(params?: {
+    search?: string;
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<CompanyItem[]> {
+    const response = await axiosClient.get<never, ApiResponse<CompanyItem[]>>(
+      API_ENDPOINTS.COMPANY.LIST,
+      { params: { page: 1, pageSize: 100, ...params } },
+    );
+    return response.data || [];
   },
 
   /**
@@ -169,5 +188,40 @@ export const companyService = {
     await axiosClient.post<never, void>(
       API_ENDPOINTS.COMPANY.REJECT_INVITATION(invitationId),
     );
+  },
+
+  /**
+   * Lấy danh sách yêu cầu gia nhập công ty (Chỉ Owner - API 10)
+   */
+  async getCompanyJoinRequests(
+    companyId: string,
+    params?: { status?: string; page?: number; pageSize?: number },
+  ): Promise<{ items: CompanyJoinRequestItem[]; totalCount: number }> {
+    const response = await axiosClient.get<
+      never,
+      ApiResponse<CompanyJoinRequestItem[]>
+    >(API_ENDPOINTS.COMPANY.JOIN_REQUESTS(companyId), { params });
+
+    return {
+      items: response.data || [],
+      totalCount:
+        (response.meta?.totalItems as number) || (response.data?.length ?? 0),
+    };
+  },
+
+  /**
+   * Phê duyệt hoặc từ chối yêu cầu gia nhập công ty (Chỉ Owner - API 11)
+   */
+  async reviewJoinRequest(
+    companyId: string,
+    requestId: string,
+    payload: ReviewJoinRequestPayload,
+  ): Promise<ReviewJoinRequestResult> {
+    const response = await axiosClient.patch<
+      never,
+      ApiResponse<ReviewJoinRequestResult>
+    >(API_ENDPOINTS.COMPANY.REVIEW_JOIN_REQUEST(companyId, requestId), payload);
+
+    return response.data;
   },
 };

@@ -6,3 +6,4 @@ export * from "./CompanySettingsTab";
 export * from "./CreateCompanyModal";
 export * from "./InviteMemberModal";
 export * from "./CompanyInvitation";
+export * from "./CompanyJoinRequestsTab";

@@ -209,35 +209,37 @@ export function CompanyDetailLayout() {
             <Users className="size-4" />
             <span>Đội ngũ</span>
           </NavLink>
-          <NavLink
-            to="invitations"
-            className={({ isActive }) =>
-              `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
-                isActive
-                  ? "border-primary text-primary"
-                  : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
-              }`
-            }
-          >
-            <CheckCheck className="size-4" />
-            <span>Yêu cầu gia nhập</span>
-          </NavLink>
-
-          {/* CHỈ HIỂN THỊ TAB CẬP NHẬT NẾU LÀ OWNER */}
+          {/* CHỈ HIỂN THỊ TAB YÊU CẦU GIA NHẬP VÀ CẬP NHẬT NẾU LÀ OWNER */}
           {isOwner && (
-            <NavLink
-              to="settings"
-              className={({ isActive }) =>
-                `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
-                  isActive
-                    ? "border-primary text-primary"
-                    : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
-                }`
-              }
-            >
-              <Settings className="size-4" />
-              <span>Cập nhật thông tin</span>
-            </NavLink>
+            <>
+              <NavLink
+                to="invitations"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "border-primary text-primary"
+                      : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                  }`
+                }
+              >
+                <CheckCheck className="size-4" />
+                <span>Yêu cầu gia nhập</span>
+              </NavLink>
+
+              <NavLink
+                to="settings"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "border-primary text-primary"
+                      : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                  }`
+                }
+              >
+                <Settings className="size-4" />
+                <span>Cập nhật thông tin</span>
+              </NavLink>
+            </>
           )}
         </nav>
       </div>
