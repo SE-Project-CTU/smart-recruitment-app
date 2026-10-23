@@ -51,6 +51,7 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   INVALID_COMPANY_DATA: "Dữ liệu thông tin doanh nghiệp không hợp lệ.",
   USER_NOT_FOUND: "Không tìm thấy tài khoản người dùng tương ứng.",
   COMPANY_LOGO_ALREADY_IN_USE: "Logo này đã được gán cho một doanh nghiệp khác.",
+  INVITEE_ROLE_REQUIRED: "Tài khoản được mời phải có vai trò Nhà tuyển dụng (Recruiter).",
 };
 
 export const FIELD_LABELS: Record<string, string> = {
@@ -60,6 +61,11 @@ export const FIELD_LABELS: Record<string, string> = {
   fullName: "họ và tên",
   currentPassword: "mật khẩu hiện tại",
   newPassword: "mật khẩu mới",
+  name: "tên doanh nghiệp",
+  taxCode: "mã số thuế",
+  address: "địa chỉ trụ sở chính",
+  website: "website",
+  description: "mô tả doanh nghiệp",
 };
 
 export const HTTP_STATUS_MESSAGES: Record<number, string> = {

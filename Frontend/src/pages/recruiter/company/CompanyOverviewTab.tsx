@@ -235,7 +235,7 @@ export function CompanyOverviewTab() {
 
             <div className="space-y-3.5 text-xs">
               <div className="flex items-start gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-text-muted">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl text-text-muted">
                   <Mail className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -247,7 +247,7 @@ export function CompanyOverviewTab() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-text-muted">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl text-text-muted">
                   <Phone className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -259,7 +259,7 @@ export function CompanyOverviewTab() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-text-muted">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl text-text-muted">
                   <MapPin className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -272,7 +272,7 @@ export function CompanyOverviewTab() {
 
               {company.website && (
                 <div className="flex items-start gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-text-muted">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl text-text-muted">
                     <Globe className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">

@@ -1,10 +1,19 @@
 import { useState } from "react";
-import { UserPlus, X, Send, AlertCircle, Info, Mail, ChevronDown } from "lucide-react";
+import {
+  UserPlus,
+  X,
+  Send,
+  AlertCircle,
+  Info,
+  Mail,
+  ChevronDown,
+} from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import Button from "@/components/Button";
 import { toast } from "@/components/ui/toast";
-import { getApiErrorMessage } from "@/api/errorHandler";
+import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { useInviteMember } from "@/hooks/queries/useCompany";
+import { cn } from "@/lib/utils";
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -85,10 +94,13 @@ export function InviteMemberModal({
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      const message = getApiErrorMessage(
-        err,
-        "Gửi lời mời thất bại. Tài khoản phải có vai trò Nhà tuyển dụng (Recruiter) và chưa gia nhập công ty.",
-      );
+      const fieldErrors = getApiFieldErrors(err);
+      const message =
+        fieldErrors.email ||
+        getApiErrorMessage(
+          err,
+          "Gửi lời mời thất bại. Tài khoản phải có vai trò Nhà tuyển dụng (Recruiter) và chưa gia nhập công ty.",
+        );
       setError(message);
       toast.add({
         type: "destructive",
@@ -103,7 +115,7 @@ export function InviteMemberModal({
       <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <UserPlus className="size-5" />
             </div>
             <div>
@@ -119,24 +131,17 @@ export function InviteMemberModal({
             onClick={handleClose}
             type="button"
             disabled={isPending}
-            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main disabled:opacity-50"
+            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-50"
           >
             <X className="size-5" />
           </button>
         </div>
 
-        {error && (
-          <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <span className="leading-relaxed">{error}</span>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-text-main">
               Email Nhà tuyển dụng (Recruiter){" "}
-              <span className="text-rose-500">*</span>
+              <span className="text-status-error">*</span>
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-text-muted">
@@ -150,17 +155,32 @@ export function InviteMemberModal({
                   if (error) setError(null);
                 }}
                 placeholder="recruiter@example.com"
-                className="w-full rounded-xl border border-border bg-bg py-2.5 pr-3.5 pl-10 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
-                required
+                className={cn(
+                  "w-full rounded-xl border bg-bg py-2.5 pr-3.5 pl-10 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
+                  error
+                    ? "focus:ring-stusborder-status-error/20 border-rose-400 focus:border-status-error"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
                 autoFocus
               />
             </div>
-            <div className="mt-2 flex items-start gap-1.5 text-[11px] text-text-muted">
-              <Info className="mt-0.5 size-3.5 shrink-0 text-sky-600" />
-              <span>
-                Hệ thống sẽ gửi thông báo và lời mời đến tài khoản này. Người
-                nhận cần có tài khoản vai trò <strong>Nhà tuyển dụng </strong>.
-              </span>
+            {/* Chừa sẵn khoảng trống bên dưới input để giao diện không bị giật */}
+            <div className="mt-1.5 min-h-5 text-[11px] leading-tight">
+              {error ? (
+                <p className="animate-in fade-in flex items-center gap-1.5 font-medium text-status-error duration-150">
+                  <AlertCircle className="size-3.5 shrink-0" />
+                  <span>{error}</span>
+                </p>
+              ) : (
+                <p className="flex items-center gap-1.5 text-text-muted">
+                  <Info className="size-3.5 shrink-0 text-sky-600" />
+                  <span>
+                    Hệ thống sẽ gửi thông báo và lời mời đến tài khoản này.
+                    Người nhận cần có tài khoản vai trò{" "}
+                    <strong>Nhà tuyển dụng (Recruiter)</strong>.
+                  </span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -209,9 +229,11 @@ export function InviteMemberModal({
                 </Select.Positioner>
               </Select.Portal>
             </Select.Root>
+            {/* Chừa sẵn khoảng trống tương đương */}
+            <div className="mt-1.5 min-h-5" aria-hidden="true" />
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
             <Button
               variant="secondary"
               onClick={handleClose}

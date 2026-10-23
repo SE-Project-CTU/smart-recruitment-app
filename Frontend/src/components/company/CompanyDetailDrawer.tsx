@@ -1,10 +1,4 @@
-import {
-  Globe,
-  Phone,
-  Mail,
-  MapPin,
-  ExternalLink,
-} from "lucide-react";
+import { Globe, Phone, Mail, MapPin, ExternalLink } from "lucide-react";
 import { MorphIcon } from "morphicons/react";
 import { BookmarkCheck, Bookmark } from "lucide";
 import {

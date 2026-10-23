@@ -1,17 +1,29 @@
 import { useState, useRef } from "react";
-import { Building2, X, Plus, Upload, Trash2, Loader2 } from "lucide-react";
+import {
+  Building2,
+  X,
+  Plus,
+  Upload,
+  Trash2,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import Button from "@/components/Button";
+import { toast } from "@/components/ui/toast";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
-import { getApiErrorMessage } from "@/api/errorHandler";
+import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { useCreateCompany } from "@/hooks/queries/useCompany";
 import { useUploadImage } from "@/hooks/queries/useMedia";
-import type { CompanyItem, CreateCompanyPayload } from "@/types/company";
+import type { CompanyItem, CreateCompanyPayload } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface CreateCompanyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newCompany: CompanyItem) => void;
 }
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function CreateCompanyModal({
   isOpen,
@@ -29,7 +41,8 @@ export function CreateCompanyModal({
   });
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: createCompany, isPending } = useCreateCompany();
@@ -43,7 +56,13 @@ export function CreateCompanyModal({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (error) setError(null);
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   const handleLogoFileChange = async (
@@ -53,7 +72,7 @@ export function CreateCompanyModal({
     if (!file) return;
 
     try {
-      setError(null);
+      setLogoError(null);
       const media = await uploadImage(file);
       setLogoPreview(media.fileUrl);
       setFormData((prev) => ({
@@ -62,12 +81,16 @@ export function CreateCompanyModal({
         logoFileId: media.id,
       }));
     } catch (err: unknown) {
-      setError(
-        getApiErrorMessage(
-          err,
-          "Tải ảnh logo thất bại. Vui lòng kiểm tra định dạng và kích thước ảnh.",
-        ),
+      const msg = getApiErrorMessage(
+        err,
+        "Tải ảnh logo thất bại. Vui lòng kiểm tra định dạng và kích thước ảnh (< 5MB).",
       );
+      setLogoError(msg);
+      toast.add({
+        type: "destructive",
+        title: "Tải logo thất bại",
+        description: msg,
+      });
     } finally {
       e.target.value = "";
     }
@@ -75,6 +98,7 @@ export function CreateCompanyModal({
 
   const handleRemoveLogo = () => {
     setLogoPreview(null);
+    setLogoError(null);
     setFormData((prev) => ({
       ...prev,
       logoUrl: undefined,
@@ -82,36 +106,95 @@ export function CreateCompanyModal({
     }));
   };
 
+  const validate = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    const name = formData.name.trim();
+    if (!name) {
+      errors.name = "Vui lòng nhập tên doanh nghiệp.";
+    } else if (name.length < 2) {
+      errors.name = "Tên doanh nghiệp phải có ít nhất 2 ký tự.";
+    } else if (name.length > 200) {
+      errors.name = "Tên doanh nghiệp không được vượt quá 200 ký tự.";
+    }
+
+    const taxCode = formData.taxCode.trim();
+    if (!taxCode) {
+      errors.taxCode = "Vui lòng nhập mã số thuế.";
+    } else if (taxCode.length > 20) {
+      errors.taxCode = "Mã số thuế không được vượt quá 20 ký tự.";
+    }
+
+    const email = formData.email.trim();
+    if (!email) {
+      errors.email = "Vui lòng nhập email liên hệ.";
+    } else if (!EMAIL_REGEX.test(email)) {
+      errors.email = "Email không đúng định dạng (vd: contact@company.com).";
+    }
+
+    const phone = formData.phone.trim();
+    if (!phone) {
+      errors.phone = "Vui lòng nhập số điện thoại.";
+    } else if (phone.length < 7 || phone.length > 30) {
+      errors.phone = "Số điện thoại phải từ 7 đến 30 ký tự.";
+    }
+
+    const address = formData.address.trim();
+    if (!address) {
+      errors.address = "Vui lòng nhập địa chỉ trụ sở chính.";
+    } else if (address.length < 5) {
+      errors.address = "Địa chỉ phải có ít nhất 5 ký tự.";
+    }
+
+    const website = formData.website?.trim();
+    if (website) {
+      try {
+        new URL(website);
+      } catch {
+        errors.website = "Website phải là URL hợp lệ (vd: https://company.com).";
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !formData.name.trim() ||
-      !formData.taxCode.trim() ||
-      !formData.email.trim() ||
-      !formData.phone.trim() ||
-      !formData.address.trim()
-    ) {
-      setError("Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
+    if (!validate()) {
       return;
     }
 
     try {
-      setError(null);
+      setFieldErrors({});
       const created = await createCompany(formData);
+      toast.add({
+        type: "success",
+        title: "Tạo công ty thành công",
+        description: `Doanh nghiệp "${created.name}" đã được khởi tạo thành công.`,
+      });
       onSuccess(created);
       onClose();
     } catch (err: unknown) {
-      setError(
-        getApiErrorMessage(
+      const apiErrors = getApiFieldErrors(err);
+      if (Object.keys(apiErrors).length > 0) {
+        setFieldErrors(apiErrors);
+      } else {
+        const msg = getApiErrorMessage(
           err,
           "Có lỗi xảy ra khi tạo doanh nghiệp. Vui lòng thử lại.",
-        ),
-      );
+        );
+        toast.add({
+          type: "destructive",
+          title: "Tạo doanh nghiệp thất bại",
+          description: msg,
+        });
+      }
     }
   };
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 sm:p-7">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -136,13 +219,7 @@ export function CreateCompanyModal({
           </button>
         </div>
 
-        {error && (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-5 space-y-2">
           {/* Logo Upload Section */}
           <div className="rounded-xl border border-border bg-bg/50 p-3.5">
             <label className="mb-2 block text-xs font-semibold text-text-main">
@@ -202,9 +279,17 @@ export function CreateCompanyModal({
                 </span>
               </div>
             </div>
+            {/* Chừa khoảng trống báo lỗi logo nếu có */}
+            {logoError && (
+              <div className="mt-2 flex items-center gap-1 text-[11px] text-rose-500 animate-in fade-in duration-150">
+                <AlertCircle className="size-3.5 shrink-0" />
+                <span>{logoError}</span>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+            {/* Tên doanh nghiệp */}
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Tên doanh nghiệp <span className="text-rose-500">*</span>
@@ -215,11 +300,24 @@ export function CreateCompanyModal({
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Ví dụ: Công ty Cổ phần Công nghệ SmartHire"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
-                required
+                className={cn(
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  fieldErrors.name
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
               />
+              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+                {fieldErrors.name && (
+                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                    <AlertCircle className="size-3 shrink-0" />
+                    <span>{fieldErrors.name}</span>
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* Mã số thuế */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Mã số thuế (MST) <span className="text-rose-500">*</span>
@@ -230,11 +328,24 @@ export function CreateCompanyModal({
                 value={formData.taxCode}
                 onChange={handleChange}
                 placeholder="Ví dụ: 0102030405"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
-                required
+                className={cn(
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  fieldErrors.taxCode
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
               />
+              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+                {fieldErrors.taxCode && (
+                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                    <AlertCircle className="size-3 shrink-0" />
+                    <span>{fieldErrors.taxCode}</span>
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* Email liên hệ */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Email liên hệ <span className="text-rose-500">*</span>
@@ -245,11 +356,24 @@ export function CreateCompanyModal({
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="contact@company.com"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
-                required
+                className={cn(
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  fieldErrors.email
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
               />
+              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+                {fieldErrors.email && (
+                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                    <AlertCircle className="size-3 shrink-0" />
+                    <span>{fieldErrors.email}</span>
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* Số điện thoại */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Số điện thoại <span className="text-rose-500">*</span>
@@ -260,11 +384,24 @@ export function CreateCompanyModal({
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+84 28 1234 5678"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
-                required
+                className={cn(
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  fieldErrors.phone
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
               />
+              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+                {fieldErrors.phone && (
+                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                    <AlertCircle className="size-3 shrink-0" />
+                    <span>{fieldErrors.phone}</span>
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* Website chính thức */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Website chính thức
@@ -275,10 +412,24 @@ export function CreateCompanyModal({
                 value={formData.website}
                 onChange={handleChange}
                 placeholder="https://company.com"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
+                className={cn(
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  fieldErrors.website
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
               />
+              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+                {fieldErrors.website && (
+                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                    <AlertCircle className="size-3 shrink-0" />
+                    <span>{fieldErrors.website}</span>
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* Địa chỉ trụ sở chính */}
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Địa chỉ trụ sở chính <span className="text-rose-500">*</span>
@@ -289,11 +440,24 @@ export function CreateCompanyModal({
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện, Tỉnh/TP"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
-                required
+                className={cn(
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  fieldErrors.address
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
               />
+              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+                {fieldErrors.address && (
+                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                    <AlertCircle className="size-3 shrink-0" />
+                    <span>{fieldErrors.address}</span>
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* Giới thiệu về doanh nghiệp */}
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Giới thiệu về doanh nghiệp
@@ -304,12 +468,25 @@ export function CreateCompanyModal({
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Mô tả ngắn về sứ mệnh, lĩnh vực hoạt động, văn hóa công ty..."
-                className="w-full resize-none rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
+                className={cn(
+                  "w-full resize-none rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  fieldErrors.description
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                )}
               />
+              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+                {fieldErrors.description && (
+                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                    <AlertCircle className="size-3 shrink-0" />
+                    <span>{fieldErrors.description}</span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
             <Button
               variant="secondary"
               onClick={onClose}
