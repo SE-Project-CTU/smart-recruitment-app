@@ -1,13 +1,14 @@
 import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
-import type { ApiResponse } from "@/types/auth";
 import type {
+  ApiResponse,
   CompanyItem,
   CompanyMember,
   CreateCompanyPayload,
   InviteRecruiterPayload,
   UpdateCompanyPayload,
-} from "@/types/company";
+} from "@/types";
+
 
 export const companyService = {
   /**

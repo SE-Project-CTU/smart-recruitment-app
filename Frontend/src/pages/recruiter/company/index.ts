@@ -5,3 +5,4 @@ export * from "./CompanyMembersTab";
 export * from "./CompanySettingsTab";
 export * from "./CreateCompanyModal";
 export * from "./InviteMemberModal";
+export * from "./CompanyInvitation";
