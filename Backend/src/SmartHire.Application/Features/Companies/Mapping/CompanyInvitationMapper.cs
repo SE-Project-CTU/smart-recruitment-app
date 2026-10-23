@@ -10,7 +10,24 @@ public static class CompanyInvitationMapper {
         CompanyBriefSummary? briefCompany = null;
         var comp = company ?? invitation.Company;
         if (comp is not null) {
-            briefCompany = new CompanyBriefSummary(comp.Id, comp.Name, comp.VerificationStatus.ToString());
+            briefCompany = new CompanyBriefSummary(
+                comp.Id,
+                comp.Name,
+                comp.VerificationStatus.ToString(),
+                comp.LogoFile?.FileUrl,
+                comp.Address,
+                comp.Website);
+        }
+
+        CompanyInvitationInviterSummary? inviterSummary = null;
+        string? inviterEmail = null;
+        if (invitation.Inviter?.User is not null) {
+            inviterEmail = invitation.Inviter.User.Email;
+            inviterSummary = new CompanyInvitationInviterSummary(
+                invitation.Inviter.User.Id,
+                invitation.Inviter.User.FullName,
+                invitation.Inviter.User.Email,
+                invitation.Inviter.User.AvatarFile?.FileUrl);
         }
 
         return new CompanyInvitationResult(
@@ -21,7 +38,9 @@ public static class CompanyInvitationMapper {
             invitation.Status.ToString(),
             invitation.ExpiresAt,
             invitation.CreatedAt,
-            briefCompany);
+            briefCompany,
+            inviterSummary,
+            inviterEmail);
     }
 
     public static AcceptInvitationResult ToAcceptResult(CompanyInvitation invitation, CompanyMembership membership) {
