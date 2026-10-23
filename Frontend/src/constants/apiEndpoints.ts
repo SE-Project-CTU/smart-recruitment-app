@@ -28,6 +28,8 @@ export const API_ENDPOINTS = {
     ACCEPT_INVITATION: (id: string) => `/company-invitations/${id}/accept`,
     REJECT_INVITATION: (id: string) => `/company-invitations/${id}/reject`,
     JOIN_REQUESTS: (id: string) => `/companies/${id}/join-requests`,
+    REVIEW_JOIN_REQUEST: (id: string, requestId: string) =>
+      `/companies/${id}/join-requests/${requestId}`,
     TRANSFER_OWNERSHIP: (id: string) => `/companies/${id}/ownership`,
   },
 } as const;

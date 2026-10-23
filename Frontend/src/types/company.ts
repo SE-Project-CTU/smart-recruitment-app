@@ -105,3 +105,36 @@ export interface AcceptInvitationResult {
   invitationStatus: string;
   membership: AcceptInvitationMembershipResult;
 }
+
+export type CompanyJoinRequestStatus = "Pending" | "Approved" | "Rejected";
+
+export interface CompanyJoinRequestUser {
+  id: string;
+  email: string;
+  fullName: string;
+}
+
+export interface CompanyJoinRequestItem {
+  id: string;
+  companyId: string;
+  userId: string;
+  status: CompanyJoinRequestStatus;
+  createdAt: string;
+  user?: CompanyJoinRequestUser | null;
+}
+
+export interface ReviewJoinRequestPayload {
+  status: "APPROVED" | "REJECTED";
+}
+
+export interface ReviewJoinRequestResult {
+  requestId: string;
+  companyId: string;
+  status: string;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  membership?: {
+    role: string;
+    status: string;
+  } | null;
+}

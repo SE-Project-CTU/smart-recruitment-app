@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
-  Building2,
   Check,
   X,
   ShieldCheck,
@@ -24,12 +23,14 @@ import {
   useMyCompanyInvitationsAll,
   useAcceptInvitation,
   useRejectInvitation,
+  usePublicCompanies,
 } from "@/hooks/queries/useCompany";
-import { useCompanyStore } from "@/stores/companyStore";
 import { CompanyDetailDrawer } from "@/components/company/CompanyDetailDrawer";
+import { CompanyLogo } from "@/components/company/CompanyLogo";
 import type {
   CompanyInvitationItem,
   CompanyInvitationStatus,
+  CompanyItem,
 } from "@/types/company";
 
 type TabStatus = "ALL" | CompanyInvitationStatus;
@@ -85,15 +86,96 @@ export function CompanyInvitation() {
   const pageSize = 10;
 
   // Lấy dữ liệu toàn bộ trạng thái để tính đúng số lượng cho từng tab
-  const { items, byStatus, counts, isLoading, isFetching, refetch } =
-    useMyCompanyInvitationsAll();
+  const {
+    items,
+    byStatus,
+    counts,
+    isLoading: isLoadingInvitations,
+    isFetching: isFetchingInvitations,
+    refetch: refetchInvitations,
+  } = useMyCompanyInvitationsAll();
+
+  // Nạp danh sách công ty 1 lần duy nhất (avatar, chi tiết) để tránh lỗi N+1 query
+  const {
+    data: publicCompanies = [],
+    isFetching: isFetchingCompanies,
+    refetch: refetchCompanies,
+  } = usePublicCompanies();
+
+  const companyMap = useMemo(() => {
+    const map = new Map<string, CompanyItem>();
+    for (const c of publicCompanies) {
+      if (c.id) {
+        map.set(c.id, c);
+        map.set(c.id.toLowerCase(), c);
+      }
+      if (c.name) {
+        map.set(c.name.trim().toLowerCase(), c);
+      }
+    }
+    return map;
+  }, [publicCompanies]);
+
+  const findCompany = useMemo(
+    () =>
+      (invitation: CompanyInvitationItem): CompanyItem | undefined => {
+        if (invitation.companyId) {
+          const byId =
+            companyMap.get(invitation.companyId) ||
+            companyMap.get(invitation.companyId.toLowerCase());
+          if (byId) return byId;
+        }
+        if (invitation.company?.id) {
+          const byNestedId =
+            companyMap.get(invitation.company.id) ||
+            companyMap.get(invitation.company.id.toLowerCase());
+          if (byNestedId) return byNestedId;
+        }
+        if (invitation.company?.name) {
+          const byName = companyMap.get(
+            invitation.company.name.trim().toLowerCase(),
+          );
+          if (byName) return byName;
+        }
+        return undefined;
+      },
+    [companyMap],
+  );
+
+  const isLoading = isLoadingInvitations;
+  const isFetching = isFetchingInvitations || isFetchingCompanies;
+
+  const handleRefetch = async () => {
+    await Promise.all([refetchInvitations(), refetchCompanies()]);
+  };
 
   const { mutateAsync: acceptInvitation, isPending: isAccepting } =
     useAcceptInvitation();
   const { mutateAsync: rejectInvitation, isPending: isRejecting } =
     useRejectInvitation();
 
-  const { openCompanyDrawer } = useCompanyStore();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyItem | null>(
+    null,
+  );
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null,
+  );
+  const [selectedInvitation, setSelectedInvitation] =
+    useState<CompanyInvitationItem | null>(null);
+
+  const handleOpenDrawer = (
+    invitation: CompanyInvitationItem,
+    preloadedCompany?: CompanyItem,
+  ) => {
+    const comp = preloadedCompany || findCompany(invitation) || null;
+    const targetId =
+      comp?.id || invitation.companyId || invitation.company?.id || null;
+    setSelectedCompany(comp);
+    setSelectedCompanyId(targetId);
+    setSelectedInvitation(invitation);
+    setIsDrawerOpen(true);
+  };
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] =
@@ -184,28 +266,34 @@ export function CompanyInvitation() {
           header: "Doanh nghiệp",
           cell: ({ row }) => {
             const invitation = row.original;
+            const fullCompany = findCompany(invitation);
             const companyName =
-              invitation.company?.name || "Doanh nghiệp ẩn danh";
+              invitation.company?.name ||
+              fullCompany?.name ||
+              "Doanh nghiệp ẩn danh";
             const verificationStatus =
-              invitation.company?.verificationStatus || "Pending";
+              fullCompany?.verificationStatus ||
+              invitation.company?.verificationStatus ||
+              "Pending";
+            const logoUrl = fullCompany?.logoUrl ?? null;
 
             return (
               <div className="flex items-center gap-3">
                 <div
-                  onClick={() =>
-                    openCompanyDrawer(invitation.companyId, invitation)
-                  }
-                  className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-border bg-slate-50 text-primary transition-colors hover:border-primary/50 hover:bg-primary/5"
+                  onClick={() => handleOpenDrawer(invitation, fullCompany)}
+                  className="shrink-0 cursor-pointer transition-opacity hover:opacity-85"
                   title="Xem chi tiết doanh nghiệp"
                 >
-                  <Building2 className="size-5" />
+                  <CompanyLogo
+                    logoUrl={logoUrl}
+                    name={companyName}
+                    size="sm"
+                  />
                 </div>
                 <div className="flex min-w-0 flex-col">
                   <button
                     type="button"
-                    onClick={() =>
-                      openCompanyDrawer(invitation.companyId, invitation)
-                    }
+                    onClick={() => handleOpenDrawer(invitation, fullCompany)}
                     className="cursor-pointer truncate text-left text-sm font-semibold text-slate-800 transition-colors hover:text-primary"
                     title="Mở hồ sơ doanh nghiệp"
                   >
@@ -303,75 +391,63 @@ export function CompanyInvitation() {
           ),
           cell: ({ row }) => {
             const invitation = row.original;
+            const fullCompany = findCompany(invitation);
             const isRowProcessing =
               processingId === invitation.id && (isAccepting || isRejecting);
             const isExpired =
               invitation.status === "Expired" ||
               dayjs().isAfter(dayjs(invitation.expiresAt));
+            const isActionDisabled =
+              invitation.status !== "Pending" ||
+              isExpired ||
+              Boolean(processingId);
+
+            const getDisabledReason = () => {
+              if (isExpired) return "Lời mời đã hết hạn";
+              if (invitation.status === "Accepted")
+                return "Đã chấp nhận lời mời";
+              if (invitation.status === "Rejected") return "Đã từ chối lời mời";
+              return undefined;
+            };
+            const disabledReason = getDisabledReason();
 
             return (
-              <div className="flex items-center justify-end gap-2">
-                {/* Nút xem chi tiết doanh nghiệp qua API 2 */}
+              <div className="flex items-center justify-end gap-1">
+                {/* 1. Nút xem chi tiết (Eye) */}
                 <Button
                   variant="secondary"
                   icon={Eye}
-                  iconSize={13}
-                  onClick={() =>
-                    openCompanyDrawer(invitation.companyId, invitation)
-                  }
-                  className="h-8! px-2.5! text-xs! font-medium!"
+                  iconSize={16}
+                  onClick={() => handleOpenDrawer(invitation, fullCompany)}
+                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-slate-500! shadow-none! ring-0! hover:bg-slate-100! hover:text-primary!"
                   title="Xem chi tiết doanh nghiệp"
-                >
-                  Chi tiết
-                </Button>
+                  aria-label="Xem chi tiết doanh nghiệp"
+                />
 
-                {/* Chỉ cho phép xử lý khi trạng thái còn Pending và chưa quá hạn */}
-                {invitation.status === "Pending" && !isExpired && (
-                  <>
-                    <Button
-                      variant="primary"
-                      icon={Check}
-                      iconSize={14}
-                      isLoading={isRowProcessing}
-                      disabled={Boolean(processingId)}
-                      onClick={() => handleAccept(invitation)}
-                      className="h-8! px-3! text-xs! font-medium!"
-                    >
-                      Chấp nhận
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      icon={X}
-                      iconSize={14}
-                      disabled={Boolean(processingId)}
-                      onClick={() => setRejectTarget(invitation)}
-                      className="aspect-square! h-8! p-1! text-xs! font-medium! text-rose-600! ring-status-error! hover:bg-rose-50!"
-                      title="Từ chối lời mời"
-                    ></Button>
-                  </>
-                )}
+                {/* 2. Nút chấp nhận (Check) */}
+                <Button
+                  variant="secondary"
+                  icon={Check}
+                  iconSize={16}
+                  isLoading={isRowProcessing}
+                  disabled={isActionDisabled}
+                  onClick={() => handleAccept(invitation)}
+                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700! disabled:text-text-muted! disabled:opacity-40! disabled:hover:bg-transparent!"
+                  title={disabledReason || "Chấp nhận lời mời"}
+                  aria-label="Chấp nhận lời mời"
+                />
 
-                {invitation.status === "Accepted" && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                    <CheckCircle2 className="size-3.5" />
-                    Đã là thành viên
-                  </span>
-                )}
-
-                {invitation.status === "Rejected" && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500">
-                    <XCircle className="size-3.5" />
-                    Đã từ chối
-                  </span>
-                )}
-
-                {(invitation.status === "Expired" ||
-                  (isExpired && invitation.status === "Pending")) && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400">
-                    <Clock className="size-3.5" />
-                    Hết hiệu lực
-                  </span>
-                )}
+                {/* 3. Nút từ chối (X) */}
+                <Button
+                  variant="secondary"
+                  icon={X}
+                  iconSize={16}
+                  disabled={isActionDisabled}
+                  onClick={() => setRejectTarget(invitation)}
+                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600! disabled:text-text-muted! disabled:opacity-40! disabled:hover:bg-transparent!"
+                  title={disabledReason || "Từ chối lời mời"}
+                  aria-label="Từ chối lời mời"
+                />
               </div>
             );
           },
@@ -383,7 +459,8 @@ export function CompanyInvitation() {
       processingId,
       isAccepting,
       isRejecting,
-      openCompanyDrawer,
+      findCompany,
+      handleOpenDrawer,
     ],
   );
 
@@ -406,7 +483,7 @@ export function CompanyInvitation() {
             icon={RotateCw}
             iconSize={14}
             isLoading={isFetching}
-            onClick={() => refetch()}
+            onClick={handleRefetch}
             className="h-9! px-3! text-xs! font-medium!"
           >
             Làm mới
@@ -622,8 +699,23 @@ export function CompanyInvitation() {
         </div>
       )}
 
-      {/* Drawer xem chi tiết doanh nghiệp (dùng API 2 GET /companies/{id}) */}
-      <CompanyDetailDrawer />
+      {/* Drawer xem chi tiết doanh nghiệp (dùng thông tin đã nạp sẵn, tránh query thừa) */}
+      <CompanyDetailDrawer
+        open={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        company={selectedCompany}
+        companyId={selectedCompanyId}
+        invitation={selectedInvitation}
+        onAcceptInvitation={(inv) => {
+          setIsDrawerOpen(false);
+          handleAccept(inv);
+        }}
+        onRejectInvitation={(inv) => {
+          setIsDrawerOpen(false);
+          setRejectTarget(inv);
+        }}
+        isProcessingInvitation={Boolean(processingId)}
+      />
     </div>
   );
 }
