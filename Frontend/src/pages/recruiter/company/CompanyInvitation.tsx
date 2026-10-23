@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   Check,
@@ -23,14 +23,12 @@ import {
   useMyCompanyInvitationsAll,
   useAcceptInvitation,
   useRejectInvitation,
-  usePublicCompanies,
 } from "@/hooks/queries/useCompany";
 import { CompanyDetailDrawer } from "@/components/company/CompanyDetailDrawer";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import type {
   CompanyInvitationItem,
   CompanyInvitationStatus,
-  CompanyItem,
 } from "@/types/company";
 
 type TabStatus = "ALL" | CompanyInvitationStatus;
@@ -95,58 +93,11 @@ export function CompanyInvitation() {
     refetch: refetchInvitations,
   } = useMyCompanyInvitationsAll();
 
-  // Nạp danh sách công ty 1 lần duy nhất (avatar, chi tiết) để tránh lỗi N+1 query
-  const {
-    data: publicCompanies = [],
-    isFetching: isFetchingCompanies,
-    refetch: refetchCompanies,
-  } = usePublicCompanies();
-
-  const companyMap = useMemo(() => {
-    const map = new Map<string, CompanyItem>();
-    for (const c of publicCompanies) {
-      if (c.id) {
-        map.set(c.id, c);
-        map.set(c.id.toLowerCase(), c);
-      }
-      if (c.name) {
-        map.set(c.name.trim().toLowerCase(), c);
-      }
-    }
-    return map;
-  }, [publicCompanies]);
-
-  const findCompany = useMemo(
-    () =>
-      (invitation: CompanyInvitationItem): CompanyItem | undefined => {
-        if (invitation.companyId) {
-          const byId =
-            companyMap.get(invitation.companyId) ||
-            companyMap.get(invitation.companyId.toLowerCase());
-          if (byId) return byId;
-        }
-        if (invitation.company?.id) {
-          const byNestedId =
-            companyMap.get(invitation.company.id) ||
-            companyMap.get(invitation.company.id.toLowerCase());
-          if (byNestedId) return byNestedId;
-        }
-        if (invitation.company?.name) {
-          const byName = companyMap.get(
-            invitation.company.name.trim().toLowerCase(),
-          );
-          if (byName) return byName;
-        }
-        return undefined;
-      },
-    [companyMap],
-  );
-
   const isLoading = isLoadingInvitations;
-  const isFetching = isFetchingInvitations || isFetchingCompanies;
+  const isFetching = isFetchingInvitations;
 
   const handleRefetch = async () => {
-    await Promise.all([refetchInvitations(), refetchCompanies()]);
+    await refetchInvitations();
   };
 
   const { mutateAsync: acceptInvitation, isPending: isAccepting } =
@@ -155,27 +106,21 @@ export function CompanyInvitation() {
     useRejectInvitation();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyItem | null>(
-    null,
-  );
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
     null,
   );
   const [selectedInvitation, setSelectedInvitation] =
     useState<CompanyInvitationItem | null>(null);
 
-  const handleOpenDrawer = (
-    invitation: CompanyInvitationItem,
-    preloadedCompany?: CompanyItem,
-  ) => {
-    const comp = preloadedCompany || findCompany(invitation) || null;
-    const targetId =
-      comp?.id || invitation.companyId || invitation.company?.id || null;
-    setSelectedCompany(comp);
-    setSelectedCompanyId(targetId);
-    setSelectedInvitation(invitation);
-    setIsDrawerOpen(true);
-  };
+  const handleOpenDrawer = useCallback(
+    (invitation: CompanyInvitationItem) => {
+      const targetId = invitation.companyId || invitation.company?.id || null;
+      setSelectedCompanyId(targetId);
+      setSelectedInvitation(invitation);
+      setIsDrawerOpen(true);
+    },
+    [],
+  );
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] =
@@ -202,24 +147,27 @@ export function CompanyInvitation() {
   }, [filteredData, currentPage, pageSize]);
 
   // Xử lý chấp nhận lời mời
-  const handleAccept = async (invitation: CompanyInvitationItem) => {
-    try {
-      setProcessingId(invitation.id);
-      await acceptInvitation(invitation.id);
-      toast.add({
-        type: "success",
-        description: `Bạn đã tham gia công ty ${invitation.company?.name || "doanh nghiệp"} thành công!`,
-      });
-    } catch (err) {
-      const msg = getApiErrorMessage(
-        err,
-        "Không thể chấp nhận lời mời. Vui lòng thử lại sau.",
-      );
-      toast.add({ type: "error", description: msg });
-    } finally {
-      setProcessingId(null);
-    }
-  };
+  const handleAccept = useCallback(
+    async (invitation: CompanyInvitationItem) => {
+      try {
+        setProcessingId(invitation.id);
+        await acceptInvitation(invitation.id);
+        toast.add({
+          type: "success",
+          description: `Bạn đã tham gia công ty ${invitation.company?.name || "doanh nghiệp"} thành công!`,
+        });
+      } catch (err) {
+        const msg = getApiErrorMessage(
+          err,
+          "Không thể chấp nhận lời mời. Vui lòng thử lại sau.",
+        );
+        toast.add({ type: "error", description: msg });
+      } finally {
+        setProcessingId(null);
+      }
+    },
+    [acceptInvitation],
+  );
 
   // Xác nhận từ chối lời mời
   const handleConfirmReject = async () => {
@@ -266,34 +214,25 @@ export function CompanyInvitation() {
           header: "Doanh nghiệp",
           cell: ({ row }) => {
             const invitation = row.original;
-            const fullCompany = findCompany(invitation);
             const companyName =
-              invitation.company?.name ||
-              fullCompany?.name ||
-              "Doanh nghiệp ẩn danh";
+              invitation.company?.name || "Doanh nghiệp ẩn danh";
             const verificationStatus =
-              fullCompany?.verificationStatus ||
-              invitation.company?.verificationStatus ||
-              "Pending";
-            const logoUrl = fullCompany?.logoUrl ?? null;
+              invitation.company?.verificationStatus || "Pending";
+            const logoUrl = invitation.company?.logoUrl ?? null;
 
             return (
               <div className="flex items-center gap-3">
                 <div
-                  onClick={() => handleOpenDrawer(invitation, fullCompany)}
+                  onClick={() => handleOpenDrawer(invitation)}
                   className="shrink-0 cursor-pointer transition-opacity hover:opacity-85"
                   title="Xem chi tiết doanh nghiệp"
                 >
-                  <CompanyLogo
-                    logoUrl={logoUrl}
-                    name={companyName}
-                    size="sm"
-                  />
+                  <CompanyLogo logoUrl={logoUrl} name={companyName} size="sm" />
                 </div>
                 <div className="flex min-w-0 flex-col">
                   <button
                     type="button"
-                    onClick={() => handleOpenDrawer(invitation, fullCompany)}
+                    onClick={() => handleOpenDrawer(invitation)}
                     className="cursor-pointer truncate text-left text-sm font-semibold text-slate-800 transition-colors hover:text-primary"
                     title="Mở hồ sơ doanh nghiệp"
                   >
@@ -391,7 +330,6 @@ export function CompanyInvitation() {
           ),
           cell: ({ row }) => {
             const invitation = row.original;
-            const fullCompany = findCompany(invitation);
             const isRowProcessing =
               processingId === invitation.id && (isAccepting || isRejecting);
             const isExpired =
@@ -418,7 +356,7 @@ export function CompanyInvitation() {
                   variant="secondary"
                   icon={Eye}
                   iconSize={16}
-                  onClick={() => handleOpenDrawer(invitation, fullCompany)}
+                  onClick={() => handleOpenDrawer(invitation)}
                   className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-slate-500! shadow-none! ring-0! hover:bg-slate-100! hover:text-primary!"
                   title="Xem chi tiết doanh nghiệp"
                   aria-label="Xem chi tiết doanh nghiệp"
@@ -459,7 +397,7 @@ export function CompanyInvitation() {
       processingId,
       isAccepting,
       isRejecting,
-      findCompany,
+      handleAccept,
       handleOpenDrawer,
     ],
   );
@@ -699,11 +637,10 @@ export function CompanyInvitation() {
         </div>
       )}
 
-      {/* Drawer xem chi tiết doanh nghiệp (dùng thông tin đã nạp sẵn, tránh query thừa) */}
+      {/* Drawer xem chi tiết doanh nghiệp */}
       <CompanyDetailDrawer
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        company={selectedCompany}
         companyId={selectedCompanyId}
         invitation={selectedInvitation}
         onAcceptInvitation={(inv) => {

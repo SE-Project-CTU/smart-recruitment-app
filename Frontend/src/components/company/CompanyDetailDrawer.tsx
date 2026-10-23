@@ -86,13 +86,35 @@ export function CompanyDetailDrawer({
   onRejectInvitation,
   isProcessingInvitation = false,
 }: CompanyDetailDrawerProps) {
-  // Nếu đã truyền sẵn company (từ batch query) thì không gọi lại API chi tiết để tránh N+1 query
-  const effectiveId = !initialCompany ? companyId : undefined;
+  const effectiveId =
+    companyId ||
+    initialCompany?.id ||
+    invitation?.company?.id ||
+    invitation?.companyId;
+
   const { data: fetchedCompany, isLoading } = useCompanyDetail(
     open && effectiveId ? effectiveId : undefined,
   );
 
-  const company = initialCompany || fetchedCompany;
+  const previewCompany: CompanyItem | null = invitation?.company
+    ? {
+        id: invitation.company.id,
+        name: invitation.company.name,
+        verificationStatus: invitation.company.verificationStatus,
+        logoUrl: invitation.company.logoUrl ?? null,
+        address: invitation.company.address ?? "",
+        website: invitation.company.website ?? "",
+        taxCode: "",
+        email: "",
+        phone: "",
+        description: "",
+        createdAt: "",
+        updatedAt: "",
+        verifiedAt: null,
+      }
+    : null;
+
+  const company = fetchedCompany || initialCompany || previewCompany;
 
   const user = useAuthStore((state) => state.user);
   const isRecruiterOrAdmin = user?.roles?.some(
@@ -239,6 +261,25 @@ export function CompanyDetailDrawer({
                       {invitation.status}
                     </span>
                   </div>
+                  {invitation.inviter && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Người mời:</span>
+                      <span className="font-medium text-slate-700">
+                        {invitation.inviter.fullName}
+                        {invitation.inviter.email
+                          ? ` (${invitation.inviter.email})`
+                          : ""}
+                      </span>
+                    </div>
+                  )}
+                  {!invitation.inviter && invitation.inviterEmail && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Người mời:</span>
+                      <span className="font-medium text-slate-700">
+                        {invitation.inviterEmail}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {isPending && !isExpired && (

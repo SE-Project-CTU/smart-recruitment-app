@@ -1,6 +1,7 @@
-import { Building2, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import dayjs from "dayjs";
 import Button from "@/components/Button";
+import { CompanyLogo } from "./CompanyLogo";
 import type { CompanyInvitationItem } from "@/types/company";
 
 interface InvitationCardProps {
@@ -25,9 +26,11 @@ export function InvitationCard({
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4">
       <div className="flex items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-slate-50 text-primary">
-          <Building2 className="size-5" />
-        </div>
+        <CompanyLogo
+          logoUrl={invitation.company?.logoUrl ?? null}
+          name={companyName}
+          size="sm"
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <h4 className="truncate text-sm font-semibold text-slate-900">
             {companyName}
