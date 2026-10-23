@@ -24,6 +24,7 @@ import {
 import Button from "@/components/Button";
 import { CompanyLogo } from "./CompanyLogo";
 import { useCompanyDetail } from "@/hooks/queries/useCompany";
+import { useAuthStore } from "@/stores/authStore";
 import type { CompanyItem, CompanyInvitationItem } from "@/types/company";
 import dayjs from "dayjs";
 
@@ -93,6 +94,15 @@ export function CompanyDetailDrawer({
 
   const company = initialCompany || fetchedCompany;
 
+  const user = useAuthStore((state) => state.user);
+  const isRecruiterOrAdmin = user?.roles?.some(
+    (r) => r === "Recruiter" || r === "Admin",
+  );
+  // Ẩn thông tin xác minh nội bộ đối với Candidate thông thường
+  const canSeeVerification = Boolean(
+    isRecruiterOrAdmin || company?.membership || invitation,
+  );
+
   if (!open) return null;
 
   const isPending = invitation?.status === "Pending";
@@ -131,23 +141,27 @@ export function CompanyDetailDrawer({
                         MST: {company.taxCode}
                       </span>
                     )}
-                    {company.verificationStatus === "Verified" && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                        <ShieldCheck className="size-3" />
-                        Đã duyệt
-                      </span>
-                    )}
-                    {company.verificationStatus === "Pending" && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                        <Clock className="size-3" />
-                        Chờ duyệt
-                      </span>
-                    )}
-                    {company.verificationStatus === "Rejected" && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
-                        <AlertCircle className="size-3" />
-                        Từ chối
-                      </span>
+                    {canSeeVerification && (
+                      <>
+                        {company.verificationStatus === "Verified" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            <ShieldCheck className="size-3" />
+                            Đã duyệt
+                          </span>
+                        )}
+                        {company.verificationStatus === "Pending" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            <Clock className="size-3" />
+                            Chờ duyệt
+                          </span>
+                        )}
+                        {company.verificationStatus === "Rejected" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
+                            <AlertCircle className="size-3" />
+                            Từ chối
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
