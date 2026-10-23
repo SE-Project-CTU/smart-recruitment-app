@@ -20,6 +20,9 @@ public static class RegisterAccountValidator {
     ) {
         var details = new List<AppErrorDetail>();
         var email = UserFieldValidator.NormalizeEmail(emailInput, details);
+        if (!string.IsNullOrWhiteSpace(phoneInput)) {
+            PhoneValidator.Validate(phoneInput, details);
+        }
         var phone = UserFieldValidator.NormalizePhone(phoneInput, details);
         var fullName = UserFieldValidator.ValidateFullName(fullNameInput, details);
         var validatedPassword = UserFieldValidator.ValidatePassword(password, details);
