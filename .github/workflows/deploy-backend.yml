@@ -7,6 +7,7 @@ on:
       - "Backend/src/**"
       - "Backend/src/SmartHire.API/Dockerfile"
       - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
 
 jobs:
   database-migration:
