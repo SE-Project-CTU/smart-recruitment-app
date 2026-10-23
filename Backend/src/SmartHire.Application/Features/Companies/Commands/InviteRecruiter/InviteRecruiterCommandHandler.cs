@@ -112,6 +112,8 @@ public sealed class InviteRecruiterCommandHandler : IRequestHandler<InviteRecrui
             var payloadObj = new {
                 company_id = company.Id,
                 company_name = company.Name,
+                company_logo_url = company.LogoFile?.FileUrl,
+                inviter_name = inviterName,
                 invitation_status = "Pending"
             };
             var payloadJson = JsonSerializer.Serialize(payloadObj);

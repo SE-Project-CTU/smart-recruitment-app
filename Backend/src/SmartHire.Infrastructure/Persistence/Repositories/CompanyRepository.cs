@@ -130,6 +130,10 @@ public sealed class CompanyRepository : ICompanyRepository {
     public async Task<CompanyInvitation?> GetInvitationByIdAsync(Guid invitationId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyInvitations
             .Include(i => i.Company)
+                .ThenInclude(c => c.LogoFile)
+            .Include(i => i.Inviter)
+                .ThenInclude(m => m.User)
+                    .ThenInclude(u => u.AvatarFile)
             .FirstOrDefaultAsync(i => i.Id == invitationId, cancellationToken);
     }
 
@@ -151,6 +155,10 @@ public sealed class CompanyRepository : ICompanyRepository {
         var query = _dbContext.CompanyInvitations
             .AsNoTracking()
             .Include(i => i.Company)
+                .ThenInclude(c => c.LogoFile)
+            .Include(i => i.Inviter)
+                .ThenInclude(m => m.User)
+                    .ThenInclude(u => u.AvatarFile)
             .Where(i => i.InviteeId == inviteeId);
 
         if (status.HasValue) {
@@ -175,6 +183,7 @@ public sealed class CompanyRepository : ICompanyRepository {
     public async Task<CompanyJoinRequest?> GetJoinRequestByIdAsync(Guid requestId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyJoinRequests
             .Include(r => r.User)
+                .ThenInclude(u => u.AvatarFile)
             .FirstOrDefaultAsync(r => r.Id == requestId, cancellationToken);
     }
 
@@ -196,6 +205,7 @@ public sealed class CompanyRepository : ICompanyRepository {
         var query = _dbContext.CompanyJoinRequests
             .AsNoTracking()
             .Include(r => r.User)
+                .ThenInclude(u => u.AvatarFile)
             .Where(r => r.CompanyId == companyId);
 
         if (status.HasValue) {
