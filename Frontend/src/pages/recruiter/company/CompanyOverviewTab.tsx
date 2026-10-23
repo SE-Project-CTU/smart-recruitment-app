@@ -10,7 +10,6 @@ import {
   MapPin,
   Clock,
   AlertCircle,
-  CheckCircle2,
   Plus,
 } from "lucide-react";
 import Button from "@/components/Button";
@@ -194,34 +193,6 @@ export function CompanyOverviewTab() {
             <div className="text-sm leading-relaxed whitespace-pre-line text-text-main">
               {company.description ||
                 "Doanh nghiệp chưa bổ sung mô tả chi tiết. Chủ sở hữu có thể cập nhật thông tin này trong tab Cài đặt."}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-border bg-surface p-6">
-            <h2 className="mb-3 text-sm font-bold tracking-wider text-text-muted uppercase">
-              Chính sách tuyển dụng tại {company.name}
-            </h2>
-            <div className="space-y-2 text-xs leading-relaxed text-text-muted">
-              <p className="flex items-center gap-2">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
-                <span>
-                  Quy trình ứng tuyển minh bạch, phản hồi hồ sơ ứng viên nhanh
-                  chóng.
-                </span>
-              </p>
-              <p className="flex items-center gap-2">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
-                <span>
-                  Hỗ trợ sàng lọc hồ sơ ứng viên bằng công cụ Smart Matching AI.
-                </span>
-              </p>
-              <p className="flex items-center gap-2">
-                <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
-                <span>
-                  Thành viên trong công ty cùng phối hợp quản lý các chiến dịch
-                  tuyển dụng.
-                </span>
-              </p>
             </div>
           </div>
         </div>

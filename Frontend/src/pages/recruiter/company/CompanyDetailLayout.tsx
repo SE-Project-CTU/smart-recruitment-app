@@ -1,9 +1,4 @@
-import {
-  useParams,
-  useNavigate,
-  NavLink,
-  Outlet,
-} from "react-router-dom";
+import { useParams, useNavigate, NavLink, Outlet } from "react-router-dom";
 import {
   ArrowLeft,
   Building2,
@@ -15,6 +10,7 @@ import {
   ExternalLink,
   ShieldCheck,
   UserCheck,
+  CheckCheck,
 } from "lucide-react";
 import { useCompanyDetail } from "@/hooks/queries/useCompany";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
@@ -64,7 +60,7 @@ export function CompanyDetailLayout() {
         <button
           onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
           type="button"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary-hover"
+          className="hover:bg-primary-hover mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
         >
           <ArrowLeft className="size-4" />
           Về danh sách công ty
@@ -94,13 +90,17 @@ export function CompanyDetailLayout() {
       <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4 sm:items-center">
-            <div className="shrink-0 rounded-2xl border border-border p-1 bg-white">
-              <CompanyLogo logoUrl={company.logoUrl} name={company.name} size="lg" />
+            <div className="shrink-0 rounded-2xl border border-border bg-white p-1">
+              <CompanyLogo
+                logoUrl={company.logoUrl}
+                name={company.name}
+                size="lg"
+              />
             </div>
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-lg font-bold text-text-main sm:text-2xl truncate">
+                <h1 className="truncate text-lg font-bold text-text-main sm:text-2xl">
                   {company.name}
                 </h1>
 
@@ -126,7 +126,12 @@ export function CompanyDetailLayout() {
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
-                <span>MST: <strong className="font-semibold text-text-main">{company.taxCode}</strong></span>
+                <span>
+                  MST:{" "}
+                  <strong className="font-semibold text-text-main">
+                    {company.taxCode}
+                  </strong>
+                </span>
                 <span>•</span>
                 <span>{company.address}</span>
                 {company.website && (
@@ -162,11 +167,11 @@ export function CompanyDetailLayout() {
                 <UserCheck className="size-4 text-sky-600" />
               )}
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-text-muted font-medium">
+                <p className="text-[10px] font-medium tracking-wider text-text-muted uppercase">
                   Vai trò của bạn
                 </p>
-                <p className="text-xs font-bold leading-tight">
-                  {isOwner ? "Chủ sở hữu (Owner)" : "Thành viên (HR)"}
+                <p className="text-xs leading-tight font-bold">
+                  {isOwner ? "Chủ sở hữu" : "Thành viên"}
                 </p>
               </div>
             </div>
@@ -202,7 +207,20 @@ export function CompanyDetailLayout() {
             }
           >
             <Users className="size-4" />
-            <span>Thành viên</span>
+            <span>Đội ngũ</span>
+          </NavLink>
+          <NavLink
+            to="invitations"
+            className={({ isActive }) =>
+              `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                isActive
+                  ? "border-primary text-primary"
+                  : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+              }`
+            }
+          >
+            <CheckCheck className="size-4" />
+            <span>Yêu cầu gia nhập</span>
           </NavLink>
 
           {/* CHỈ HIỂN THỊ TAB CẬP NHẬT NẾU LÀ OWNER */}
