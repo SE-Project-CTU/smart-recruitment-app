@@ -26,6 +26,7 @@ import {
 } from "@/hooks/queries/useCompany";
 import { CompanyDetailDrawer } from "@/components/company/CompanyDetailDrawer";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
+import { UserAvatar } from "@/components/UserAvatar";
 import type {
   CompanyInvitationItem,
   CompanyInvitationStatus,
@@ -130,8 +131,12 @@ export function CompanyInvitation() {
     if (!searchQuery.trim()) return sourceList;
 
     const query = searchQuery.trim().toLowerCase();
-    return sourceList.filter((invitation) =>
-      (invitation.company?.name ?? "").toLowerCase().includes(query),
+    return sourceList.filter(
+      (invitation) =>
+        (invitation.company?.name ?? "").toLowerCase().includes(query) ||
+        (invitation.inviter?.fullName ?? "").toLowerCase().includes(query) ||
+        (invitation.inviter?.email ?? "").toLowerCase().includes(query) ||
+        (invitation.inviterEmail ?? "").toLowerCase().includes(query),
     );
   }, [activeTab, items, byStatus, searchQuery]);
 
@@ -258,6 +263,45 @@ export function CompanyInvitation() {
             );
           },
         }),
+
+        columnHelper.accessor(
+          (row) => row.inviter?.fullName || row.inviterEmail || "",
+          {
+            id: "inviterInfo",
+            header: "Người gửi",
+            cell: ({ row }) => {
+              const invitation = row.original;
+              const inviterName =
+                invitation.inviter?.fullName ||
+                (invitation.inviterEmail
+                  ? invitation.inviterEmail.split("@")[0]
+                  : "Nhà tuyển dụng");
+              const inviterEmail =
+                invitation.inviter?.email ||
+                invitation.inviterEmail ||
+                "Chưa có email";
+              const avatarUrl = invitation.inviter?.avatarUrl ?? "";
+
+              return (
+                <div className="flex items-center gap-3">
+                  <UserAvatar
+                    src={avatarUrl}
+                    name={inviterName}
+                    className="size-9 shrink-0 rounded-full object-cover"
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-semibold text-slate-800">
+                      {inviterName}
+                    </span>
+                    <span className="truncate text-xs text-slate-400">
+                      {inviterEmail}
+                    </span>
+                  </div>
+                </div>
+              );
+            },
+          },
+        ),
 
         columnHelper.accessor("createdAt", {
           header: "Ngày gửi",
@@ -474,7 +518,7 @@ export function CompanyInvitation() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Tìm theo tên công ty..."
+              placeholder="Tìm theo công ty, người gửi..."
               className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-8 pl-9 text-xs text-slate-800 transition-colors outline-none focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20"
             />
             {searchQuery && (
