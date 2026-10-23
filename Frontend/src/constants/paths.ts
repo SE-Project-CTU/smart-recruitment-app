@@ -22,6 +22,14 @@ export const PATHS = {
   RECRUITER: {
     DASHBOARD: "/recruiter/dashboard",
     COMPANY_MANAGEMENT: "/recruiter/company-management",
+    COMPANAY_MANAGEMENT_OVERVIEW:
+      "/recruiter/company-management/:companyId/overview",
+    COMPANAY_MANAGEMENT_MEMBERS:
+      "/recruiter/company-management/:companyId/members",
+    COMPANAY_MANAGEMENT_SETTINGS:
+      "/recruiter/company-management/:companyId/settings",
+    COMPANAY_MANAGEMENT_INVITATIONS:
+      "/recruiter/company-management/:companyId/invitations",
     COMPANY_INVITATION: "/recruiter/company-invitation",
     USER_PROFILE: "/recruiter/profile",
   },

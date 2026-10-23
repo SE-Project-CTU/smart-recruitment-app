@@ -1,11 +1,9 @@
 import InvitationCard from "@/components/company/InvitationCard";
 
-function CompanyInvitation() {
+export function CompanyInvitation() {
   return (
     <div>
       <InvitationCard />
     </div>
   );
 }
-
-export default CompanyInvitation;

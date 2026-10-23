@@ -24,6 +24,7 @@ import {
   CompanyOverviewTab,
   CompanyMembersTab,
   CompanySettingsTab,
+  CompanyInvitation,
 } from "@/pages/recruiter/company";
 
 const router = createBrowserRouter([
@@ -136,13 +137,17 @@ const router = createBrowserRouter([
                     path: "settings",
                     element: <CompanySettingsTab />,
                   },
+                  {
+                    path: "invitations",
+                    element: <CompanyInvitation />,
+                  },
                 ],
               },
             ],
           },
           {
             path: PATHS.RECRUITER.COMPANY_INVITATION,
-            element: <Page title="Recruiter Dashboard Overviaaaaaew" />,
+            element: <CompanyInvitation />,
           },
           {
             path: PATHS.RECRUITER.USER_PROFILE,

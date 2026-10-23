@@ -139,7 +139,7 @@ export function CompanyCard({
         )}
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3.5">
+      <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-3.5">
         {onCreateJob && (
           <Tooltip>
             <TooltipTrigger
@@ -171,7 +171,7 @@ export function CompanyCard({
           variant="secondary"
           icon={ChevronRight}
           onClick={() => onViewDetail(company)}
-          className="ml-auto! px-3! py-1.5! text-xs!"
+          className="px-3! py-1.5! text-xs!"
         >
           {actionText}
         </Button>
