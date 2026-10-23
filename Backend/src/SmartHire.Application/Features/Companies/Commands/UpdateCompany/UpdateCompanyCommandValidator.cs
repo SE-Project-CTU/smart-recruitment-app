@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SmartHire.Application.Common.Errors;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.Exceptions;
 
 namespace SmartHire.Application.Features.Companies.Commands.UpdateCompany;
@@ -8,8 +9,8 @@ public static class UpdateCompanyCommandValidator {
     public const int NameMinLength = 2;
     public const int NameMaxLength = 200;
     public const int EmailMaxLength = 254;
-    public const int PhoneMinLength = 7;
-    public const int PhoneMaxLength = 30;
+    public const int PhoneMinLength = PhoneValidator.MinLength;
+    public const int PhoneMaxLength = PhoneValidator.MaxLength;
     public const int AddressMinLength = 5;
     public const int AddressMaxLength = 500;
     public const int WebsiteMaxLength = 500;
@@ -58,14 +59,9 @@ public static class UpdateCompanyCommandValidator {
             }
         }
 
-        var phone = command.Phone?.Trim();
-        if (command.Phone is not null) {
-            if (string.IsNullOrWhiteSpace(phone)) {
-                details.Add(new AppErrorDetail("phone", ValidationReasons.Required, "Phone cannot be empty."));
-            } else if (phone.Length < PhoneMinLength || phone.Length > PhoneMaxLength) {
-                details.Add(new AppErrorDetail("phone", ValidationReasons.InvalidFormat, $"Phone must be between {PhoneMinLength} and {PhoneMaxLength} characters."));
-            }
-        }
+        var phone = command.Phone is not null
+            ? PhoneValidator.Validate(command.Phone, details, isRequired: true, emptyMessage: "Phone cannot be empty.")
+            : null;
 
         var address = command.Address?.Trim();
         if (command.Address is not null) {
