@@ -388,7 +388,7 @@ export function CompanyJoinRequestsTab() {
                   }}
                   className={`inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-primary/10 text-primary"
+                      ? "bg-secondary-light text-primary"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
                 >
