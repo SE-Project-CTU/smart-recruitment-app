@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueries,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { companyService } from "@/services/companyService";
 import type {
   CreateCompanyPayload,
@@ -126,6 +131,124 @@ export const useTransferOwnership = () => {
         queryKey: ["companies", "members", variables.companyId],
       });
       queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
+    },
+  });
+};
+
+/**
+ * Hook Query: Lấy danh sách lời mời gia nhập công ty theo trạng thái
+ */
+export const useMyCompanyInvitations = (params?: {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}) => {
+  return useQuery({
+    queryKey: [
+      "company-invitations",
+      "my",
+      params?.status,
+      params?.page,
+      params?.pageSize,
+    ],
+    queryFn: () => companyService.getMyInvitations(params),
+    staleTime: 1 * 60 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Lấy toàn bộ lời mời gia nhập và thống kê theo từng trạng thái
+ */
+export const useMyCompanyInvitationsAll = () => {
+  const statuses = ["Pending", "Accepted", "Rejected", "Expired"] as const;
+
+  const results = useQueries({
+    queries: statuses.map((status) => ({
+      queryKey: ["company-invitations", "my", status, 1, 50],
+      queryFn: () =>
+        companyService.getMyInvitations({ status, page: 1, pageSize: 50 }),
+      staleTime: 1 * 60 * 1000,
+    })),
+  });
+
+  const isLoading = results.some((r) => r.isLoading);
+  const isFetching = results.some((r) => r.isFetching);
+  const isError = results.some((r) => r.isError);
+
+  const pendingData = results[0]?.data?.items ?? [];
+  const acceptedData = results[1]?.data?.items ?? [];
+  const rejectedData = results[2]?.data?.items ?? [];
+  const expiredData = results[3]?.data?.items ?? [];
+
+  const counts = {
+    ALL:
+      (results[0]?.data?.totalCount ?? 0) +
+      (results[1]?.data?.totalCount ?? 0) +
+      (results[2]?.data?.totalCount ?? 0) +
+      (results[3]?.data?.totalCount ?? 0),
+    Pending: results[0]?.data?.totalCount ?? 0,
+    Accepted: results[1]?.data?.totalCount ?? 0,
+    Rejected: results[2]?.data?.totalCount ?? 0,
+    Expired: results[3]?.data?.totalCount ?? 0,
+  };
+
+  const allItems = [
+    ...pendingData,
+    ...acceptedData,
+    ...rejectedData,
+    ...expiredData,
+  ].sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+
+  const refetch = async () => {
+    await Promise.all(results.map((r) => r.refetch()));
+  };
+
+  return {
+    items: allItems,
+    byStatus: {
+      Pending: pendingData,
+      Accepted: acceptedData,
+      Rejected: rejectedData,
+      Expired: expiredData,
+    },
+    counts,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  };
+};
+
+/**
+ * Hook Mutation: Chấp nhận lời mời gia nhập công ty
+ */
+export const useAcceptInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (invitationId: string) =>
+      companyService.acceptInvitation(invitationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company-invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Từ chối lời mời gia nhập công ty
+ */
+export const useRejectInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (invitationId: string) =>
+      companyService.rejectInvitation(invitationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company-invitations"] });
     },
   });
 };

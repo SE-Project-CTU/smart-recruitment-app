@@ -1,7 +1,9 @@
 import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type {
+  AcceptInvitationResult,
   ApiResponse,
+  CompanyInvitationItem,
   CompanyItem,
   CompanyMember,
   CreateCompanyPayload,
@@ -124,6 +126,48 @@ export const companyService = {
     return await axiosClient.put<never, ApiResponse<unknown>>(
       API_ENDPOINTS.COMPANY.TRANSFER_OWNERSHIP(id),
       { newOwnerId },
+    );
+  },
+
+  /**
+   * Lấy danh sách lời mời gia nhập công ty của recruiter hiện tại
+   */
+  async getMyInvitations(params?: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<{ items: CompanyInvitationItem[]; totalCount: number }> {
+    const response = await axiosClient.get<
+      never,
+      ApiResponse<CompanyInvitationItem[]>
+    >(API_ENDPOINTS.COMPANY.MY_INVITATIONS, { params });
+
+    return {
+      items: response.data || [],
+      totalCount:
+        (response.meta?.totalItems as number) || (response.data?.length ?? 0),
+    };
+  },
+
+  /**
+   * Chấp nhận lời mời gia nhập công ty
+   */
+  async acceptInvitation(
+    invitationId: string,
+  ): Promise<AcceptInvitationResult> {
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<AcceptInvitationResult>
+    >(API_ENDPOINTS.COMPANY.ACCEPT_INVITATION(invitationId));
+    return response.data;
+  },
+
+  /**
+   * Từ chối lời mời gia nhập công ty
+   */
+  async rejectInvitation(invitationId: string): Promise<void> {
+    await axiosClient.post<never, void>(
+      API_ENDPOINTS.COMPANY.REJECT_INVITATION(invitationId),
     );
   },
 };
