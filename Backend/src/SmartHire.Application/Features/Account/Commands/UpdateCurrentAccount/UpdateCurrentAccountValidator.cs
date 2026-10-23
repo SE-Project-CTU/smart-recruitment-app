@@ -28,10 +28,6 @@ public static class UpdateCurrentAccountValidator {
             ? UserFieldValidator.ValidateFullName(request.FullName, details)
             : null;
         
-        if (request.PhoneProvided && !string.IsNullOrWhiteSpace(request.Phone)) {
-            PhoneValidator.Validate(request.Phone, details);
-        }
-
         var phone = request.PhoneProvided
             ? UserFieldValidator.NormalizePhone(
                 request.Phone,
