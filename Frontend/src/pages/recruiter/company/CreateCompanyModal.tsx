@@ -151,7 +151,8 @@ export function CreateCompanyModal({
       try {
         new URL(website);
       } catch {
-        errors.website = "Website phải là URL hợp lệ (vd: https://company.com).";
+        errors.website =
+          "Website phải là URL hợp lệ (vd: https://company.com).";
       }
     }
 
@@ -194,7 +195,7 @@ export function CreateCompanyModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
       <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 sm:p-7">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -281,7 +282,7 @@ export function CreateCompanyModal({
             </div>
             {/* Chừa khoảng trống báo lỗi logo nếu có */}
             {logoError && (
-              <div className="mt-2 flex items-center gap-1 text-[11px] text-rose-500 animate-in fade-in duration-150">
+              <div className="animate-in fade-in mt-2 flex items-center gap-1 text-[11px] text-status-error duration-150">
                 <AlertCircle className="size-3.5 shrink-0" />
                 <span>{logoError}</span>
               </div>
@@ -292,7 +293,7 @@ export function CreateCompanyModal({
             {/* Tên doanh nghiệp */}
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Tên doanh nghiệp <span className="text-rose-500">*</span>
+                Tên doanh nghiệp <span className="text-status-error">*</span>
               </label>
               <input
                 type="text"
@@ -301,15 +302,15 @@ export function CreateCompanyModal({
                 onChange={handleChange}
                 placeholder="Ví dụ: Công ty Cổ phần Công nghệ SmartHire"
                 className={cn(
-                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.name
-                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
-              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+              <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
                 {fieldErrors.name && (
-                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                  <span className="animate-in fade-in flex items-center gap-1 duration-150">
                     <AlertCircle className="size-3 shrink-0" />
                     <span>{fieldErrors.name}</span>
                   </span>
@@ -320,7 +321,7 @@ export function CreateCompanyModal({
             {/* Mã số thuế */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Mã số thuế (MST) <span className="text-rose-500">*</span>
+                Mã số thuế (MST) <span className="text-status-error">*</span>
               </label>
               <input
                 type="text"
@@ -329,15 +330,15 @@ export function CreateCompanyModal({
                 onChange={handleChange}
                 placeholder="Ví dụ: 0102030405"
                 className={cn(
-                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.taxCode
-                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
-              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+              <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
                 {fieldErrors.taxCode && (
-                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                  <span className="animate-in fade-in flex items-center gap-1 duration-150">
                     <AlertCircle className="size-3 shrink-0" />
                     <span>{fieldErrors.taxCode}</span>
                   </span>
@@ -348,7 +349,7 @@ export function CreateCompanyModal({
             {/* Email liên hệ */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Email liên hệ <span className="text-rose-500">*</span>
+                Email liên hệ <span className="text-status-error">*</span>
               </label>
               <input
                 type="email"
@@ -357,15 +358,15 @@ export function CreateCompanyModal({
                 onChange={handleChange}
                 placeholder="contact@company.com"
                 className={cn(
-                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.email
-                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
-              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+              <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
                 {fieldErrors.email && (
-                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                  <span className="animate-in fade-in flex items-center gap-1 duration-150">
                     <AlertCircle className="size-3 shrink-0" />
                     <span>{fieldErrors.email}</span>
                   </span>
@@ -376,7 +377,7 @@ export function CreateCompanyModal({
             {/* Số điện thoại */}
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Số điện thoại <span className="text-rose-500">*</span>
+                Số điện thoại <span className="text-status-error">*</span>
               </label>
               <input
                 type="tel"
@@ -385,15 +386,15 @@ export function CreateCompanyModal({
                 onChange={handleChange}
                 placeholder="+84 28 1234 5678"
                 className={cn(
-                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.phone
-                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
-              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+              <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
                 {fieldErrors.phone && (
-                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                  <span className="animate-in fade-in flex items-center gap-1 duration-150">
                     <AlertCircle className="size-3 shrink-0" />
                     <span>{fieldErrors.phone}</span>
                   </span>
@@ -413,15 +414,15 @@ export function CreateCompanyModal({
                 onChange={handleChange}
                 placeholder="https://company.com"
                 className={cn(
-                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.website
-                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
-              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+              <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
                 {fieldErrors.website && (
-                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                  <span className="animate-in fade-in flex items-center gap-1 duration-150">
                     <AlertCircle className="size-3 shrink-0" />
                     <span>{fieldErrors.website}</span>
                   </span>
@@ -432,7 +433,8 @@ export function CreateCompanyModal({
             {/* Địa chỉ trụ sở chính */}
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Địa chỉ trụ sở chính <span className="text-rose-500">*</span>
+                Địa chỉ trụ sở chính{" "}
+                <span className="text-status-error">*</span>
               </label>
               <input
                 type="text"
@@ -441,15 +443,15 @@ export function CreateCompanyModal({
                 onChange={handleChange}
                 placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện, Tỉnh/TP"
                 className={cn(
-                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.address
-                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
-              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+              <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
                 {fieldErrors.address && (
-                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                  <span className="animate-in fade-in flex items-center gap-1 duration-150">
                     <AlertCircle className="size-3 shrink-0" />
                     <span>{fieldErrors.address}</span>
                   </span>
@@ -469,15 +471,15 @@ export function CreateCompanyModal({
                 onChange={handleChange}
                 placeholder="Mô tả ngắn về sứ mệnh, lĩnh vực hoạt động, văn hóa công ty..."
                 className={cn(
-                  "w-full resize-none rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main outline-none placeholder:text-text-muted transition-colors focus:ring-1",
+                  "w-full resize-none rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.description
-                    ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
-              <div className="mt-1 min-h-[1.25rem] text-[11px] leading-tight text-rose-500">
+              <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
                 {fieldErrors.description && (
-                  <span className="flex items-center gap-1 animate-in fade-in duration-150">
+                  <span className="animate-in fade-in flex items-center gap-1 duration-150">
                     <AlertCircle className="size-3 shrink-0" />
                     <span>{fieldErrors.description}</span>
                   </span>

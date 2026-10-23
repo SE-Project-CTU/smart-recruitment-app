@@ -273,7 +273,7 @@ export function CompanySettingsTab() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Tên doanh nghiệp <span className="text-rose-500">*</span>
+                Tên doanh nghiệp <span className="text-status-error">*</span>
               </label>
               <input
                 type="text"
@@ -316,7 +316,7 @@ export function CompanySettingsTab() {
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
                 Email nhận thông báo tuyển dụng{" "}
-                <span className="text-rose-500">*</span>
+                <span className="text-status-error">*</span>
               </label>
               <input
                 type="email"
@@ -330,7 +330,8 @@ export function CompanySettingsTab() {
 
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Số điện thoại hotline <span className="text-rose-500">*</span>
+                Số điện thoại hotline{" "}
+                <span className="text-status-error">*</span>
               </label>
               <input
                 type="tel"
@@ -358,7 +359,8 @@ export function CompanySettingsTab() {
 
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Địa chỉ trụ sở chính <span className="text-rose-500">*</span>
+                Địa chỉ trụ sở chính{" "}
+                <span className="text-status-error">*</span>
               </label>
               <input
                 type="text"
