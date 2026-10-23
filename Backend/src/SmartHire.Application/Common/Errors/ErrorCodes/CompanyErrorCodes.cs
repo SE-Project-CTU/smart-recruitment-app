@@ -20,4 +20,5 @@ public static class CompanyErrorCodes {
     public const string UserNotFound = "USER_NOT_FOUND";
     public const string NotCompanyOwner = "NOT_COMPANY_OWNER";
     public const string CompanyLogoAlreadyInUse = "COMPANY_LOGO_ALREADY_IN_USE";
+    public const string MaxOwnedCompaniesReached = "MAX_OWNED_COMPANIES_REACHED";
 }

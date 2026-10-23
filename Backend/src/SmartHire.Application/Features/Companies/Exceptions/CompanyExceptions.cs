@@ -69,8 +69,8 @@ internal static class CompanyExceptions {
         "This invitation has already been processed.",
         [new AppErrorDetail("invitation", ValidationReasons.NotAllowed, "Invitation is not in pending status.")]);
 
-    public static AppException CompanyInvitationExpired() => new(
-        AppErrorKind.Gone,
+    public static AppException CompanyInvitationExpired(AppErrorKind kind = AppErrorKind.Gone) => new(
+        kind,
         CompanyErrorCodes.CompanyInvitationExpired,
         "This invitation has expired.",
         [new AppErrorDetail("invitation", ErrorDetailReasons.Expired, "The invitation validity period has ended.")]);
@@ -146,4 +146,10 @@ internal static class CompanyExceptions {
         CompanyErrorCodes.CompanyLogoAlreadyInUse,
         "This logo is already assigned to another company.",
         [new AppErrorDetail("logoFileId", ErrorDetailReasons.AlreadyExists, "This logo is already in use by a company.")]);
+
+    public static AppException MaxOwnedCompaniesReached(int max = 5) => new(
+        AppErrorKind.Conflict,
+        CompanyErrorCodes.MaxOwnedCompaniesReached,
+        $"A recruiter can create a maximum of {max} companies.",
+        [new AppErrorDetail("company", ValidationReasons.NotAllowed, $"Maximum limit of {max} owned companies has been reached.")]);
 }

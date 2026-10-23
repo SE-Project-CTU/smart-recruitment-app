@@ -5,6 +5,7 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Serialization;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Application.Features.Cv.Exceptions;
 using SmartHire.Domain.Validation;
 

@@ -9,4 +9,6 @@ public static class CommonErrorCodes {
     public const string InvalidSearchQuery = "INVALID_SEARCH_QUERY";
     public const string ValidationError = "VALIDATION_ERROR";
     public const string InvalidRequestBody = "INVALID_REQUEST_BODY";
+    public const string AuthenticationRequired = "AUTHENTICATION_REQUIRED";
+    public const string AccessForbidden = "ACCESS_FORBIDDEN";
 }

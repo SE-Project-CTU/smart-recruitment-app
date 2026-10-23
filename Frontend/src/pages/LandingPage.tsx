@@ -28,6 +28,7 @@ import { useEffect, useState } from "react";
 import TestimonialCard from "@/components/TestimonialCard";
 import { testimonialData } from "@/constants/mockData";
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "@/constants/paths";
 import {
   GradientBackground,
   GradientGridBackground,
@@ -72,12 +73,13 @@ const HeroSection = () => {
 
             <div className="flex justify-center lg:justify-start">
               <Button
-                text="Bắt đầu ngay"
                 className="w-fit! px-8! py-4! text-xl!"
                 onClick={() => {
-                  navigate("/sign-in");
+                  navigate(PATHS.SIGN_IN);
                 }}
-              />
+              >
+                Bắt đầu ngay
+              </Button>
             </div>
           </div>
 
@@ -122,7 +124,7 @@ const NumberProof = () => {
     <section className="flex h-fit w-full flex-col items-center justify-center bg-primary-dark px-5 py-20 md:px-40">
       <div className="mb-12 flex w-full items-center justify-between">
         <p className="font-semibold text-white">SmartHire By The Numbers</p>
-        <Button text="Tìm hiểu thêm" type="outline" />
+        <Button variant="outline">Tìm hiểu thêm</Button>
       </div>
       <div className="grid w-full grid-cols-2 grid-rows-2 gap-10 text-white md:grid-cols-4 md:grid-rows-1">
         <div className="flex flex-col gap-2">
@@ -293,11 +295,9 @@ const CVTemplate = () => {
   return (
     <div className="flex flex-col gap-8 overflow-hidden bg-bg-white-blue px-4 py-16 sm:px-6 md:gap-20 md:py-30 lg:px-8">
       <div className="space-y-4">
-        <Button
-          type="secondary"
-          text="Bộ sưu tập mẫu CV"
-          className="text-xs!"
-        />
+        <Button variant="secondary" className="text-xs!">
+          Bộ sưu tập mẫu CV
+        </Button>
         <h1 className="section-title">Thư Viện CV Chuẩn Khổng Lồ</h1>
       </div>
 
@@ -317,7 +317,9 @@ const HitDifferent = () => {
       <GradientBackground />
 
       <div className="z-1 space-y-2 text-center">
-        <Button text="Nổi bật" type="secondary" className="text-xs!" />
+        <Button variant="secondary" className="text-xs!">
+          Nổi bật
+        </Button>
         <h1 className="section-title">Khác Biệt Làm Nên SmartHire</h1>
         <p className="w-full text-center text-sm md:text-base">
           Đặt lên bàn cân để thấy SmartHire giúp bạn tiết kiệm thời gian và nâng
@@ -388,7 +390,7 @@ const Testimonial = () => {
   return (
     <div className="flex w-full flex-col gap-10 bg-bg py-10 md:py-20">
       <div className="flex flex-col items-center justify-center gap-4">
-        <Button text="Đánh giá" type="secondary" />
+        <Button variant="secondary">Đánh giá</Button>
         <div className="flex flex-col items-center justify-center gap-2">
           <div className="h-fit w-fit bg-primary px-8 py-1 md:px-12 md:py-4">
             <h1 className="text-4xl font-bold text-white md:text-5xl">
@@ -425,10 +427,9 @@ const Testimonial = () => {
         <p className="max-w-100 text-center text-xl font-medium md:max-w-200 md:text-4xl">
           Bạn có muốn biết cách chúng tôi xây dựng lòng tin với khách hàng?
         </p>
-        <Button
-          text="Tìm hiểu ngay"
-          className="text-lg! md:px-8! md:text-2xl!"
-        />
+        <Button className="text-lg! md:px-8! md:text-2xl!">
+          Tìm hiểu ngay
+        </Button>
       </div>
     </div>
   );
@@ -456,15 +457,15 @@ const CTA = () => {
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2 lg:justify-start">
+              <Button className="border-none! bg-status-active! px-6! py-3! text-sm font-semibold text-primary-dark! transition-all hover:opacity-90 sm:text-base!">
+                Bắt đầu ngay
+              </Button>
               <Button
-                text="Bắt đầu ngay"
-                className="border-none! bg-status-active! px-6! py-3! text-sm font-semibold text-primary-dark! transition-all hover:opacity-90 sm:text-base!"
-              />
-              <Button
-                text="Liên hệ"
-                type="outline"
+                variant="outline"
                 className="border-white/40! px-6! py-3! text-sm text-white! hover:bg-white/10! sm:text-base!"
-              />
+              >
+                Liên hệ
+              </Button>
             </div>
           </div>
 

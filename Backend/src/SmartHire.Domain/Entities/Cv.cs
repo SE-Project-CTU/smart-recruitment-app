@@ -28,6 +28,9 @@ public class Cv {
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     
+    public Guid? PreviewFileId { get; private set; }
+    public MediaFile? PreviewFile { get; private set; }
+
     public ICollection<CvVersion> Versions { get; private set; } = new List<CvVersion>();
     
     private Cv() { }
@@ -164,6 +167,10 @@ public class Cv {
         UpdatedAt = now;
     }
     
+    public void SetPreviewFile(Guid? previewFileId) {
+        PreviewFileId = previewFileId;
+    }
+
     public void SetVisibility(bool isPublic, DateTimeOffset now) {
         if (IsPublic == isPublic) {
             return;

@@ -20,7 +20,9 @@ public sealed record ValidatedUpdateCvCommand(
     string? Language,
     bool? IsPublic,
     bool IsPublicProvided,
-    CvLanguage? ParsedLanguage
+    CvLanguage? ParsedLanguage,
+    bool PreviewFileIdProvided,
+    Guid? PreviewFileId
 );
 
 public static class UpdateCvCommandValidator {
@@ -36,7 +38,8 @@ public static class UpdateCvCommandValidator {
         
         if (!command.TitleProvided && !command.IsPublicProvided &&
             !command.ContentProvided && !command.LayoutProvided &&
-            !command.PresentationProvided && !command.LanguageProvided) {
+            !command.PresentationProvided && !command.LanguageProvided &&
+            !command.PreviewFileIdProvided) {
             details.Add(new AppErrorDetail("body", ValidationReasons.Required,
                 "Provide at least one field to update."));
         }
@@ -91,6 +94,11 @@ public static class UpdateCvCommandValidator {
                 }
             }
         }
+
+        if (command.PreviewFileIdProvided && command.PreviewFileId.HasValue && command.PreviewFileId.Value == Guid.Empty) {
+            details.Add(new AppErrorDetail("previewFileId", ValidationReasons.InvalidFormat,
+                "Provide a valid non-empty UUID for previewFileId."));
+        }
         
         foreach (var fieldName in command.AdditionalFieldNames) {
             details.Add(new AppErrorDetail(fieldName, ValidationReasons.NotAllowed,
@@ -117,7 +125,9 @@ public static class UpdateCvCommandValidator {
             language,
             command.IsPublic,
             command.IsPublicProvided,
-            parsedLanguage
+            parsedLanguage,
+            command.PreviewFileIdProvided,
+            command.PreviewFileId
         );
     }
 }

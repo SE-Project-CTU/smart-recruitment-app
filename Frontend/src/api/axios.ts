@@ -10,13 +10,13 @@ import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 const axiosClient = axios.create({
   baseURL: config.api.baseUrl,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // Flag & queue để xử lý nhiều request đồng thời khi token hết hạn
-let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
@@ -31,6 +31,53 @@ const processQueue = (error: unknown, token: string | null = null) => {
     }
   });
   failedQueue = [];
+};
+
+// Singleton promise để đảm bảo tại 1 thời điểm chỉ có duy nhất 1 request refresh chạy ngầm
+let refreshPromise: Promise<string | null> | null = null;
+
+export const getOrRefreshAccessToken = async (): Promise<string | null> => {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const correlationId =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : "550e8400-e29b-41d4-a716-446655440000";
+
+      const refreshUrl = `${config.api.baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`;
+
+      // Trình duyệt tự động gửi kèm HttpOnly Cookie "refreshToken" qua withCredentials: true
+      const refreshResponse = await axios.post(
+        refreshUrl,
+        {},
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Correlation-ID": correlationId,
+          },
+        },
+      );
+
+      const newAuthData = refreshResponse.data?.data;
+      if (newAuthData?.accessToken) {
+        useAuthStore.getState().updateTokens(newAuthData);
+        processQueue(null, newAuthData.accessToken);
+        return newAuthData.accessToken as string;
+      }
+      return null;
+    } catch (refreshErr) {
+      processQueue(refreshErr, null);
+      useAuthStore.getState().clearAuth();
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 };
 
 // ----------------------------------------------------------------------
@@ -72,29 +119,40 @@ axiosClient.interceptors.response.use(
     };
 
     const status = error.response?.status;
-    const isAuthRoute =
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.LOGIN) ||
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REFRESH) ||
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_CANDIDATE) ||
-      originalRequest?.url?.includes(API_ENDPOINTS.AUTH.REGISTER_RECRUITER);
+    const requestUrl = originalRequest?.url?.toLowerCase() || "";
 
-    // Xử lý khi gặp 401 Unauthorized (ngoại trừ các endpoint auth)
-    if (status === 401 && !originalRequest?._retry && !isAuthRoute) {
+    // 1. Các route tuyệt đối không được kích hoạt refresh token khi gặp 401
+    const isAuthBypassRoute =
+      requestUrl.includes(API_ENDPOINTS.AUTH.LOGIN.toLowerCase()) ||
+      requestUrl.includes(API_ENDPOINTS.AUTH.REFRESH.toLowerCase()) ||
+      requestUrl.includes(
+        API_ENDPOINTS.AUTH.REGISTER_CANDIDATE.toLowerCase(),
+      ) ||
+      requestUrl.includes(
+        API_ENDPOINTS.AUTH.REGISTER_RECRUITER.toLowerCase(),
+      ) ||
+      requestUrl.includes("change-password"); // Endpoint đổi mật khẩu
+
+    // 2. Kiểm tra nếu backend báo lỗi nghiệp vụ sai mật khẩu thì không refresh
+    const responseData = error.response?.data as
+      Record<string, unknown> | undefined;
+    const errorBody = (responseData?.error ?? responseData) as
+      Record<string, unknown> | undefined;
+    const isPasswordInvalid = errorBody?.code === "CURRENT_PASSWORD_INVALID";
+
+    // Chỉ refresh token nếu là 401 do token hết hạn, KHÔNG PHẢI lỗi đổi mật khẩu
+    if (
+      status === 401 &&
+      !originalRequest?._retry &&
+      !isAuthBypassRoute &&
+      !isPasswordInvalid
+    ) {
       if (originalRequest) {
         originalRequest._retry = true;
       }
 
-      const refreshToken = useAuthStore.getState().refreshToken;
-
-      // Không có refresh token -> xóa phiên và reject
-      if (!refreshToken) {
-        useAuthStore.getState().clearAuth();
-        handleApiError(error);
-        return Promise.reject(error);
-      }
-
       // Nếu đang có 1 request refresh chạy ngầm, đưa các request sau vào hàng đợi
-      if (isRefreshing) {
+      if (refreshPromise) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -107,38 +165,15 @@ axiosClient.interceptors.response.use(
           .catch((err) => Promise.reject(err));
       }
 
-      isRefreshing = true;
-
-      try {
-        const refreshResponse = await axios.post(
-          `${config.api.baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`,
-          { refreshToken },
-          { headers: { "Content-Type": "application/json" } },
-        );
-
-        const newAuthData = refreshResponse.data?.data;
-        if (newAuthData?.accessToken) {
-          // Cập nhật token vào Zustand store (tự động đồng bộ cookie luôn)
-          useAuthStore.getState().updateTokens(newAuthData);
-
-          processQueue(null, newAuthData.accessToken);
-
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newAuthData.accessToken}`;
-          }
-
-          return axiosClient(originalRequest);
-        } else {
-          throw new Error("Dữ liệu refresh token trả về không hợp lệ");
+      const newToken = await getOrRefreshAccessToken();
+      if (newToken) {
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
         }
-      } catch (refreshErr) {
-        processQueue(refreshErr, null);
-        // Refresh thất bại -> xóa sạch auth store để cập nhật UI ngay lập tức
-        useAuthStore.getState().clearAuth();
-        handleApiError(refreshErr);
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
+        return axiosClient(originalRequest);
+      } else {
+        handleApiError(error);
+        return Promise.reject(error);
       }
     }
 

@@ -1,3 +1,4 @@
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 
@@ -16,4 +17,5 @@ public interface ICvVersionRepository {
         Guid cvId,
         Guid versionId,
         CancellationToken cancellationToken);
+    Task<bool> IsOwnedByCandidateAsync(Guid versionId, Guid candidateId, CancellationToken cancellationToken);
 }

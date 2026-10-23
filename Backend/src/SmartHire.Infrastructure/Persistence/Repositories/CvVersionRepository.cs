@@ -1,7 +1,7 @@
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Domain.Entities;
-using SmartHire.Application.Features.Cv.Queries.GetCvVersions;
 using Microsoft.EntityFrameworkCore;
+using SmartHire.Application.Features.Cv.DTOs;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
 
@@ -64,6 +64,16 @@ public sealed class CvVersionRepository : ICvVersionRepository {
             .AsNoTracking()
             .SingleOrDefaultAsync(
                 version => version.CvId == cvId && version.Id == versionId,
+                cancellationToken);
+    }
+
+    public Task<bool> IsOwnedByCandidateAsync(
+        Guid versionId,
+        Guid candidateId,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .AnyAsync(version => version.Id == versionId && version.Cv.CandidateId == candidateId,
                 cancellationToken);
     }
 }

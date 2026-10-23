@@ -15,6 +15,9 @@ public class Notification {
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? ReadAt { get; private set; }
     public DateTimeOffset? ExpiresAt { get; private set; }
+    public DateTimeOffset? RealtimeDispatchedAt { get; private set; }
+
+    public const int MaxPayloadLength = 512;
 
     private Notification() { }
 
@@ -37,6 +40,9 @@ public class Notification {
         }
         if (string.IsNullOrWhiteSpace(body)) {
             throw new ArgumentException("Body is required.", nameof(body));
+        }
+        if (payload is { Length: > MaxPayloadLength }) {
+            throw new ArgumentException($"Notification payload cannot exceed {MaxPayloadLength} characters.", nameof(payload));
         }
 
         var createdAt = now ?? DateTimeOffset.UtcNow;

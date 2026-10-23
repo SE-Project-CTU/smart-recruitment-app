@@ -15,6 +15,7 @@ public class MediaFileConfiguration : IEntityTypeConfiguration<MediaFile> {
         builder.Property(x => x.FileUrl).HasMaxLength(2000);
         builder.Property(x => x.FileType).HasMaxLength(100);
         builder.Property(x => x.PublicId).HasMaxLength(512);
+        builder.Property(x => x.DeletedAt);
         
         builder.HasOne(x => x.Owner)
             .WithMany(x => x.MediaFiles)

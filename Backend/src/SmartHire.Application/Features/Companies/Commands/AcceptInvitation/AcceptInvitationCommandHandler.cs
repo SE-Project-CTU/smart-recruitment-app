@@ -3,10 +3,10 @@ using MediatR;
 using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Companies.DTOs;
-using SmartHire.Application.Features.Notifications.DTOs;
+using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Companies.Mapping;
+using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -37,53 +37,35 @@ public sealed class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvit
 
     public async Task<AcceptInvitationResult> Handle(AcceptInvitationCommand request, CancellationToken cancellationToken) {
         if (_currentUser.UserId is not Guid userId) {
-            throw new AppException(
-                AppErrorKind.Unauthorized,
-                AuthErrorCodes.InvalidAccessToken,
-                "The access token does not contain a valid user id.");
+            throw CompanyExceptions.InvalidAccessToken();
         }
 
         var invitation = await _companyRepository.GetInvitationByIdAsync(request.InvitationId, cancellationToken);
         if (invitation is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                CompanyErrorCodes.CompanyInvitationNotFound,
-                "Company invitation not found.");
+            throw CompanyExceptions.CompanyInvitationNotFound();
         }
 
         if (invitation.InviteeId != userId) {
-            throw new AppException(
-                AppErrorKind.Forbidden,
-                CompanyErrorCodes.CompanyForbidden,
-                "You are not the invitee of this invitation.");
+            throw CompanyExceptions.CompanyForbidden("You are not the invitee of this invitation.");
         }
 
         var now = DateTimeOffset.UtcNow;
         if (invitation.Status != CompanyInvitationStatus.Pending) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyInvitationAlreadyProcessed,
-                "This invitation has already been processed.");
+            throw CompanyExceptions.CompanyInvitationAlreadyProcessed();
         }
 
         if (invitation.ExpiresAt <= now) {
             invitation.Expire();
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            throw new AppException(
-                AppErrorKind.BadRequest,
-                CompanyErrorCodes.CompanyInvitationExpired,
-                "This invitation has expired.");
+            throw CompanyExceptions.CompanyInvitationExpired();
         }
 
         var existingMembership = await _companyRepository.GetMembershipAsync(invitation.CompanyId, userId, cancellationToken);
         if (existingMembership is not null && existingMembership.Status == CompanyMembershipStatus.Active) {
-            throw new AppException(
-                AppErrorKind.Conflict,
-                CompanyErrorCodes.CompanyMembershipAlreadyExists,
-                "You are already an active member of this company.");
+            throw CompanyExceptions.CompanyMembershipAlreadyExists();
         }
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+        var (membership, notification) = await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {
             invitation.Accept();
 
             CompanyMembership membership;
@@ -99,12 +81,12 @@ public sealed class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvit
                     status: CompanyMembershipStatus.Active,
                     joinedAt: now,
                     now: now);
-                await _companyRepository.AddMembershipAsync(membership, ct);
+                await _companyRepository.AddMembershipAsync(membership, cancellationToken);
             }
 
-            var company = await _companyRepository.GetByIdAsync(invitation.CompanyId, ct);
+            var company = await _companyRepository.GetByIdAsync(invitation.CompanyId, cancellationToken);
             var companyName = company?.Name ?? "công ty";
-            var inviteeUser = await _userRepository.GetByIdAsync(userId, ct);
+            var inviteeUser = await _userRepository.GetByIdAsync(userId, cancellationToken);
             var inviteeName = inviteeUser?.FullName ?? "Ứng viên";
 
             var payloadObj = new {
@@ -124,37 +106,20 @@ public sealed class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvit
                 resourceId: invitation.Id,
                 now: now);
 
-            await _notificationRepository.AddAsync(notification, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
+            await _notificationRepository.AddAsync(notification, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            if (_notificationDispatcher is not null) {
-                var notificationDto = new NotificationDto(
-                    notification.Id,
-                    notification.RecipientId,
-                    notification.Type.ToString(),
-                    notification.Title,
-                    notification.Body,
-                    notification.Payload,
-                    notification.ResourceType,
-                    notification.ResourceId,
-                    notification.CreatedAt,
-                    notification.ReadAt,
-                    notification.ExpiresAt,
-                    notification.IsRead);
-
-                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, ct);
-            }
-
-            return new AcceptInvitationResult(
-                invitation.Id,
-                invitation.Status.ToString(),
-                new AcceptInvitationMembershipResult(
-                    membership.Id,
-                    membership.CompanyId,
-                    membership.UserId,
-                    membership.Role.ToString(),
-                    membership.Status.ToString(),
-                    membership.JoinedAt));
+            return (membership, notification);
         }, cancellationToken);
+
+        if (_notificationDispatcher is not null) {
+            try {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+            } catch {
+            }
+        }
+
+        return CompanyResultMapper.ToAcceptInvitationResult(invitation, membership);
     }
 }

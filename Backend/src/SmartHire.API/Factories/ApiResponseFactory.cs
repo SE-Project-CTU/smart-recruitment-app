@@ -77,6 +77,46 @@ public sealed class ApiResponseFactory(
             correlationId
         );
     }
+
+    /// <summary>
+    /// Wraps a one-based page of items with pagination metadata and a correlation ID.
+    /// </summary>
+    public ApiResponse<IReadOnlyList<TItem>, PaginationMeta> PagedOneBased<TItem>(
+        IReadOnlyList<TItem> items,
+        int page,
+        int pageSize,
+        int totalItems
+    ) {
+        var correlationId = GetCorrelationId();
+
+        if (page < 1) {
+            throw new AppException(
+                AppErrorKind.BadRequest,
+                CommonErrorCodes.InvalidPageNumber,
+                "Page must be greater than or equal to 1.");
+        }
+
+        if (pageSize < 1) {
+            throw new AppException(
+                AppErrorKind.BadRequest,
+                CommonErrorCodes.InvalidPageSize,
+                "Page size must be greater than 0.");
+        }
+
+        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+        var meta = new PaginationMeta(
+            page,
+            pageSize,
+            totalItems,
+            totalPages,
+            HasNextPage: page < totalPages,
+            HasPreviousPage: page > 1);
+
+        return new ApiResponse<IReadOnlyList<TItem>, PaginationMeta>(
+            items,
+            meta,
+            correlationId);
+    }
     
     private string GetCorrelationId() {
         var context = httpContextAccessor.HttpContext

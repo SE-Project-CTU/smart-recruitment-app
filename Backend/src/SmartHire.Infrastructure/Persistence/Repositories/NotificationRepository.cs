@@ -17,8 +17,51 @@ public sealed class NotificationRepository : INotificationRepository {
             .FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Notification>> GetPendingRealtimeDispatchByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken) {
+        if (ids.Count == 0) {
+            return Array.Empty<Notification>();
+        }
+
+        return await _context.Notifications
+            .AsNoTracking()
+            .Where(notification => ids.Contains(notification.Id) &&
+                                   notification.RealtimeDispatchedAt == null)
+            .OrderBy(notification => notification.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> MarkRealtimeDispatchedAsync(
+        IReadOnlyCollection<Guid> ids,
+        DateTimeOffset dispatchedAt,
+        CancellationToken cancellationToken) {
+        if (ids.Count == 0) {
+            return Task.FromResult(0);
+        }
+
+        return _context.Notifications
+            .Where(notification => ids.Contains(notification.Id) &&
+                                   notification.RealtimeDispatchedAt == null)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(
+                    notification => notification.RealtimeDispatchedAt,
+                    dispatchedAt),
+                cancellationToken);
+    }
+
     public async Task AddAsync(Notification notification, CancellationToken cancellationToken) {
         await _context.Notifications.AddAsync(notification, cancellationToken);
+    }
+
+    public async Task AddRangeAsync(
+        IReadOnlyCollection<Notification> notifications,
+        CancellationToken cancellationToken) {
+        if (notifications.Count == 0) {
+            return;
+        }
+
+        await _context.Notifications.AddRangeAsync(notifications, cancellationToken);
     }
 
     public async Task<(IReadOnlyList<Notification> Items, int TotalCount)> GetByRecipientPagedAsync(

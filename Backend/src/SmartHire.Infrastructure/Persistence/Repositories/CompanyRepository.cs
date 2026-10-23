@@ -113,6 +113,15 @@ public sealed class CompanyRepository : ICompanyRepository {
         return (items, totalCount);
     }
 
+    public async Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken) {
+        return await _dbContext.CompanyMemberships
+            .CountAsync(
+                m => m.UserId == userId &&
+                     m.Role == CompanyMemberRole.Owner &&
+                     m.Status == CompanyMembershipStatus.Active,
+                cancellationToken);
+    }
+
     public async Task AddMembershipAsync(CompanyMembership membership, CancellationToken cancellationToken) {
         await _dbContext.CompanyMemberships.AddAsync(membership, cancellationToken);
     }
@@ -237,6 +246,16 @@ public sealed class CompanyRepository : ICompanyRepository {
     public async Task<int> CountFollowersAsync(Guid companyId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyFollows
             .CountAsync(f => f.CompanyId == companyId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetFollowerUserIdsAsync(
+        Guid companyId,
+        CancellationToken cancellationToken) {
+        return await _dbContext.CompanyFollows
+            .AsNoTracking()
+            .Where(follow => follow.CompanyId == companyId)
+            .Select(follow => follow.UserId)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task AddFollowAsync(CompanyFollow follow, CancellationToken cancellationToken) {

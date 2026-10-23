@@ -7,5 +7,7 @@ public enum AppErrorKind {
     Forbidden,
     NotFound,
     Conflict,
-    Gone
+    Gone,
+    PayloadTooLarge,
+    UnsupportedMediaType
 }

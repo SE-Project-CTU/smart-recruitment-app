@@ -1,7 +1,8 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
-using SmartHire.Application.Common.Errors;
-using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Media.DTOs;
+using SmartHire.Application.Features.Media.Exceptions;
+using SmartHire.Application.Features.Media.Mapping;
 
 namespace SmartHire.Application.Features.Media.Queries.GetMediaFile;
 
@@ -21,21 +22,9 @@ public sealed class GetMediaFileQueryHandler
             cancellationToken);
 
         if (mediaFile is null) {
-            throw new AppException(
-                AppErrorKind.NotFound,
-                MediaErrorCodes.MediaFileNotFound,
-                "Media file was not found.",
-                [new AppErrorDetail("fileId", ErrorDetailReasons.NotFound,
-                    "The specified media file could not be found.")]);
+            throw MediaExceptions.MediaFileNotFound();
         }
 
-        return new MediaFileResult(
-            mediaFile.Id,
-            mediaFile.OwnerId,
-            mediaFile.FileName,
-            mediaFile.FileUrl,
-            mediaFile.FileType,
-            mediaFile.FileSize,
-            mediaFile.CreatedAt);
+        return MediaResultMapper.ToMediaFileResult(mediaFile);
     }
 }

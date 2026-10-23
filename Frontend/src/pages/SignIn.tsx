@@ -1,23 +1,27 @@
 import { useState, type FormEvent } from "react";
-import { Link, useLocation, useNavigate, type Location } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  type Location,
+} from "react-router-dom";
 import { Office } from "@/assets/images/decoration";
 import { SmartHire_default } from "@/assets/images/logo";
 import Button from "@/components/Button";
 import { AlertCircle, Lock, UserRound } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
-import { useLogin } from "@/hooks/queries/useAuth";
+import { useLogin } from "@/hooks/queries/useAccount";
 import { MorphIcon } from "morphicons/react";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
+import { PATHS } from "@/constants/paths";
 
 function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const { mutateAsync: login, isPending: isLoading } = useLogin();
-
-  // Route người dùng muốn truy cập trước khi bị chuyển về /sign-in (mặc định là "/")
   const from =
-    (location.state as { from?: Location | string } | null)?.from || "/";
+    (location.state as { from?: Location | string } | null)?.from || PATHS.HOME;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,8 +66,12 @@ function SignIn() {
       <div className="flex w-full flex-col gap-6 xl:w-1/2">
         <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-8 shadow-sm md:p-12 lg:px-24">
           <div className="mb-10 flex items-center gap-2">
-            <Link to="/">
-              <img src={SmartHire_default} alt="SmartHire Logo" />
+            <Link to={PATHS.HOME}>
+              <img
+                src={SmartHire_default}
+                alt="SmartHire Logo"
+                className="max-w-30 md:max-w-none"
+              />
             </Link>
           </div>
 
@@ -143,11 +151,12 @@ function SignIn() {
             </div>
 
             <Button
-              htmlType="submit"
-              text="Đăng nhập"
+              type="submit"
               isLoading={isLoading}
               className="py-4! text-base! font-medium!"
-            />
+            >
+              Đăng nhập
+            </Button>
 
             <button
               type="button"
@@ -161,7 +170,7 @@ function SignIn() {
           <div className="mt-8 text-xs text-text-muted md:text-sm">
             Bạn là người mới?{" "}
             <Link
-              to="/sign-up"
+              to={PATHS.SIGN_UP}
               className="text-text font-bold transition-colors hover:text-primary"
             >
               Đăng ký tài khoản
@@ -169,13 +178,13 @@ function SignIn() {
           </div>
         </div>
 
-        <div className="flex items-center gap-10 rounded-full border border-border/30 bg-bg-white-blue p-6 px-8 shadow-sm md:gap-5">
+        <div className="flex items-center gap-10 rounded-4xl border border-border/30 bg-bg-white-blue p-6 px-8 shadow-sm md:gap-5 md:rounded-full">
           <div className="flex -space-x-3">
             {[1, 2, 3].map((item) => (
               <img
                 key={item}
                 className="h-8 w-8 rounded-full border-2 border-white object-cover md:h-12 md:w-12"
-                src={`https://i.pravatar.cc/100?img=${item + 10}`}
+                src={`https://i.pravatar.cc/100?img=${item + 39}`}
                 alt="Avatar"
               />
             ))}

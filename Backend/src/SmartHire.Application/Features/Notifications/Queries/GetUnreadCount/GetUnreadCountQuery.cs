@@ -3,6 +3,7 @@ using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Features.Notifications.DTOs;
 using SmartHire.Application.Features.Notifications.Exceptions;
+using SmartHire.Application.Features.Notifications.Mapping;
 
 namespace SmartHire.Application.Features.Notifications.Queries.GetUnreadCount;
 
@@ -28,6 +29,6 @@ public sealed class GetUnreadCountQueryHandler
         }
 
         var count = await _notificationRepository.GetUnreadCountAsync(userId, cancellationToken);
-        return new UnreadCountResult(count);
+        return NotificationResultMapper.ToUnreadCountResult(count);
     }
 }

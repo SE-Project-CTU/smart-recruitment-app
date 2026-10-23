@@ -2,6 +2,8 @@
 using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Features.Auth.RegisterAccount;
 using SmartHire.Application.Features.Media.Jobs.DeleteMediaFile;
+using SmartHire.Application.Features.Notifications.Jobs.DispatchNotificationBatch;
+using SmartHire.Application.Features.JobPostings.Jobs.ExpireOverdueJobPostings;
 
 namespace SmartHire.Application;
 
@@ -17,6 +19,8 @@ public static class DependencyInjection {
         
         // Register background jobs
         services.AddBackgroundJob<DeleteMediaFileJob, DeleteMediaFileJobArgs>();
+        services.AddBackgroundJob<DispatchNotificationBatchJob, DispatchNotificationBatchJobArgs>();
+        services.AddBackgroundJob<ExpireOverdueJobPostingsJob, ExpireOverdueJobPostingsJobArgs>();
         
         return services;
     }

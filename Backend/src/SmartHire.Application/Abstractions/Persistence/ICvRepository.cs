@@ -1,4 +1,4 @@
-﻿using SmartHire.Application.Features.Cv.Queries.GetMyCvs;
+using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -22,5 +22,10 @@ public interface ICvRepository {
         CvLanguage? language,
         int skip,
         int pageSize,
+        CancellationToken cancellationToken);
+
+    Task<bool> IsPreviewFileInUseAsync(
+        Guid previewFileId,
+        Guid? excludeCvId,
         CancellationToken cancellationToken);
 }

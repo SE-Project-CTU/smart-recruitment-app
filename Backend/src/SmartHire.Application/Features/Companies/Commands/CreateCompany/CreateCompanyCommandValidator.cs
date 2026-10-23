@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SmartHire.Application.Common.Errors;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.Exceptions;
 
 namespace SmartHire.Application.Features.Companies.Commands.CreateCompany;
@@ -9,8 +10,8 @@ public static class CreateCompanyCommandValidator {
     public const int NameMaxLength = 200;
     public const int TaxCodeMaxLength = 20;
     public const int EmailMaxLength = 254;
-    public const int PhoneMinLength = 7;
-    public const int PhoneMaxLength = 30;
+    public const int PhoneMinLength = PhoneValidator.MinLength;
+    public const int PhoneMaxLength = PhoneValidator.MaxLength;
     public const int AddressMinLength = 5;
     public const int AddressMaxLength = 500;
     public const int WebsiteMaxLength = 500;
@@ -32,7 +33,9 @@ public static class CreateCompanyCommandValidator {
         if (string.IsNullOrWhiteSpace(taxCode)) {
             details.Add(new AppErrorDetail("taxCode", ValidationReasons.Required, "Tax code is required."));
         } else if (taxCode.Length > TaxCodeMaxLength) {
-            details.Add(new AppErrorDetail("taxCode", ValidationReasons.MaxLength, $"Tax code must not exceed {TaxCodeMaxLength} characters."));
+            details.Add(new AppErrorDetail("taxCode", ValidationReasons.MaxLength, $"Tax code must not exceed {TaxCodeMaxLength} digits."));
+        } else if (!taxCode.All(char.IsAsciiDigit)) {
+            details.Add(new AppErrorDetail("taxCode", ValidationReasons.InvalidFormat, "Tax code must contain only digits."));
         }
 
         var email = command.Email?.Trim();
@@ -47,12 +50,7 @@ public static class CreateCompanyCommandValidator {
             }
         }
 
-        var phone = command.Phone?.Trim();
-        if (string.IsNullOrWhiteSpace(phone)) {
-            details.Add(new AppErrorDetail("phone", ValidationReasons.Required, "Phone is required."));
-        } else if (phone.Length < PhoneMinLength || phone.Length > PhoneMaxLength) {
-            details.Add(new AppErrorDetail("phone", ValidationReasons.InvalidFormat, $"Phone must be between {PhoneMinLength} and {PhoneMaxLength} characters."));
-        }
+        var phone = PhoneValidator.Validate(command.Phone, details, isRequired: true, emptyMessage: "Phone is required.");
 
         var address = command.Address?.Trim();
         if (string.IsNullOrWhiteSpace(address)) {

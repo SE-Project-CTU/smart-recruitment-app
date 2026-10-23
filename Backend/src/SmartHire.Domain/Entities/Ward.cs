@@ -10,6 +10,7 @@ public class Ward {
     
     public string Name { get; private set; } = string.Empty;
     public LocationStatus Status { get; private set; }
+    public bool IsCommune { get; private set; }
     
     public ICollection<JobPosting> JobPostings { get; private set; }
         = new List<JobPosting>();

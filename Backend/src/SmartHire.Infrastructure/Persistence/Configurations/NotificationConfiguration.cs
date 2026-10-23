@@ -29,6 +29,8 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification> 
         builder.Property(x => x.ResourceType)
             .HasMaxLength(100);
 
+        builder.Property(x => x.RealtimeDispatchedAt);
+
         builder.HasOne(x => x.Recipient)
             .WithMany()
             .HasForeignKey(x => x.RecipientId)

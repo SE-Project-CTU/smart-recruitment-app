@@ -37,6 +37,7 @@ public class CvConfiguration : IEntityTypeConfiguration<Cv> {
         builder.Property(x => x.Language)
             .HasCvLanguageCodeConversion();
 
+        builder.Property(x => x.PreviewFileId);
         builder.Property(x => x.DeletedAt);
         builder.Property(x => x.UpdatedAt)
             .IsConcurrencyToken();
@@ -51,6 +52,13 @@ public class CvConfiguration : IEntityTypeConfiguration<Cv> {
             .HasForeignKey(x => x.TemplateId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        builder.HasOne(x => x.PreviewFile)
+            .WithOne(x => x.PreviewCv)
+            .HasForeignKey<Cv>(x => x.PreviewFileId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
         builder.HasIndex(x => x.CandidateId);
+        builder.HasIndex(x => x.PreviewFileId)
+            .IsUnique();
     }
 }

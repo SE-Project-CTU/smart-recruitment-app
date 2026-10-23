@@ -1,12 +1,13 @@
 ﻿namespace SmartHire.Domain.Enums;
 
 public enum JobLevel {
-    Intern,
-    Fresher,
-    Junior,
-    MidLevel,
-    Senior,
-    Lead,
-    Manager,
-    Executive
+    Staff,
+    TeamLead,
+    Supervisor,
+    DepartmentHead,
+    BranchManager,
+    DeputyDirector,
+    Director,
+    Executive,
+    Intern
 }
