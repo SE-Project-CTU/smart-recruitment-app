@@ -68,3 +68,40 @@ export interface InviteRecruiterPayload {
   expiresAt?: string;
 }
 
+export type CompanyInvitationStatus =
+  | "Pending"
+  | "Accepted"
+  | "Rejected"
+  | "Expired";
+
+export interface CompanyBriefSummary {
+  id: string;
+  name: string;
+  verificationStatus: CompanyVerificationStatus;
+}
+
+export interface CompanyInvitationItem {
+  id: string;
+  companyId: string;
+  inviterId: string;
+  inviteeId: string;
+  status: CompanyInvitationStatus;
+  expiresAt: string;
+  createdAt: string;
+  company?: CompanyBriefSummary | null;
+}
+
+export interface AcceptInvitationMembershipResult {
+  id: string;
+  companyId: string;
+  userId: string;
+  role: string;
+  status: string;
+  joinedAt: string;
+}
+
+export interface AcceptInvitationResult {
+  invitationId: string;
+  invitationStatus: string;
+  membership: AcceptInvitationMembershipResult;
+}

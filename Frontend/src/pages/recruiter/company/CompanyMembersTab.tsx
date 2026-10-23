@@ -27,8 +27,8 @@ import type { CompanyMember } from "@/types/company";
 
 const ROLE_OPTIONS = [
   { value: "ALL", label: "Tất cả vai trò" },
-  { value: "Owner", label: "Chủ sở hữu (Owner)" },
-  { value: "Member", label: "Thành viên (HR)" },
+  { value: "Owner", label: "Chủ sở hữu" },
+  { value: "Member", label: "Thành viên" },
 ];
 
 const columnHelper = createColumnHelper<DataTableFeatures, CompanyMember>();
@@ -37,8 +37,11 @@ export function CompanyMembersTab() {
   const { company, isOwner, refreshCompany } =
     useOutletContext<CompanyOutletContext>();
 
-  const { data: membersData, isLoading, refetch: refetchMembers } =
-    useCompanyMembers(company.id);
+  const {
+    data: membersData,
+    isLoading,
+    refetch: refetchMembers,
+  } = useCompanyMembers(company.id);
   const members = membersData?.items ?? [];
 
   const { mutateAsync: transferOwnership, isPending: isTransferring } =
@@ -49,7 +52,9 @@ export function CompanyMembersTab() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // Transfer ownership modal state
-  const [transferTarget, setTransferTarget] = useState<CompanyMember | null>(null);
+  const [transferTarget, setTransferTarget] = useState<CompanyMember | null>(
+    null,
+  );
   const [transferMessage, setTransferMessage] = useState<string | null>(null);
   const [transferError, setTransferError] = useState<string | null>(null);
 
@@ -61,7 +66,9 @@ export function CompanyMembersTab() {
         companyId: company.id,
         newOwnerId: transferTarget.user.id,
       });
-      setTransferMessage(`Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`);
+      setTransferMessage(
+        `Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`,
+      );
       setTimeout(async () => {
         setTransferTarget(null);
         setTransferMessage(null);
@@ -100,13 +107,13 @@ export function CompanyMembersTab() {
               <UserAvatar
                 src={user.avatarUrl || ""}
                 name={user.fullName}
-                className="size-9 rounded-full object-cover border border-border"
+                className="size-9 rounded-full border border-border object-cover"
               />
               <div className="min-w-0">
-                <p className="font-semibold text-sm text-text-main truncate">
+                <p className="truncate text-sm font-semibold text-text-main">
                   {user.fullName}
                 </p>
-                <p className="text-xs text-text-muted truncate">{user.email}</p>
+                <p className="truncate text-xs text-text-muted">{user.email}</p>
               </div>
             </div>
           );
@@ -120,11 +127,11 @@ export function CompanyMembersTab() {
           return role === "Owner" ? (
             <span className="inline-flex items-center gap-1 rounded-md border border-purple-200 bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700">
               <ShieldCheck className="size-3.5" />
-              Chủ sở hữu (Owner)
+              Chủ sở hữu
             </span>
           ) : (
             <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-              Thành viên (HR)
+              Thành viên
             </span>
           );
         },
@@ -169,7 +176,7 @@ export function CompanyMembersTab() {
             return (
               <Button
                 variant="outline"
-                className="py-1! px-2.5! text-xs! font-medium! border-slate-200! ring-slate-200! text-slate-700! hover:border-purple-300! hover:text-purple-700! hover:ring-purple-300!"
+                className="border-slate-200! px-2.5! py-1! text-xs! font-medium! text-slate-700! ring-slate-200! hover:border-purple-300! hover:text-purple-700! hover:ring-purple-300!"
                 icon={ArrowRightLeft}
                 onClick={() => setTransferTarget(member)}
               >
@@ -192,7 +199,8 @@ export function CompanyMembersTab() {
             Đội ngũ tuyển dụng ({members.length})
           </h2>
           <p className="text-xs text-text-muted">
-            Tất cả thành viên trực thuộc doanh nghiệp tham gia quản trị và xử lý ứng tuyển
+            Tất cả thành viên trực thuộc doanh nghiệp tham gia quản trị và xử lý
+            ứng tuyển
           </p>
         </div>
 
@@ -297,9 +305,9 @@ export function CompanyMembersTab() {
 
       {/* Modal Xác nhận Chuyển quyền Chủ sở hữu */}
       {transferTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
           <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
-            <div className="flex items-center gap-3 text-amber-600 mb-3">
+            <div className="mb-3 flex items-center gap-3 text-amber-600">
               <div className="flex size-10 items-center justify-center rounded-xl bg-amber-50">
                 <AlertCircle className="size-6" />
               </div>
@@ -315,7 +323,7 @@ export function CompanyMembersTab() {
 
             {transferError && (
               <div className="my-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
                 <span>{transferError}</span>
               </div>
             )}
@@ -325,10 +333,13 @@ export function CompanyMembersTab() {
                 {transferMessage}
               </div>
             ) : (
-              <p className="text-xs leading-relaxed text-text-main my-4">
-                Bạn có chắc chắn muốn chuyển giao toàn bộ quyền <strong>Chủ sở hữu (Owner)</strong> của công ty{" "}
+              <p className="my-4 text-xs leading-relaxed text-text-main">
+                Bạn có chắc chắn muốn chuyển giao toàn bộ quyền{" "}
+                <strong>Chủ sở hữu (Owner)</strong> của công ty{" "}
                 <strong>{company.name}</strong> cho thành viên{" "}
-                <strong>{transferTarget.user.fullName}</strong> ({transferTarget.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành <strong>Thành viên (HR)</strong> thông thường.
+                <strong>{transferTarget.user.fullName}</strong> (
+                {transferTarget.user.email})? Sau khi chuyển giao, tài khoản của
+                bạn sẽ trở thành <strong>Thành viên (HR)</strong> thông thường.
               </p>
             )}
 
