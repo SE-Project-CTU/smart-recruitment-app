@@ -209,7 +209,7 @@ export function CompanyJoinRequestsTab() {
             return (
               <div className="flex items-center gap-3">
                 <UserAvatar
-                  src=""
+                  src={req.user?.avatarUrl ?? ""}
                   name={userName}
                   className="size-10 shrink-0"
                 />

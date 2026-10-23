@@ -42,7 +42,7 @@ export function CompanyMembersTab() {
     isLoading,
     refetch: refetchMembers,
   } = useCompanyMembers(company.id);
-  const members = membersData?.items ?? [];
+  const members = useMemo(() => membersData?.items ?? [], [membersData?.items]);
 
   const { mutateAsync: transferOwnership, isPending: isTransferring } =
     useTransferOwnership();

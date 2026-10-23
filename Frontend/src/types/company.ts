@@ -78,6 +78,16 @@ export interface CompanyBriefSummary {
   id: string;
   name: string;
   verificationStatus: CompanyVerificationStatus;
+  logoUrl?: string | null;
+  address?: string | null;
+  website?: string | null;
+}
+
+export interface CompanyInvitationInviterSummary {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string | null;
 }
 
 export interface CompanyInvitationItem {
@@ -89,6 +99,8 @@ export interface CompanyInvitationItem {
   expiresAt: string;
   createdAt: string;
   company?: CompanyBriefSummary | null;
+  inviter?: CompanyInvitationInviterSummary | null;
+  inviterEmail?: string | null;
 }
 
 export interface AcceptInvitationMembershipResult {
@@ -112,6 +124,7 @@ export interface CompanyJoinRequestUser {
   id: string;
   email: string;
   fullName: string;
+  avatarUrl?: string | null;
 }
 
 export interface CompanyJoinRequestItem {
