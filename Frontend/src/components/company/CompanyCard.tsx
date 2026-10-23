@@ -16,6 +16,7 @@ import {
 } from "@/components/animate-ui/components/base/tooltip";
 import Button from "@/components/Button";
 import { CompanyLogo } from "./CompanyLogo";
+import { useAuthStore } from "@/stores/authStore";
 import type { CompanyItem } from "@/types/company";
 
 export interface CompanyCardProps {
@@ -27,6 +28,7 @@ export interface CompanyCardProps {
   userRole?: "Owner" | "Member";
   actionText?: string;
   showBookmark?: boolean;
+  showVerificationStatus?: boolean;
 }
 
 export function CompanyCard({
@@ -38,9 +40,19 @@ export function CompanyCard({
   userRole,
   actionText = "Xem chi tiết",
   showBookmark = true,
+  showVerificationStatus,
 }: CompanyCardProps) {
+  const user = useAuthStore((state) => state.user);
+  const isRecruiterOrAdmin = user?.roles?.some(
+    (r) => r === "Recruiter" || r === "Admin",
+  );
   const role = userRole || company.membership?.role;
   const status = company.verificationStatus;
+
+  // Candidate thông thường hoặc người dùng không có quyền quản lý không thể xem thông tin xác minh công ty
+  const canSeeVerification =
+    showVerificationStatus ??
+    Boolean(isRecruiterOrAdmin || company.membership || role);
 
   return (
     <div className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 transition-colors duration-200 hover:border-primary/40">
@@ -81,38 +93,44 @@ export function CompanyCard({
         </div>
       </div>
 
-      {/* Badges: Trạng thái duyệt & Vai trò thành viên */}
-      <div className="flex flex-wrap items-center gap-2">
-        {status === "Verified" && (
-          <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-            <CheckCircle2 className="size-3" />
-            Đã duyệt
-          </span>
-        )}
-        {status === "Pending" && (
-          <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
-            <Clock className="size-3" />
-            Chờ duyệt
-          </span>
-        )}
-        {status === "Rejected" && (
-          <span className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-700">
-            <AlertCircle className="size-3" />
-            Từ chối
-          </span>
-        )}
+      {/* Badges: Trạng thái duyệt (chỉ cho Recruiter/Admin) & Vai trò thành viên */}
+      {(canSeeVerification || role) && (
+        <div className="flex flex-wrap items-center gap-2">
+          {canSeeVerification && (
+            <>
+              {status === "Verified" && (
+                <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                  <CheckCircle2 className="size-3" />
+                  Đã duyệt
+                </span>
+              )}
+              {status === "Pending" && (
+                <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                  <Clock className="size-3" />
+                  Chờ duyệt
+                </span>
+              )}
+              {status === "Rejected" && (
+                <span className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-700">
+                  <AlertCircle className="size-3" />
+                  Từ chối
+                </span>
+              )}
+            </>
+          )}
 
-        {role === "Owner" && (
-          <span className="inline-flex items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-[11px] font-semibold text-purple-700">
-            Chủ sở hữu
-          </span>
-        )}
-        {role === "Member" && (
-          <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-            Thành viên
-          </span>
-        )}
-      </div>
+          {role === "Owner" && (
+            <span className="inline-flex items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-[11px] font-semibold text-purple-700">
+              Chủ sở hữu
+            </span>
+          )}
+          {role === "Member" && (
+            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+              Thành viên
+            </span>
+          )}
+        </div>
+      )}
 
       <p className="line-clamp-2 text-xs leading-relaxed text-text-main">
         {company.description || "Chưa có phần giới thiệu chi tiết."}
