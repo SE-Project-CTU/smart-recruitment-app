@@ -52,6 +52,14 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   USER_NOT_FOUND: "Không tìm thấy tài khoản người dùng tương ứng.",
   COMPANY_LOGO_ALREADY_IN_USE: "Logo này đã được gán cho một doanh nghiệp khác.",
   INVITEE_ROLE_REQUIRED: "Tài khoản được mời phải có vai trò Nhà tuyển dụng (Recruiter).",
+  INVALID_JOB_POSTING_DATA: "Thông tin tin tuyển dụng chưa hợp lệ. Vui lòng kiểm tra lại.",
+  JOB_POSTING_NOT_FOUND: "Không tìm thấy tin tuyển dụng.",
+  JOB_POSTING_FORBIDDEN: "Bạn không có quyền chỉnh sửa hoặc tạo tin cho doanh nghiệp này.",
+  PROVINCE_NOT_FOUND: "Tỉnh/Thành phố được chọn không tồn tại hoặc đã ngừng hoạt động.",
+  WARD_NOT_FOUND: "Phường/Xã không tồn tại hoặc không thuộc tỉnh/thành phố đã chọn.",
+  INDUSTRY_NOT_FOUND: "Ngành nghề được chọn không hợp lệ.",
+  SKILL_NOT_FOUND: "Kỹ năng được chọn không hợp lệ.",
+  INVALID_JOB_POSTING_SEARCH: "Tiêu chí tìm kiếm tin tuyển dụng không hợp lệ.",
 };
 
 export const FIELD_LABELS: Record<string, string> = {
@@ -65,7 +73,25 @@ export const FIELD_LABELS: Record<string, string> = {
   taxCode: "mã số thuế",
   address: "địa chỉ trụ sở chính",
   website: "website",
-  description: "mô tả doanh nghiệp",
+  description: "mô tả",
+  title: "tiêu đề tin tuyển dụng",
+  companyId: "doanh nghiệp",
+  provinceId: "tỉnh/thành phố",
+  wardId: "phường/xã",
+  detailedLocation: "địa chỉ cụ thể",
+  experienceYears: "số năm kinh nghiệm",
+  jobLevel: "cấp bậc",
+  educationLevel: "trình độ học vấn",
+  vacancies: "số lượng cần tuyển",
+  workMode: "hình thức làm việc",
+  jobType: "loại hình làm việc",
+  requirements: "yêu cầu công việc",
+  benefits: "chế độ đãi ngộ",
+  salaryMin: "mức lương tối thiểu",
+  salaryMax: "mức lương tối đa",
+  deadline: "hạn nộp hồ sơ",
+  industryIds: "ngành nghề",
+  skillIds: "kỹ năng yêu cầu",
 };
 
 export const HTTP_STATUS_MESSAGES: Record<number, string> = {

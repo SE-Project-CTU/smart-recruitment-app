@@ -85,7 +85,7 @@ export const recruiterSidebarData = {
       title: "Quản lý JD",
       url: "#",
       icon: LibraryBig,
-      items: [],
+      items: [{ title: "Tạo tin mới", url: PATHS.RECRUITER.CREATE_JOB }],
     },
     {
       title: "Ứng viên",

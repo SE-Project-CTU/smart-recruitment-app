@@ -49,8 +49,7 @@ export function CompanyListPage() {
   };
 
   const handleCreateJob = (company: CompanyItem) => {
-    // Quick job creation hook / notification
-    alert(`Mở giao diện tạo tin tuyển dụng (JD) cho công ty: ${company.name}`);
+    navigate(`${PATHS.RECRUITER.CREATE_JOB}?companyId=${company.id}`);
   };
 
   const filteredCompanies = useMemo(() => {
@@ -353,6 +352,7 @@ export function CompanyListPage() {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleCompanyCreated}
       />
+
     </div>
   );
 }

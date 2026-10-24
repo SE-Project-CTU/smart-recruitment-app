@@ -32,4 +32,19 @@ export const API_ENDPOINTS = {
       `/companies/${id}/join-requests/${requestId}`,
     TRANSFER_OWNERSHIP: (id: string) => `/companies/${id}/ownership`,
   },
+  CATALOG: {
+    PROVINCES: "/provinces",
+    PROVINCES_WITH_WARDS: "/provinces/with-wards",
+    WARDS: "/wards",
+    INDUSTRY_GROUPS: "/industry-groups",
+    INDUSTRY_GROUPS_WITH_INDUSTRIES: "/industry-groups/with-industries",
+    INDUSTRIES: "/industries",
+    SKILLS: "/skills",
+  },
+  JOB_POSTING: {
+    CREATE: "/job-postings",
+    SEARCH: "/job-postings",
+    DETAIL: (id: string) => `/job-postings/${id}`,
+    UPDATE: (id: string) => `/job-postings/${id}`,
+  },
 } as const;

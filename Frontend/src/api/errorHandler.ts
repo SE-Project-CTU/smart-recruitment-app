@@ -204,6 +204,16 @@ export const getApiFieldErrors = (error: unknown): Record<string, string> => {
       result.email = API_ERROR_MESSAGES.COMPANY_MEMBERSHIP_ALREADY_EXISTS;
     } else if (code === "COMPANY_INVITATION_ALREADY_EXISTS" && !result.email) {
       result.email = API_ERROR_MESSAGES.COMPANY_INVITATION_ALREADY_EXISTS;
+    } else if (code === "COMPANY_FORBIDDEN" && !result.companyId) {
+      result.companyId = API_ERROR_MESSAGES.COMPANY_FORBIDDEN;
+    } else if (code === "PROVINCE_NOT_FOUND" && !result.provinceId) {
+      result.provinceId = API_ERROR_MESSAGES.PROVINCE_NOT_FOUND;
+    } else if (code === "WARD_NOT_FOUND" && !result.wardId) {
+      result.wardId = API_ERROR_MESSAGES.WARD_NOT_FOUND;
+    } else if (code === "INDUSTRY_NOT_FOUND" && !result.industryIds) {
+      result.industryIds = API_ERROR_MESSAGES.INDUSTRY_NOT_FOUND;
+    } else if (code === "SKILL_NOT_FOUND" && !result.skillIds) {
+      result.skillIds = API_ERROR_MESSAGES.SKILL_NOT_FOUND;
     }
   }
 

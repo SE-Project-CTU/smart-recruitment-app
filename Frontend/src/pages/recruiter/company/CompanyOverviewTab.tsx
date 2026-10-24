@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   Users,
   Calendar,
@@ -14,10 +14,12 @@ import {
 } from "lucide-react";
 import Button from "@/components/Button";
 import { useCompanyMembers } from "@/hooks/queries/useCompany";
+import { PATHS } from "@/constants/paths";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 
 export function CompanyOverviewTab() {
   const { company } = useOutletContext<CompanyOutletContext>();
+  const navigate = useNavigate();
   const { data: membersData } = useCompanyMembers(company.id);
   const memberCount = membersData?.totalCount ?? 1;
 
@@ -26,8 +28,7 @@ export function CompanyOverviewTab() {
   const isRejected = company.verificationStatus === "Rejected";
 
   const handleCreateJob = () => {
-    // Navigate to job posting or show notice
-    alert(`Mở giao diện tạo tin tuyển dụng (JD) cho công ty: ${company.name}`);
+    navigate(`${PATHS.RECRUITER.CREATE_JOB}?companyId=${company.id}`);
   };
 
   const formatDate = (dateString?: string | null) => {
@@ -289,6 +290,7 @@ export function CompanyOverviewTab() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }
