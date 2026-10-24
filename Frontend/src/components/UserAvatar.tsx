@@ -1,5 +1,6 @@
 import type { ImgHTMLAttributes } from "react";
 import { getLoremAvt } from "@/utils/helper";
+import { cn } from "@/lib/utils";
 
 interface UserAvatarProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -11,7 +12,7 @@ export function UserAvatar({
   src,
   name,
   alt = "User Avatar",
-  className = "size-8 rounded-full object-cover",
+  className = "size-8 rounded-full",
   onError,
   ...props
 }: UserAvatarProps) {
@@ -22,7 +23,7 @@ export function UserAvatar({
       {...props}
       src={src || fallbackSrc}
       alt={alt}
-      className={className}
+      className={cn(className, "object-cover")}
       loading="lazy"
       onError={(event) => {
         onError?.(event);

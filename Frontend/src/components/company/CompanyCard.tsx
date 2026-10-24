@@ -101,7 +101,7 @@ export function CompanyCard({
               {status === "Verified" && (
                 <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                   <CheckCircle2 className="size-3" />
-                  Đã duyệt
+                  Đã xác thực
                 </span>
               )}
               {status === "Pending" && (

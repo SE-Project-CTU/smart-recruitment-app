@@ -27,7 +27,7 @@ const ROLE_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { value: "ALL", label: "Tất cả trạng thái" },
-  { value: "Verified", label: "Đã duyệt (Verified)" },
+  { value: "Verified", label: "Đã xác thực (Verified)" },
   { value: "Pending", label: "Chờ duyệt (Pending)" },
   { value: "Rejected", label: "Từ chối (Rejected)" },
 ];

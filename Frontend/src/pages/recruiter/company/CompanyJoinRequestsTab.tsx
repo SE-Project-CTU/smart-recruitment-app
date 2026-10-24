@@ -280,20 +280,16 @@ export function CompanyJoinRequestsTab() {
                     isLoading={isRowProcessing}
                     disabled={Boolean(processingId)}
                     onClick={() => handleApprove(req)}
-                    className="h-8! px-3! text-xs! font-medium!"
-                  >
-                    Phê duyệt
-                  </Button>
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700! disabled:text-text-muted! disabled:opacity-40! disabled:hover:bg-transparent!"
+                  ></Button>
                   <Button
                     variant="secondary"
                     icon={X}
                     iconSize={14}
                     disabled={Boolean(processingId)}
                     onClick={() => setRejectTarget(req)}
-                    className="h-8! px-3! text-xs! font-medium! text-rose-600! ring-status-error! hover:bg-rose-50!"
-                  >
-                    Từ chối
-                  </Button>
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600! disabled:text-text-muted! disabled:opacity-40! disabled:hover:bg-transparent!"
+                  ></Button>
                 </div>
               );
             }

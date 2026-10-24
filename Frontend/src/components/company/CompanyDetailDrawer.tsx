@@ -168,7 +168,7 @@ export function CompanyDetailDrawer({
                         {company.verificationStatus === "Verified" && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                             <ShieldCheck className="size-3" />
-                            Đã duyệt
+                            Đã xác thực
                           </span>
                         )}
                         {company.verificationStatus === "Pending" && (
@@ -289,7 +289,7 @@ export function CompanyDetailDrawer({
                         variant="secondary"
                         onClick={() => onRejectInvitation(invitation)}
                         disabled={isProcessingInvitation}
-                        className="h-8! px-3! text-xs! font-medium! text-rose-600! hover:bg-rose-50!"
+                        className="h-8! px-3! text-xs! font-medium! text-rose-600! ring-status-error! hover:bg-rose-50!"
                       >
                         Từ chối
                       </Button>
