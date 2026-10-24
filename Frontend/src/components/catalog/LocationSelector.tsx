@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertCircle, Building, MapPin } from "lucide-react";
+import { AlertCircle, MapPin } from "lucide-react";
 import { useProvinces, useWards } from "@/hooks/queries/useCatalog";
 import { cn } from "@/lib/utils";
 
@@ -63,7 +63,7 @@ export function LocationSelector({
               disabled={disabled || isLoadingProvinces}
               onChange={handleProvinceSelect}
               className={cn(
-                "w-full appearance-none rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main outline-none transition-colors focus:ring-1",
+                "w-full appearance-none rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main transition-colors outline-none focus:ring-1",
                 errors.provinceId
                   ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                   : "border-border focus:border-primary focus:ring-primary/20",
@@ -71,7 +71,9 @@ export function LocationSelector({
               )}
             >
               <option value="">
-                {isLoadingProvinces ? "Đang tải tỉnh/thành..." : "-- Chọn Tỉnh / Thành phố --"}
+                {isLoadingProvinces
+                  ? "Đang tải tỉnh/thành..."
+                  : "-- Chọn Tỉnh / Thành phố --"}
               </option>
               {provinces.map((prov) => (
                 <option key={prov.id} value={prov.id}>
@@ -82,7 +84,7 @@ export function LocationSelector({
           </div>
           <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
             {errors.provinceId && (
-              <span className="flex items-center gap-1 animate-in fade-in duration-150">
+              <span className="animate-in fade-in flex items-center gap-1 duration-150">
                 <AlertCircle className="size-3 shrink-0" />
                 <span>{errors.provinceId}</span>
               </span>
@@ -93,7 +95,6 @@ export function LocationSelector({
         {/* Phường / Xã */}
         <div>
           <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text-main">
-            <MapPin className="size-3.5 text-text-muted" />
             <span>Phường / Xã</span>
           </label>
           <div className="relative">
@@ -102,7 +103,7 @@ export function LocationSelector({
               disabled={disabled || !provinceId || isFetchingWards}
               onChange={(e) => onChangeWard(e.target.value)}
               className={cn(
-                "w-full appearance-none rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main outline-none transition-colors focus:ring-1",
+                "w-full appearance-none rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main transition-colors outline-none focus:ring-1",
                 errors.wardId
                   ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                   : "border-border focus:border-primary focus:ring-primary/20",
@@ -125,7 +126,7 @@ export function LocationSelector({
           </div>
           <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
             {errors.wardId && (
-              <span className="flex items-center gap-1 animate-in fade-in duration-150">
+              <span className="animate-in fade-in flex items-center gap-1 duration-150">
                 <AlertCircle className="size-3 shrink-0" />
                 <span>{errors.wardId}</span>
               </span>
@@ -138,7 +139,6 @@ export function LocationSelector({
       {showDetailedLocation && onChangeDetailedLocation && (
         <div>
           <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text-main">
-            <Building className="size-3.5 text-text-muted" />
             <span>Địa chỉ cụ thể (Tòa nhà, số nhà, ngõ/đường)</span>
           </label>
           <input
@@ -148,7 +148,7 @@ export function LocationSelector({
             onChange={(e) => onChangeDetailedLocation(e.target.value)}
             placeholder="Ví dụ: Tầng 12, Tòa nhà Landmark 81, số 720A Điện Biên Phủ"
             className={cn(
-              "w-full rounded-xl border bg-surface px-3.5 py-2.5 text-xs text-text-main outline-none transition-colors focus:ring-1",
+              "w-full rounded-xl border bg-surface px-3.5 py-2.5 text-xs text-text-main transition-colors outline-none focus:ring-1",
               errors.detailedLocation
                 ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                 : "border-border focus:border-primary focus:ring-primary/20",
@@ -157,7 +157,7 @@ export function LocationSelector({
           />
           <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
             {errors.detailedLocation && (
-              <span className="flex items-center gap-1 animate-in fade-in duration-150">
+              <span className="animate-in fade-in flex items-center gap-1 duration-150">
                 <AlertCircle className="size-3 shrink-0" />
                 <span>{errors.detailedLocation}</span>
               </span>

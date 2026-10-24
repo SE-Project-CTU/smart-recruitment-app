@@ -4,7 +4,6 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  Layers,
   Search,
   X,
 } from "lucide-react";
@@ -120,23 +119,17 @@ export function IndustrySelect({
       );
   }, [industryGroups, searchQuery]);
 
-  // Tự động mở rộng nhóm nếu đang tìm kiếm từ khóa
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const allOpen: Record<string, boolean> = {};
-      filteredGroups.forEach((g) => {
-        allOpen[g.id] = true;
-      });
-      setExpandedGroups(allOpen);
-    }
-  }, [searchQuery, filteredGroups]);
-
   const toggleGroupExpand = (groupId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpandedGroups((prev) => ({
       ...prev,
       [groupId]: !prev[groupId],
     }));
+  };
+
+  const handleSearchQueryChange = (query: string) => {
+    setSearchQuery(query);
+    setExpandedGroups({});
   };
 
   const toggleIndustry = (id: string) => {
@@ -166,7 +159,6 @@ export function IndustrySelect({
       {label && (
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-text-main">
-            <Layers className="size-3.5 text-primary" />
             <span>{label}</span>
             {required && <span className="text-status-error">*</span>}
           </label>
@@ -197,7 +189,7 @@ export function IndustrySelect({
         tabIndex={0}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
         className={cn(
-          "min-h-11 w-full cursor-pointer rounded-xl border bg-surface p-2 text-xs transition-colors",
+          "flex min-h-11 w-full cursor-pointer items-center justify-between rounded-xl border bg-surface p-2 text-xs transition-colors",
           error
             ? "border-rose-400"
             : isOpen
@@ -206,12 +198,12 @@ export function IndustrySelect({
           disabled && "cursor-not-allowed opacity-60",
         )}
       >
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex w-full flex-wrap items-center justify-between gap-1.5">
           {selectedIds.length === 0 ? (
             <span className="px-1 text-text-muted select-none">
               {isLoading
                 ? "Đang tải danh mục ngành nghề từ hệ thống..."
-                : "Nhấn để xem các nhóm ngành và chọn ngành nghề phù hợp..."}
+                : "Chọn nhóm ngành"}
             </span>
           ) : (
             selectedIds.map((id) => {
@@ -219,13 +211,13 @@ export function IndustrySelect({
               return (
                 <span
                   key={id}
-                  className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary select-none"
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-secondary-light px-2 py-1 text-[11px] font-medium text-primary capitalize select-none"
                 >
                   <span>{item ? item.name : id}</span>
                   <button
                     type="button"
                     onClick={(e) => removeIndustry(id, e)}
-                    className="hover:bg-primary/20 rounded p-0.5"
+                    className="rounded p-0.5 hover:bg-primary/20"
                   >
                     <X className="size-3" />
                   </button>
@@ -254,7 +246,7 @@ export function IndustrySelect({
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchQueryChange(e.target.value)}
                 placeholder="Tìm kiếm ngành nghề hoặc tên nhóm ngành..."
                 className="w-full bg-transparent text-xs text-text-main outline-none placeholder:text-text-muted"
                 autoFocus
@@ -262,7 +254,7 @@ export function IndustrySelect({
               {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => handleSearchQueryChange("")}
                   className="text-text-muted hover:text-text-main"
                 >
                   <X className="size-3.5" />
@@ -272,20 +264,20 @@ export function IndustrySelect({
           </div>
 
           {/* Danh sách các nhóm ngành kèm nhánh con */}
-          <div className="max-h-64 overflow-y-auto p-2 space-y-2">
+          <div className="max-h-64 space-y-2 overflow-y-auto p-2">
             {isLoading ? (
               <p className="py-6 text-center text-xs text-text-muted">
                 Đang tải danh mục ngành nghề...
               </p>
             ) : filteredGroups.length === 0 ? (
               <p className="py-6 text-center text-xs text-text-muted">
-                Không tìm thấy ngành nghề nào khớp với &quot;{searchQuery}&quot;.
+                Không tìm thấy ngành nghề nào khớp với &quot;{searchQuery}
+                &quot;.
               </p>
             ) : (
               filteredGroups.map((group) => {
                 const industries = group.matchedIndustries || [];
-                const isExpanded =
-                  expandedGroups[group.id] ?? (searchQuery.trim().length > 0 || true); // Mặc định mở để user dễ thấy nhánh con
+                const isExpanded = expandedGroups[group.id] ?? true;
                 const selectedCountInGroup = industries.filter((ind) =>
                   selectedIds.includes(ind.id),
                 ).length;
@@ -300,7 +292,7 @@ export function IndustrySelect({
                       role="button"
                       tabIndex={0}
                       onClick={(e) => toggleGroupExpand(group.id, e)}
-                      className="flex cursor-pointer items-center justify-between px-3 py-2 text-xs font-semibold text-text-main transition-colors hover:bg-bg select-none"
+                      className="flex cursor-pointer items-center justify-between px-3 py-2 text-xs font-semibold text-text-main transition-colors select-none hover:bg-bg"
                     >
                       <div className="flex items-center gap-2">
                         {isExpanded ? (
@@ -315,7 +307,7 @@ export function IndustrySelect({
                       </div>
 
                       {selectedCountInGroup > 0 && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        <span className="rounded-full bg-secondary-light px-2 py-0.5 text-[10px] font-semibold text-primary">
                           Đã chọn {selectedCountInGroup}
                         </span>
                       )}
@@ -338,10 +330,10 @@ export function IndustrySelect({
                                   type="button"
                                   onClick={() => toggleIndustry(ind.id)}
                                   className={cn(
-                                    "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-all select-none",
+                                    "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs capitalize transition-all select-none",
                                     isSelected
-                                      ? "border-primary bg-primary text-white font-medium shadow-xs"
-                                      : "border-border bg-bg text-text-main hover:border-primary/50 hover:bg-surface font-normal",
+                                      ? "bg-secondary-light font-medium shadow-xs"
+                                      : "border-border bg-bg font-normal text-text-main hover:border-border hover:bg-surface",
                                   )}
                                 >
                                   {isSelected && (
@@ -366,7 +358,7 @@ export function IndustrySelect({
       {/* Error container cố định chiều cao tránh giật layout */}
       <div className="min-h-5 text-[11px] leading-tight text-status-error">
         {error && (
-          <span className="flex items-center gap-1 animate-in fade-in duration-150">
+          <span className="animate-in fade-in flex items-center gap-1 duration-150">
             <AlertCircle className="size-3 shrink-0" />
             <span>{error}</span>
           </span>

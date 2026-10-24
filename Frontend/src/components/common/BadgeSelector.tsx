@@ -34,7 +34,7 @@ export function BadgeSelector<T extends string = string>({
   return (
     <div className={cn("space-y-1.5", className)}>
       {label && (
-        <label className="block text-xs font-semibold text-text-main">
+        <label className="block text-xs text-text-main">
           {label} {required && <span className="text-status-error">*</span>}
         </label>
       )}
@@ -56,8 +56,8 @@ export function BadgeSelector<T extends string = string>({
                   ? "px-2.5 py-1 text-[11px]"
                   : "px-3.5 py-2 text-xs",
                 isSelected
-                  ? "border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary/20"
-                  : "border-border bg-bg text-text-muted hover:border-slate-300 hover:bg-surface hover:text-text-main font-medium",
+                  ? "bg-secondary text-primary"
+                  : "bg-bg font-medium text-text-muted hover:border-slate-300 hover:bg-surface hover:text-text-main",
                 disabled && "cursor-not-allowed opacity-50",
               )}
             >
@@ -78,7 +78,7 @@ export function BadgeSelector<T extends string = string>({
 
       <div className="min-h-5 text-[11px] leading-tight text-status-error">
         {error && (
-          <span className="flex items-center gap-1 animate-in fade-in duration-150">
+          <span className="animate-in fade-in flex items-center gap-1 duration-150">
             <AlertCircle className="size-3 shrink-0" />
             <span>{error}</span>
           </span>

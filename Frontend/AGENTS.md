@@ -100,46 +100,46 @@ Frontend/src/
 - ngoài các tiêu đề lớn (các thẻ "h") thì độ đậm nhất của chữ là semibold (font-semibold)
 
 @theme {
-  --font-sans: "Montserrat", sans-serif;
+--font-sans: "Montserrat", sans-serif;
 
-  /* Primary */
-  --color-primary: #1b3b6f;
-  --color-primary-dark: #122a52;
-  --color-primary-light: #3e5e8f;
+/* Primary */
+--color-primary: #1b3b6f;
+--color-primary-dark: #122a52;
+--color-primary-light: #3e5e8f;
 
-  /* Secondary */
-  --color-secondary: #a6e1fa;
-  --color-secondary-light: #d6f1fc;
-  --color-secondary-dark: #6fc3e8;
+/* Secondary */
+--color-secondary: #a6e1fa;
+--color-secondary-light: #d6f1fc;
+--color-secondary-dark: #6fc3e8;
 
-  /* ==== Neutral ==== */
+/* ==== Neutral ==== */
 
-  /* primary background color */
-  --color-bg: #f7fafc;
-  --color-bg-stone: #f9f9f9;
-  --color-bg-white-blue: #ecf5f9;
+/* primary background color */
+--color-bg: #f7fafc;
+--color-bg-stone: #f9f9f9;
+--color-bg-white-blue: #ecf5f9;
 
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
+--color-surface: #ffffff;
+--color-border: #e2e8f0;
 
-  /* text */
-  --color-text-main: #1a202c;
-  --color-text-muted: #64748b;
+/* text */
+--color-text-main: #1a202c;
+--color-text-muted: #64748b;
 
-  /* Status */
-  --color-status-success: #22c55e;
-  --color-status-warning: #f59e0b;
-  --color-status-error: #ef4444;
-  --color-status-info: #3b82f6;
-  --color-status-active: #a6e1fa;
+/* Status */
+--color-status-success: #22c55e;
+--color-status-warning: #f59e0b;
+--color-status-error: #ef4444;
+--color-status-info: #3b82f6;
+--color-status-active: #a6e1fa;
 
-  /* Sidebar */
-  --color-sidebar: var(--color-bg);
-  --color-sidebar-foreground: var(--color-text-main);
-  --color-sidebar-accent: #eaf0f6;
-  --color-sidebar-accent-foreground: var(--color-text-main);
-  --color-sidebar-border: var(--color-border);
-  --color-sidebar-ring: var(--color-primary);
+/* Sidebar */
+--color-sidebar: var(--color-bg);
+--color-sidebar-foreground: var(--color-text-main);
+--color-sidebar-accent: #eaf0f6;
+--color-sidebar-accent-foreground: var(--color-text-main);
+--color-sidebar-border: var(--color-border);
+--color-sidebar-ring: var(--color-primary);
 }
 
 ### Component & State
@@ -147,6 +147,10 @@ Frontend/src/
 - Ưu tiên tái sử dụng component có sẵn. Cần thêm component mới từ shadcn hay animate-ui thì hỏi user trước khi cài.
 - **Tách nhỏ component ở mức vừa phải:** Giảm phụ thuộc và giảm tải state phức tạp trong 1 file.
 - `Button.tsx` ở `components/` là component button dùng chung mặc định, ưu tiên dùng, nhưng riêng `Button.tsx` nếu có ghi className thêm khi gọi thì phải dùng thêm ! (ví dụ font-light!), hạn chế tối đa dùng variant="outline"
+
+### Label và tiêu đề
+
+- Nếu đã ghi tiếng việt, không được mở ngoặc ghi tiếng anh (Ví dụ: Tiêu đề (Title))
 
 ### Icon & Hình ảnh
 
