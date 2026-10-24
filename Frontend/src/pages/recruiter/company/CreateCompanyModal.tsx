@@ -207,7 +207,7 @@ export function CreateCompanyModal({
                 Tạo hồ sơ Doanh nghiệp mới
               </h2>
               <p className="text-xs text-text-muted">
-                Bạn sẽ tự động trở thành Chủ sở hữu (Owner) của doanh nghiệp này
+                Thành viên đầu tiên sẽ tham gia với tư cách Chủ sở hữu
               </p>
             </div>
           </div>
