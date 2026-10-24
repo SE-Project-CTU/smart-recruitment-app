@@ -336,7 +336,7 @@ export default function CreateJobPage() {
 
                 <div className="space-y-4">
                   {/* Tên công việc (Job Title) */}
-                  <div>
+                  <div className="mb-4">
                     <label
                       htmlFor="title"
                       className="mb-1.5 block text-xs font-semibold text-text-main"

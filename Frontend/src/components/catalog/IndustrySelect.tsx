@@ -155,7 +155,7 @@ export function IndustrySelect({
   };
 
   return (
-    <div ref={containerRef} className="space-y-1.5">
+    <div ref={containerRef} className="space-y-1">
       {label && (
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-text-main">

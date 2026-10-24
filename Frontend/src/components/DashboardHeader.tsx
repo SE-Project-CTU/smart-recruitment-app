@@ -88,7 +88,7 @@ function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg/80 px-4 backdrop-blur-md md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-4 backdrop-blur-md md:px-6">
       <div className="flex items-center gap-3">
         <Link to={PATHS.HOME} className="flex items-center">
           <img src={SmartHire_default} alt="SmartHire" className="h-8 w-auto" />
