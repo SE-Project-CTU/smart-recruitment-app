@@ -80,6 +80,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearAuth: () => {
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    try {
+      localStorage.removeItem("sr_active_company_id");
+    } catch {
+      // ignore
+    }
     set({
       user: null,
       accessToken: null,

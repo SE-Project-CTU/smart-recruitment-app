@@ -99,11 +99,12 @@ export const useJobApplications = (
     sort?: string;
     direction?: string;
   },
+  options?: { enabled?: boolean },
 ) => {
   return useQuery({
     queryKey: ["job-postings", "applications", jobId, params],
     queryFn: () => jobService.getJobApplications(jobId!, params),
-    enabled: Boolean(jobId),
+    enabled: Boolean(jobId) && (options?.enabled ?? true),
     staleTime: 30 * 1000,
   });
 };

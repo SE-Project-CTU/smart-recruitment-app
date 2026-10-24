@@ -70,7 +70,13 @@ export interface JobPostingItem {
   id: string;
   companyId: string;
   companyName?: string;
-  companyLogoUrl?: string;
+  companyLogoUrl?: string | null;
+  company?: {
+    id: string;
+    name: string;
+    address?: string;
+    logoUrl?: string | null;
+  };
   createdBy: string;
   title: string;
   provinceId: string;
@@ -155,11 +161,25 @@ export interface UpdateJobPostingPayload {
 
 export type JobApplicationStatus =
   | "SUBMITTED"
+  | "RECEIVED"
+  | "APPROVED"
   | "REVIEWING"
+  | "SHORTLISTED"
+  | "INTERVIEW"
+  | "INTERVIEWING"
+  | "OFFERED"
+  | "HIRED"
+  | "REJECTED"
+  | "WITHDRAWN";
+
+export type UpdateJobApplicationStatus =
+  | "REVIEWING"
+  | "SHORTLISTED"
   | "INTERVIEW"
   | "OFFERED"
-  | "ACCEPTED"
-  | "REJECTED";
+  | "HIRED"
+  | "REJECTED"
+  | "WITHDRAWN";
 
 export interface JobApplicationItem {
   id: string;
@@ -178,6 +198,7 @@ export interface JobApplicationItem {
 }
 
 export interface UpdateApplicationStatusPayload {
-  status: JobApplicationStatus;
+  status: UpdateJobApplicationStatus | string;
+  note?: string;
 }
 
