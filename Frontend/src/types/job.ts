@@ -69,10 +69,22 @@ export interface SearchJobPostingsRequest {
 export interface JobPostingItem {
   id: string;
   companyId: string;
+  companyName?: string;
+  companyLogoUrl?: string;
   createdBy: string;
   title: string;
   provinceId: string;
+  province?: {
+    id: string;
+    name: string;
+    code?: string;
+  };
   wardId?: string | null;
+  ward?: {
+    id: string;
+    name: string;
+    code?: string;
+  };
   detailedLocation?: string | null;
   experienceYears: number;
   jobLevel: JobLevel;
@@ -87,9 +99,85 @@ export interface JobPostingItem {
   salaryMax?: number | null;
   salaryNegotiable: boolean;
   deadline: string;
-  status: JobPostingStatus;
-  industryIds: string[];
-  skillIds: string[];
+  status: JobPostingStatus | string;
+  industryIds?: string[];
+  skills?: {
+    id: string;
+    name: string;
+    category?: string;
+  }[];
+  skillIds?: string[];
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
+
+export interface JobPostingSearchItem {
+  id: string;
+  companyId: string;
+  companyName: string;
+  companyLogoUrl?: string;
+  title: string;
+  provinceId: string;
+  wardId?: string | null;
+  experienceYears?: number;
+  jobLevel?: JobLevel | string | null;
+  workMode: WorkMode | string;
+  jobType: JobType | string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryNegotiable: boolean;
+  deadline: string;
+  status: JobPostingStatus | string;
+  createdAt: string;
+}
+
+export interface UpdateJobPostingPayload {
+  title?: string;
+  provinceId?: string;
+  wardId?: string | null;
+  detailedLocation?: string | null;
+  experienceYears?: number;
+  jobLevel?: JobLevel;
+  educationLevel?: EducationLevel | string;
+  vacancies?: number;
+  workMode?: WorkMode;
+  jobType?: JobType;
+  description?: string;
+  requirements?: string;
+  benefits?: string | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryNegotiable?: boolean;
+  deadline?: string;
+  industryIds?: string[];
+  skillIds?: string[];
+}
+
+export type JobApplicationStatus =
+  | "SUBMITTED"
+  | "REVIEWING"
+  | "INTERVIEW"
+  | "OFFERED"
+  | "ACCEPTED"
+  | "REJECTED";
+
+export interface JobApplicationItem {
+  id: string;
+  jobId: string;
+  candidateId: string;
+  candidateName?: string;
+  candidateEmail?: string;
+  candidateAvatarUrl?: string;
+  candidatePhone?: string;
+  cvVersionId?: string | null;
+  uploadedCvUrl?: string | null;
+  coverLetter?: string | null;
+  status: JobApplicationStatus | string;
+  appliedAt: string;
+  updatedAt?: string;
+}
+
+export interface UpdateApplicationStatusPayload {
+  status: JobApplicationStatus;
+}
+

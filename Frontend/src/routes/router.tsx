@@ -28,6 +28,11 @@ import {
   CompanyInvitation,
   CompanyJoinRequestsTab,
 } from "@/pages/recruiter/company";
+import {
+  RecruiterJobListPage,
+  JobDetailPage,
+  EditJobPage,
+} from "@/pages/recruiter/job";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -107,6 +112,18 @@ const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
+          {
+            path: PATHS.RECRUITER.JOBS,
+            element: <RecruiterJobListPage />,
+          },
+          {
+            path: PATHS.RECRUITER.JOB_DETAIL,
+            element: <JobDetailPage />,
+          },
+          {
+            path: PATHS.RECRUITER.EDIT_JOB,
+            element: <EditJobPage />,
+          },
           {
             path: PATHS.RECRUITER.CREATE_JOB,
             element: <CreateJobPage />,

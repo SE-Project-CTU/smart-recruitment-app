@@ -21,7 +21,10 @@ export const PATHS = {
 
   RECRUITER: {
     DASHBOARD: "/recruiter/dashboard",
+    JOBS: "/recruiter/jobs",
     CREATE_JOB: "/recruiter/jobs/create",
+    JOB_DETAIL: "/recruiter/jobs/:id",
+    EDIT_JOB: "/recruiter/jobs/:id/edit",
     COMPANY_MANAGEMENT: "/recruiter/company-management",
     COMPANAY_MANAGEMENT_OVERVIEW:
       "/recruiter/company-management/:companyId/overview",

@@ -46,5 +46,11 @@ export const API_ENDPOINTS = {
     SEARCH: "/job-postings",
     DETAIL: (id: string) => `/job-postings/${id}`,
     UPDATE: (id: string) => `/job-postings/${id}`,
+    UPDATE_STATUS: (id: string) => `/job-postings/${id}/status`,
+    APPLICATIONS: (id: string) => `/job-postings/${id}/applications`,
+  },
+  APPLICATION: {
+    UPDATE_STATUS: (id: string) => `/applications/${id}/status`,
+    DETAIL: (id: string) => `/applications/${id}`,
   },
 } as const;

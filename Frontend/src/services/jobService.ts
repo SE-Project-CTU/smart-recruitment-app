@@ -4,8 +4,12 @@ import type {
   ApiPagedResponse,
   ApiResponse,
   CreateJobPostingPayload,
+  JobApplicationItem,
+  JobApplicationStatus,
   JobPostingItem,
+  PaginationMeta,
   SearchJobPostingsRequest,
+  UpdateJobPostingPayload,
 } from "@/types";
 
 export const jobService = {
@@ -23,7 +27,7 @@ export const jobService = {
   },
 
   /**
-   * Xem chi tiết tin tuyển dụng
+   * Xem chi tiết tin tuyển dụng (API 6)
    */
   async getJobPostingDetail(id: string): Promise<JobPostingItem> {
     const response = await axiosClient.get<never, ApiResponse<JobPostingItem>>(
@@ -33,16 +37,39 @@ export const jobService = {
   },
 
   /**
-   * Tìm kiếm và lọc danh sách tin tuyển dụng
+   * Cập nhật thông tin tin tuyển dụng (API 7)
+   */
+  async updateJobPosting(
+    id: string,
+    payload: UpdateJobPostingPayload,
+  ): Promise<JobPostingItem> {
+    const response = await axiosClient.patch<
+      never,
+      ApiResponse<JobPostingItem>
+    >(API_ENDPOINTS.JOB_POSTING.UPDATE(id), payload);
+    return response.data;
+  },
+
+  /**
+   * Cập nhật trạng thái tin tuyển dụng (API 8 - Recruiter đóng tin: CLOSED)
+   */
+  async updateJobPostingStatus(
+    id: string,
+    status: string,
+  ): Promise<{ id: string; status: string; updatedAt: string }> {
+    const response = await axiosClient.patch<
+      never,
+      ApiResponse<{ id: string; status: string; updatedAt: string }>
+    >(API_ENDPOINTS.JOB_POSTING.UPDATE_STATUS(id), { status });
+    return response.data;
+  },
+
+  /**
+   * Tìm kiếm và lọc danh sách tin tuyển dụng (API 5)
    */
   async searchJobPostings(params?: SearchJobPostingsRequest): Promise<{
     items: JobPostingItem[];
-    meta: {
-      page: number;
-      pageSize: number;
-      totalItems: number;
-      totalPages: number;
-    };
+    meta: PaginationMeta;
   }> {
     const response = await axiosClient.get<
       never,
@@ -52,11 +79,62 @@ export const jobService = {
     return {
       items: response.data || [],
       meta: {
-        page: response.meta.page,
-        pageSize: response.meta.pageSize,
-        totalItems: response.meta.totalItems,
-        totalPages: response.meta.totalPages,
+        page: response.meta?.page ?? 1,
+        pageSize: response.meta?.pageSize ?? 20,
+        totalItems: response.meta?.totalItems ?? 0,
+        totalPages: response.meta?.totalPages ?? 1,
+        hasNextPage: response.meta?.hasNextPage ?? false,
+        hasPreviousPage: response.meta?.hasPreviousPage ?? false,
       },
     };
   },
+
+  /**
+   * Danh sách hồ sơ ứng tuyển theo tin tuyển dụng (API 11)
+   */
+  async getJobApplications(
+    jobId: string,
+    params?: {
+      status?: string;
+      page?: number;
+      pageSize?: number;
+      sort?: string;
+      direction?: string;
+    },
+  ): Promise<{
+    items: JobApplicationItem[];
+    meta: PaginationMeta;
+  }> {
+    const response = await axiosClient.get<
+      never,
+      ApiPagedResponse<JobApplicationItem>
+    >(API_ENDPOINTS.JOB_POSTING.APPLICATIONS(jobId), { params });
+
+    return {
+      items: response.data || [],
+      meta: {
+        page: response.meta?.page ?? 1,
+        pageSize: response.meta?.pageSize ?? 20,
+        totalItems: response.meta?.totalItems ?? 0,
+        totalPages: response.meta?.totalPages ?? 1,
+        hasNextPage: response.meta?.hasNextPage ?? false,
+        hasPreviousPage: response.meta?.hasPreviousPage ?? false,
+      },
+    };
+  },
+
+  /**
+   * Cập nhật trạng thái hồ sơ ứng tuyển (API 13)
+   */
+  async updateApplicationStatus(
+    applicationId: string,
+    status: JobApplicationStatus | string,
+  ): Promise<{ id: string; status: string; updatedAt: string }> {
+    const response = await axiosClient.patch<
+      never,
+      ApiResponse<{ id: string; status: string; updatedAt: string }>
+    >(API_ENDPOINTS.APPLICATION.UPDATE_STATUS(applicationId), { status });
+    return response.data;
+  },
 };
+
