@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
+import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import type { CVDetail, CVSectionKey } from "@/types/cv";
+import DroppableContainer from "../../components/droppable-container";
+import DraggableSection from "../../components/draggable-section";
 import { ProfileHeader } from "./ProfileHeader";
 import { ObjectiveSection } from "./ObjectiveSection";
 import { EducationSection } from "./EducationSection";
@@ -134,12 +137,31 @@ export const ModernTwoColumnTemplate: React.FC<
     }
   };
 
-  // Thứ tự hiển thị các sections từ sections.order
-  const sectionOrder = layout.areas[0].sections || DEFAULT_SECTION_ORDER;
+  // Thứ tự hiển thị các sections từ layout
+  const initialSectionOrder =
+    layout.areas[0]?.sections || DEFAULT_SECTION_ORDER;
+  const [sectionOrder, setSectionOrder] = useState<string[]>([
+    ...initialSectionOrder,
+  ]);
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const destinationIndex = result.destination.index;
+
+    setSectionOrder((currentOrder) => {
+      const nextOrder = [...currentOrder];
+      const [movedSection] = nextOrder.splice(result.source.index, 1);
+
+      if (!movedSection) return currentOrder;
+
+      nextOrder.splice(destinationIndex, 0, movedSection);
+      return nextOrder;
+    });
+  };
 
   return (
     <div
-      className={`mx-auto w-full max-w-[800px] bg-white p-8 text-slate-900 shadow-md sm:p-12 print:m-0 print:p-8 print:shadow-none ${className}`}
+      className={`mx-auto w-full max-w-[800px] bg-white p-8 text-slate-900 shadow-md sm:p-6 print:m-0 print:p-8 print:shadow-none ${className}`}
       style={{
         fontSize: globalStyles?.baseFontSize,
         fontFamily: fontFamily.includes("sans")
@@ -156,9 +178,22 @@ export const ModernTwoColumnTemplate: React.FC<
       />
 
       {/* 2. Sections Flow */}
-      <div className="mt-3">
-        {sectionOrder.map((sectionKey) => renderSection(sectionKey))}
-      </div>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <DroppableContainer droppableId="cv-sections" className="mt-3">
+          {() =>
+            sectionOrder.map((sectionKey, index) => (
+              <DraggableSection
+                key={sectionKey}
+                draggableId={sectionKey}
+                index={index}
+                className="group relative"
+              >
+                {() => renderSection(sectionKey)}
+              </DraggableSection>
+            ))
+          }
+        </DroppableContainer>
+      </DragDropContext>
     </div>
   );
 };

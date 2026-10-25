@@ -15,7 +15,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   primaryColor = "#0F172A",
 }) => {
   return (
-    <div className="flex flex-col items-center border-b border-gray-200 pb-5 text-center">
+    <div className="flex flex-col items-center px-4 text-center">
       {/* Họ tên */}
       <h1
         className="text-2xl font-bold tracking-tight text-slate-900"

@@ -21,7 +21,7 @@ function DroppableContainer({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={cn(className)}
+          className={cn("", className)}
         >
           {children(provided, snapshot)}
           {provided.placeholder}

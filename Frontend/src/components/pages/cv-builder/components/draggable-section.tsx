@@ -23,8 +23,12 @@ function DraggableSection({
   return (
     <Draggable {...props}>
       {(provided, snapshot, rubric) => (
-        <>
-          <div className="no-print absolute top-2 -left-10 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className={cn("hover:border-slate-400 border border-white rounded-sm p-4", className)}
+        >
+          <div className="no-print absolute top-0 left-0 -translate-y-full flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
             <div
               {...provided.dragHandleProps}
               title="Kéo để đổi vị trí mục"
@@ -32,11 +36,12 @@ function DraggableSection({
             >
               <GripVertical className="h-4 w-4" />
             </div>
+
             <button
               type="button"
               onClick={() => {}}
               title="Đẩy mục này sang đầu trang A4 tiếp theo"
-              className={`rounded-lg border border-border p-1.5 shadow-sm transition-colors`}
+              className={"rounded-lg border border-border bg-surface p-1.5 shadow-sm"}
             >
               <SeparatorHorizontal className="h-4 w-4" />
             </button>
@@ -50,14 +55,8 @@ function DraggableSection({
             </button>
           </div>
 
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className={cn(className)}
-          >
-            {children(provided, snapshot, rubric)}
-          </div>
-        </>
+          {children(provided, snapshot, rubric)}
+        </div>
       )}
     </Draggable>
   );

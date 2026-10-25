@@ -17,7 +17,7 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
   if (!section.visible) return null;
 
   return (
-    <div className="section-objective mb-3 group">
+    <div className="section-objective group">
       <SectionTitle
         title={section.title || "MỤC TIÊU NGHỀ NGHIỆP"}
         fieldKey="sections.objective.title"
