@@ -70,6 +70,19 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
         )}
 
+        {profile.address && (
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-800" />
+            <span
+              style={getFieldStyle(fields, "profile.address", {
+                fontSize: "12px",
+              })}
+            >
+              {profile.address}
+            </span>
+          </div>
+        )}
+
         {profile.website && (
           <div className="flex items-center gap-1.5">
             <Globe className="h-3.5 w-3.5 shrink-0 text-slate-800" />
@@ -91,29 +104,24 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
         )}
 
-        {profile.address && (
+        {profile.socialLink && (
           <div className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-800" />
-            <span
-              style={getFieldStyle(fields, "profile.address", {
+            <Globe className="h-3.5 w-3.5 shrink-0 text-slate-800" />
+            <a
+              href={
+                profile.socialLink.startsWith("http")
+                  ? profile.socialLink
+                  : `https://${profile.socialLink}`
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="hover:underline"
+              style={getFieldStyle(fields, "profile.socialLink", {
                 fontSize: "12px",
               })}
             >
-              {profile.address}
-            </span>
-          </div>
-        )}
-
-        {profile.dob && (
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 shrink-0 text-slate-800" />
-            <span
-              style={getFieldStyle(fields, "profile.dob", {
-                fontSize: "12px",
-              })}
-            >
-              {profile.dob}
-            </span>
+              {profile.socialLink.replace(/^https?:\/\//, "")}
+            </a>
           </div>
         )}
       </div>

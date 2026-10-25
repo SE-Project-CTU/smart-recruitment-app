@@ -179,15 +179,15 @@ export const MOCK_CV_DETAIL: CVDetail = {
     version: "1.0",
     areas: [
       {
-        id: "sidebar",
-        sections: ["skills", "education", "certifications", "awards"],
-      },
-      {
         id: "main",
         sections: [
           "objective",
           "experience",
+          "education",
+          "skills",
           "projects",
+          "certifications",
+          "awards",
           "interests",
           "additionalInfo",
         ],
@@ -572,7 +572,7 @@ export const MOCK_CV_DETAIL: CVDetail = {
           color: "#1E293B",
           fontSize: 14,
           fontFamily: "inter",
-          fontWeight: "bold",
+          fontWeight: "normal",
           fontStyle: "normal",
           textDecoration: "none",
           textAlign: null,

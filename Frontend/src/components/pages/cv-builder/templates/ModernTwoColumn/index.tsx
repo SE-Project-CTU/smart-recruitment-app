@@ -17,11 +17,22 @@ interface ModernTwoColumnTemplateProps {
   className?: string;
 }
 
-export const ModernTwoColumnTemplate: React.FC<ModernTwoColumnTemplateProps> = ({
-  data,
-  className = "",
-}) => {
-  const { content, presentation } = data;
+const DEFAULT_SECTION_ORDER: CVSectionKey[] = [
+  "objective",
+  "education",
+  "experience",
+  "skills",
+  "projects",
+  "certifications",
+  "awards",
+  "interests",
+  "additionalInfo",
+];
+
+export const ModernTwoColumnTemplate: React.FC<
+  ModernTwoColumnTemplateProps
+> = ({ data, className = "" }) => {
+  const { content, presentation, layout } = data;
   const { profile, sections } = content;
   const fields = presentation?.styles?.fields;
   const globalStyles = presentation?.styles?.global;
@@ -124,23 +135,16 @@ export const ModernTwoColumnTemplate: React.FC<ModernTwoColumnTemplateProps> = (
   };
 
   // Thứ tự hiển thị các sections từ sections.order
-  const sectionOrder = (sections.order || [
-    "objective",
-    "education",
-    "experience",
-    "skills",
-    "projects",
-    "certifications",
-    "awards",
-    "interests",
-    "additionalInfo",
-  ]) as (CVSectionKey | string)[];
+  const sectionOrder = layout.areas[0].sections || DEFAULT_SECTION_ORDER;
 
   return (
     <div
       className={`mx-auto w-full max-w-[800px] bg-white p-8 text-slate-900 shadow-md sm:p-12 print:m-0 print:p-8 print:shadow-none ${className}`}
       style={{
-        fontFamily: fontFamily.includes("sans") ? fontFamily : `'${fontFamily}', sans-serif`,
+        fontSize: globalStyles?.baseFontSize,
+        fontFamily: fontFamily.includes("sans")
+          ? fontFamily
+          : `'${fontFamily}', sans-serif`,
         lineHeight,
       }}
     >
