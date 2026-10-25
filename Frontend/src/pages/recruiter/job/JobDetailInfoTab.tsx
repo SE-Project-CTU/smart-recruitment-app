@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { Layers, MapPin, Sparkles } from "lucide-react";
+import { MapPin } from "lucide-react";
 import type { JobPostingItem } from "@/types/job";
 import { getEducationLevelLabel, getWorkModeLabel } from "@/utils/jobHelpers";
 
@@ -43,47 +43,7 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
           </div>
         </section>
 
-        {/* 3. Kỹ năng chuyên môn */}
-        {job.skills && job.skills.length > 0 && (
-          <section className="space-y-3">
-            <h3 className="flex items-center gap-2 border-b border-border/80 pb-2.5 text-sm font-bold text-text-main sm:text-base">
-              <Sparkles className="size-4 text-primary" />
-              <span>Kỹ năng chuyên môn</span>
-            </h3>
-            <div className="flex flex-wrap gap-2 pt-1">
-              {job.skills.map((skill) => (
-                <span
-                  key={skill.id}
-                  className="inline-flex items-center rounded-xl border border-border bg-secondary-light px-3 py-1.5 text-xs font-medium text-primary capitalize select-none"
-                >
-                  {skill.name}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 4. Ngành nghề tuyển dụng */}
-        {job.industries && job.industries.length > 0 && (
-          <section className="space-y-3">
-            <h3 className="flex items-center gap-2 border-b border-border/80 pb-2.5 text-sm font-bold text-text-main sm:text-base">
-              <Layers className="size-4 text-primary" />
-              <span>Ngành nghề tuyển dụng</span>
-            </h3>
-            <div className="flex flex-wrap gap-2 pt-1">
-              {job.industries.map((ind) => (
-                <span
-                  key={ind.id}
-                  className="inline-flex items-center rounded-xl border border-border/80 bg-bg px-3 py-1.5 text-xs font-medium text-text-main select-none"
-                >
-                  {ind.name}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 5. Quyền lợi & Chế độ đãi ngộ */}
+        {/* 3. Quyền lợi & Chế độ đãi ngộ */}
         {job.benefits && (
           <section className="space-y-3">
             <h3 className="border-b border-border/80 pb-2.5 text-sm font-bold text-text-main sm:text-base">
@@ -96,7 +56,7 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
         )}
       </div>
 
-      {/* Cột phụ (Phải - 4 cột): Card "Thông tin chung" & "Người đăng tin" */}
+      {/* Cột phụ (Phải - 4 cột): Card "Thông tin chung" */}
       <div className="space-y-6 lg:sticky lg:top-6 lg:col-span-4">
         {/* Card Thông tin chung */}
         <div className="rounded-3xl border border-border bg-surface p-6 shadow-xs">
@@ -163,38 +123,6 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
             </div>
           </div>
         </div>
-
-        {/* Card Người đăng tin (Creator) */}
-        {job.creator && (
-          <div className="rounded-3xl border border-border bg-surface p-6 shadow-xs">
-            <h3 className="border-b border-border/80 pb-3 text-xs font-bold tracking-wider text-text-muted uppercase">
-              Người đăng tin
-            </h3>
-            <div className="mt-4 flex items-center gap-3">
-              {job.creator.avatarUrl ? (
-                <img
-                  src={job.creator.avatarUrl}
-                  alt={job.creator.fullName}
-                  className="size-10 rounded-full border border-border object-cover"
-                />
-              ) : (
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {job.creator.fullName
-                    ? job.creator.fullName.slice(0, 2).toUpperCase()
-                    : "HR"}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-text-main">
-                  {job.creator.fullName || "Nhà tuyển dụng"}
-                </p>
-                <p className="truncate text-[11px] text-text-muted">
-                  {job.creator.email}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

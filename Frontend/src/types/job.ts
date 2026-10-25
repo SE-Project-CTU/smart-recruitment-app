@@ -220,6 +220,12 @@ export interface UpdateApplicationStatusPayload {
   note?: string;
 }
 
+export interface RecruiterCandidateApplicationItem extends JobApplicationItem {
+  jobTitle?: string;
+  companyId?: string;
+  companyName?: string;
+}
+
 export const JOB_STATUS_CONFIG: Record<
   string,
   { label: string; badgeClass: string }

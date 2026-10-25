@@ -1,4 +1,8 @@
-import type { JobApplicationStatus, UpdateJobApplicationStatus } from "./job";
+import type {
+  JobApplicationItem,
+  JobApplicationStatus,
+  UpdateJobApplicationStatus,
+} from "./job";
 
 export const APPLICATION_STATUS_OPTIONS: {
   value: JobApplicationStatus | "ALL";
@@ -112,3 +116,43 @@ export const APPLICATION_STATUS_CONFIG: Record<
     badgeClass: "bg-zinc-100 text-zinc-600 border-zinc-200",
   },
 };
+
+/**
+ * Thông tin ứng viên sau khi resolve từ dữ liệu thực tế
+ */
+export interface CandidateResolvedProfile {
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  initials: string;
+}
+
+/**
+ * Resolver lấy thông tin Tên, Email, Avatar của ứng viên từ API backend
+ */
+export function resolveCandidateProfile(
+  app: JobApplicationItem,
+): CandidateResolvedProfile {
+  // 1. Lấy trực tiếp từ object candidate (backend: { id, fullName, email, avatarUrl })
+  const name = app.candidate?.fullName || app.candidateName || "Ứng viên";
+
+  const email =
+    app.candidate?.email || app.candidateEmail || "Chưa cập nhật email";
+
+  const avatarUrl = app.candidate?.avatarUrl || app.candidateAvatarUrl || null;
+
+  const initials =
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(-2)
+      .map((w) => w[0].toUpperCase())
+      .join("") || "UV";
+
+  return {
+    name,
+    email,
+    avatarUrl,
+    initials,
+  };
+}

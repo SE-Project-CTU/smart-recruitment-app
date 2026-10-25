@@ -42,9 +42,9 @@ const HeroSection = () => {
         <div className="flex flex-col items-center justify-between gap-12 lg:flex-row lg:gap-60">
           <div className="z-10 flex w-full flex-col gap-6 text-center lg:w-1/2 lg:gap-8 lg:text-left">
             <h1 className="text-4xl leading-tight font-bold sm:text-5xl lg:text-6xl xl:text-7xl">
-              <span>Make the impossible</span>
+              <span>Make your career </span>
               <span className="mt-2 block">
-                to the{" "}
+                dreams{" "}
                 <TextType
                   text={["possible"]}
                   typingSpeed={75}

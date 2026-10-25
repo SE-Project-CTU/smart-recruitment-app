@@ -92,7 +92,7 @@ export const recruiterSidebarData = {
     },
     {
       title: "Ứng viên",
-      url: "#",
+      url: PATHS.RECRUITER.CANDIDATES,
       icon: UserRoundGroup,
       items: [],
     },

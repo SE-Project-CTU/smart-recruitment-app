@@ -33,6 +33,7 @@ import {
   JobDetailPage,
   EditJobPage,
 } from "@/pages/recruiter/job";
+import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -127,6 +128,10 @@ const router = createBrowserRouter([
           {
             path: PATHS.RECRUITER.CREATE_JOB,
             element: <CreateJobPage />,
+          },
+          {
+            path: PATHS.RECRUITER.CANDIDATES,
+            element: <RecruiterCandidateListPage />,
           },
           {
             path: PATHS.RECRUITER.DASHBOARD,

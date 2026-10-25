@@ -265,11 +265,38 @@ export function JobDetailPage() {
                     {compName}
                   </span>
                 )}
+                {job.creator && (
+                  <div className="flex items-center gap-1.5 pl-1 text-text-muted before:text-slate-300 before:content-['•']">
+                    <span className="text-[11px]">Đăng bởi</span>
+                    {job.creator.avatarUrl ? (
+                      <img
+                        src={job.creator.avatarUrl}
+                        alt={job.creator.fullName}
+                        loading="lazy"
+                        className="size-4.5 rounded-full border border-border object-cover"
+                      />
+                    ) : (
+                      <div className="flex size-4.5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                        {job.creator.fullName
+                          ? job.creator.fullName.slice(0, 1).toUpperCase()
+                          : "U"}
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-text-main">
+                      {job.creator.fullName || "Nhà tuyển dụng"}
+                    </span>
+                    {job.creator.email && (
+                      <span className="text-[11px] text-text-muted">
+                        ({job.creator.email})
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Danh sách Skill Badges */}
               {job.skills && job.skills.length > 0 && (
-                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {job.skills.map((skill) => (
                     <span
                       key={skill.id}

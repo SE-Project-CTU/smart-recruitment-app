@@ -3,7 +3,10 @@ import { jobService } from "@/services/jobService";
 import { companyService } from "@/services/companyService";
 import type {
   CreateJobPostingPayload,
+  JobApplicationItem,
   JobApplicationStatus,
+  JobPostingItem,
+  RecruiterCandidateApplicationItem,
   SearchJobPostingsRequest,
   UpdateJobPostingPayload,
 } from "@/types";
@@ -147,6 +150,57 @@ export const useJobApplications = (
 };
 
 /**
+ * Hook Query: Lấy toàn bộ hồ sơ ứng tuyển thuộc quyền quản lý của Recruiter (từ các JD của họ)
+ */
+export const useRecruiterAllApplications = (jobs: JobPostingItem[]) => {
+  const jobIds = jobs.map((j) => j.id);
+
+  return useQuery({
+    queryKey: ["recruiter", "all-applications", jobIds],
+    queryFn: async (): Promise<RecruiterCandidateApplicationItem[]> => {
+      if (jobs.length === 0) return [];
+
+      const results = await Promise.all(
+        jobs.map((job) =>
+          jobService
+            .getJobApplications(job.id, { pageSize: 100 })
+            .then((res) => ({
+              job,
+              items: res.items,
+            }))
+            .catch(() => ({
+              job,
+              items: [] as JobApplicationItem[],
+            })),
+        ),
+      );
+
+      const allApps: RecruiterCandidateApplicationItem[] = [];
+      for (const res of results) {
+        for (const app of res.items) {
+          allApps.push({
+            ...app,
+            jobTitle: res.job.title,
+            companyId: res.job.companyId,
+            companyName: res.job.company?.name || "Doanh nghiệp",
+          });
+        }
+      }
+
+      // Sắp xếp mặc định: mới nhất lên đầu
+      allApps.sort(
+        (a, b) =>
+          new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime(),
+      );
+
+      return allApps;
+    },
+    enabled: jobs.length > 0,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
  * Hook Mutation: Cập nhật trạng thái đơn ứng tuyển (API 13)
  */
 export const useUpdateApplicationStatus = (jobId?: string) => {
@@ -168,6 +222,9 @@ export const useUpdateApplicationStatus = (jobId?: string) => {
           queryKey: ["job-postings", "applications", jobId],
         });
       }
+      queryClient.invalidateQueries({
+        queryKey: ["recruiter", "all-applications"],
+      });
       toast.success({ description: "Cập nhật trạng thái hồ sơ thành công" });
     },
     onError: (err: unknown) => {

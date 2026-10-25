@@ -86,10 +86,6 @@ export function RecruiterJobListPage() {
     return map;
   }, [myCompanies]);
 
-  // 5. Dọn đường cho Company Switcher: Lọc chỉ những công ty Recruiter thuộc về
-  const myCompanyIds = useMemo(() => {
-    return new Set(myCompanyIdsList);
-  }, [myCompanyIdsList]);
 
   const companyFilterOptions = useMemo(() => {
     const opts = [{ value: "ALL", label: "Tất cả công ty của tôi" }];

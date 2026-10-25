@@ -25,6 +25,7 @@ export const PATHS = {
     CREATE_JOB: "/recruiter/jobs/create",
     JOB_DETAIL: "/recruiter/jobs/:id",
     EDIT_JOB: "/recruiter/jobs/:id/edit",
+    CANDIDATES: "/recruiter/candidates",
     COMPANY_MANAGEMENT: "/recruiter/company-management",
     COMPANAY_MANAGEMENT_OVERVIEW:
       "/recruiter/company-management/:companyId/overview",
