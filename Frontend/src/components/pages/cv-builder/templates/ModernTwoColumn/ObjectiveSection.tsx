@@ -17,7 +17,7 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
   if (!section.visible) return null;
 
   return (
-    <div className="section-objective mb-3">
+    <div className="section-objective mb-3 group">
       <SectionTitle
         title={section.title || "MỤC TIÊU NGHỀ NGHIỆP"}
         fieldKey="sections.objective.title"
@@ -25,14 +25,15 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
         primaryColor={primaryColor}
       />
       <div
-        className="text-xs leading-relaxed text-slate-700 text-justify"
+        className="rounded-sm p-1 text-justify text-xs leading-relaxed text-slate-700 group-hover:outline-2 group-hover:outline-dashed focus-visible:outline-2 outline-slate-400"
         style={getFieldStyle(fields, "sections.objective.content", {
           fontSize: "12px",
           lineHeight: 1.5,
           color: "#334155",
         })}
+        contentEditable={true}
       >
-        {section.content}
+        <p>{section.content}</p>
       </div>
     </div>
   );
