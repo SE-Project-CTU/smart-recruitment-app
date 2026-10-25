@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
-import BaseLayout from "@/layouts/BaseLayout";
+import BaseLayout from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import Page from "@/components/Page";
+import Page from "@/components/Page.tsx";
 import {
   SignUp,
   SignIn,
@@ -10,13 +10,14 @@ import {
   UserProfile,
   BadRequestPage,
 } from "@/pages";
-import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
-import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
+import { ProtectedRoute } from "./ProtectedRoute";
 import { PATHS } from "@/constants/paths";
 import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
+import CVBuilder from "@/pages/CVBuilder";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
