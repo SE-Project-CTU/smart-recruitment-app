@@ -238,9 +238,9 @@ export function JobDetailPage() {
         </div>
 
         {/* Layout 2 cột trên Desktop (lg) */}
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:pr-14">
+        <div className="flex flex-col gap-6 lg:items-start lg:pr-14 2xl:flex-row">
           {/* Cột trái: Logo & Thông tin */}
-          <div className="flex min-w-0 items-start gap-3 sm:gap-5 lg:min-w-180">
+          <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-5">
             <div className="shrink-0">
               <CompanyLogo logoUrl={compLogo} name={compName} size="md" />
             </div>
@@ -291,7 +291,7 @@ export function JobDetailPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 lg:mt-0">
+          <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:mt-0">
             {/* 1. Mức lương */}
             <div className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2.5">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-white-blue text-secondary-dark">
