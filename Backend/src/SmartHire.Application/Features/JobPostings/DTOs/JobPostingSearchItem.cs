@@ -2,8 +2,7 @@ namespace SmartHire.Application.Features.JobPostings.DTOs;
 
 public sealed record JobPostingSearchItem(
     Guid Id,
-    Guid CompanyId,
-    string CompanyName,
+    SearchJobCompanySummary Company,
     string Title,
     Guid ProvinceId,
     Guid? WardId,
@@ -17,3 +16,9 @@ public sealed record JobPostingSearchItem(
     DateTimeOffset? Deadline,
     string Status,
     DateTimeOffset CreatedAt);
+
+public record SearchJobCompanySummary(
+    Guid Id,
+    string Name,
+    string? LogoFileUrl
+);

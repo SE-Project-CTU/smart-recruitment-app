@@ -4,8 +4,7 @@ namespace SmartHire.Application.Abstractions.Persistence.ReadModels;
 
 public sealed record JobPostingSearchData(
     Guid Id,
-    Guid CompanyId,
-    string CompanyName,
+    SearchJobCompanySummaryData Company,
     string Title,
     Guid ProvinceId,
     Guid? WardId,
@@ -19,3 +18,9 @@ public sealed record JobPostingSearchData(
     DateTimeOffset? Deadline,
     JobPostingStatus Status,
     DateTimeOffset CreatedAt);
+
+public record SearchJobCompanySummaryData(
+    Guid Id,
+    string Name,
+    string? LogoFileUrl
+);
