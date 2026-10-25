@@ -57,7 +57,7 @@ export function JobPostingsTable({
               <div className="flex max-w-72 min-w-48 items-center gap-3">
                 <CompanyLogo
                   logoUrl={logo || null}
-                  name={job.companyName || "Doanh nghiệp"}
+                  name={job.companyName || job.company?.name || "Doanh nghiệp"}
                   size="sm"
                 />
 
@@ -78,7 +78,7 @@ export function JobPostingsTable({
                   </Tooltip>
 
                   <span className="truncate text-xs text-slate-500">
-                    {job.companyName || "Doanh nghiệp"}
+                    {job.companyName || job.company?.name || "Doanh nghiệp"}
                   </span>
 
                   {/* Trên mobile: Hiển thị gộp Hình thức & Tỉnh thành */}

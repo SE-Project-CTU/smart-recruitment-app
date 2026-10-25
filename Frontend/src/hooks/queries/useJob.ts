@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services/jobService";
+import { companyService } from "@/services/companyService";
 import type {
   CreateJobPostingPayload,
   JobApplicationStatus,
@@ -9,13 +10,48 @@ import type {
 import { toast } from "../use-toast";
 
 /**
- * Hook Query: Danh sách tin tuyển dụng (API 5)
+ * Hook Query: Danh sách tin tuyển dụng Public (API 5)
  */
 export const useJobPostings = (params?: SearchJobPostingsRequest) => {
   return useQuery({
     queryKey: ["job-postings", "list", params],
     queryFn: () => jobService.searchJobPostings(params),
     staleTime: 60 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Danh sách tin tuyển dụng cho Recruiter từ các công ty của họ (API 15)
+ * Hỗ trợ truyền danh sách ID công ty để lấy dữ liệu đồng thời (Promise.all)
+ */
+export const useRecruiterJobPostings = (companyIds: string[]) => {
+  return useQuery({
+    queryKey: ["job-postings", "recruiter-list", companyIds],
+    queryFn: async () => {
+      if (!companyIds || companyIds.length === 0) {
+        return { items: [], totalCount: 0 };
+      }
+      const results = await Promise.all(
+        companyIds.map((id) =>
+          companyService.getCompanyJobPostings(id, { pageSize: 100 }).catch(() => ({
+            items: [],
+            totalCount: 0,
+          }))
+        )
+      );
+
+      const allItems = results.flatMap((r) => r.items);
+      allItems.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      return {
+        items: allItems,
+        totalCount: allItems.length,
+      };
+    },
+    enabled: companyIds.length > 0,
+    staleTime: 30 * 1000,
   });
 };
 

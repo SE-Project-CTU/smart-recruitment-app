@@ -18,7 +18,7 @@ import { PATHS } from "@/constants/paths";
 import { useProvinces } from "@/hooks/queries/useCatalog";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import {
-  useJobPostings,
+  useRecruiterJobPostings,
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
 import { useCompanyStore } from "@/stores";
@@ -45,10 +45,16 @@ export function RecruiterJobListPage() {
   const navigate = useNavigate();
   const { activeCompanyId, setActiveCompanyId } = useCompanyStore();
 
-  // 1. Data queries
-  const { data: jobResponse, isLoading: isLoadingJobs } = useJobPostings();
+  // 1. Data queries: Lấy công ty của recruiter trước, sau đó lấy toàn bộ tin của các công ty đó
+  const { data: myCompanies = [], isLoading: isLoadingCompanies } =
+    useMyCompanies();
+  const myCompanyIdsList = useMemo(
+    () => myCompanies.map((c) => c.id),
+    [myCompanies],
+  );
+  const { data: jobResponse, isLoading: isLoadingJobs } =
+    useRecruiterJobPostings(myCompanyIdsList);
   const { data: provinces = [] } = useProvinces();
-  const { data: myCompanies = [], isLoading: isLoadingCompanies } = useMyCompanies();
   const updateStatusMutation = useUpdateJobPostingStatus();
 
   const isLoading = isLoadingJobs || isLoadingCompanies;
@@ -82,8 +88,8 @@ export function RecruiterJobListPage() {
 
   // 5. Dọn đường cho Company Switcher: Lọc chỉ những công ty Recruiter thuộc về
   const myCompanyIds = useMemo(() => {
-    return new Set(myCompanies.map((c) => c.id));
-  }, [myCompanies]);
+    return new Set(myCompanyIdsList);
+  }, [myCompanyIdsList]);
 
   const companyFilterOptions = useMemo(() => {
     const opts = [{ value: "ALL", label: "Tất cả công ty của tôi" }];
@@ -93,15 +99,10 @@ export function RecruiterJobListPage() {
     return opts;
   }, [myCompanies]);
 
-  // Chỉ lấy những JD thuộc về công ty mà recruiter này có quyền quản lý
+  // Lấy toàn bộ JD mà recruiter này có quyền quản lý từ các công ty của mình
   const allJobs: JobPostingItem[] = useMemo(() => {
-    const items = jobResponse?.items || [];
-    if (myCompanyIds.size === 0) return [];
-    return items.filter((job) => {
-      const companyId = job.companyId || job.company?.id;
-      return companyId ? myCompanyIds.has(companyId) : false;
-    });
-  }, [jobResponse, myCompanyIds]);
+    return jobResponse?.items || [];
+  }, [jobResponse]);
 
   // 6. Filter jobs (Purely derived in useMemo)
   const filteredJobs = useMemo(() => {
@@ -145,7 +146,9 @@ export function RecruiterJobListPage() {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const titleMatch = (job.title || "").toLowerCase().includes(q);
-        const compMatch = (job.companyName || "").toLowerCase().includes(q);
+        const compMatch = (job.companyName || job.company?.name || "")
+          .toLowerCase()
+          .includes(q);
         if (!titleMatch && !compMatch) return false;
       }
 
@@ -316,7 +319,10 @@ export function RecruiterJobListPage() {
                 </Select.Trigger>
 
                 <Select.Portal>
-                  <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
+                  <Select.Positioner
+                    alignItemWithTrigger={false}
+                    sideOffset={4}
+                  >
                     <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                       <Select.List>
                         {companyFilterOptions.map((opt) => (

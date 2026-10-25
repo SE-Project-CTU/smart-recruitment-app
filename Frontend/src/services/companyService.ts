@@ -13,6 +13,7 @@ import type {
   ReviewJoinRequestResult,
   UpdateCompanyPayload,
 } from "@/types";
+import type { JobPostingItem } from "@/types/job";
 
 
 export const companyService = {
@@ -223,5 +224,24 @@ export const companyService = {
     >(API_ENDPOINTS.COMPANY.REVIEW_JOIN_REQUEST(companyId, requestId), payload);
 
     return response.data;
+  },
+
+  /**
+   * Lấy danh sách tin tuyển dụng của công ty (dành cho Recruiter thành viên - API 15)
+   */
+  async getCompanyJobPostings(
+    companyId: string,
+    params?: { status?: string; search?: string; page?: number; pageSize?: number },
+  ): Promise<{ items: JobPostingItem[]; totalCount: number }> {
+    const response = await axiosClient.get<
+      never,
+      ApiResponse<JobPostingItem[]>
+    >(API_ENDPOINTS.COMPANY.JOB_POSTINGS(companyId), { params });
+
+    return {
+      items: response.data || [],
+      totalCount:
+        (response.meta?.totalItems as number) || (response.data?.length ?? 0),
+    };
   },
 };

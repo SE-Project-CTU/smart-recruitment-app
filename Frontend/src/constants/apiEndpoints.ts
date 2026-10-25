@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
     REVIEW_JOIN_REQUEST: (id: string, requestId: string) =>
       `/companies/${id}/join-requests/${requestId}`,
     TRANSFER_OWNERSHIP: (id: string) => `/companies/${id}/ownership`,
+    JOB_POSTINGS: (companyId: string) => `/companies/${companyId}/job-postings`,
   },
   CATALOG: {
     PROVINCES: "/provinces",
