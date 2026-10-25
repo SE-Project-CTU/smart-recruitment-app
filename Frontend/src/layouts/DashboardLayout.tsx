@@ -11,7 +11,7 @@ const DashboardLayout = () => {
 
         <div className="flex flex-1">
           <DashboardSidebar />
-          <SidebarInset className="h-[calc(100svh-4rem)] flex-1 overflow-x-hidden overflow-y-auto">
+          <SidebarInset className="h-[calc(100svh-4rem)] flex-1 overflow-x-hidden overflow-y-auto bg-secondary-light/30">
             <div className="flex-1 p-4 md:p-5 lg:p-6">
               <Outlet />
             </div>

@@ -56,8 +56,8 @@ export function BadgeSelector<T extends string = string>({
                   ? "px-2.5 py-1 text-[11px]"
                   : "px-3.5 py-2 text-xs",
                 isSelected
-                  ? "bg-secondary text-primary"
-                  : "bg-bg font-medium text-text-muted hover:border-slate-300 hover:bg-surface hover:text-text-main",
+                  ? "bg-secondary-light text-primary"
+                  : "bg-bg text-text-muted hover:border-slate-300 hover:bg-surface hover:text-text-main",
                 disabled && "cursor-not-allowed opacity-50",
               )}
             >

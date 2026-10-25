@@ -1,12 +1,11 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowLeft,
-  Briefcase,
-  Calendar,
   Clock,
   DollarSign,
+  ExternalLink,
   FileText,
   MapPin,
   MoreVertical,
@@ -25,17 +24,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useProvinces } from "@/hooks/queries/useCatalog";
-import { useCompanyDetail, useMyCompanies } from "@/hooks/queries/useCompany";
+import { useMyCompanies } from "@/hooks/queries/useCompany";
 import {
   useJobApplications,
   useJobPostingDetail,
   useUpdateApplicationStatus,
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
-import type {
-  JobApplicationStatus,
-} from "@/types/job";
-import { formatSalaryRange, getJobTypeLabel, getWorkModeLabel } from "@/utils/jobHelpers";
+import type { JobApplicationStatus } from "@/types/job";
+import { formatSalaryRange } from "@/utils/jobHelpers";
 import { JOB_STATUS_CONFIG } from "./JobPostingsTable";
 import { JobDetailInfoTab } from "./JobDetailInfoTab";
 import { JobApplicationsTab } from "./JobApplicationsTab";
@@ -53,19 +50,19 @@ export function JobDetailPage() {
 
   // 1. Real Queries
   const { data: job, isLoading: isLoadingJob } = useJobPostingDetail(id);
-  const { data: company } = useCompanyDetail(job?.companyId);
-  const { data: myCompanies = [], isLoading: isLoadingCompanies } = useMyCompanies();
+  const { data: myCompanies = [], isLoading: isLoadingCompanies } =
+    useMyCompanies();
 
   // Kiểm tra quyền: Tin tuyển dụng có thuộc công ty của Recruiter hay không
   const isMyCompany = useMemo(() => {
     if (!job?.companyId || myCompanies.length === 0) return false;
     return myCompanies.some((c) => c.id === job.companyId);
-  }, [job?.companyId, myCompanies]);
+  }, [job, myCompanies]);
 
   const { data: appsResponse, isLoading: isLoadingApps } = useJobApplications(
     id,
     undefined,
-    { enabled: Boolean(id) && isMyCompany }
+    { enabled: Boolean(id) && isMyCompany },
   );
   const { data: provinces = [] } = useProvinces();
 
@@ -87,11 +84,13 @@ export function JobDetailPage() {
   // Handlers
   const handleUpdateApplicationStatus = async (
     applicationId: string,
-    status: JobApplicationStatus,
+    status: JobApplicationStatus | string,
+    note?: string,
   ) => {
     await updateAppStatusMutation.mutateAsync({
       applicationId,
       status,
+      note,
     });
   };
 
@@ -114,7 +113,7 @@ export function JobDetailPage() {
 
   if (isLoadingJob) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="h-8 w-40 animate-pulse rounded-xl bg-slate-200" />
         <div className="h-44 animate-pulse rounded-2xl border border-border bg-slate-50/70" />
         <div className="h-96 animate-pulse rounded-2xl border border-border bg-slate-50/70" />
@@ -124,12 +123,13 @@ export function JobDetailPage() {
 
   if (!job) {
     return (
-      <div className="rounded-2xl border border-border bg-white p-12 text-center shadow-2xs">
-        <h2 className="text-lg font-bold text-slate-800">
+      <div className="rounded-2xl border border-border bg-white p-8 text-center shadow-2xs sm:p-12">
+        <h2 className="text-base font-bold text-slate-800 sm:text-lg">
           Không tìm thấy tin tuyển dụng
         </h2>
         <p className="mt-1 text-xs text-slate-500">
-          Tin tuyển dụng không tồn tại hoặc bạn không có quyền truy cập vào tin này.
+          Tin tuyển dụng không tồn tại hoặc bạn không có quyền truy cập vào tin
+          này.
         </p>
         <Button
           variant="primary"
@@ -147,10 +147,13 @@ export function JobDetailPage() {
     job.status?.toUpperCase() === "CLOSED" ||
     job.status?.toUpperCase() === "EXPIRED";
 
-  const statusConfig = JOB_STATUS_CONFIG[job.status] || {
-    label: job.status,
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-  };
+  const rawStatus = job.status || "Draft";
+  const statusConfig =
+    JOB_STATUS_CONFIG[rawStatus] ||
+    JOB_STATUS_CONFIG[rawStatus.toUpperCase()] || {
+      label: rawStatus,
+      badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    };
 
   const salaryDisplay = job.salaryNegotiable
     ? "Thỏa thuận"
@@ -159,14 +162,11 @@ export function JobDetailPage() {
   const provinceName =
     provinceMap.get(job.provinceId) || job.province?.name || "Toàn quốc";
 
-  const compName =
-    company?.name || job.company?.name || job.companyName || "Doanh nghiệp";
-
-  const compLogo =
-    company?.logoUrl || job.company?.logoUrl || job.companyLogoUrl || null;
+  const compName = job.company?.name || "Doanh nghiệp";
+  const compLogo = job.company?.logoUrl || null;
 
   return (
-    <div className="min-h-full space-y-6">
+    <div className="min-h-full space-y-4 sm:space-y-6">
       {/* 1. Nút Back */}
       <div>
         <Button
@@ -181,75 +181,80 @@ export function JobDetailPage() {
       </div>
 
       {/* 2. Header Banner Tin Tuyển Dụng */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-2xs">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          {/* Logo & Tiêu đề JD */}
-          <div className="flex items-start gap-4">
-            <CompanyLogo logoUrl={compLogo} name={compName} size="md" />
+      <div className="rounded-2xl border border-border bg-surface p-4 shadow-xs sm:rounded-3xl sm:p-6 lg:p-7">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          {/* Cột trái: Logo & Thông tin */}
+          <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-5">
+            <div className="shrink-0">
+              <CompanyLogo logoUrl={compLogo} name={compName} size="md" />
+            </div>
 
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
+            <div className="min-w-0 flex-1">
+              {/* Tiêu đề & Trạng thái */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                <h1 className="text-lg leading-tight font-bold tracking-tight text-text-main sm:text-xl lg:text-2xl">
                   {job.title}
                 </h1>
                 <span
-                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusConfig.badgeClass}`}
+                  className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold sm:text-xs ${statusConfig.badgeClass}`}
                 >
                   {statusConfig.label}
                 </span>
               </div>
 
-              <p className="mt-1 text-sm font-medium text-slate-600">
-                {compName}
-              </p>
-
-              {/* Meta Chips: Thông tin cốt lõi (Ngày tạo, Hạn nộp, Địa điểm, Lương, Hình thức) */}
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500">
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="size-3.5 text-slate-400" />
-                  <span>Ngày đăng: {job.createdAt ? dayjs(job.createdAt).format("DD/MM/YYYY") : "—"}</span>
-                </span>
-
-                <span className="flex items-center gap-1.5">
-                  <Clock className="size-3.5 text-slate-400" />
-                  <span>Hạn nhận: {job.deadline ? dayjs(job.deadline).format("DD/MM/YYYY") : "Không thời hạn"}</span>
-                </span>
-
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="size-3.5 text-slate-400" />
-                  <span>{provinceName}</span>
-                </span>
-
-                <span className="flex items-center gap-1.5">
-                  <Briefcase className="size-3.5 text-slate-400" />
-                  <span>{getWorkModeLabel(job.workMode)} • {getJobTypeLabel(job.jobType)}</span>
-                </span>
-
-                <span className="flex items-center gap-1.5 font-semibold text-slate-800">
-                  <DollarSign className="size-3.5 text-slate-400" />
-                  <span>{salaryDisplay}</span>
-                </span>
+              {/* Tên công ty có icon trỏ ra chi tiết doanh nghiệp */}
+              <div className="mt-1 flex items-center sm:mt-1.5">
+                {job.companyId ? (
+                  <Link
+                    to={`/recruiter/company-management/${job.companyId}/overview`}
+                    className="group inline-flex items-center gap-1 text-xs font-semibold text-text-muted transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
+                  >
+                    <span className="truncate">{compName}</span>
+                    <ExternalLink className="size-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                ) : (
+                  <span className="truncate text-xs font-semibold text-text-muted sm:text-sm">
+                    {compName}
+                  </span>
+                )}
               </div>
+
+              {/* Danh sách Skill Badges */}
+              {job.skills && job.skills.length > 0 && (
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:mt-3">
+                  {job.skills.map((skill) => (
+                    <span
+                      key={skill.id}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-secondary-light px-2 py-1 text-[10px] font-medium text-primary capitalize select-none sm:text-[11px]"
+                    >
+                      {skill.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Nút 3 chấm (More Actions) hoặc Badge Chế độ chỉ xem */}
-          <div className="flex items-center self-end sm:self-start">
+          {/* Cột phải: Nút 3 chấm (More Actions) - Cố định ở góc trên bên phải trên mobile */}
+          <div className="flex shrink-0 items-center pt-1 sm:pt-0">
             {isLoadingCompanies ? null : !isMyCompany ? (
-              <span className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+              <span className="hidden items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 sm:inline-flex">
                 <AlertTriangle className="size-3.5" />
-                <span>Chỉ xem (Công ty khác)</span>
+                <span>Chỉ xem</span>
               </span>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  className="inline-flex size-9 cursor-pointer items-center justify-center rounded-xl border border-border bg-white text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none"
+                  className="inline-flex size-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-white text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none sm:size-9"
                   aria-label="Tùy chọn thao tác"
                 >
                   <MoreVertical className="size-4" />
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent align="end" className="min-w-48 rounded-xl border border-border p-1 shadow-md">
+                <DropdownMenuContent
+                  align="end"
+                  className="min-w-40 rounded-xl border border-border p-1 shadow-md sm:min-w-48"
+                >
                   <DropdownMenuItem
                     onClick={() =>
                       navigate(PATHS.RECRUITER.EDIT_JOB.replace(":id", job.id))
@@ -265,26 +270,78 @@ export function JobDetailPage() {
                     onClick={() => setIsClosingModalOpen(true)}
                     className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium ${
                       isClosed
-                        ? "opacity-50 pointer-events-none text-slate-400"
+                        ? "pointer-events-none text-slate-400 opacity-50"
                         : "text-rose-600 hover:bg-rose-50"
                     }`}
                   >
                     <PowerOff className="size-3.5" />
-                    <span>{isClosed ? "Tin đã đóng" : "Đóng tin tuyển dụng (Ẩn)"}</span>
+                    <span>
+                      {isClosed ? "Tin đã đóng" : "Đóng tin tuyển dụng"}
+                    </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
           </div>
         </div>
+
+        {/* 3 Badge to nổi bật: Mức lương, Deadline, Vị trí làm việc */}
+        <div className="mt-5 grid grid-cols-1 gap-3 border-t border-border/80 pt-4 sm:mt-6 sm:grid-cols-3 sm:gap-4 sm:pt-5">
+          {/* 1. Mức lương */}
+          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-bg/50 p-3 sm:gap-3.5 sm:rounded-2xl sm:p-4">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 sm:size-10 sm:rounded-xl">
+              <DollarSign className="size-4 sm:size-5" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] font-medium text-text-muted sm:text-[11px]">
+                Mức lương
+              </span>
+              <span className="block truncate text-sm font-bold text-text-main sm:text-base">
+                {salaryDisplay}
+              </span>
+            </div>
+          </div>
+
+          {/* 2. Hạn nhận hồ sơ (Deadline) */}
+          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-bg/50 p-3 sm:gap-3.5 sm:rounded-2xl sm:p-4">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 sm:size-10 sm:rounded-xl">
+              <Clock className="size-4 sm:size-5" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] font-medium text-text-muted sm:text-[11px]">
+                Hạn nhận hồ sơ
+              </span>
+              <span className="block truncate text-sm font-bold text-text-main sm:text-base">
+                {job.deadline
+                  ? dayjs(job.deadline).format("DD/MM/YYYY")
+                  : "Không thời hạn"}
+              </span>
+            </div>
+          </div>
+
+          {/* 3. Vị trí / Địa điểm */}
+          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-bg/50 p-3 sm:gap-3.5 sm:rounded-2xl sm:p-4">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600 sm:size-10 sm:rounded-xl">
+              <MapPin className="size-4 sm:size-5" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] font-medium text-text-muted sm:text-[11px]">
+                Khu vực
+              </span>
+              <span className="block truncate text-sm font-bold text-text-main sm:text-base">
+                {provinceName}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* 3. Navigation Tabs Bar */}
-      <div className="flex border-b border-slate-200">
+      {/* 3. Navigation Tabs Bar (Scrollable on Mobile) */}
+      <div className="no-scrollbar flex overflow-x-auto border-b border-slate-200">
         <button
           type="button"
           onClick={() => setActiveTab("info")}
-          className={`flex cursor-pointer items-center gap-2 border-b-2 px-5 py-3 text-xs font-bold transition-colors ${
+          className={`flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs font-bold whitespace-nowrap transition-colors sm:px-5 ${
             activeTab === "info"
               ? "border-primary text-primary"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -297,7 +354,7 @@ export function JobDetailPage() {
         <button
           type="button"
           onClick={() => setActiveTab("applications")}
-          className={`flex cursor-pointer items-center gap-2 border-b-2 px-5 py-3 text-xs font-bold transition-colors ${
+          className={`flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs font-bold whitespace-nowrap transition-colors sm:px-5 ${
             activeTab === "applications"
               ? "border-primary text-primary"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -319,21 +376,18 @@ export function JobDetailPage() {
 
       {/* 4. Tab Content */}
       {activeTab === "info" ? (
-        <JobDetailInfoTab
-          job={job}
-          company={company}
-          provinceName={provinceName}
-        />
+        <JobDetailInfoTab job={job} provinceName={provinceName} />
       ) : !isMyCompany ? (
-        <div className="rounded-2xl border border-border bg-white p-12 text-center shadow-2xs">
+        <div className="rounded-2xl border border-border bg-white p-8 text-center shadow-2xs sm:p-12">
           <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
             <AlertTriangle className="size-6" />
           </div>
-          <h3 className="mt-4 text-base font-bold text-slate-800">
+          <h3 className="mt-4 text-sm font-bold text-slate-800 sm:text-base">
             Quyền truy cập bị giới hạn
           </h3>
           <p className="mx-auto mt-1.5 max-w-md text-xs text-slate-500">
-            Bạn không thuộc công ty sở hữu tin tuyển dụng này nên không có quyền xem và xử lý danh sách ứng viên (JOB_POSTING_FORBIDDEN).
+            Bạn không thuộc công ty sở hữu tin tuyển dụng này nên không có quyền
+            xem và xử lý danh sách ứng viên.
           </p>
         </div>
       ) : (
@@ -348,17 +402,17 @@ export function JobDetailPage() {
       {/* 5. Modal Xác nhận Đóng tin */}
       {isClosingModalOpen && (
         <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-5 shadow-xl sm:rounded-3xl sm:p-6">
             <div className="mb-4 flex items-center gap-3 text-rose-600">
-              <div className="flex size-11 items-center justify-center rounded-xl bg-rose-50">
-                <AlertTriangle className="size-6 text-rose-600" />
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 sm:size-11">
+                <AlertTriangle className="size-5 text-rose-600 sm:size-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-slate-900 sm:text-base">
                   Xác nhận đóng tin tuyển dụng
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Thao tác này sẽ ẩn tin và dừng nhận hồ sơ ứng tuyển
+                <p className="mt-0.5 text-[11px] text-slate-500 sm:text-xs">
+                  Thao tác này sẽ ẩn tin và dừng nhận hồ sơ
                 </p>
               </div>
             </div>
@@ -368,20 +422,23 @@ export function JobDetailPage() {
                 ✓ Đã đóng tin tuyển dụng thành công!
               </div>
             ) : (
-              <p className="my-3 text-xs leading-relaxed text-slate-600">
+              <p className="my-3 text-xs leading-relaxed text-slate-600 sm:my-4">
                 Bạn có chắc chắn muốn đóng nhận hồ sơ cho tin{" "}
-                <strong className="font-semibold text-slate-900">"{job.title}"</strong>?
-                Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ ứng tuyển vào vị trí này nữa.
+                <strong className="font-semibold text-slate-900">
+                  "{job.title}"
+                </strong>
+                ? Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ vào vị trí này
+                nữa.
               </p>
             )}
 
             {!isClosingSuccess && (
-              <div className="mt-6 flex items-center justify-end gap-2.5">
+              <div className="mt-5 flex flex-col-reverse items-center justify-end gap-2.5 sm:mt-6 sm:flex-row sm:gap-3">
                 <Button
                   variant="secondary"
                   disabled={updateJobStatusMutation.isPending}
                   onClick={() => setIsClosingModalOpen(false)}
-                  className="px-4! py-2! text-xs! font-medium!"
+                  className="w-full px-4! py-2! text-xs! font-medium! sm:w-auto"
                 >
                   Hủy bỏ
                 </Button>
@@ -389,7 +446,7 @@ export function JobDetailPage() {
                   variant="primary"
                   isLoading={updateJobStatusMutation.isPending}
                   onClick={handleExecuteCloseJob}
-                  className="bg-rose-600! px-4! py-2! text-xs! font-semibold! hover:bg-rose-700!"
+                  className="w-full bg-rose-600! px-4! py-2! text-xs! font-semibold! hover:bg-rose-700! sm:w-auto"
                 >
                   Xác nhận đóng tin
                 </Button>

@@ -31,6 +31,10 @@ import {
   JOB_LEVEL_OPTIONS,
   JOB_TYPE_OPTIONS,
   WORK_MODE_OPTIONS,
+  normalizeEducationLevel,
+  normalizeJobLevel,
+  resolveJobType,
+  resolveWorkMode,
 } from "@/utils/jobHelpers";
 import type {
   EducationLevel,
@@ -66,15 +70,15 @@ interface EditJobFormState {
 
 const initialEditState = (job: JobPostingItem): EditJobFormState => ({
   title: job.title || "",
-  provinceId: job.provinceId || "",
-  wardId: job.wardId || "",
+  provinceId: job.provinceId || job.province?.id || "",
+  wardId: job.wardId || job.ward?.id || "",
   detailedLocation: job.detailedLocation || "",
   experienceYears: job.experienceYears ?? 0,
-  jobLevel: (job.jobLevel as JobLevel) || "Staff",
-  educationLevel: (job.educationLevel as EducationLevel) || "Bachelor",
+  jobLevel: normalizeJobLevel(job.jobLevel),
+  educationLevel: normalizeEducationLevel(job.educationLevel),
   vacancies: job.vacancies || 1,
-  workMode: (job.workMode as WorkMode) || "Onsite",
-  jobType: (job.jobType as JobType) || "FullTime",
+  workMode: resolveWorkMode(job),
+  jobType: resolveJobType(job),
   description: job.description || "",
   requirements: job.requirements || "",
   benefits: job.benefits || "",
@@ -82,7 +86,7 @@ const initialEditState = (job: JobPostingItem): EditJobFormState => ({
   salaryMax: job.salaryMax != null ? String(job.salaryMax) : "",
   salaryNegotiable: Boolean(job.salaryNegotiable),
   deadline: job.deadline ? dayjs(job.deadline).format("YYYY-MM-DD") : "",
-  industryIds: job.industryIds || [],
+  industryIds: job.industryIds || job.industries?.map((i) => i.id) || [],
   skillIds: job.skillIds || job.skills?.map((s) => s.id) || [],
 });
 

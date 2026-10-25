@@ -34,6 +34,10 @@ export const JOB_STATUS_CONFIG: Record<
     label: "Đang nhận hồ sơ",
     badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
+  PUBLISHED: {
+    label: "Đang nhận hồ sơ",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
   PAUSED: {
     label: "Tạm dừng",
     badgeClass: "bg-amber-50 text-amber-700 border-amber-200",

@@ -129,11 +129,15 @@ export const jobService = {
   async updateApplicationStatus(
     applicationId: string,
     status: JobApplicationStatus | string,
+    note?: string,
   ): Promise<{ id: string; status: string; updatedAt: string }> {
     const response = await axiosClient.patch<
       never,
       ApiResponse<{ id: string; status: string; updatedAt: string }>
-    >(API_ENDPOINTS.APPLICATION.UPDATE_STATUS(applicationId), { status });
+    >(API_ENDPOINTS.APPLICATION.UPDATE_STATUS(applicationId), {
+      status,
+      ...(note?.trim() ? { note: note.trim() } : {}),
+    });
     return response.data;
   },
 };

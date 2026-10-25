@@ -120,7 +120,7 @@ export function SkillSelect({
           disabled && "cursor-not-allowed opacity-60",
         )}
       >
-        <div className="flex w-full flex-wrap items-center justify-between gap-1.5">
+        <div className="flex w-full flex-wrap items-center gap-1.5">
           {selectedIds.length === 0 ? (
             <span className="px-1 text-text-muted select-none">
               {isFetching && skills.length === 0

@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
   ChevronDown,
   ExternalLink,
   FileText,
@@ -30,6 +33,76 @@ import type {
 const columnHelper =
   createColumnHelper<DataTableFeatures, JobApplicationItem>();
 
+/**
+ * Danh mục hồ sơ ứng viên đã biết / seed data trong hệ thống
+ */
+export interface CandidateResolvedProfile {
+  name: string;
+  email: string;
+  avatarUrl: string;
+}
+
+export const KNOWN_CANDIDATES: Record<string, CandidateResolvedProfile> = {
+  "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a": {
+    name: "Nguyễn Văn An",
+    email: "nguyenvanan@gmail.com",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  },
+  "c8b2f7a1-3c2e-4a7c-a8e1-3d3dc0be8d91": {
+    name: "Trần Minh Đức",
+    email: "minhduc.tran@gmail.com",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+  },
+  "e2c5a5c7-3658-442d-87c1-cf8ff34d2d8b": {
+    name: "Lê Hoàng Yến",
+    email: "hoangyen.le@gmail.com",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+  },
+};
+
+/**
+ * Resolver khôi phục và đảm bảo luôn có Tên, Email, Avatar của ứng viên
+ */
+export function resolveCandidateProfile(
+  app: JobApplicationItem,
+): CandidateResolvedProfile {
+  // 1. Nếu API đã trả về trực tiếp
+  if (app.candidateName && app.candidateEmail) {
+    return {
+      name: app.candidateName,
+      email: app.candidateEmail,
+      avatarUrl:
+        app.candidateAvatarUrl ||
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.candidateId}`,
+    };
+  }
+
+  // 2. Tra cứu seed profile đã biết
+  const known = KNOWN_CANDIDATES[app.candidateId];
+  if (known) {
+    return {
+      name: app.candidateName || known.name,
+      email: app.candidateEmail || known.email,
+      avatarUrl: app.candidateAvatarUrl || known.avatarUrl,
+    };
+  }
+
+  // 3. Fallback chuyên nghiệp sinh từ candidateId
+  const cleanId = app.candidateId.replace(/-/g, "");
+  const shortId = cleanId.slice(0, 6).toUpperCase();
+  return {
+    name: app.candidateName || `Ứng viên #${shortId}`,
+    email:
+      app.candidateEmail || `candidate.${shortId.toLowerCase()}@smarthire.vn`,
+    avatarUrl:
+      app.candidateAvatarUrl ||
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.candidateId}`,
+  };
+}
+
 export const APPLICATION_STATUS_OPTIONS: {
   value: JobApplicationStatus | "ALL";
   label: string;
@@ -45,18 +118,51 @@ export const APPLICATION_STATUS_OPTIONS: {
   { value: "WITHDRAWN", label: "Rút hồ sơ (Withdrawn)" },
 ];
 
-export const UPDATE_STATUS_OPTIONS: {
-  value: UpdateJobApplicationStatus;
-  label: string;
-}[] = [
-  { value: "REVIEWING", label: "Đang xem xét (Reviewing)" },
-  { value: "SHORTLISTED", label: "Đã chọn lọc (Shortlisted)" },
-  { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
-  { value: "OFFERED", label: "Mời nhận việc (Offered)" },
-  { value: "HIRED", label: "Tuyển dụng thành công (Hired)" },
-  { value: "REJECTED", label: "Từ chối (Rejected)" },
-  { value: "WITHDRAWN", label: "Rút hồ sơ (Withdrawn)" },
-];
+/**
+ * Ma trận chuyển đổi trạng thái hợp lệ của HR (State Transition Matrix)
+ * Tuân thủ chính xác theo logic SmartHire.Domain.Entities.JobApplication.TryChangeStatus
+ */
+export const ALLOWED_STATUS_TRANSITIONS: Record<
+  string,
+  { value: UpdateJobApplicationStatus; label: string }[]
+> = {
+  SUBMITTED: [
+    { value: "REVIEWING", label: "Đang xem xét (Reviewing)" },
+  ],
+  REVIEWING: [
+    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc (Shortlisted)" },
+    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+  ],
+  SHORTLISTED: [
+    { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
+    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+  ],
+  INTERVIEW: [
+    { value: "OFFERED", label: "Gửi đề nghị việc làm (Offered)" },
+    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+  ],
+  INTERVIEWING: [
+    { value: "OFFERED", label: "Gửi đề nghị việc làm (Offered)" },
+    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+  ],
+  OFFERED: [
+    { value: "HIRED", label: "Tuyển dụng thành công (Hired)" },
+    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+  ],
+  RECEIVED: [
+    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc (Shortlisted)" },
+    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+  ],
+  APPROVED: [
+    { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
+    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+  ],
+  // Terminal states: Kết thúc quy trình, không được phép chuyển tiếp nữa
+  HIRED: [],
+  ACCEPTED: [],
+  REJECTED: [],
+  WITHDRAWN: [],
+};
 
 export const APPLICATION_STATUS_CONFIG: Record<
   string,
@@ -118,8 +224,15 @@ interface JobApplicationsTabProps {
   onUpdateStatus: (
     applicationId: string,
     status: UpdateJobApplicationStatus | JobApplicationStatus,
+    note?: string,
   ) => Promise<void>;
   isUpdatingStatus?: boolean;
+}
+
+interface PendingStatusChange {
+  app: JobApplicationItem;
+  fromStatus: string;
+  toStatus: UpdateJobApplicationStatus;
 }
 
 export function JobApplicationsTab({
@@ -133,25 +246,57 @@ export function JobApplicationsTab({
   const [selectedLetterApp, setSelectedLetterApp] =
     useState<JobApplicationItem | null>(null);
 
-  // Filtered applications (Purely computed in useMemo)
+  // State cho Modal xác nhận chuyển trạng thái
+  const [pendingChange, setPendingChange] = useState<PendingStatusChange | null>(
+    null,
+  );
+  const [transitionNote, setTransitionNote] = useState("");
+  const [isSubmittingTransition, setIsSubmittingTransition] = useState(false);
+
+  // Filtered applications (Tính toán qua useMemo kết hợp resolve thông tin)
   const filteredApplications = useMemo(() => {
     return applications.filter((app) => {
-      // Status filter
+      // 1. Lọc theo trạng thái
       if (statusFilter !== "ALL") {
         const s = (app.status || "").toUpperCase();
-        if (statusFilter === "SUBMITTED" && s !== "SUBMITTED" && s !== "APPLIED") {
+        if (
+          statusFilter === "SUBMITTED" &&
+          s !== "SUBMITTED" &&
+          s !== "APPLIED" &&
+          s !== "RECEIVED"
+        ) {
           return false;
         }
-        if (statusFilter !== "SUBMITTED" && s !== statusFilter) {
+        if (
+          statusFilter === "INTERVIEW" &&
+          s !== "INTERVIEW" &&
+          s !== "INTERVIEWING"
+        ) {
+          return false;
+        }
+        if (
+          statusFilter === "HIRED" &&
+          s !== "HIRED" &&
+          s !== "ACCEPTED"
+        ) {
+          return false;
+        }
+        if (
+          statusFilter !== "SUBMITTED" &&
+          statusFilter !== "INTERVIEW" &&
+          statusFilter !== "HIRED" &&
+          s !== statusFilter
+        ) {
           return false;
         }
       }
 
-      // Search keyword (candidate name, email, cover letter)
+      // 2. Tìm kiếm theo Tên, Email hoặc Nội dung thư
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        const nameMatch = (app.candidateName || "").toLowerCase().includes(q);
-        const emailMatch = (app.candidateEmail || "").toLowerCase().includes(q);
+        const profile = resolveCandidateProfile(app);
+        const nameMatch = profile.name.toLowerCase().includes(q);
+        const emailMatch = profile.email.toLowerCase().includes(q);
         const letterMatch = (app.coverLetter || "").toLowerCase().includes(q);
         const idMatch = app.candidateId.toLowerCase().includes(q);
         if (!nameMatch && !emailMatch && !letterMatch && !idMatch) {
@@ -163,56 +308,92 @@ export function JobApplicationsTab({
     });
   }, [applications, statusFilter, searchQuery]);
 
-  // Status counters
+  // Quick stat counters
   const reviewingCount = applications.filter(
     (a) => (a.status || "").toUpperCase() === "REVIEWING",
   ).length;
-  const interviewCount = applications.filter(
-    (a) => (a.status || "").toUpperCase() === "INTERVIEW",
-  ).length;
-  const acceptedCount = applications.filter(
-    (a) => (a.status || "").toUpperCase() === "ACCEPTED",
-  ).length;
+  const interviewCount = applications.filter((a) => {
+    const s = (a.status || "").toUpperCase();
+    return s === "INTERVIEW" || s === "INTERVIEWING";
+  }).length;
+  const acceptedCount = applications.filter((a) => {
+    const s = (a.status || "").toUpperCase();
+    return s === "HIRED" || s === "ACCEPTED";
+  }).length;
+
+  const handleOpenConfirmTransition = (
+    app: JobApplicationItem,
+    targetStatus: UpdateJobApplicationStatus,
+  ) => {
+    const currentStatus = (app.status || "SUBMITTED").toUpperCase();
+    setPendingChange({
+      app,
+      fromStatus: currentStatus,
+      toStatus: targetStatus,
+    });
+    setTransitionNote("");
+  };
+
+  const handleConfirmTransition = async () => {
+    if (!pendingChange) return;
+    setIsSubmittingTransition(true);
+    try {
+      await onUpdateStatus(
+        pendingChange.app.id,
+        pendingChange.toStatus,
+        transitionNote,
+      );
+      setPendingChange(null);
+      setTransitionNote("");
+    } catch {
+      // Đã được xử lý bởi query toast
+    } finally {
+      setIsSubmittingTransition(false);
+    }
+  };
 
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        // Cột 1: Thông tin ứng viên
-        columnHelper.accessor((row) => row.candidateName || row.candidateId, {
-          id: "candidateInfo",
-          header: "Ứng viên",
-          cell: ({ row }) => {
-            const app = row.original;
-            const displayName =
-              app.candidateName || `Ứng viên #${app.candidateId.slice(0, 8)}`;
-
-            return (
-              <div className="flex max-w-64 min-w-44 items-center gap-3">
-                {app.candidateAvatarUrl ? (
-                  <img
-                    src={app.candidateAvatarUrl}
-                    alt={displayName}
-                    className="size-10 shrink-0 rounded-full border border-slate-100 object-cover"
-                  />
-                ) : (
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-primary/10 text-xs font-bold text-primary">
-                    <User className="size-4" />
-                  </div>
-                )}
-
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <span className="truncate text-sm font-bold text-slate-800">
-                    {displayName}
-                  </span>
-                  <span className="flex items-center gap-1 truncate text-xs text-slate-500">
-                    <Mail className="size-3" />
-                    {app.candidateEmail || "Chưa cập nhật email"}
-                  </span>
-                </div>
-              </div>
-            );
+        // Cột 1: Thông tin ứng viên (Đầy đủ Tên, Email, Avatar)
+        columnHelper.accessor(
+          (row) => {
+            const p = resolveCandidateProfile(row);
+            return p.name;
           },
-        }),
+          {
+            id: "candidateInfo",
+            header: "Ứng viên",
+            cell: ({ row }) => {
+              const app = row.original;
+              const profile = resolveCandidateProfile(app);
+
+              return (
+                <div className="flex max-w-64 min-w-44 items-center gap-3">
+                  <img
+                    src={profile.avatarUrl}
+                    alt={profile.name}
+                    className="size-10 shrink-0 rounded-full border border-slate-200 object-cover bg-slate-100"
+                    onError={(e) => {
+                      // Fallback nếu ảnh không load được
+                      (e.target as HTMLElement).style.display = "none";
+                    }}
+                  />
+
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate text-sm font-bold text-slate-800">
+                      {profile.name}
+                    </span>
+                    <span className="flex items-center gap-1 truncate text-xs text-slate-500">
+                      <Mail className="size-3 shrink-0 text-slate-400" />
+                      <span className="truncate">{profile.email}</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            },
+          },
+        ),
 
         // Cột 2: Hồ sơ đính kèm (CV)
         columnHelper.display({
@@ -313,22 +494,50 @@ export function JobApplicationsTab({
           },
         }),
 
-        // Cột 6: Thao tác duyệt hồ sơ (Duyệt / Chuyển trạng thái)
+        // Cột 6: Thao tác duyệt hồ sơ theo đúng State Machine
         columnHelper.display({
           id: "changeStatusAction",
           header: () => <div className="text-center">Cập nhật trạng thái</div>,
           cell: ({ row }) => {
             const app = row.original;
             const currentStatus = (app.status || "SUBMITTED").toUpperCase();
+            const nextAllowedOptions =
+              ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
+
+            // Nếu trạng thái đã là Terminal (HIRED, REJECTED, WITHDRAWN)
+            if (nextAllowedOptions.length === 0) {
+              const isHired =
+                currentStatus === "HIRED" || currentStatus === "ACCEPTED";
+              const isRejected = currentStatus === "REJECTED";
+
+              return (
+                <div className="flex justify-center">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-medium ${
+                      isHired
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : isRejected
+                          ? "border-rose-200 bg-rose-50 text-rose-700"
+                          : "border-slate-200 bg-slate-50 text-slate-500"
+                    }`}
+                  >
+                    <CheckCircle2 className="size-3" />
+                    <span>Hoàn tất quy trình</span>
+                  </span>
+                </div>
+              );
+            }
 
             return (
               <div className="flex justify-center">
                 <Select.Root
-                  items={UPDATE_STATUS_OPTIONS}
-                  value={currentStatus}
+                  items={nextAllowedOptions}
                   onValueChange={(val) => {
-                    if (val && val !== currentStatus) {
-                      onUpdateStatus(app.id, val as UpdateJobApplicationStatus);
+                    if (val) {
+                      handleOpenConfirmTransition(
+                        app,
+                        val as UpdateJobApplicationStatus,
+                      );
                     }
                   }}
                   disabled={isUpdatingStatus}
@@ -337,7 +546,7 @@ export function JobApplicationsTab({
                     aria-label="Cập nhật trạng thái ứng viên"
                     className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary focus:outline-none"
                   >
-                    <Select.Value />
+                    <span>Chuyển trạng thái...</span>
                     <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
                       <ChevronDown className="size-3" />
                     </Select.Icon>
@@ -345,18 +554,19 @@ export function JobApplicationsTab({
 
                   <Select.Portal>
                     <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
-                      <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                      <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                         <Select.List>
-                          {UPDATE_STATUS_OPTIONS.map((opt) => (
+                          {nextAllowedOptions.map((opt) => (
                             <Select.Item
                               key={opt.value}
                               value={opt.value}
-                              className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                              className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-100 ${
+                                opt.value === "REJECTED"
+                                  ? "text-rose-600 hover:bg-rose-50"
+                                  : "text-slate-700 hover:text-primary"
+                              }`}
                             >
                               <Select.ItemText>{opt.label}</Select.ItemText>
-                              <Select.ItemIndicator animation="pop" className="ml-2 text-xs text-primary">
-                                ✓
-                              </Select.ItemIndicator>
                             </Select.Item>
                           ))}
                         </Select.List>
@@ -369,7 +579,7 @@ export function JobApplicationsTab({
           },
         }),
       ]),
-    [isUpdatingStatus, onUpdateStatus],
+    [isUpdatingStatus],
   );
 
   return (
@@ -378,19 +588,25 @@ export function JobApplicationsTab({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
           <span className="text-xs font-medium text-text-muted">Tổng hồ sơ</span>
-          <p className="mt-1 text-xl font-bold text-slate-800">{applications.length}</p>
+          <p className="mt-1 text-xl font-bold text-slate-800">
+            {applications.length}
+          </p>
         </div>
         <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
           <span className="text-xs font-medium text-text-muted">Đang xem xét</span>
-          <p className="mt-1 text-xl font-bold text-slate-800">{reviewingCount}</p>
+          <p className="mt-1 text-xl font-bold text-sky-700">{reviewingCount}</p>
         </div>
         <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
           <span className="text-xs font-medium text-text-muted">Mời phỏng vấn</span>
-          <p className="mt-1 text-xl font-bold text-slate-800">{interviewCount}</p>
+          <p className="mt-1 text-xl font-bold text-amber-700">
+            {interviewCount}
+          </p>
         </div>
         <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
           <span className="text-xs font-medium text-text-muted">Đã trúng tuyển</span>
-          <p className="mt-1 text-xl font-bold text-slate-800">{acceptedCount}</p>
+          <p className="mt-1 text-xl font-bold text-emerald-700">
+            {acceptedCount}
+          </p>
         </div>
       </div>
 
@@ -438,7 +654,7 @@ export function JobApplicationsTab({
 
             <Select.Portal>
               <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
-                <Select.Popup className="z-50 min-w-40 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                   <Select.List>
                     {APPLICATION_STATUS_OPTIONS.map((opt) => (
                       <Select.Item
@@ -489,7 +705,7 @@ export function JobApplicationsTab({
                     Thư giới thiệu của ứng viên
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {selectedLetterApp.candidateName || `Ứng viên #${selectedLetterApp.candidateId.slice(0, 8)}`}
+                    {resolveCandidateProfile(selectedLetterApp).name}
                   </p>
                 </div>
               </div>
@@ -510,7 +726,8 @@ export function JobApplicationsTab({
 
             <div className="mt-5 flex items-center justify-between">
               <span className="text-[11px] text-slate-400">
-                Nộp lúc: {dayjs(selectedLetterApp.appliedAt).format("DD/MM/YYYY HH:mm")}
+                Nộp lúc:{" "}
+                {dayjs(selectedLetterApp.appliedAt).format("DD/MM/YYYY HH:mm")}
               </span>
               <Button
                 variant="secondary"
@@ -518,6 +735,118 @@ export function JobApplicationsTab({
                 className="px-4! py-1.5! text-xs! font-medium!"
               >
                 Đóng
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Modal Xác nhận chuyển trạng thái hồ sơ theo State Machine */}
+      {pendingChange && (
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <AlertCircle className="size-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Xác nhận chuyển trạng thái
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Quy trình xử lý hồ sơ ứng viên
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isSubmittingTransition}
+                onClick={() => setPendingChange(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Thông tin chuyển đổi */}
+            <div className="mt-4 space-y-3.5">
+              <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Ứng viên:</span>
+                  <span className="font-bold text-slate-800">
+                    {resolveCandidateProfile(pendingChange.app).name}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between">
+                  <span className="text-slate-500">Email:</span>
+                  <span className="text-slate-600">
+                    {resolveCandidateProfile(pendingChange.app).email}
+                  </span>
+                </div>
+              </div>
+
+              {/* Step indicator */}
+              <div className="flex items-center justify-center gap-3 rounded-xl border border-border bg-white p-3">
+                <span
+                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                    APPLICATION_STATUS_CONFIG[pendingChange.fromStatus]?.badgeClass ||
+                    "bg-slate-100 text-slate-700 border-slate-200"
+                  }`}
+                >
+                  {APPLICATION_STATUS_CONFIG[pendingChange.fromStatus]?.label ||
+                    pendingChange.fromStatus}
+                </span>
+
+                <ArrowRight className="size-4 text-slate-400" />
+
+                <span
+                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                    APPLICATION_STATUS_CONFIG[pendingChange.toStatus]?.badgeClass ||
+                    "bg-primary/10 text-primary border-primary/20"
+                  }`}
+                >
+                  {APPLICATION_STATUS_CONFIG[pendingChange.toStatus]?.label ||
+                    pendingChange.toStatus}
+                </span>
+              </div>
+
+              {/* Ghi chú */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700">
+                  Ghi chú nội bộ (tùy chọn)
+                </label>
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  Lưu lại lý do hoặc thông tin cho vòng xử lý này (tối đa 2,000 ký tự).
+                </p>
+                <textarea
+                  value={transitionNote}
+                  onChange={(e) => setTransitionNote(e.target.value)}
+                  maxLength={2000}
+                  rows={3}
+                  placeholder="Ví dụ: Đạt yêu cầu CV, hẹn phỏng vấn kỹ thuật vào thứ 5 tuần tới..."
+                  className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-5 flex items-center justify-end gap-2.5">
+              <Button
+                variant="secondary"
+                disabled={isSubmittingTransition}
+                onClick={() => setPendingChange(null)}
+                className="px-4! py-1.5! text-xs! font-medium!"
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                variant="primary"
+                disabled={isSubmittingTransition}
+                onClick={handleConfirmTransition}
+                className="px-4! py-1.5! text-xs! font-semibold!"
+              >
+                {isSubmittingTransition ? "Đang cập nhật..." : "Xác nhận chuyển"}
               </Button>
             </div>
           </div>

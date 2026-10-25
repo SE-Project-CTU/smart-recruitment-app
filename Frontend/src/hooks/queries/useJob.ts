@@ -6,6 +6,7 @@ import type {
   SearchJobPostingsRequest,
   UpdateJobPostingPayload,
 } from "@/types";
+import { toast } from "../use-toast";
 
 /**
  * Hook Query: Danh sách tin tuyển dụng (API 5)
@@ -119,17 +120,26 @@ export const useUpdateApplicationStatus = (jobId?: string) => {
     mutationFn: ({
       applicationId,
       status,
+      note,
     }: {
       applicationId: string;
       status: JobApplicationStatus | string;
-    }) => jobService.updateApplicationStatus(applicationId, status),
+      note?: string;
+    }) => jobService.updateApplicationStatus(applicationId, status, note),
     onSuccess: () => {
       if (jobId) {
         queryClient.invalidateQueries({
           queryKey: ["job-postings", "applications", jobId],
         });
       }
+      toast.success({ description: "Cập nhật trạng thái hồ sơ thành công" });
+    },
+    onError: (err: unknown) => {
+      const message =
+        (err as { response?: { data?: { error?: { message?: string } } } })
+          ?.response?.data?.error?.message ||
+        "Cập nhật trạng thái hồ sơ thất bại";
+      toast.warning({ description: message });
     },
   });
 };
-
