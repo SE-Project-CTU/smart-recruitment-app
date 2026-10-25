@@ -36,6 +36,9 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     .Matches(EF.Functions.PlainToTsQuery("simple", criteria.Keyword)));
         }
         
+        if (criteria.CompanyId is Guid companyId)
+            query = query.Where(posting => posting.CompanyId == companyId);
+
         if (criteria.Company is not null) {
             query = query.Where(posting =>
                 EF.Property<NpgsqlTsVector>(posting.Company, "SearchVector")

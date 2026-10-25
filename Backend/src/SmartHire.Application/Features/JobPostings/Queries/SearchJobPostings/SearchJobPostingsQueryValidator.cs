@@ -13,6 +13,8 @@ internal static class SearchJobPostingsQueryValidator {
         var keyword = PagedListQueryValidator.NormalizeSearch(query.Keyword);
         var company = PagedListQueryValidator.NormalizeSearch(query.Company);
         
+        if (query.CompanyId == Guid.Empty)
+            details.Add(JobPostingValidator.Invalid("companyId", "Company ID must be a valid UUID."));
         if (query.SalaryMin is < 0)
             details.Add(JobPostingValidator.Invalid("salaryMin", "Salary minimum cannot be negative."));
         if (query.SalaryMax is < 0)
@@ -43,6 +45,7 @@ internal static class SearchJobPostingsQueryValidator {
         return new SearchJobPostingsCriteria(
             keyword,
             company,
+            query.CompanyId,
             query.SalaryMin,
             query.SalaryMax,
             query.ProvinceId,

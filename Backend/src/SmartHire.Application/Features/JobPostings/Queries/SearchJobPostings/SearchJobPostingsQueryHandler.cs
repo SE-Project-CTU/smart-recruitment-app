@@ -11,12 +11,15 @@ public sealed class SearchJobPostingsQueryHandler
     : IRequestHandler<SearchJobPostingsQuery, SearchJobPostingsPage> {
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly ILocationCatalogRepository _locationRepository;
+    private readonly ICompanyRepository _companyRepository;
     
     public SearchJobPostingsQueryHandler(
         IJobPostingRepository jobPostingRepository,
-        ILocationCatalogRepository locationRepository) {
+        ILocationCatalogRepository locationRepository,
+        ICompanyRepository companyRepository) {
         _jobPostingRepository = jobPostingRepository;
         _locationRepository = locationRepository;
+        _companyRepository = companyRepository;
     }
     
     public async Task<SearchJobPostingsPage> Handle(
@@ -24,6 +27,12 @@ public sealed class SearchJobPostingsQueryHandler
         CancellationToken cancellationToken) {
         var criteria = SearchJobPostingsQueryValidator.Validate(request);
         
+        if (criteria.CompanyId is Guid companyId) {
+            var company = await _companyRepository.GetByIdAsync(companyId, cancellationToken);
+            if (company is null)
+                throw JobPostingExceptions.CompanyNotFound();
+        }
+
         if (criteria.ProvinceId is Guid provinceId &&
             !await _locationRepository.IsActiveProvinceAsync(provinceId, cancellationToken))
             throw JobPostingExceptions.ProvinceNotFound();

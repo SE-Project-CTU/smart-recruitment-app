@@ -37,6 +37,7 @@ public sealed class JobPostingController : ControllerBase {
         var result = await _sender.Send(new SearchJobPostingsQuery(
             request.Keyword,
             request.Company,
+            request.CompanyId,
             request.SalaryMin,
             request.SalaryMax,
             request.ProvinceId,

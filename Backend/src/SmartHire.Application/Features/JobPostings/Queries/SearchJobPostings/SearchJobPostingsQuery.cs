@@ -8,6 +8,7 @@ namespace SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 public sealed record SearchJobPostingsQuery(
     string? Keyword,
     string? Company,
+    Guid? CompanyId,
     decimal? SalaryMin,
     decimal? SalaryMax,
     Guid? ProvinceId,
@@ -30,6 +31,7 @@ public sealed record SearchJobPostingsPage(
 public sealed record SearchJobPostingsCriteria(
     string? Keyword,
     string? Company,
+    Guid? CompanyId,
     decimal? SalaryMin,
     decimal? SalaryMax,
     Guid? ProvinceId,
