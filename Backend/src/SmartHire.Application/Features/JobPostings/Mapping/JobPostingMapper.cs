@@ -19,8 +19,8 @@ public class JobPostingMapper {
             ? string.Empty
             : ToApiValue(jobPosting.EducationLevel.Value),
         jobPosting.Vacancies,
-        ToApiWorkMode(jobPosting.JobType),
-        ToApiJobType(jobPosting.WorkMode),
+        ToApiWorkMode(jobPosting.WorkMode),
+        ToApiJobType(jobPosting.JobType),
         jobPosting.Description,
         jobPosting.Requirements,
         jobPosting.Benefits,
