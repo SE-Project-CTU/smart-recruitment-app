@@ -26,7 +26,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useProvinces } from "@/hooks/queries/useCatalog";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import {
   useJobApplications,
@@ -60,10 +59,10 @@ export function JobDetailPage() {
   const { data: myCompanies = [], isLoading: isLoadingCompanies } =
     useMyCompanies();
 
-  // Kiểm tra quyền: Tin tuyển dụng có thuộc công ty của Recruiter hay không
   const isMyCompany = useMemo(() => {
-    if (!job?.companyId || myCompanies.length === 0) return false;
-    return myCompanies.some((c) => c.id === job.companyId);
+    const targetCompanyId = job?.companyId || job?.company?.id;
+    if (!targetCompanyId || myCompanies.length === 0) return false;
+    return myCompanies.some((c) => c.id === targetCompanyId);
   }, [job, myCompanies]);
 
   const { data: appsResponse, isLoading: isLoadingApps } = useJobApplications(
@@ -71,18 +70,12 @@ export function JobDetailPage() {
     undefined,
     { enabled: Boolean(id) && isMyCompany },
   );
-  const { data: provinces = [] } = useProvinces();
 
   // 2. Mutations
   const updateJobStatusMutation = useUpdateJobPostingStatus();
   const updateAppStatusMutation = useUpdateApplicationStatus(id);
 
   // 3. Province name resolver
-  const provinceMap = useMemo(() => {
-    const map = new Map<string, string>();
-    provinces.forEach((p) => map.set(p.id, p.name));
-    return map;
-  }, [provinces]);
 
   const applications = useMemo(() => {
     return appsResponse?.items || [];
@@ -165,8 +158,7 @@ export function JobDetailPage() {
     ? "Thỏa thuận"
     : formatSalaryRange(job.salaryMin, job.salaryMax, false);
 
-  const provinceName =
-    provinceMap.get(job.provinceId) || job.province?.name || "Toàn quốc";
+  const provinceName = job.province?.name;
 
   const compName = job.company?.name || "Doanh nghiệp";
   const compLogo = job.company?.logoUrl || null;
@@ -260,9 +252,9 @@ export function JobDetailPage() {
 
               {/* Tên công ty có icon trỏ ra chi tiết */}
               <div className="flex items-center">
-                {job.companyId ? (
+                {job.companyId || job.company?.id ? (
                   <Link
-                    to={`/recruiter/company-management/${job.companyId}/overview`}
+                    to={`/recruiter/company-management/${job.companyId || job.company?.id}/overview`}
                     className="group inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
                   >
                     <span className="truncate">{compName}</span>

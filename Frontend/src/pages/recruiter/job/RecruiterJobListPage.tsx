@@ -97,7 +97,10 @@ export function RecruiterJobListPage() {
   const allJobs: JobPostingItem[] = useMemo(() => {
     const items = jobResponse?.items || [];
     if (myCompanyIds.size === 0) return [];
-    return items.filter((job) => myCompanyIds.has(job.companyId));
+    return items.filter((job) => {
+      const companyId = job.companyId || job.company?.id;
+      return companyId ? myCompanyIds.has(companyId) : false;
+    });
   }, [jobResponse, myCompanyIds]);
 
   // 6. Filter jobs (Purely derived in useMemo)
@@ -105,7 +108,8 @@ export function RecruiterJobListPage() {
     return allJobs.filter((job) => {
       // Company filter
       if (selectedCompanyId !== "ALL") {
-        if (job.companyId !== selectedCompanyId) return false;
+        const companyId = job.companyId || job.company?.id;
+        if (companyId !== selectedCompanyId) return false;
       }
 
       // Status filter

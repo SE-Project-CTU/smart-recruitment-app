@@ -68,7 +68,7 @@ export interface SearchJobPostingsRequest {
 
 export interface JobPostingItem {
   id: string;
-  companyId: string;
+  companyId?: string;
   companyName?: string;
   companyLogoUrl?: string | null;
   company?: {
@@ -77,9 +77,15 @@ export interface JobPostingItem {
     address?: string;
     logoUrl?: string | null;
   };
-  createdBy: string;
+  createdBy?: string;
+  creator?: {
+    id: string;
+    fullName: string;
+    email: string;
+    avatarUrl?: string | null;
+  };
   title: string;
-  provinceId: string;
+  provinceId?: string;
   province?: {
     id: string;
     name: string;
@@ -107,6 +113,10 @@ export interface JobPostingItem {
   deadline: string;
   status: JobPostingStatus | string;
   industryIds?: string[];
+  industries?: {
+    id: string;
+    name: string;
+  }[];
   skills?: {
     id: string;
     name: string;
@@ -181,10 +191,18 @@ export type UpdateJobApplicationStatus =
   | "REJECTED"
   | "WITHDRAWN";
 
+export interface CandidateItem {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string | null;
+}
+
 export interface JobApplicationItem {
   id: string;
   jobId: string;
-  candidateId: string;
+  candidateId?: string;
+  candidate?: CandidateItem;
   candidateName?: string;
   candidateEmail?: string;
   candidateAvatarUrl?: string;

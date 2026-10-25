@@ -100,11 +100,13 @@ export function JobPostingsTable({
           header: "Vị trí & Doanh nghiệp",
           cell: ({ row }) => {
             const job = row.original;
+            const companyId = job.companyId || job.company?.id || "";
             const logo =
               job.companyLogoUrl ||
-              (companyLogoMap ? companyLogoMap.get(job.companyId) : null);
+              job.company?.logoUrl ||
+              (companyLogoMap ? companyLogoMap.get(companyId) : null);
             const provinceName =
-              provinceMap.get(job.provinceId) ||
+              (job.provinceId ? provinceMap.get(job.provinceId) : null) ||
               job.province?.name ||
               "Toàn quốc";
 

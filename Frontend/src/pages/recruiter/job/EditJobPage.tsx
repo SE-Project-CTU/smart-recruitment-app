@@ -86,7 +86,7 @@ const initialEditState = (job: JobPostingItem): EditJobFormState => ({
   salaryMax: job.salaryMax != null ? String(job.salaryMax) : "",
   salaryNegotiable: Boolean(job.salaryNegotiable),
   deadline: job.deadline ? dayjs(job.deadline).format("YYYY-MM-DD") : "",
-  industryIds: job.industryIds || [],
+  industryIds: job.industryIds || job.industries?.map((i) => i.id) || [],
   skillIds: job.skillIds || job.skills?.map((s) => s.id) || [],
 });
 
@@ -680,8 +680,9 @@ export function EditJobPage() {
   const { data: myCompanies = [], isLoading: isLoadingCompanies } = useMyCompanies();
 
   const selectedCompany = useMemo(() => {
-    if (!job?.companyId || myCompanies.length === 0) return undefined;
-    return myCompanies.find((c) => c.id === job.companyId);
+    const targetCompanyId = job?.companyId || job?.company?.id;
+    if (!targetCompanyId || myCompanies.length === 0) return undefined;
+    return myCompanies.find((c) => c.id === targetCompanyId);
   }, [job, myCompanies]);
 
   const isMyCompany = Boolean(selectedCompany);

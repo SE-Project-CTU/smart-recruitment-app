@@ -34,72 +34,50 @@ const columnHelper =
   createColumnHelper<DataTableFeatures, JobApplicationItem>();
 
 /**
- * Danh mục hồ sơ ứng viên đã biết / seed data trong hệ thống
+ * Thông tin ứng viên sau khi resolve từ dữ liệu thực tế
  */
 export interface CandidateResolvedProfile {
   name: string;
   email: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
+  initials: string;
 }
 
-export const KNOWN_CANDIDATES: Record<string, CandidateResolvedProfile> = {
-  "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a": {
-    name: "Nguyễn Văn An",
-    email: "nguyenvanan@gmail.com",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-  },
-  "c8b2f7a1-3c2e-4a7c-a8e1-3d3dc0be8d91": {
-    name: "Trần Minh Đức",
-    email: "minhduc.tran@gmail.com",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-  },
-  "e2c5a5c7-3658-442d-87c1-cf8ff34d2d8b": {
-    name: "Lê Hoàng Yến",
-    email: "hoangyen.le@gmail.com",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-  },
-};
-
 /**
- * Resolver khôi phục và đảm bảo luôn có Tên, Email, Avatar của ứng viên
+ * Resolver lấy thông tin Tên, Email, Avatar của ứng viên từ API backend
  */
 export function resolveCandidateProfile(
   app: JobApplicationItem,
 ): CandidateResolvedProfile {
-  // 1. Nếu API đã trả về trực tiếp
-  if (app.candidateName && app.candidateEmail) {
-    return {
-      name: app.candidateName,
-      email: app.candidateEmail,
-      avatarUrl:
-        app.candidateAvatarUrl ||
-        `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.candidateId}`,
-    };
-  }
+  // 1. Lấy trực tiếp từ object candidate (backend mới: { id, fullName, email, avatarUrl })
+  const name =
+    app.candidate?.fullName ||
+    app.candidateName ||
+    "Ứng viên";
 
-  // 2. Tra cứu seed profile đã biết
-  const known = KNOWN_CANDIDATES[app.candidateId];
-  if (known) {
-    return {
-      name: app.candidateName || known.name,
-      email: app.candidateEmail || known.email,
-      avatarUrl: app.candidateAvatarUrl || known.avatarUrl,
-    };
-  }
+  const email =
+    app.candidate?.email ||
+    app.candidateEmail ||
+    "Chưa cập nhật email";
 
-  // 3. Fallback chuyên nghiệp sinh từ candidateId
-  const cleanId = app.candidateId.replace(/-/g, "");
-  const shortId = cleanId.slice(0, 6).toUpperCase();
+  const avatarUrl =
+    app.candidate?.avatarUrl ||
+    app.candidateAvatarUrl ||
+    null;
+
+  const initials =
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(-2)
+      .map((w) => w[0].toUpperCase())
+      .join("") || "UV";
+
   return {
-    name: app.candidateName || `Ứng viên #${shortId}`,
-    email:
-      app.candidateEmail || `candidate.${shortId.toLowerCase()}@smarthire.vn`,
-    avatarUrl:
-      app.candidateAvatarUrl ||
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.candidateId}`,
+    name,
+    email,
+    avatarUrl,
+    initials,
   };
 }
 
@@ -298,7 +276,8 @@ export function JobApplicationsTab({
         const nameMatch = profile.name.toLowerCase().includes(q);
         const emailMatch = profile.email.toLowerCase().includes(q);
         const letterMatch = (app.coverLetter || "").toLowerCase().includes(q);
-        const idMatch = app.candidateId.toLowerCase().includes(q);
+        const candidateId = app.candidate?.id || app.candidateId || "";
+        const idMatch = candidateId.toLowerCase().includes(q);
         if (!nameMatch && !emailMatch && !letterMatch && !idMatch) {
           return false;
         }
@@ -370,15 +349,21 @@ export function JobApplicationsTab({
 
               return (
                 <div className="flex max-w-64 min-w-44 items-center gap-3">
-                  <img
-                    src={profile.avatarUrl}
-                    alt={profile.name}
-                    className="size-10 shrink-0 rounded-full border border-slate-200 object-cover bg-slate-100"
-                    onError={(e) => {
-                      // Fallback nếu ảnh không load được
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
-                  />
+                  {profile.avatarUrl ? (
+                    <img
+                      src={profile.avatarUrl}
+                      alt={profile.name}
+                      className="size-10 shrink-0 rounded-full border border-slate-200 object-cover bg-slate-100"
+                      onError={(e) => {
+                        // Fallback nếu ảnh không load được
+                        (e.target as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary border border-primary/20">
+                      {profile.initials}
+                    </div>
+                  )}
 
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="truncate text-sm font-bold text-slate-800">
