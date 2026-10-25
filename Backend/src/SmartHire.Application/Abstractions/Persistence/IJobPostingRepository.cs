@@ -1,4 +1,5 @@
 using SmartHire.Domain.Entities;
+using SmartHire.Domain.Enums;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 
@@ -21,4 +22,12 @@ public interface IJobPostingRepository
     Task<Guid?> GetCompanyIdByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<JobPosting>> GetPublishedOverduePostingsAsync(DateTimeOffset now, CancellationToken cancellationToken);
+
+    Task<(IReadOnlyList<CompanyJobPostingData> Items, int TotalCount)> GetByCompanyIdPagedAsync(
+        Guid companyId,
+        JobPostingStatus? status,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
 }

@@ -185,6 +185,74 @@ public sealed class JobPostingRepository : IJobPostingRepository {
             .ToListAsync(cancellationToken);
     }
     
+    
+        public async Task<(IReadOnlyList<CompanyJobPostingData> Items, int TotalCount)> GetByCompanyIdPagedAsync(
+        Guid companyId,
+        JobPostingStatus? status,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.JobPostings
+            .AsNoTracking()
+            .Where(posting => posting.CompanyId == companyId);
+
+        if (status.HasValue) {
+            query = query.Where(posting => posting.Status == status.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var trimmed = search.Trim();
+            query = query.Where(posting => EF.Functions.ILike(posting.Title, $"%{trimmed}%"));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var skip = Math.Max(0, (page - 1) * pageSize);
+        var items = await query
+            .OrderByDescending(posting => posting.CreatedAt)
+            .ThenBy(posting => posting.Id)
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(posting => new CompanyJobPostingData(
+                posting.Id,
+                posting.Title,
+                new CompanyJobPostingCompanyData(
+                    posting.Company.Id,
+                    posting.Company.Name),
+                new CompanyJobPostingCreatorData(
+                    posting.CreatedByMembership.User.Id,
+                    posting.CreatedByMembership.User.FullName,
+                    posting.CreatedByMembership.User.Email,
+                    posting.CreatedByMembership.User.AvatarFile != null
+                        ? posting.CreatedByMembership.User.AvatarFile.FileUrl
+                        : null),
+                new CompanyJobPostingProvinceData(
+                    posting.Province.Id,
+                    posting.Province.Name),
+                posting.Ward != null
+                    ? new CompanyJobPostingWardData(posting.Ward.Id, posting.Ward.Name)
+                    : null,
+                posting.DetailedLocation,
+                posting.ExperienceYears,
+                posting.JobLevel,
+                posting.EducationLevel,
+                posting.Vacancies,
+                posting.WorkMode,
+                posting.JobType,
+                posting.SalaryMin,
+                posting.SalaryMax,
+                posting.SalaryNegotiable,
+                posting.Deadline,
+                posting.Status,
+                posting.Applications.Count(),
+                posting.CreatedAt,
+                posting.UpdatedAt))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         SearchJobPostingsSort sort,
