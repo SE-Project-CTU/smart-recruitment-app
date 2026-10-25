@@ -18,6 +18,7 @@ import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
 import CVBuilder from "@/pages/CVBuilder";
+import CVBuilderDraft from "@/pages/CVBuilder_Draft";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: PATHS.CREATE_CV,
         element: <CVBuilder />,
+      },
+      {
+        path: "/create-cv-draft",
+        element: <CVBuilderDraft />,
       },
     ]
   },
