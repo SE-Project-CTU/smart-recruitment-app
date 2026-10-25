@@ -38,6 +38,16 @@ const router = createBrowserRouter([
     ],
   },
 
+  {
+    element: <PublicOnlyRoute />,
+    children: [
+      {
+        path: PATHS.CREATE_CV,
+        element: <CVBuilder />,
+      },
+    ]
+  },
+
   //CANDIDATE ROUTES
   {
     element: <ProtectedRoute allowRoles={["candidate"]} />,
@@ -138,15 +148,15 @@ const router = createBrowserRouter([
     ],
   },
 
-  {
-    element: <ProtectedRoute />,
-    children: [
-      {
-        path: PATHS.CREATE_CV,
-        element: <Page title="Trình tạo CV (Full Screen)" />,
-      },
-    ],
-  },
+  // {
+  //   element: <ProtectedRoute />,
+  //   children: [
+  //     {
+  //       path: PATHS.CREATE_CV,
+  //       element: <CVBuilder />,
+  //     },
+  //   ],
+  // },
 
   {
     path: PATHS.FORBIDDEN,

@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { ModernTwoColumnTemplate } from "@/components/pages/cv-builder/templates/ModernTwoColumn";
+import { MOCK_CV_DETAIL } from "@/constants/mockCvData";
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -279,6 +281,7 @@ const CVSectionEditor: React.FC<SectionEditorProps> = ({
 // ==========================================
 export default function CVBuilder() {
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<"editor" | "preview-template">("preview-template");
   const [activeEditor, setActiveEditor] = useState<Editor | null>(null);
 
   const [profile, setProfile] = useState({
@@ -412,6 +415,22 @@ export default function CVBuilder() {
               <span className="rounded-full bg-secondary-light px-2.5 py-0.5 text-xs font-medium text-primary">
                 CV Studio
               </span>
+              <div className="ml-4 flex items-center rounded-lg border border-border bg-bg p-0.5 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("preview-template")}
+                  className={`rounded-md px-3 py-1 transition-all ${viewMode === "preview-template" ? "bg-primary text-white shadow-xs" : "text-text-muted hover:text-text-main"}`}
+                >
+                  Template Mẫu (Mock Data)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("editor")}
+                  className={`rounded-md px-3 py-1 transition-all ${viewMode === "editor" ? "bg-primary text-white shadow-xs" : "text-text-muted hover:text-text-main"}`}
+                >
+                  Trình soạn thảo tự do (Hiện tại)
+                </button>
+              </div>
             </div>
             <p className="text-xs text-text-muted">
               {isCompleted
@@ -624,6 +643,18 @@ export default function CVBuilder() {
 
       {/* ================= WORKSPACE: TỜ GIẤY A4 LIÊN TỤC ================= */}
       <main className="flex flex-1 justify-center overflow-x-auto px-4 py-8">
+        {viewMode === "preview-template" ? (
+          <div className="w-full max-w-[850px]">
+            <div className="mb-4 flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-primary">
+              <div>
+                <span className="font-bold">Đang hiển thị Template: </span>
+                {MOCK_CV_DETAIL.template.name} ({MOCK_CV_DETAIL.template.code})
+              </div>
+              <span className="text-text-muted">Dữ liệu từ: <code>mockCvData.ts</code></span>
+            </div>
+            <ModernTwoColumnTemplate data={MOCK_CV_DETAIL} />
+          </div>
+        ) : (
         <div
           ref={cvPrintRef}
           style={{ fontFamily: presentation.fontFamily }}
@@ -781,6 +812,7 @@ export default function CVBuilder() {
             </Droppable>
           </DragDropContext>
         </div>
+              )}
       </main>
     </div>
   );
