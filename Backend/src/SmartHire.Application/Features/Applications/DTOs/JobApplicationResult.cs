@@ -3,7 +3,7 @@ namespace SmartHire.Application.Features.Applications.DTOs;
 public sealed record JobApplicationResult(
     Guid Id,
     Guid JobId,
-    Guid CandidateId,
+    ApplicationCandidateResult Candidate,
     Guid? CvVersionId,
     string? UploadedCvUrl,
     string CoverLetter,

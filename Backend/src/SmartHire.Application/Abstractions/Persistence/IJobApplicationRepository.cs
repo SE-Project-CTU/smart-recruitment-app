@@ -12,7 +12,7 @@ public interface IJobApplicationRepository {
     Task<bool> IsUploadedCvFileInUseAsync(Guid fileId, CancellationToken cancellationToken);
     Task AddAsync(JobApplication application, CancellationToken cancellationToken);
     Task<int> CountMineAsync(Guid candidateId, ApplicationStatus? status, CancellationToken cancellationToken);
-    Task<List<ApplicationListItemData>> GetMinePageAsync(
+    Task<List<MyApplicationListItemData>> GetMinePageAsync(
         Guid candidateId,
         ApplicationStatus? status,
         MyApplicationsSort sort,
@@ -29,7 +29,7 @@ public interface IJobApplicationRepository {
         int pageSize,
         CancellationToken cancellationToken);
     Task<JobApplication?> GetForStatusUpdateByIdAsync(Guid applicationId, CancellationToken cancellationToken);
-    Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
+    Task<List<JobApplicationListItemData>> GetPageByJobIdAsync(
         Guid jobId,
         ApplicationStatus? status,
         JobApplicationsSort sort,

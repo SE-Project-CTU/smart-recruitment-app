@@ -20,6 +20,7 @@ using SmartHire.Application.Features.Companies.Queries.GetCompanyDetail;
 using SmartHire.Application.Features.Companies.Queries.ListCompanies;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyFollowers;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyMembers;
+using SmartHire.Application.Features.Companies.Queries.ListCompanyJobPostings;
 using SmartHire.Application.Features.Companies.Queries.ListJoinRequests;
 using SmartHire.Application.Features.Companies.Queries.ListMyInvitations;
 using SmartHire.Domain.Enums;
@@ -152,6 +153,25 @@ public sealed class CompanyController : ControllerBase {
         CancellationToken cancellationToken = default) {
         var (items, totalCount) = await _sender.Send(
             new ListCompanyMembersQuery(id, page, pageSize, status),
+            cancellationToken);
+
+        return Ok(_responseFactory.Paged(items, page, pageSize, totalCount));
+    }
+
+/// <summary>
+    /// Lấy tất cả tin tuyển dụng của công ty (dành cho Recruiter là thành viên công ty)
+    /// </summary>
+    [HttpGet("{id}/job-postings")]
+    [Authorize(Roles = RoleNames.Recruiter)]
+    public async Task<IActionResult> ListCompanyJobPostings(
+        [FromRoute] Guid id,
+        [FromQuery] string? status,
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default) {
+        var (items, totalCount) = await _sender.Send(
+            new ListCompanyJobPostingsQuery(id, status, search, page, pageSize),
             cancellationToken);
 
         return Ok(_responseFactory.Paged(items, page, pageSize, totalCount));

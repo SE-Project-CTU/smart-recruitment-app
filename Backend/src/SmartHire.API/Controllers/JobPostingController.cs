@@ -1,3 +1,4 @@
+using SmartHire.Application.Common.Pagination;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ using SmartHire.Application.Features.JobPostings.Queries.GetJobPostingDetail;
 using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 using SmartHire.Application.Features.Applications.Commands.ApplyToJobPosting;
 using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
+using SmartHire.Application.Features.JobPostings.DTOs;
 
 namespace SmartHire.Api.Controllers;
 
@@ -32,23 +34,29 @@ public sealed class JobPostingController : ControllerBase {
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> Search(
-        [FromQuery] SearchJobPostingsRequest request,
+        [FromQuery] JobPostingFilterRequest filter,
+        [FromQuery] JobPostingSortRequest sort,
+        [FromQuery] PaginationRequest pagination,
         CancellationToken cancellationToken) {
         var result = await _sender.Send(new SearchJobPostingsQuery(
-            request.Keyword,
-            request.Company,
-            request.SalaryMin,
-            request.SalaryMax,
-            request.ProvinceId,
-            request.WardId,
-            request.JobLevel,
-            request.JobType,
-            request.WorkMode,
-            request.ExperienceYears,
-            request.Sort,
-            request.Direction,
-            request.Page,
-            request.PageSize), cancellationToken);
+            new JobPostingSearchFilter(
+                filter.Keyword,
+                filter.Company,
+                filter.CompanyId,
+                filter.SalaryMin,
+                filter.SalaryMax,
+                filter.ProvinceId,
+                filter.WardId,
+                filter.JobLevel,
+                filter.JobType,
+                filter.WorkMode,
+                filter.ExperienceYears),
+            new JobPostingSearchSort(
+                sort.Sort,
+                sort.Direction),
+            new PaginationParams(
+                pagination.Page,
+                pagination.PageSize)), cancellationToken);
 
         return Ok(_responseFactory.PagedOneBased(
             result.Items,

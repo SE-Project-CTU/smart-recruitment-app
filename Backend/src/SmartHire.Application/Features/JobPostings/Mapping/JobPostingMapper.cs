@@ -1,4 +1,4 @@
-﻿using SmartHire.Application.Features.JobPostings.DTOs;
+using SmartHire.Application.Features.JobPostings.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -19,8 +19,8 @@ public class JobPostingMapper {
             ? string.Empty
             : ToApiValue(jobPosting.EducationLevel.Value),
         jobPosting.Vacancies,
-        ToApiWorkMode(jobPosting.JobType),
-        ToApiJobType(jobPosting.WorkMode),
+        ToApiWorkMode(jobPosting.WorkMode),
+        ToApiJobType(jobPosting.JobType),
         jobPosting.Description,
         jobPosting.Requirements,
         jobPosting.Benefits,
@@ -34,19 +34,19 @@ public class JobPostingMapper {
         jobPosting.CreatedAt,
         jobPosting.UpdatedAt);
     
-    private static string ToApiWorkMode(JobType value) => value switch {
+    private static string ToApiWorkMode(WorkMode value) => value switch {
+        WorkMode.Remote => "REMOTE",
+        WorkMode.Onsite => "ON_SITE",
+        WorkMode.Hybrid => "HYBRID",
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+    };
+    
+    private static string ToApiJobType(JobType value) => value switch {
         JobType.FullTime => "FULL_TIME",
         JobType.PartTime => "PART_TIME",
         JobType.Contract => "CONTRACT",
         JobType.Internship => "INTERNSHIP",
         JobType.Freelance => "FREELANCE",
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-    };
-    
-    private static string ToApiJobType(WorkMode value) => value switch {
-        WorkMode.Remote => "REMOTE",
-        WorkMode.Onsite => "ON_SITE",
-        WorkMode.Hybrid => "HYBRID",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
     };
     
