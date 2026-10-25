@@ -31,18 +31,25 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                               (posting.Deadline == null || posting.Deadline > criteria.Now));
         
         if (criteria.Filter.Keyword is not null) {
+            var keyword = criteria.Filter.Keyword.Trim();
             query = query.Where(posting =>
                 EF.Property<NpgsqlTsVector>(posting, "SearchVector")
-                    .Matches(EF.Functions.PlainToTsQuery("simple", criteria.Filter.Keyword)));
+                    .Matches(EF.Functions.PlainToTsQuery("simple", keyword))
+                || EF.Functions.ILike(posting.Title, $"%{keyword}%")
+                || EF.Functions.TrigramsWordSimilarity(keyword, posting.Title) > 0.4
+            );
         }
         
         if (criteria.Filter.CompanyId is Guid companyId)
             query = query.Where(posting => posting.CompanyId == companyId);
-
+        
         if (criteria.Filter.Company is not null) {
+            var company = criteria.Filter.Company.Trim();
             query = query.Where(posting =>
                 EF.Property<NpgsqlTsVector>(posting.Company, "SearchVector")
-                    .Matches(EF.Functions.PlainToTsQuery("simple", criteria.Filter.Company)));
+                    .Matches(EF.Functions.PlainToTsQuery("simple", company))
+                || EF.Functions.ILike(posting.Company.Name, $"%{company}%")
+                || EF.Functions.TrigramsWordSimilarity(company, posting.Company.Name) > 0.4);
         }
         
         if (criteria.Filter.ProvinceId is Guid provinceId)
@@ -73,7 +80,6 @@ public sealed class JobPostingRepository : IJobPostingRepository {
         var items = await ordered
             .Skip(criteria.Pagination.Skip)
             .Take(criteria.Pagination.PageSize)
-            
             .Select(posting => new JobPostingSearchData(
                 posting.Id,
                 new SearchJobCompanySummaryData(
@@ -189,7 +195,7 @@ public sealed class JobPostingRepository : IJobPostingRepository {
     }
     
     
-        public async Task<(IReadOnlyList<CompanyJobPostingData> Items, int TotalCount)> GetByCompanyIdPagedAsync(
+    public async Task<(IReadOnlyList<CompanyJobPostingData> Items, int TotalCount)> GetByCompanyIdPagedAsync(
         Guid companyId,
         JobPostingStatus? status,
         string? search,
@@ -199,18 +205,18 @@ public sealed class JobPostingRepository : IJobPostingRepository {
         var query = _dbContext.JobPostings
             .AsNoTracking()
             .Where(posting => posting.CompanyId == companyId);
-
+        
         if (status.HasValue) {
             query = query.Where(posting => posting.Status == status.Value);
         }
-
+        
         if (!string.IsNullOrWhiteSpace(search)) {
             var trimmed = search.Trim();
             query = query.Where(posting => EF.Functions.ILike(posting.Title, $"%{trimmed}%"));
         }
-
+        
         var totalCount = await query.CountAsync(cancellationToken);
-
+        
         var skip = Math.Max(0, (page - 1) * pageSize);
         var items = await query
             .OrderByDescending(posting => posting.CreatedAt)
@@ -252,10 +258,10 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                 posting.CreatedAt,
                 posting.UpdatedAt))
             .ToListAsync(cancellationToken);
-
+        
         return (items, totalCount);
     }
-
+    
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         JobPostingSortField sort,
