@@ -8,17 +8,20 @@ public static class JobPostingDetailMapper
 {
     public static JobPostingDetailResult ToDetailResult(JobPostingDetailData data, DateTimeOffset now) => new(
         data.Id,
-        data.Company.Id,
+        data.Title,
+        data.Description,
+        data.Requirements,
+        data.Benefits,
         new CompanySummary(
             data.Company.Id,
             data.Company.Name,
             data.Company.Address,
             data.Company.LogoUrl),
-        data.CreatedBy,
-        data.Title,
-        data.Description,
-        data.Requirements,
-        data.Benefits,
+        new JobPostingCreatorResult(
+            data.Creator.Id,
+            data.Creator.FullName,
+            data.Creator.Email,
+            data.Creator.AvatarUrl),
         new ProvinceSummary(data.Location.ProvinceId, data.Location.ProvinceName),
         data.Location.WardId is Guid wardId
             ? new WardSummary(wardId, data.Location.WardName!)
@@ -28,14 +31,14 @@ public static class JobPostingDetailMapper
         data.JobLevel is null ? null : ToApiValue(data.JobLevel.Value),
         data.EducationLevel is null ? null : ToApiValue(data.EducationLevel.Value),
         data.Vacancies,
-        ToApiWorkMode(data.JobType),
-        ToApiJobType(data.WorkMode),
+        ToApiWorkMode(data.WorkMode),
+        ToApiJobType(data.JobType),
         data.SalaryMin,
         data.SalaryMax,
         data.SalaryNegotiable,
         data.Deadline,
         MapStatus(data.Status),
-        data.IndustryIds,
+        data.Industries.Select(i => new IndustrySummary(i.Id, i.Name)).ToArray(),
         data.Skills.Select(s => new SkillSummary(s.Id, s.Name)).ToArray(),
         data.CreatedAt,
         data.UpdatedAt);
@@ -48,19 +51,19 @@ public static class JobPostingDetailMapper
         _ => ToApiValue(status)
     };
 
-    private static string ToApiWorkMode(JobType value) => value switch {
+    private static string ToApiWorkMode(WorkMode value) => value switch {
+        WorkMode.Remote => "REMOTE",
+        WorkMode.Onsite => "ON_SITE",
+        WorkMode.Hybrid => "HYBRID",
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+    };
+
+    private static string ToApiJobType(JobType value) => value switch {
         JobType.FullTime => "FULL_TIME",
         JobType.PartTime => "PART_TIME",
         JobType.Contract => "CONTRACT",
         JobType.Internship => "INTERNSHIP",
         JobType.Freelance => "FREELANCE",
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-    };
-
-    private static string ToApiJobType(WorkMode value) => value switch {
-        WorkMode.Remote => "REMOTE",
-        WorkMode.Onsite => "ON_SITE",
-        WorkMode.Hybrid => "HYBRID",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
     };
 

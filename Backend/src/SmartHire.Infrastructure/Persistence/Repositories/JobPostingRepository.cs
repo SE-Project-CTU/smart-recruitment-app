@@ -85,7 +85,7 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                 new SearchJobCompanySummaryData(
                     posting.Company.Id,
                     posting.Company.Name,
-                    posting.Company.LogoFile.FileUrl),
+                    posting.Company.LogoFile != null ? posting.Company.LogoFile.FileUrl : null),
                 posting.Title,
                 posting.ProvinceId,
                 posting.WardId,
@@ -105,61 +105,55 @@ public sealed class JobPostingRepository : IJobPostingRepository {
     }
     
     public async Task<JobPostingDetailData?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken) {
-        // Use AsSplitQuery to avoid Cartesian explosion from the two independent collections
-        // (JobIndustries and JobSkills). EF Core issues separate queries per collection.
-        var posting = await _dbContext.JobPostings
+        return await _dbContext.JobPostings
             .AsNoTracking()
             .AsSplitQuery()
-            .Include(p => p.Company)
-            .ThenInclude(c => c.LogoFile)
-            .Include(p => p.Province)
-            .Include(p => p.Ward)
-            .Include(p => p.JobIndustries)
-            .Include(p => p.JobSkills)
-            .ThenInclude(js => js.Skill)
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-        
-        if (posting is null)
-            return null;
-        
-        var company = new CompanyReadModel(
-            posting.Company.Id,
-            posting.Company.Name,
-            posting.Company.VerificationStatus,
-            posting.Company.Address,
-            posting.Company.LogoFile?.FileUrl);
-        
-        var location = new LocationReadModel(
-            posting.ProvinceId,
-            posting.Province.Name,
-            posting.WardId,
-            posting.Ward?.Name,
-            posting.DetailedLocation);
-        
-        return new JobPostingDetailData(
-            posting.Id,
-            posting.CreatedBy,
-            posting.Title,
-            posting.Description,
-            posting.Requirements,
-            string.IsNullOrEmpty(posting.Benefits) ? null : posting.Benefits,
-            posting.ExperienceYears,
-            posting.JobLevel,
-            posting.EducationLevel,
-            posting.Vacancies,
-            posting.WorkMode,
-            posting.JobType,
-            posting.SalaryMin,
-            posting.SalaryMax,
-            posting.SalaryNegotiable,
-            posting.Deadline,
-            posting.Status,
-            company,
-            location,
-            posting.JobIndustries.Select(ji => ji.IndustryId).ToArray(),
-            posting.JobSkills.Select(js => new SkillReadModel(js.Skill.Id, js.Skill.Name)).ToArray(),
-            posting.CreatedAt,
-            posting.UpdatedAt);
+            .Where(p => p.Id == id)
+            .Select(posting => new JobPostingDetailData(
+                posting.Id,
+                new CreatorReadModel(
+                    posting.CreatedByMembership.User.Id,
+                    posting.CreatedByMembership.User.FullName,
+                    posting.CreatedByMembership.User.Email,
+                    posting.CreatedByMembership.User.AvatarFile != null
+                        ? posting.CreatedByMembership.User.AvatarFile.FileUrl
+                        : null),
+                posting.Title,
+                posting.Description,
+                posting.Requirements,
+                posting.Benefits,
+                posting.ExperienceYears,
+                posting.JobLevel,
+                posting.EducationLevel,
+                posting.Vacancies,
+                posting.WorkMode,
+                posting.JobType,
+                posting.SalaryMin,
+                posting.SalaryMax,
+                posting.SalaryNegotiable,
+                posting.Deadline,
+                posting.Status,
+                new CompanyReadModel(
+                    posting.Company.Id,
+                    posting.Company.Name,
+                    posting.Company.VerificationStatus,
+                    posting.Company.Address,
+                    posting.Company.LogoFile != null ? posting.Company.LogoFile.FileUrl : null),
+                new LocationReadModel(
+                    posting.ProvinceId,
+                    posting.Province.Name,
+                    posting.WardId,
+                    posting.Ward != null ? posting.Ward.Name : null,
+                    posting.DetailedLocation),
+                posting.JobIndustries
+                    .Select(ji => new IndustryReadModel(ji.Industry.Id, ji.Industry.Name))
+                    .ToList(),
+                posting.JobSkills
+                    .Select(js => new SkillReadModel(js.Skill.Id, js.Skill.Name))
+                    .ToList(),
+                posting.CreatedAt,
+                posting.UpdatedAt))
+            .FirstOrDefaultAsync(cancellationToken);
     }
     
     public async Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken) {
