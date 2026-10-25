@@ -31,7 +31,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         CancellationToken cancellationToken) =>
         ApplyMineFilters(candidateId, status).CountAsync(cancellationToken);
 
-    public Task<List<ApplicationListItemData>> GetMinePageAsync(
+    public Task<List<MyApplicationListItemData>> GetMinePageAsync(
         Guid candidateId,
         ApplicationStatus? status,
         MyApplicationsSort sort,
@@ -55,10 +55,9 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         return ordered
             .Skip(skip)
             .Take(pageSize)
-            .Select(application => new ApplicationListItemData(
+            .Select(application => new MyApplicationListItemData(
                 application.Id,
                 application.JobId,
-                application.CandidateId,
                 application.CvVersionId,
                 application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
                 application.CoverLetter,
@@ -91,7 +90,11 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
             .Select(application => new ApplicationDetailData(
                 application.Id,
                 application.JobId,
-                application.CandidateId,
+                new ApplicationCandidateData(
+                    application.Candidate.Id,
+                    application.Candidate.FullName,
+                    application.Candidate.Email,
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
                 application.Job.CompanyId,
                 application.CvVersionId,
                 application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
@@ -137,7 +140,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
             .Include(application => application.UploadedCvFile)
             .SingleOrDefaultAsync(application => application.Id == applicationId, cancellationToken);
 
-    public Task<List<ApplicationListItemData>> GetPageByJobIdAsync(
+    public Task<List<JobApplicationListItemData>> GetPageByJobIdAsync(
         Guid jobId,
         ApplicationStatus? status,
         JobApplicationsSort sort,
@@ -157,10 +160,14 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         return ordered
             .Skip(skip)
             .Take(pageSize)
-            .Select(application => new ApplicationListItemData(
+            .Select(application => new JobApplicationListItemData(
                 application.Id,
                 application.JobId,
-                application.CandidateId,
+                new ApplicationCandidateData(
+                    application.Candidate.Id,
+                    application.Candidate.FullName,
+                    application.Candidate.Email,
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
                 application.CvVersionId,
                 application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
                 application.CoverLetter,

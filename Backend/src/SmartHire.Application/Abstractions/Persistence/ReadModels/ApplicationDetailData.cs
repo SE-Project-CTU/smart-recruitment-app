@@ -5,7 +5,7 @@ namespace SmartHire.Application.Abstractions.Persistence.ReadModels;
 public sealed record ApplicationDetailData(
     Guid Id,
     Guid JobId,
-    Guid CandidateId,
+    ApplicationCandidateData Candidate,
     Guid CompanyId,
     Guid? CvVersionId,
     string? UploadedCvUrl,
