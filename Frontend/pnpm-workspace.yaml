@@ -1,4 +1,16 @@
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - '@animate-ui/react@2.0.0'
+  - "@animate-ui/react@2.0.0"
+overrides:
+  follow-redirects: 1.16.1
+supportedArchitectures:
+  os:
+    - current
+    - linux
+  cpu:
+    - current
+    - x64
+  libc:
+    - current
+    - musl
