@@ -70,6 +70,7 @@ function SignIn() {
               <img
                 src={SmartHire_default}
                 alt="SmartHire Logo"
+                loading="lazy"
                 className="max-w-30 md:max-w-none"
               />
             </Link>

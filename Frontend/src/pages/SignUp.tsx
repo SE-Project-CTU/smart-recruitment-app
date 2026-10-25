@@ -251,6 +251,7 @@ function SignUp() {
             <Link to={PATHS.HOME}>
               <img
                 src={SmartHire_default}
+                loading="lazy"
                 alt="SmartHire Logo"
                 className="max-w-30 md:max-w-none"
               />
