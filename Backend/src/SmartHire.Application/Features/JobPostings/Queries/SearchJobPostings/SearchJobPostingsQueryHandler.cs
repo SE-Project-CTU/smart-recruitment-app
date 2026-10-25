@@ -27,21 +27,21 @@ public sealed class SearchJobPostingsQueryHandler
         CancellationToken cancellationToken) {
         var criteria = SearchJobPostingsQueryValidator.Validate(request);
         
-        if (criteria.CompanyId is Guid companyId) {
+        if (criteria.Filter.CompanyId is Guid companyId) {
             var company = await _companyRepository.GetByIdAsync(companyId, cancellationToken);
             if (company is null)
                 throw JobPostingExceptions.CompanyNotFound();
         }
 
-        if (criteria.ProvinceId is Guid provinceId &&
+        if (criteria.Filter.ProvinceId is Guid provinceId &&
             !await _locationRepository.IsActiveProvinceAsync(provinceId, cancellationToken))
             throw JobPostingExceptions.ProvinceNotFound();
         
-        if (criteria.WardId is Guid wardId) {
+        if (criteria.Filter.WardId is Guid wardId) {
             var wardProvinceId = await _locationRepository.GetActiveWardProvinceIdAsync(wardId, cancellationToken);
             if (wardProvinceId is null)
                 throw JobPostingExceptions.WardNotFound();
-            if (criteria.ProvinceId is Guid selectedProvinceId && wardProvinceId != selectedProvinceId)
+            if (criteria.Filter.ProvinceId is Guid selectedProvinceId && wardProvinceId != selectedProvinceId)
                 throw JobPostingExceptions.InvalidSearchCriteria(
                 [
                     new AppErrorDetail("wardId", ValidationReasons.NotAllowed,
@@ -71,7 +71,7 @@ public sealed class SearchJobPostingsQueryHandler
             data.Status == JobPostingStatus.Published ? "OPEN" : ToCamelCase(data.Status.ToString()),
             data.CreatedAt)).ToArray();
         
-        return new SearchJobPostingsPage(items, request.Page, request.PageSize, totalCount);
+        return new SearchJobPostingsPage(items, request.Pagination.Page, request.Pagination.PageSize, totalCount);
     }
     
     private static string ToCamelCase(string value) =>

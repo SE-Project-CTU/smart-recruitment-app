@@ -3,7 +3,7 @@ using NpgsqlTypes;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
-using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
+using SmartHire.Application.Abstractions.Persistence.Criteria;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 using JobPostingDetailData = SmartHire.Application.Abstractions.Persistence.ReadModels.JobPostingDetailData;
@@ -22,7 +22,7 @@ public sealed class JobPostingRepository : IJobPostingRepository {
     }
     
     public async Task<(IReadOnlyList<JobPostingSearchData> Items, int TotalCount)> SearchPublicAsync(
-        SearchJobPostingsCriteria criteria,
+        JobPostingSearchCriteria criteria,
         CancellationToken cancellationToken) {
         var query = _dbContext.JobPostings
             .AsNoTracking()
@@ -30,49 +30,49 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                               posting.Company.VerificationStatus == CompanyVerificationStatus.Verified &&
                               (posting.Deadline == null || posting.Deadline > criteria.Now));
         
-        if (criteria.Keyword is not null) {
+        if (criteria.Filter.Keyword is not null) {
             query = query.Where(posting =>
                 EF.Property<NpgsqlTsVector>(posting, "SearchVector")
-                    .Matches(EF.Functions.PlainToTsQuery("simple", criteria.Keyword)));
+                    .Matches(EF.Functions.PlainToTsQuery("simple", criteria.Filter.Keyword)));
         }
         
-        if (criteria.CompanyId is Guid companyId)
+        if (criteria.Filter.CompanyId is Guid companyId)
             query = query.Where(posting => posting.CompanyId == companyId);
 
-        if (criteria.Company is not null) {
+        if (criteria.Filter.Company is not null) {
             query = query.Where(posting =>
                 EF.Property<NpgsqlTsVector>(posting.Company, "SearchVector")
-                    .Matches(EF.Functions.PlainToTsQuery("simple", criteria.Company)));
+                    .Matches(EF.Functions.PlainToTsQuery("simple", criteria.Filter.Company)));
         }
         
-        if (criteria.ProvinceId is Guid provinceId)
+        if (criteria.Filter.ProvinceId is Guid provinceId)
             query = query.Where(posting => posting.ProvinceId == provinceId);
-        if (criteria.WardId is Guid wardId)
+        if (criteria.Filter.WardId is Guid wardId)
             query = query.Where(posting => posting.WardId == wardId);
-        if (criteria.JobLevel is { } jobLevel)
+        if (criteria.Filter.JobLevel is { } jobLevel)
             query = query.Where(posting => posting.JobLevel == jobLevel);
-        if (criteria.JobType is { } jobType)
+        if (criteria.Filter.JobType is { } jobType)
             query = query.Where(posting => posting.JobType == jobType);
-        if (criteria.WorkMode is { } workMode)
+        if (criteria.Filter.WorkMode is { } workMode)
             query = query.Where(posting => posting.WorkMode == workMode);
-        if (criteria.ExperienceYears is int experienceYears)
+        if (criteria.Filter.ExperienceYears is int experienceYears)
             query = query.Where(posting => posting.ExperienceYears == null ||
                                            posting.ExperienceYears <= experienceYears);
         
-        if (criteria.SalaryMin is decimal requestedMinimum)
+        if (criteria.Filter.SalaryMin is decimal requestedMinimum)
             query = query.Where(posting => posting.SalaryMax == null ||
                                            posting.SalaryMax >= requestedMinimum ||
                                            posting.SalaryNegotiable);
-        if (criteria.SalaryMax is decimal requestedMaximum)
+        if (criteria.Filter.SalaryMax is decimal requestedMaximum)
             query = query.Where(posting => posting.SalaryMin == null ||
                                            posting.SalaryMin <= requestedMaximum ||
                                            posting.SalaryNegotiable);
         
         var totalCount = await query.CountAsync(cancellationToken);
-        var ordered = ApplyOrdering(query, criteria.Sort, criteria.Direction);
+        var ordered = ApplyOrdering(query, criteria.Sort.Sort, criteria.Sort.Direction);
         var items = await ordered
-            .Skip(criteria.Skip)
-            .Take(criteria.PageSize)
+            .Skip(criteria.Pagination.Skip)
+            .Take(criteria.Pagination.PageSize)
             
             .Select(posting => new JobPostingSearchData(
                 posting.Id,
@@ -258,9 +258,9 @@ public sealed class JobPostingRepository : IJobPostingRepository {
 
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
-        SearchJobPostingsSort sort,
+        JobPostingSortField sort,
         SortDirection direction) {
-        if (sort == SearchJobPostingsSort.SalaryMax) {
+        if (sort == JobPostingSortField.SalaryMax) {
             // Keep postings without a disclosed maximum salary last in both directions.
             return direction == SortDirection.Asc
                 ? query.OrderBy(posting => posting.SalaryMax == null)
