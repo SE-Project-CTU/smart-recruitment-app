@@ -39,7 +39,7 @@ import {
   getJobLevelLabel,
   getWorkModeLabel,
 } from "@/utils/jobHelpers";
-import { JOB_STATUS_CONFIG } from "./JobPostingsTable";
+import { JOB_STATUS_CONFIG } from "@/types/job";
 import { JobDetailInfoTab } from "./JobDetailInfoTab";
 import { JobApplicationsTab } from "./JobApplicationsTab";
 

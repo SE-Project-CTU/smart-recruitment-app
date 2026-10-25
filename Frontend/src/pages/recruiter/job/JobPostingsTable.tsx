@@ -1,13 +1,6 @@
 import { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  Building2,
-  Eye,
-  MapPin,
-  Pencil,
-  PowerOff,
-} from "lucide-react";
+import { ArrowUpDown, Eye, MapPin, Pencil, PowerOff } from "lucide-react";
 import dayjs from "dayjs";
 import Button from "@/components/Button";
 import { DataTable, type DataTableFeatures } from "@/components/DataTable";
@@ -16,61 +9,11 @@ import {
   TooltipPanel,
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
-import type { JobPostingItem } from "@/types/job";
+import { JOB_STATUS_CONFIG, type JobPostingItem } from "@/types/job";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { formatSalaryRange, getWorkModeLabel } from "@/utils/jobHelpers";
 
 const columnHelper = createColumnHelper<DataTableFeatures, JobPostingItem>();
-
-export const JOB_STATUS_CONFIG: Record<
-  string,
-  { label: string; badgeClass: string }
-> = {
-  OPEN: {
-    label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  Published: {
-    label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  PUBLISHED: {
-    label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  PAUSED: {
-    label: "Tạm dừng",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  CLOSED: {
-    label: "Đã đóng",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  Closed: {
-    label: "Đã đóng",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  EXPIRED: {
-    label: "Hết hạn",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
-  },
-  Expired: {
-    label: "Hết hạn",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
-  },
-  PendingReview: {
-    label: "Chờ duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
-  },
-  PENDING_REVIEW: {
-    label: "Chờ duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
-  },
-  Draft: {
-    label: "Bản nháp",
-    badgeClass: "bg-slate-100 text-slate-500 border-slate-200",
-  },
-};
 
 interface JobPostingsTableProps {
   data: JobPostingItem[];
@@ -125,7 +68,7 @@ export function JobPostingsTable({
                         <button
                           type="button"
                           onClick={() => onViewDetail(job)}
-                          className="truncate text-left text-sm font-bold text-slate-800 transition-colors hover:text-primary cursor-pointer"
+                          className="cursor-pointer truncate text-left text-sm font-bold text-slate-800 transition-colors hover:text-primary"
                         >
                           {job.title}
                         </button>
@@ -157,7 +100,7 @@ export function JobPostingsTable({
           cell: ({ row }) => {
             const job = row.original;
             const provinceName =
-              provinceMap.get(job.provinceId) ||
+              provinceMap.get(job.provinceId || "") ||
               job.province?.name ||
               "Toàn quốc";
 
@@ -278,7 +221,7 @@ export function JobPostingsTable({
                         onClick={() => onCloseJob(job)}
                         className={`p-1.5! text-xs! ring-0! transition-colors ${
                           isClosed
-                            ? "cursor-not-allowed opacity-30 text-slate-400"
+                            ? "cursor-not-allowed text-slate-400 opacity-30"
                             : "text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                         }`}
                       />
@@ -300,7 +243,7 @@ export function JobPostingsTable({
                         icon={Pencil}
                         iconSize={15}
                         onClick={() => onEditJob(job)}
-                        className="p-1.5! text-xs! ring-0! text-slate-600 hover:bg-primary/5 hover:text-primary"
+                        className="p-1.5! text-xs! text-slate-600 ring-0! hover:bg-primary/5 hover:text-primary"
                       />
                     }
                   />
@@ -316,7 +259,7 @@ export function JobPostingsTable({
                         icon={Eye}
                         iconSize={15}
                         onClick={() => onViewDetail(job)}
-                        className="p-1.5! text-xs! ring-0! text-primary hover:bg-primary/10"
+                        className="p-1.5! text-xs! text-primary ring-0! hover:bg-primary/10"
                       />
                     }
                   />

@@ -220,3 +220,52 @@ export interface UpdateApplicationStatusPayload {
   note?: string;
 }
 
+export const JOB_STATUS_CONFIG: Record<
+  string,
+  { label: string; badgeClass: string }
+> = {
+  OPEN: {
+    label: "Đang nhận hồ sơ",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  Published: {
+    label: "Đang nhận hồ sơ",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  PUBLISHED: {
+    label: "Đang nhận hồ sơ",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  PAUSED: {
+    label: "Tạm dừng",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  CLOSED: {
+    label: "Đã đóng",
+    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+  },
+  Closed: {
+    label: "Đã đóng",
+    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+  },
+  EXPIRED: {
+    label: "Hết hạn",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+  },
+  Expired: {
+    label: "Hết hạn",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+  },
+  PendingReview: {
+    label: "Chờ duyệt",
+    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+  },
+  PENDING_REVIEW: {
+    label: "Chờ duyệt",
+    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+  },
+  Draft: {
+    label: "Bản nháp",
+    badgeClass: "bg-slate-100 text-slate-500 border-slate-200",
+  },
+};
