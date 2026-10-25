@@ -12,6 +12,9 @@ import {
   Pencil,
   PowerOff,
   Users,
+  Award,
+  Briefcase,
+  Laptop,
 } from "lucide-react";
 import dayjs from "dayjs";
 import Button from "@/components/Button";
@@ -32,7 +35,11 @@ import {
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
 import type { JobApplicationStatus } from "@/types/job";
-import { formatSalaryRange } from "@/utils/jobHelpers";
+import {
+  formatSalaryRange,
+  getJobLevelLabel,
+  getWorkModeLabel,
+} from "@/utils/jobHelpers";
 import { JOB_STATUS_CONFIG } from "./JobPostingsTable";
 import { JobDetailInfoTab } from "./JobDetailInfoTab";
 import { JobApplicationsTab } from "./JobApplicationsTab";
@@ -148,8 +155,7 @@ export function JobDetailPage() {
     job.status?.toUpperCase() === "EXPIRED";
 
   const rawStatus = job.status || "Draft";
-  const statusConfig =
-    JOB_STATUS_CONFIG[rawStatus] ||
+  const statusConfig = JOB_STATUS_CONFIG[rawStatus] ||
     JOB_STATUS_CONFIG[rawStatus.toUpperCase()] || {
       label: rawStatus,
       badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
@@ -181,18 +187,68 @@ export function JobDetailPage() {
       </div>
 
       {/* 2. Header Banner Tin Tuyển Dụng */}
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-xs sm:rounded-3xl sm:p-6 lg:p-7">
-        <div className="flex items-start justify-between gap-3 sm:gap-4">
+      <div className="relative rounded-2xl border border-border bg-white p-4 sm:rounded-3xl sm:p-6 lg:p-7">
+        {/* Nút 3 chấm (More Actions) - Đặt Absolute góc phải trên cùng */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-7 lg:right-7">
+          {isLoadingCompanies ? null : !isMyCompany ? (
+            <span className="hidden items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 sm:inline-flex">
+              <AlertTriangle className="size-3.5" />
+              <span>Chỉ xem</span>
+            </span>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="inline-flex size-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 focus:outline-none sm:size-9"
+                aria-label="Tùy chọn thao tác"
+              >
+                <MoreVertical className="size-4" />
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                align="end"
+                className="min-w-40 rounded-xl border border-border p-1 shadow-md sm:min-w-48"
+              >
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(PATHS.RECRUITER.EDIT_JOB.replace(":id", job.id))
+                  }
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                >
+                  <Pencil className="size-3.5 text-slate-500" />
+                  <span>Chỉnh sửa tin</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  disabled={isClosed}
+                  onClick={() => setIsClosingModalOpen(true)}
+                  className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium ${
+                    isClosed
+                      ? "pointer-events-none text-slate-400 opacity-50"
+                      : "text-rose-600 hover:bg-rose-50"
+                  }`}
+                >
+                  <PowerOff className="size-3.5" />
+                  <span>
+                    {isClosed ? "Tin đã đóng" : "Đóng tin tuyển dụng"}
+                  </span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+
+        {/* Layout 2 cột trên Desktop (lg) */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:pr-14">
           {/* Cột trái: Logo & Thông tin */}
-          <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-5">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-5 lg:min-w-180">
             <div className="shrink-0">
               <CompanyLogo logoUrl={compLogo} name={compName} size="md" />
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5 sm:gap-2">
               {/* Tiêu đề & Trạng thái */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-                <h1 className="text-lg leading-tight font-bold tracking-tight text-text-main sm:text-xl lg:text-2xl">
+              <div className="flex flex-wrap items-center gap-2 pr-8 sm:gap-2.5 sm:pr-10 lg:pr-0">
+                <h1 className="text-xl leading-tight font-bold tracking-tight text-text-main sm:text-2xl">
                   {job.title}
                 </h1>
                 <span
@@ -202,18 +258,18 @@ export function JobDetailPage() {
                 </span>
               </div>
 
-              {/* Tên công ty có icon trỏ ra chi tiết doanh nghiệp */}
-              <div className="mt-1 flex items-center sm:mt-1.5">
+              {/* Tên công ty có icon trỏ ra chi tiết */}
+              <div className="flex items-center">
                 {job.companyId ? (
                   <Link
                     to={`/recruiter/company-management/${job.companyId}/overview`}
-                    className="group inline-flex items-center gap-1 text-xs font-semibold text-text-muted transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
+                    className="group inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
                   >
                     <span className="truncate">{compName}</span>
                     <ExternalLink className="size-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 ) : (
-                  <span className="truncate text-xs font-semibold text-text-muted sm:text-sm">
+                  <span className="truncate text-xs font-semibold text-slate-500 sm:text-sm">
                     {compName}
                   </span>
                 )}
@@ -221,11 +277,11 @@ export function JobDetailPage() {
 
               {/* Danh sách Skill Badges */}
               {job.skills && job.skills.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:mt-3">
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
                   {job.skills.map((skill) => (
                     <span
                       key={skill.id}
-                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-secondary-light px-2 py-1 text-[10px] font-medium text-primary capitalize select-none sm:text-[11px]"
+                      className="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-[10px] font-medium text-sky-700 capitalize select-none sm:text-[11px]"
                     >
                       {skill.name}
                     </span>
@@ -235,102 +291,99 @@ export function JobDetailPage() {
             </div>
           </div>
 
-          {/* Cột phải: Nút 3 chấm (More Actions) - Cố định ở góc trên bên phải trên mobile */}
-          <div className="flex shrink-0 items-center pt-1 sm:pt-0">
-            {isLoadingCompanies ? null : !isMyCompany ? (
-              <span className="hidden items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 sm:inline-flex">
-                <AlertTriangle className="size-3.5" />
-                <span>Chỉ xem</span>
-              </span>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className="inline-flex size-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-white text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none sm:size-9"
-                  aria-label="Tùy chọn thao tác"
-                >
-                  <MoreVertical className="size-4" />
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent
-                  align="end"
-                  className="min-w-40 rounded-xl border border-border p-1 shadow-md sm:min-w-48"
-                >
-                  <DropdownMenuItem
-                    onClick={() =>
-                      navigate(PATHS.RECRUITER.EDIT_JOB.replace(":id", job.id))
-                    }
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                  >
-                    <Pencil className="size-3.5 text-slate-500" />
-                    <span>Chỉnh sửa tin</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    disabled={isClosed}
-                    onClick={() => setIsClosingModalOpen(true)}
-                    className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium ${
-                      isClosed
-                        ? "pointer-events-none text-slate-400 opacity-50"
-                        : "text-rose-600 hover:bg-rose-50"
-                    }`}
-                  >
-                    <PowerOff className="size-3.5" />
-                    <span>
-                      {isClosed ? "Tin đã đóng" : "Đóng tin tuyển dụng"}
-                    </span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-
-        {/* 3 Badge to nổi bật: Mức lương, Deadline, Vị trí làm việc */}
-        <div className="mt-5 grid grid-cols-1 gap-3 border-t border-border/80 pt-4 sm:mt-6 sm:grid-cols-3 sm:gap-4 sm:pt-5">
-          {/* 1. Mức lương */}
-          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-bg/50 p-3 sm:gap-3.5 sm:rounded-2xl sm:p-4">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 sm:size-10 sm:rounded-xl">
-              <DollarSign className="size-4 sm:size-5" />
+          <div className="mt-4 grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 lg:mt-0">
+            {/* 1. Mức lương */}
+            <div className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-white-blue text-secondary-dark">
+                <DollarSign className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium text-slate-500 sm:text-[11px]">
+                  Mức lương
+                </span>
+                <span className="block truncate text-xs font-bold text-slate-800 sm:text-sm">
+                  {salaryDisplay}
+                </span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <span className="block text-[10px] font-medium text-text-muted sm:text-[11px]">
-                Mức lương
-              </span>
-              <span className="block truncate text-sm font-bold text-text-main sm:text-base">
-                {salaryDisplay}
-              </span>
-            </div>
-          </div>
 
-          {/* 2. Hạn nhận hồ sơ (Deadline) */}
-          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-bg/50 p-3 sm:gap-3.5 sm:rounded-2xl sm:p-4">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 sm:size-10 sm:rounded-xl">
-              <Clock className="size-4 sm:size-5" />
+            {/* 2. Cấp bậc */}
+            <div className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-white-blue text-secondary-dark">
+                <Award className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium text-slate-500 sm:text-[11px]">
+                  Cấp bậc
+                </span>
+                <span className="block truncate text-xs font-bold text-slate-800 sm:text-sm">
+                  {getJobLevelLabel(job.jobLevel)}
+                </span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <span className="block text-[10px] font-medium text-text-muted sm:text-[11px]">
-                Hạn nhận hồ sơ
-              </span>
-              <span className="block truncate text-sm font-bold text-text-main sm:text-base">
-                {job.deadline
-                  ? dayjs(job.deadline).format("DD/MM/YYYY")
-                  : "Không thời hạn"}
-              </span>
-            </div>
-          </div>
 
-          {/* 3. Vị trí / Địa điểm */}
-          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-bg/50 p-3 sm:gap-3.5 sm:rounded-2xl sm:p-4">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600 sm:size-10 sm:rounded-xl">
-              <MapPin className="size-4 sm:size-5" />
+            {/* 3. Hạn nhận hồ sơ */}
+            <div className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-white-blue text-secondary-dark">
+                <Clock className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium text-slate-500 sm:text-[11px]">
+                  Hạn nhận hồ sơ
+                </span>
+                <span className="block truncate text-xs font-bold text-slate-800 sm:text-sm">
+                  {job.deadline
+                    ? dayjs(job.deadline).format("DD/MM/YYYY")
+                    : "Không thời hạn"}
+                </span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <span className="block text-[10px] font-medium text-text-muted sm:text-[11px]">
-                Khu vực
-              </span>
-              <span className="block truncate text-sm font-bold text-text-main sm:text-base">
-                {provinceName}
-              </span>
+
+            {/* 4. Kinh nghiệm */}
+            <div className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-white-blue text-secondary-dark">
+                <Briefcase className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium text-slate-500 sm:text-[11px]">
+                  Kinh nghiệm
+                </span>
+                <span className="block truncate text-xs font-bold text-slate-800 sm:text-sm">
+                  {job.experienceYears
+                    ? `${job.experienceYears} năm`
+                    : "Không yêu cầu"}
+                </span>
+              </div>
+            </div>
+
+            {/* 5. Khu vực */}
+            <div className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-white-blue text-secondary-dark">
+                <MapPin className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium text-slate-500 sm:text-[11px]">
+                  Khu vực
+                </span>
+                <span className="block truncate text-xs font-bold text-slate-800 sm:text-sm">
+                  {provinceName}
+                </span>
+              </div>
+            </div>
+
+            {/* 6. Hình thức làm việc */}
+            <div className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-white-blue text-secondary-dark">
+                <Laptop className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[10px] font-medium text-slate-500 sm:text-[11px]">
+                  Hình thức làm việc
+                </span>
+                <span className="block truncate text-xs font-bold text-slate-800 sm:text-sm">
+                  {getWorkModeLabel(job.workMode)}
+                </span>
+              </div>
             </div>
           </div>
         </div>

@@ -1,12 +1,7 @@
 import dayjs from "dayjs";
 import { MapPin } from "lucide-react";
 import type { JobPostingItem } from "@/types/job";
-import {
-  getEducationLevelLabel,
-  getJobLevelLabel,
-  getJobTypeLabel,
-  getWorkModeLabel,
-} from "@/utils/jobHelpers";
+import { getEducationLevelLabel, getWorkModeLabel } from "@/utils/jobHelpers";
 
 interface JobDetailInfoTabProps {
   job: JobPostingItem;
@@ -27,23 +22,23 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
       {/* Cột chính (Trái - 8 cột): 1 Card chung duy nhất, trải nghiệm đọc liền mạch, không chia vụn và không spam icon */}
-      <div className="rounded-3xl border border-border bg-surface p-6 sm:p-8 space-y-8 shadow-xs lg:col-span-8">
+      <div className="space-y-8 rounded-3xl border border-border bg-surface p-6 shadow-xs sm:p-8 lg:col-span-8">
         {/* 1. Mô tả công việc */}
         <section className="space-y-3">
-          <h3 className="border-b border-border/80 pb-2.5 text-sm sm:text-base font-bold text-text-main">
+          <h3 className="border-b border-border/80 pb-2.5 text-sm font-bold text-text-main sm:text-base">
             Mô tả công việc
           </h3>
-          <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-line text-text-muted">
+          <div className="text-xs leading-relaxed whitespace-pre-line text-text-muted sm:text-sm">
             {job.description || "Chưa có thông tin mô tả chi tiết."}
           </div>
         </section>
 
         {/* 2. Yêu cầu ứng viên */}
         <section className="space-y-3">
-          <h3 className="border-b border-border/80 pb-2.5 text-sm sm:text-base font-bold text-text-main">
+          <h3 className="border-b border-border/80 pb-2.5 text-sm font-bold text-text-main sm:text-base">
             Yêu cầu ứng viên
           </h3>
-          <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-line text-text-muted">
+          <div className="text-xs leading-relaxed whitespace-pre-line text-text-muted sm:text-sm">
             {job.requirements || "Chưa có thông tin yêu cầu cụ thể."}
           </div>
         </section>
@@ -51,10 +46,10 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
         {/* 3. Quyền lợi & Chế độ đãi ngộ */}
         {job.benefits && (
           <section className="space-y-3">
-            <h3 className="border-b border-border/80 pb-2.5 text-sm sm:text-base font-bold text-text-main">
+            <h3 className="border-b border-border/80 pb-2.5 text-sm font-bold text-text-main sm:text-base">
               Quyền lợi & Chế độ đãi ngộ
             </h3>
-            <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-line text-text-muted">
+            <div className="text-xs leading-relaxed whitespace-pre-line text-text-muted sm:text-sm">
               {job.benefits}
             </div>
           </section>
@@ -69,14 +64,6 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
           </h3>
 
           <div className="mt-4 space-y-3.5 text-xs">
-            {/* Cấp bậc */}
-            <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
-              <span className="text-text-muted">Cấp bậc</span>
-              <span className="font-semibold text-text-main">
-                {getJobLevelLabel(job.jobLevel)}
-              </span>
-            </div>
-
             {/* Kinh nghiệm */}
             <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
               <span className="text-text-muted">Kinh nghiệm</span>
@@ -99,15 +86,9 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
             <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
               <span className="text-text-muted">Số lượng tuyển</span>
               <span className="font-semibold text-text-main">
-                {job.vacancies > 0 ? `${job.vacancies} người` : "Không giới hạn"}
-              </span>
-            </div>
-
-            {/* Hình thức làm việc (JobType: FullTime, PartTime...) */}
-            <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
-              <span className="text-text-muted">Hình thức làm việc</span>
-              <span className="font-semibold text-text-main">
-                {getJobTypeLabel(job.jobType)}
+                {job.vacancies > 0
+                  ? `${job.vacancies} người`
+                  : "Không giới hạn"}
               </span>
             </div>
 
