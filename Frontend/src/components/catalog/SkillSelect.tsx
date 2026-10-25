@@ -11,6 +11,7 @@ export interface SkillSelectProps {
   required?: boolean;
   maxItems?: number;
   disabled?: boolean;
+  initialSkills?: { id: string; name: string }[];
 }
 
 export function SkillSelect({
@@ -21,6 +22,7 @@ export function SkillSelect({
   required = true,
   maxItems = 15,
   disabled = false,
+  initialSkills,
 }: SkillSelectProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +32,23 @@ export function SkillSelect({
   const { data: skills = [], isFetching } = useSkills(searchQuery);
 
   // Lưu trữ tên skill được chọn để tag không phụ thuộc vào kết quả tìm kiếm hiện tại
-  const [skillCache, setSkillCache] = useState<Map<string, string>>(new Map());
+  const [skillCache, setSkillCache] = useState<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    initialSkills?.forEach((s) => {
+      if (s.id && s.name) map.set(s.id, s.name);
+    });
+    return map;
+  });
+
+  // Tra cứu tên hiển thị của kỹ năng
+  const getSkillName = (id: string): string => {
+    return (
+      skillCache.get(id) ||
+      skills.find((s) => s.id === id)?.name ||
+      initialSkills?.find((s) => s.id === id)?.name ||
+      id
+    );
+  };
 
   // Click outside listener để đóng dropdown
   useEffect(() => {
@@ -129,7 +147,7 @@ export function SkillSelect({
             </span>
           ) : (
             selectedIds.map((id) => {
-              const skillName = skillCache.get(id) || id;
+              const skillName = getSkillName(id);
               return (
                 <span
                   key={id}

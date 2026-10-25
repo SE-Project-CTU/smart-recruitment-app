@@ -86,7 +86,7 @@ const initialEditState = (job: JobPostingItem): EditJobFormState => ({
   salaryMax: job.salaryMax != null ? String(job.salaryMax) : "",
   salaryNegotiable: Boolean(job.salaryNegotiable),
   deadline: job.deadline ? dayjs(job.deadline).format("YYYY-MM-DD") : "",
-  industryIds: job.industryIds || job.industries?.map((i) => i.id) || [],
+  industryIds: job.industryIds || [],
   skillIds: job.skillIds || job.skills?.map((s) => s.id) || [],
 });
 
@@ -190,6 +190,12 @@ function EditJobForm({
       dayjs(formData.deadline).isBefore(dayjs(), "day")
     ) {
       errors.deadline = "Hạn nhận hồ sơ phải từ hôm nay trở đi.";
+    }
+    if (formData.industryIds.length === 0) {
+      errors.industryIds = "Vui lòng chọn ít nhất một ngành nghề tuyển dụng.";
+    }
+    if (formData.skillIds.length === 0) {
+      errors.skillIds = "Vui lòng chọn ít nhất một kỹ năng chuyên môn.";
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -314,6 +320,7 @@ function EditJobForm({
               {/* Kỹ năng chuyên môn */}
               <SkillSelect
                 selectedIds={formData.skillIds}
+                initialSkills={job.skills}
                 onChange={(ids) => updateForm("skillIds", ids)}
                 error={fieldErrors.skillIds}
               />
@@ -567,7 +574,7 @@ function EditJobForm({
               </span>
               <div className="flex items-center gap-3 rounded-2xl border border-border/80 bg-bg/50 p-3">
                 <CompanyLogo
-                  logoUrl={company?.logoUrl || job.company?.logoUrl}
+                  logoUrl={company?.logoUrl ?? job.company?.logoUrl ?? null}
                   name={company?.name || job.company?.name || "Doanh nghiệp"}
                   size="md"
                 />
@@ -675,7 +682,7 @@ export function EditJobPage() {
   const selectedCompany = useMemo(() => {
     if (!job?.companyId || myCompanies.length === 0) return undefined;
     return myCompanies.find((c) => c.id === job.companyId);
-  }, [job?.companyId, myCompanies]);
+  }, [job, myCompanies]);
 
   const isMyCompany = Boolean(selectedCompany);
   const isLoading = isLoadingJob || isLoadingCompanies;

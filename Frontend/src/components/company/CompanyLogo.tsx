@@ -8,7 +8,7 @@ function getInitials(name: string) {
 }
 
 export interface CompanyLogoProps {
-  logoUrl: string | null;
+  logoUrl?: string | null;
   name: string;
   size?: "sm" | "md" | "lg";
 }
