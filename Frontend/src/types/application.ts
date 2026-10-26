@@ -156,3 +156,44 @@ export function resolveCandidateProfile(
     initials,
   };
 }
+
+/**
+ * Đơn ứng tuyển của ứng viên (sau khi được enrich thông tin JD và Doanh nghiệp)
+ */
+export interface CandidateMyApplicationItem {
+  id: string;
+  jobId: string;
+  jobTitle?: string;
+  companyId?: string;
+  companyName?: string;
+  companyLogoUrl?: string | null;
+  salaryRange?: string;
+  locationName?: string;
+  cvVersionId?: string | null;
+  uploadedCvUrl?: string | null;
+  coverLetter?: string | null;
+  status: JobApplicationStatus | string;
+  appliedAt: string;
+  updatedAt?: string;
+}
+
+/**
+ * Lịch sử thay đổi trạng thái của đơn ứng tuyển
+ */
+export interface ApplicationStatusHistoryItem {
+  id: string;
+  applicationId: string;
+  oldStatus?: string | null;
+  newStatus: string;
+  note?: string | null;
+  changedAt: string;
+}
+
+/**
+ * Payload nộp hồ sơ ứng tuyển
+ */
+export interface ApplyJobPayload {
+  cvVersionId?: string;
+  uploadedCvFileId?: string;
+  coverLetter?: string;
+}

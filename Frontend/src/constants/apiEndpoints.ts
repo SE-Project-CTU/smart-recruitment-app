@@ -49,9 +49,24 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/job-postings/${id}`,
     UPDATE_STATUS: (id: string) => `/job-postings/${id}/status`,
     APPLICATIONS: (id: string) => `/job-postings/${id}/applications`,
+    APPLY: (id: string) => `/job-postings/${id}/applications`,
   },
   APPLICATION: {
-    UPDATE_STATUS: (id: string) => `/applications/${id}/status`,
+    MY_APPLICATIONS: "/applications/me",
     DETAIL: (id: string) => `/applications/${id}`,
+    UPDATE_STATUS: (id: string) => `/applications/${id}/status`,
+    STATUS_HISTORY: (id: string) => `/applications/${id}/status-history`,
+  },
+  CV: {
+    LIST: "/cvs",
+    DETAIL: (id: string) => `/cvs/${id}`,
+    CREATE: "/cvs",
+    UPDATE: (id: string) => `/cvs/${id}`,
+    DELETE: (id: string) => `/cvs/${id}`,
+    VERSIONS: (id: string) => `/cvs/${id}/versions`,
+    VERSION_DETAIL: (cvId: string, versionId: string) =>
+      `/cvs/${cvId}/versions/${versionId}`,
+    TEMPLATES: "/cv-templates",
+    TEMPLATE_DETAIL: (id: string) => `/cv-templates/${id}`,
   },
 } as const;
