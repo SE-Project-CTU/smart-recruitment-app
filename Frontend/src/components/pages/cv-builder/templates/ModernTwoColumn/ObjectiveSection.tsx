@@ -25,13 +25,12 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
         primaryColor={primaryColor}
       />
       <div
-        className="rounded-sm p-1 text-justify text-xs leading-relaxed text-slate-700 group-hover:outline-2 group-hover:outline-dashed focus-visible:outline-2 outline-slate-400"
+        className="hover-field text-justify text-xs leading-relaxed text-slate-700 "
         style={getFieldStyle(fields, "sections.objective.content", {
           fontSize: "12px",
           lineHeight: 1.5,
           color: "#334155",
         })}
-        contentEditable={true}
       >
         <p>{section.content}</p>
       </div>

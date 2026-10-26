@@ -36,7 +36,8 @@ export const ModernTwoColumnTemplate: React.FC<
   ModernTwoColumnTemplateProps
 > = ({ data, className = "" }) => {
   const { content, presentation, layout } = data;
-  const { profile, sections } = content;
+  const [profileState, setProfileState] = useState(content.profile);
+  const [sectionState, setSectionState] = useState(content.sections);
   const fields = presentation?.styles?.fields;
   const globalStyles = presentation?.styles?.global;
 
@@ -51,7 +52,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <ObjectiveSection
             key={key}
-            section={sections.objective}
+            section={sectionState.objective}
             fields={fields}
             primaryColor={primaryColor}
           />
@@ -60,7 +61,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <EducationSection
             key={key}
-            section={sections.education}
+            section={sectionState.education}
             fields={fields}
             primaryColor={primaryColor}
           />
@@ -69,7 +70,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <ExperienceSection
             key={key}
-            section={sections.experience}
+            section={sectionState.experience}
             fields={fields}
             primaryColor={primaryColor}
           />
@@ -78,7 +79,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <SkillsSection
             key={key}
-            section={sections.skills}
+            section={sectionState.skills}
             fields={fields}
             primaryColor={primaryColor}
           />
@@ -87,7 +88,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <ProjectsSection
             key={key}
-            section={sections.projects}
+            section={sectionState.projects}
             fields={fields}
             primaryColor={primaryColor}
           />
@@ -96,7 +97,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <CertificationsSection
             key={key}
-            section={sections.certifications}
+            section={sectionState.certifications}
             fields={fields}
             primaryColor={primaryColor}
           />
@@ -105,7 +106,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <AwardsSection
             key={key}
-            section={sections.awards}
+            section={sectionState.awards}
             fields={fields}
             primaryColor={primaryColor}
           />
@@ -114,7 +115,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <TextSection
             key={key}
-            section={sections.interests}
+            section={sectionState.interests}
             sectionKey="interests"
             defaultTitle="SỞ THÍCH"
             fields={fields}
@@ -125,7 +126,7 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <TextSection
             key={key}
-            section={sections.additionalInfo}
+            section={sectionState.additionalInfo}
             sectionKey="additionalInfo"
             defaultTitle="THÔNG TIN BỔ SUNG"
             fields={fields}
@@ -159,6 +160,32 @@ export const ModernTwoColumnTemplate: React.FC<
     });
   };
 
+  const moveSection = (index: number, direction: -1 | 1) => {
+    setSectionOrder((currentOrder) => {
+      const targetIndex = index + direction;
+
+      if (targetIndex < 0 || targetIndex >= currentOrder.length) {
+        return currentOrder;
+      }
+
+      const nextOrder = [...currentOrder];
+      [nextOrder[index], nextOrder[targetIndex]] = [
+        nextOrder[targetIndex],
+        nextOrder[index],
+      ];
+      return nextOrder;
+    });
+  };
+
+  const handleDeleteSection = (key: CVSectionKey) => {
+    setSectionState((prevSections) => {
+      const updatedSections = { ...prevSections };
+      updatedSections[key].visible = false;
+
+      return updatedSections;
+    });
+  };
+
   return (
     <div
       className={`mx-auto w-full max-w-[800px] bg-white p-8 text-slate-900 shadow-md sm:p-6 print:m-0 print:p-8 print:shadow-none ${className}`}
@@ -172,7 +199,7 @@ export const ModernTwoColumnTemplate: React.FC<
     >
       {/* 1. Header: Profile Info */}
       <ProfileHeader
-        profile={profile}
+        profile={profileState}
         fields={fields}
         primaryColor={primaryColor}
       />
@@ -181,16 +208,24 @@ export const ModernTwoColumnTemplate: React.FC<
       <DragDropContext onDragEnd={handleDragEnd}>
         <DroppableContainer droppableId="cv-sections" className="mt-3">
           {() =>
-            sectionOrder.map((sectionKey, index) => (
-              <DraggableSection
-                key={sectionKey}
-                draggableId={sectionKey}
-                index={index}
-                className="group relative"
-              >
-                {() => renderSection(sectionKey)}
-              </DraggableSection>
-            ))
+            sectionOrder.map(
+              (sectionKey, index) =>
+                sectionState[sectionKey as CVSectionKey]?.visible && (
+                  <DraggableSection
+                    key={sectionKey}
+                    draggableId={sectionKey}
+                    index={index}
+                    className="group relative"
+                    isFirst={index === 0}
+                    isLast={index === sectionOrder.length - 1}
+                    onMoveUp={() => moveSection(index, -1)}
+                    onMoveDown={() => moveSection(index, 1)}
+                    onDelete={handleDeleteSection}
+                  >
+                    {() => renderSection(sectionKey)}
+                  </DraggableSection>
+                ),
+            )
           }
         </DroppableContainer>
       </DragDropContext>

@@ -16,9 +16,9 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
   primaryColor = "#0F172A",
 }) => {
   return (
-    <div className="mb-2 mt-4">
+    <div className="mt-4 mb-2">
       <h3
-        className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-900 pb-0.5"
+        className="border-b border-slate-900 pb-0.5 text-xs font-bold tracking-wider text-slate-900 uppercase"
         style={{
           ...getFieldStyle(fields, fieldKey || "", {
             color: primaryColor,
@@ -26,7 +26,7 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
           }),
         }}
       >
-        {title}
+        <p className="hover-field ">{title}</p>
       </h3>
     </div>
   );

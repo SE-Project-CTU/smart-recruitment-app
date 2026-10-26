@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* hover:outline-2 hover:outline-dashed focus-visible:outline-2 outline-slate-400 */
+
+.hover-field {
+  @apply rounded-sm p-1 outline-2 outline-white;
+}
+
+.hover-field:hover {
+  @apply outline-dashed outline-slate-400;
+}
+
+.hover-field:focus-visible {
+  @apply outline-slate-400 outline-solid;
+}
