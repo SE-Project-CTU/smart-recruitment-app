@@ -1,12 +1,12 @@
 import { getTimeAgo } from "@/utils/helper";
-import Button from "@/components/Button";
+import Button from "./Button";
 import type { MockJobPosting } from "@/constants/mockData";
 import { Ellipsis, MapPin, Clock } from "lucide-react";
 import {
   Tooltip,
   TooltipPanel,
   TooltipTrigger,
-} from "./animate-ui/components/base/tooltip";
+} from "@/components/animate-ui/components/base/tooltip";
 import { MorphIcon } from "morphicons/react";
 import { Bookmark, BookmarkCheck } from "lucide";
 import { useState } from "react";
@@ -195,3 +195,6 @@ export const JobCard = ({
     </div>
   );
 };
+
+export default JobCard;
+

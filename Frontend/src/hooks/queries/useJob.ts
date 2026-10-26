@@ -104,7 +104,11 @@ export const useUpdateJobPosting = (id?: string) => {
       queryClient.invalidateQueries({
         queryKey: ["job-postings", "detail", targetId],
       });
-      queryClient.invalidateQueries({ queryKey: ["job-postings", "list"] });
+      // Invalidate toàn bộ query liên quan đến job-postings (recruiter-list, list,...)
+      queryClient.invalidateQueries({ queryKey: ["job-postings"] });
+      queryClient.invalidateQueries({
+        queryKey: ["recruiter", "all-applications"],
+      });
     },
   });
 };
@@ -122,7 +126,11 @@ export const useUpdateJobPostingStatus = () => {
       queryClient.invalidateQueries({
         queryKey: ["job-postings", "detail", variables.jobId],
       });
-      queryClient.invalidateQueries({ queryKey: ["job-postings", "list"] });
+      // Invalidate toàn bộ query liên quan đến job-postings (recruiter-list, list,...)
+      queryClient.invalidateQueries({ queryKey: ["job-postings"] });
+      queryClient.invalidateQueries({
+        queryKey: ["recruiter", "all-applications"],
+      });
     },
   });
 };

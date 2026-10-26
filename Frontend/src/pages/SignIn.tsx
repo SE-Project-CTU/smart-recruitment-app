@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { Office } from "@/assets/images/decoration";
 import { SmartHire_default } from "@/assets/images/logo";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { AlertCircle, Lock, UserRound } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
 import { useLogin } from "@/hooks/queries/useAccount";

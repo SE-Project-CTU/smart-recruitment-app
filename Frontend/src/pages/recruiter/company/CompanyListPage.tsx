@@ -11,7 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { CompanyCard } from "@/components/company";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import { CreateCompanyModal } from "./CreateCompanyModal";

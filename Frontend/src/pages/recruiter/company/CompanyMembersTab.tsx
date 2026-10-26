@@ -13,9 +13,13 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import Button from "@/components/Button";
-import { DataTable, type DataTableFeatures } from "@/components/DataTable";
-import { UserAvatar } from "@/components/UserAvatar";
+import {
+  Button,
+  DataTable,
+  type DataTableFeatures,
+  TableSkeleton,
+  UserAvatar,
+} from "@/components/common";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import {
   useCompanyMembers,
@@ -285,7 +289,7 @@ export function CompanyMembersTab() {
 
       {/* DataTable */}
       {isLoading ? (
-        <div className="h-64 animate-pulse rounded-2xl border border-border bg-surface/50" />
+        <TableSkeleton />
       ) : (
         <DataTable
           columns={columns}

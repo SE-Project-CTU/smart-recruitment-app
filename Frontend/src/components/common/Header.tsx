@@ -8,7 +8,7 @@ import {
   FileText,
   UserRound,
 } from "lucide-react";
-import logoSmartHire from "../assets/images/logo/SmartHire_default.svg";
+import logoSmartHire from "@/assets/images/logo/SmartHire_default.svg";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/hooks/queries/useAccount";
 import { PATHS } from "@/constants/paths";
@@ -246,4 +246,5 @@ function Header() {
   );
 }
 
+export { Header };
 export default Header;

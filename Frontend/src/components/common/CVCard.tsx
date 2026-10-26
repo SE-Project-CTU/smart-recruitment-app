@@ -1,5 +1,5 @@
 import { Clock, Download, Edit3, Trash } from "lucide-react";
-import Button from "@/components/Button";
+import Button from "./Button";
 import { getTimeAgo } from "@/utils/helper";
 import type { CVItem } from "@/types/cv";
 
@@ -121,3 +121,6 @@ export function CVCard({ cv, onEdit, onDownload, onDelete }: CVCardProps) {
     </div>
   );
 }
+
+export default CVCard;
+

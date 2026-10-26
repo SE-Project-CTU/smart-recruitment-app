@@ -1,8 +1,7 @@
 import { FilePlus2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Button from "@/components/Button";
+import { Button, CVCard } from "@/components/common";
 import { PATHS } from "@/constants/paths";
-import { CVCard } from "@/components/CVCard";
 import type { CVItem } from "@/types/cv";
 
 interface CandidateCVSectionProps {

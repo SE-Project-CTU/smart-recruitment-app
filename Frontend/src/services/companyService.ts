@@ -16,42 +16,145 @@ import type {
 import type { JobPostingItem } from "@/types/job";
 
 
+const STORAGE_KEY_MY_COMPANIES = "sr_my_company_ids";
+
+const getStoredMyCompanyIds = (): string[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_MY_COMPANIES);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveStoredMyCompanyIds = (ids: string[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    const unique = Array.from(new Set(ids.filter(Boolean)));
+    localStorage.setItem(STORAGE_KEY_MY_COMPANIES, JSON.stringify(unique));
+  } catch {
+    // ignore
+  }
+};
+
+const addStoredMyCompanyId = (id: string) => {
+  if (typeof window === "undefined" || !id) return;
+  const current = getStoredMyCompanyIds();
+  if (!current.includes(id)) {
+    saveStoredMyCompanyIds([...current, id]);
+  }
+};
+
 export const companyService = {
   /**
+   * Xóa cache danh sách ID công ty đã lưu của user
+   */
+  clearMyCompaniesCache(): void {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEY_MY_COMPANIES);
+    }
+  },
+
+  /**
    * Lấy danh sách các công ty mà Recruiter hiện tại thực sự thuộc về (Active membership)
-   * Lấy danh sách qua GET /api/v1/companies và kiểm tra chi tiết membership của user
+   * Tối ưu hóa:
+   * 1. Ưu tiên tra cứu theo Candidate IDs đã biết (từ cache local, active company, lời mời đã nhận)
+   *    -> Giảm từ 51 requests N+1 xuống còn 1-3 requests.
+   * 2. Chỉ fallback quét khám phá khi chưa từng có dữ liệu công ty nào được lưu.
    */
   async getMyCompanies(): Promise<CompanyItem[]> {
-    const response = await axiosClient.get<never, ApiResponse<CompanyItem[]>>(
-      API_ENDPOINTS.COMPANY.LIST,
-      { params: { page: 1, pageSize: 50 } },
-    );
+    // 1. Thu thập candidate company IDs
+    const candidateIds = new Set<string>(getStoredMyCompanyIds());
 
-    const allCompanies = response.data || [];
-    if (!Array.isArray(allCompanies) || allCompanies.length === 0) {
-      return [];
+    const activeCompanyId =
+      typeof window !== "undefined"
+        ? localStorage.getItem("sr_active_company_id")
+        : null;
+    if (activeCompanyId) {
+      candidateIds.add(activeCompanyId);
     }
 
-    // Backend endpoint GET /companies không gắn membership context của caller.
-    // Gọi song song GET /companies/{id} để lấy đúng tư cách thành viên của tài khoản hiện tại.
-    const details = await Promise.all(
-      allCompanies.map(async (comp) => {
-        try {
-          const detailRes = await axiosClient.get<never, ApiResponse<CompanyItem>>(
-            API_ENDPOINTS.COMPANY.DETAIL(comp.id),
-          );
-          return detailRes.data;
-        } catch {
-          return null;
-        }
-      }),
-    );
+    // Lấy thêm các công ty từ các lời mời đã chấp nhận (chỉ 1 request nhanh tới endpoint của user hiện tại)
+    try {
+      const invRes = await this.getMyInvitations({
+        status: "Accepted",
+        pageSize: 50,
+      });
+      if (invRes.items && Array.isArray(invRes.items)) {
+        invRes.items.forEach((inv) => {
+          if (inv.companyId) candidateIds.add(inv.companyId);
+        });
+      }
+    } catch {
+      // Bỏ qua nếu chưa có lời mời hoặc lỗi mạng nhẹ
+    }
 
-    // Chỉ giữ lại những công ty mà tài khoản hiện tại có quan hệ thành viên hợp lệ (Owner hoặc Member)
-    return details.filter(
-      (comp): comp is CompanyItem =>
-        Boolean(comp && comp.membership && comp.membership.status === "Active"),
-    );
+    // 2. Nếu đã có candidate IDs: Chỉ gọi chi tiết đúng những công ty này (tránh N+1)
+    if (candidateIds.size > 0) {
+      const details = await Promise.all(
+        Array.from(candidateIds).map(async (id) => {
+          try {
+            return await this.getCompanyDetail(id);
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      const activeCompanies = details.filter(
+        (comp): comp is CompanyItem =>
+          Boolean(comp && comp.membership && comp.membership.status === "Active"),
+      );
+
+      if (activeCompanies.length > 0) {
+        saveStoredMyCompanyIds(activeCompanies.map((c) => c.id));
+        return activeCompanies;
+      }
+    }
+
+    // 3. Fallback: Discovery scan (Chỉ chạy khi chưa có bất kỳ candidate ID nào)
+    try {
+      const response = await axiosClient.get<never, ApiResponse<CompanyItem[]>>(
+        API_ENDPOINTS.COMPANY.LIST,
+        { params: { page: 1, pageSize: 100 } },
+      );
+
+      const allCompanies = response.data || [];
+      if (!Array.isArray(allCompanies) || allCompanies.length === 0) {
+        return [];
+      }
+
+      // Quét theo batch nhỏ (10 requests) để tránh làm nghẽn kết nối mạng
+      const activeCompanies: CompanyItem[] = [];
+      const batchSize = 10;
+      for (let i = 0; i < allCompanies.length; i += batchSize) {
+        const batch = allCompanies.slice(i, i + batchSize);
+        const batchDetails = await Promise.all(
+          batch.map(async (comp) => {
+            try {
+              return await this.getCompanyDetail(comp.id);
+            } catch {
+              return null;
+            }
+          }),
+        );
+
+        for (const comp of batchDetails) {
+          if (comp && comp.membership && comp.membership.status === "Active") {
+            activeCompanies.push(comp);
+          }
+        }
+      }
+
+      if (activeCompanies.length > 0) {
+        saveStoredMyCompanyIds(activeCompanies.map((c) => c.id));
+      }
+
+      return activeCompanies;
+    } catch {
+      return [];
+    }
   },
 
   /**
@@ -88,6 +191,9 @@ export const companyService = {
       API_ENDPOINTS.COMPANY.CREATE,
       payload,
     );
+    if (response.data?.id) {
+      addStoredMyCompanyId(response.data.id);
+    }
     return response.data;
   },
 
@@ -179,6 +285,9 @@ export const companyService = {
       never,
       ApiResponse<AcceptInvitationResult>
     >(API_ENDPOINTS.COMPANY.ACCEPT_INVITATION(invitationId));
+    if (response.data?.membership?.companyId) {
+      addStoredMyCompanyId(response.data.membership.companyId);
+    }
     return response.data;
   },
 

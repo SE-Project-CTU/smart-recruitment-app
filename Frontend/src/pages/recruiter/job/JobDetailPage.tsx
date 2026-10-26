@@ -17,7 +17,7 @@ import {
   Laptop,
 } from "lucide-react";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { PATHS } from "@/constants/paths";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import {

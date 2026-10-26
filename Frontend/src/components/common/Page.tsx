@@ -7,4 +7,5 @@ const Page = ({ title }: { title: string }) => (
   </div>
 );
 
+export { Page };
 export default Page;

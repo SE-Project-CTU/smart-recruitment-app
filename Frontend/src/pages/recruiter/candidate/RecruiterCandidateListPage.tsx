@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import Button from "@/components/Button";
+import { Button } from "@/components/common";
 import { PATHS } from "@/constants/paths";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import {

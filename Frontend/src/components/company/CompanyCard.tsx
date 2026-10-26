@@ -14,7 +14,7 @@ import {
   TooltipPanel,
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { CompanyLogo } from "./CompanyLogo";
 import { useAuthStore } from "@/stores/authStore";
 import type { CompanyItem } from "@/types/company";

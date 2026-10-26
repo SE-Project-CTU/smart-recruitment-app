@@ -1,6 +1,8 @@
-import Button from "@/components/Button";
-import { HightlightSideBackground } from "@/components/CustomBackground";
-import Header from "@/components/Header";
+import {
+  Button,
+  Header,
+  HightlightSideBackground,
+} from "@/components/common";
 import { TextParticleAnimation } from "@/components/lightswind/text-particle-animation";
 import { MoveLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";

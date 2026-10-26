@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import Page from "@/components/Page";
+import Page from "@/components/common/Page";
 import {
   SignUp,
   SignIn,

@@ -9,7 +9,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { useInviteMember } from "@/hooks/queries/useCompany";

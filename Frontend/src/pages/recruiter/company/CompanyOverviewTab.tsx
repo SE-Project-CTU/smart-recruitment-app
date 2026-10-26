@@ -12,7 +12,7 @@ import {
   AlertCircle,
   Plus,
 } from "lucide-react";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { useCompanyMembers } from "@/hooks/queries/useCompany";
 import { PATHS } from "@/constants/paths";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";

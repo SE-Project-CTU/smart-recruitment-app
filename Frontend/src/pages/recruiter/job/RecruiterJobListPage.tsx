@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import Button from "@/components/Button";
+import { Button, TableSkeleton } from "@/components/common";
 import { PATHS } from "@/constants/paths";
 import { useProvinces } from "@/hooks/queries/useCatalog";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
@@ -85,7 +85,6 @@ export function RecruiterJobListPage() {
     myCompanies.forEach((c) => map.set(c.id, c.logoUrl));
     return map;
   }, [myCompanies]);
-
 
   const companyFilterOptions = useMemo(() => {
     const opts = [{ value: "ALL", label: "Tất cả công ty của tôi" }];
@@ -443,7 +442,7 @@ export function RecruiterJobListPage() {
 
       {/* 4. Data Table */}
       {isLoading ? (
-        <div className="h-64 animate-pulse rounded-2xl border border-border bg-slate-50/50" />
+        <TableSkeleton />
       ) : (
         <JobPostingsTable
           data={paginatedJobs}

@@ -12,9 +12,8 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import Button from "@/components/Button";
+import { BadgeSelector, Button } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
-import BadgeSelector from "@/components/common/BadgeSelector";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
 import SkillSelect from "@/components/catalog/SkillSelect";

@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import dayjs from "dayjs";
-import { DataTable, type DataTableFeatures } from "@/components/DataTable";
+import { DataTable, type DataTableFeatures } from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,

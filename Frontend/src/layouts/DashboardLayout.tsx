@@ -1,5 +1,5 @@
-import DashboardHeader from "@/components/DashboardHeader";
-import DashboardSidebar from "@/components/DashboardSidebar";
+import DashboardHeader from "@/components/common/DashboardHeader";
+import DashboardSidebar from "@/components/common/DashboardSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Outlet } from "react-router-dom";
 

@@ -9,7 +9,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";

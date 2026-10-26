@@ -15,9 +15,12 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
-import { DataTable, type DataTableFeatures } from "@/components/DataTable";
-import { UserAvatar } from "@/components/UserAvatar";
+import {
+  Button,
+  DataTable,
+  type DataTableFeatures,
+  UserAvatar,
+} from "@/components/common";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import {

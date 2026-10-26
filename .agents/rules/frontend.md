@@ -102,19 +102,19 @@ Frontend/src/
 @theme {
 --font-sans: "Montserrat", sans-serif;
 
-/* Primary */
+/_ Primary _/
 --color-primary: #1b3b6f;
 --color-primary-dark: #122a52;
 --color-primary-light: #3e5e8f;
 
-/* Secondary */
+/_ Secondary _/
 --color-secondary: #a6e1fa;
 --color-secondary-light: #d6f1fc;
 --color-secondary-dark: #6fc3e8;
 
-/* ==== Neutral ==== */
+/_ ==== Neutral ==== _/
 
-/* primary background color */
+/_ primary background color _/
 --color-bg: #f7fafc;
 --color-bg-stone: #f9f9f9;
 --color-bg-white-blue: #ecf5f9;
@@ -122,18 +122,18 @@ Frontend/src/
 --color-surface: #ffffff;
 --color-border: #e2e8f0;
 
-/* text */
+/_ text _/
 --color-text-main: #1a202c;
 --color-text-muted: #64748b;
 
-/* Status */
+/_ Status _/
 --color-status-success: #22c55e;
 --color-status-warning: #f59e0b;
 --color-status-error: #ef4444;
 --color-status-info: #3b82f6;
 --color-status-active: #a6e1fa;
 
-/* Sidebar */
+/_ Sidebar _/
 --color-sidebar: var(--color-bg);
 --color-sidebar-foreground: var(--color-text-main);
 --color-sidebar-accent: #eaf0f6;

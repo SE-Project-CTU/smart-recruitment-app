@@ -2,8 +2,11 @@ import { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { ArrowUpDown, Eye, MapPin, Pencil, PowerOff } from "lucide-react";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
-import { DataTable, type DataTableFeatures } from "@/components/DataTable";
+import {
+  Button,
+  DataTable,
+  type DataTableFeatures,
+} from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,

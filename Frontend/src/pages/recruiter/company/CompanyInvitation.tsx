@@ -15,8 +15,12 @@ import {
   Eye,
 } from "lucide-react";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
-import { DataTable, type DataTableFeatures } from "@/components/DataTable";
+import {
+  Button,
+  DataTable,
+  type DataTableFeatures,
+  UserAvatar,
+} from "@/components/common";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import {
@@ -26,7 +30,6 @@ import {
 } from "@/hooks/queries/useCompany";
 import { CompanyDetailDrawer } from "@/components/company/CompanyDetailDrawer";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
-import { UserAvatar } from "@/components/UserAvatar";
 import type {
   CompanyInvitationItem,
   CompanyInvitationStatus,

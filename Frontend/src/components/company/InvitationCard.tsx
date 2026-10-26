@@ -1,6 +1,6 @@
 import { Check, X } from "lucide-react";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { CompanyLogo } from "./CompanyLogo";
 import type { CompanyInvitationItem } from "@/types/company";
 

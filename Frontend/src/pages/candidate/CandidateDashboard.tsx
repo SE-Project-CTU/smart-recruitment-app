@@ -7,10 +7,8 @@ import {
   Search,
 } from "lucide-react";
 import { Smarthire_icon_default } from "@/assets/images/logo";
-import { CTAMeshGradient } from "@/components/CustomBackground";
+import { Button, CTAMeshGradient, JobCard } from "@/components/common";
 import { MOCK_CVS, MOCK_JOB_POSTINGS } from "@/constants/mockData";
-import { JobCard } from "@/components/JobCard";
-import Button from "@/components/Button";
 import {
   Toggle,
   ToggleGroup,

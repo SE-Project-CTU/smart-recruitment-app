@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
+import { Button, UserAvatar } from "@/components/common";
 
 import { useAuthStore } from "@/stores/authStore";
 import { getApiErrorMessage } from "@/api/errorHandler";
@@ -23,7 +23,6 @@ import {
 } from "@/hooks/queries/useAccount";
 import { useDeleteMedia, useUploadImage } from "@/hooks/queries/useMedia";
 import { MorphIcon } from "morphicons/react";
-import { UserAvatar } from "@/components/UserAvatar";
 import {
   AlertDialog,
   AlertDialogAction,

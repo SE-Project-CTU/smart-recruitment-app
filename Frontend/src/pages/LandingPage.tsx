@@ -8,7 +8,11 @@ import {
   Rectangle_3,
 } from "@/assets/images/decoration";
 import { SmartHire_default, SmartHire_text_only } from "@/assets/images/logo";
-import Button from "@/components/Button";
+import {
+  Button,
+  GradientBackground,
+  GradientGridBackground,
+} from "@/components/common";
 import TextType from "@/components/external/TextType";
 import CountUp from "@/components/external/CountUp";
 import {
@@ -29,10 +33,6 @@ import TestimonialCard from "@/components/TestimonialCard";
 import { testimonialData } from "@/constants/mockData";
 import { useNavigate } from "react-router-dom";
 import { PATHS } from "@/constants/paths";
-import {
-  GradientBackground,
-  GradientGridBackground,
-} from "@/components/CustomBackground";
 
 const HeroSection = () => {
   const navigate = useNavigate();

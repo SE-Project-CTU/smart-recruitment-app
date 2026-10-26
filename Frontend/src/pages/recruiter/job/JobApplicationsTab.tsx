@@ -15,8 +15,11 @@ import {
   X,
 } from "lucide-react";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
-import { DataTable, type DataTableFeatures } from "@/components/DataTable";
+import {
+  Button,
+  DataTable,
+  type DataTableFeatures,
+} from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,

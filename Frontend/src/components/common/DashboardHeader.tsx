@@ -185,4 +185,5 @@ function DashboardHeader() {
   );
 }
 
+export { DashboardHeader };
 export default DashboardHeader;

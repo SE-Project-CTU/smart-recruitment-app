@@ -8,7 +8,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { toast } from "@/components/ui/toast";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
