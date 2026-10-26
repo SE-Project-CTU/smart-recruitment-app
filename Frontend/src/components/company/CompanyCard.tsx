@@ -25,7 +25,7 @@ export interface CompanyCardProps {
   onToggleBookmark?: (id: string) => void;
   onViewDetail: (company: CompanyItem) => void;
   onCreateJob?: (company: CompanyItem) => void;
-  userRole?: "Owner" | "Member";
+  userRole?: "Owner" | "Recruiter" | "Member";
   actionText?: string;
   showBookmark?: boolean;
   showVerificationStatus?: boolean;
@@ -124,7 +124,7 @@ export function CompanyCard({
               Chủ sở hữu
             </span>
           )}
-          {role === "Member" && (
+          {(role === "Member" || role === "Recruiter") && (
             <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
               Thành viên
             </span>

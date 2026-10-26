@@ -1,6 +1,10 @@
 export type CompanyVerificationStatus = "Verified" | "Pending" | "Rejected";
-export type CompanyMemberRole = "Owner" | "Member";
-export type CompanyMembershipStatus = "Active" | "Inactive";
+export type CompanyMemberRole = "Owner" | "Recruiter" | "Member";
+export type CompanyMembershipStatus =
+  | "Active"
+  | "Suspended"
+  | "Left"
+  | "Inactive";
 
 export interface CompanyMembershipSummary {
   role: CompanyMemberRole;

@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { companyService } from "@/services/companyService";
+import { useAuthStore } from "@/stores/authStore";
 import type {
   CreateCompanyPayload,
   InviteRecruiterPayload,
@@ -16,9 +17,11 @@ import type {
  * Hook Query: Lấy danh sách các công ty mà Recruiter hiện tại thực sự thuộc về
  */
 export const useMyCompanies = () => {
+  const user = useAuthStore((state) => state.user);
   return useQuery({
-    queryKey: ["companies", "my"],
+    queryKey: ["companies", "my", user?.id],
     queryFn: () => companyService.getMyCompanies(),
+    enabled: Boolean(user?.id),
     staleTime: 2 * 60 * 1000, // Cache 2 phút
   });
 };

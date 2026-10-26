@@ -2,6 +2,7 @@ import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type {
   AcceptInvitationResult,
+  ApiPagedResponse,
   ApiResponse,
   CompanyInvitationItem,
   CompanyItem,
@@ -14,147 +15,131 @@ import type {
   UpdateCompanyPayload,
 } from "@/types";
 import type { JobPostingItem } from "@/types/job";
+import {
+  addStoredMyCompanyId,
+  clearStoredMyCompanyCache,
+  getCurrentUserId,
+  getStoredMyCompanyIds,
+  getStoredScanTimestamp,
+  saveStoredMyCompanyIds,
+  saveStoredScanTimestamp,
+} from "./companyMembershipCache";
 
-
-const STORAGE_KEY_MY_COMPANIES = "sr_my_company_ids";
-
-const getStoredMyCompanyIds = (): string[] => {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_MY_COMPANIES);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+type PublicCompanyParams = {
+  search?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
 };
 
-const saveStoredMyCompanyIds = (ids: string[]) => {
-  if (typeof window === "undefined") return;
-  try {
-    const unique = Array.from(new Set(ids.filter(Boolean)));
-    localStorage.setItem(STORAGE_KEY_MY_COMPANIES, JSON.stringify(unique));
-  } catch {
-    // ignore
-  }
-};
+const fetchPublicCompaniesPage = async (
+  params: Required<Pick<PublicCompanyParams, "page" | "pageSize">> &
+    Pick<PublicCompanyParams, "search" | "status">,
+) =>
+  axiosClient.get<never, ApiPagedResponse<CompanyItem>>(
+    API_ENDPOINTS.COMPANY.LIST,
+    { params },
+  );
 
-const addStoredMyCompanyId = (id: string) => {
-  if (typeof window === "undefined" || !id) return;
-  const current = getStoredMyCompanyIds();
-  if (!current.includes(id)) {
-    saveStoredMyCompanyIds([...current, id]);
+const getAllPublicCompanyIds = async (): Promise<string[]> => {
+  const pageSize = 100;
+  const firstPage = await fetchPublicCompaniesPage({ page: 1, pageSize });
+  const ids = (firstPage.data ?? []).map((company) => company.id);
+  const totalPages = Math.max(1, firstPage.meta.totalPages);
+  const pageBatchSize = 5;
+
+  for (let startPage = 2; startPage <= totalPages; startPage += pageBatchSize) {
+    const pageNumbers = Array.from(
+      { length: Math.min(pageBatchSize, totalPages - startPage + 1) },
+      (_, index) => startPage + index,
+    );
+    const pages = await Promise.all(
+      pageNumbers.map((page) => fetchPublicCompaniesPage({ page, pageSize })),
+    );
+    ids.push(...pages.flatMap((page) => page.data.map((company) => company.id)));
   }
+
+  return ids;
 };
 
 export const companyService = {
   /**
-   * Xóa cache danh sách ID công ty đã lưu của user
+   * Xóa cache danh sách ID công ty đã lưu của user hiện tại
    */
   clearMyCompaniesCache(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(STORAGE_KEY_MY_COMPANIES);
-    }
+    clearStoredMyCompanyCache();
   },
 
   /**
    * Lấy danh sách các công ty mà Recruiter hiện tại thực sự thuộc về (Active membership)
-   * Tối ưu hóa:
-   * 1. Ưu tiên tra cứu theo Candidate IDs đã biết (từ cache local, active company, lời mời đã nhận)
-   *    -> Giảm từ 51 requests N+1 xuống còn 1-3 requests.
-   * 2. Chỉ fallback quét khám phá khi chưa từng có dữ liệu công ty nào được lưu.
+   * Cache ID chỉ dùng làm gợi ý; membership luôn được xác thực lại từ API.
    */
-  async getMyCompanies(): Promise<CompanyItem[]> {
-    // 1. Thu thập candidate company IDs
-    const candidateIds = new Set<string>(getStoredMyCompanyIds());
+  async getMyCompanies(options?: {
+    forceRefresh?: boolean;
+  }): Promise<CompanyItem[]> {
+    const userId = getCurrentUserId();
+    const companyIds = new Set<string>(getStoredMyCompanyIds(userId));
 
     const activeCompanyId =
       typeof window !== "undefined"
         ? localStorage.getItem("sr_active_company_id")
         : null;
     if (activeCompanyId) {
-      candidateIds.add(activeCompanyId);
+      companyIds.add(activeCompanyId);
     }
 
-    // Lấy thêm các công ty từ các lời mời đã chấp nhận (chỉ 1 request nhanh tới endpoint của user hiện tại)
-    try {
-      const invRes = await this.getMyInvitations({
-        status: "Accepted",
-        pageSize: 50,
+    const lastScanTime = getStoredScanTimestamp(userId);
+    const isScanFresh =
+      !options?.forceRefresh &&
+      lastScanTime !== null &&
+      Date.now() - lastScanTime < 5 * 60 * 1000;
+    const shouldDiscoverCompanies = !isScanFresh;
+
+    if (shouldDiscoverCompanies) {
+      const [publicCompanyIds, acceptedInvitations] = await Promise.all([
+        getAllPublicCompanyIds(),
+        this.getMyInvitations({ status: "Accepted", pageSize: 50 }),
+      ]);
+      publicCompanyIds.forEach((id) => companyIds.add(id));
+      acceptedInvitations.items.forEach((invitation) => {
+        if (invitation.companyId) companyIds.add(invitation.companyId);
       });
-      if (invRes.items && Array.isArray(invRes.items)) {
-        invRes.items.forEach((inv) => {
-          if (inv.companyId) candidateIds.add(inv.companyId);
-        });
-      }
-    } catch {
-      // Bỏ qua nếu chưa có lời mời hoặc lỗi mạng nhẹ
     }
 
-    // 2. Nếu đã có candidate IDs: Chỉ gọi chi tiết đúng những công ty này (tránh N+1)
-    if (candidateIds.size > 0) {
+    const companyIdList = Array.from(companyIds);
+    const activeCompanies = new Map<string, CompanyItem>();
+    let allDetailsLoaded = true;
+    const batchSize = 10;
+
+    for (let i = 0; i < companyIdList.length; i += batchSize) {
+      const batch = companyIdList.slice(i, i + batchSize);
       const details = await Promise.all(
-        Array.from(candidateIds).map(async (id) => {
+        batch.map(async (id) => {
           try {
             return await this.getCompanyDetail(id);
           } catch {
+            allDetailsLoaded = false;
             return null;
           }
         }),
       );
 
-      const activeCompanies = details.filter(
-        (comp): comp is CompanyItem =>
-          Boolean(comp && comp.membership && comp.membership.status === "Active"),
-      );
-
-      if (activeCompanies.length > 0) {
-        saveStoredMyCompanyIds(activeCompanies.map((c) => c.id));
-        return activeCompanies;
-      }
-    }
-
-    // 3. Fallback: Discovery scan (Chỉ chạy khi chưa có bất kỳ candidate ID nào)
-    try {
-      const response = await axiosClient.get<never, ApiResponse<CompanyItem[]>>(
-        API_ENDPOINTS.COMPANY.LIST,
-        { params: { page: 1, pageSize: 100 } },
-      );
-
-      const allCompanies = response.data || [];
-      if (!Array.isArray(allCompanies) || allCompanies.length === 0) {
-        return [];
-      }
-
-      // Quét theo batch nhỏ (10 requests) để tránh làm nghẽn kết nối mạng
-      const activeCompanies: CompanyItem[] = [];
-      const batchSize = 10;
-      for (let i = 0; i < allCompanies.length; i += batchSize) {
-        const batch = allCompanies.slice(i, i + batchSize);
-        const batchDetails = await Promise.all(
-          batch.map(async (comp) => {
-            try {
-              return await this.getCompanyDetail(comp.id);
-            } catch {
-              return null;
-            }
-          }),
-        );
-
-        for (const comp of batchDetails) {
-          if (comp && comp.membership && comp.membership.status === "Active") {
-            activeCompanies.push(comp);
-          }
+      details.forEach((company) => {
+        if (company?.membership?.status === "Active") {
+          activeCompanies.set(company.id, company);
         }
-      }
-
-      if (activeCompanies.length > 0) {
-        saveStoredMyCompanyIds(activeCompanies.map((c) => c.id));
-      }
-
-      return activeCompanies;
-    } catch {
-      return [];
+      });
     }
+
+    if (allDetailsLoaded) {
+      const activeCompanyIds = Array.from(activeCompanies.keys());
+      saveStoredMyCompanyIds(userId, activeCompanyIds);
+      if (shouldDiscoverCompanies) {
+        saveStoredScanTimestamp(userId);
+      }
+    }
+
+    return Array.from(activeCompanies.values());
   },
 
   /**
@@ -166,11 +151,12 @@ export const companyService = {
     page?: number;
     pageSize?: number;
   }): Promise<CompanyItem[]> {
-    const response = await axiosClient.get<never, ApiResponse<CompanyItem[]>>(
-      API_ENDPOINTS.COMPANY.LIST,
-      { params: { page: 1, pageSize: 100, ...params } },
-    );
-    return response.data || [];
+    const response = await fetchPublicCompaniesPage({
+      page: 1,
+      pageSize: 100,
+      ...params,
+    });
+    return response.data ?? [];
   },
 
   /**
@@ -225,7 +211,8 @@ export const companyService = {
 
     return {
       items: response.data || [],
-      totalCount: (response.meta?.totalItems as number) || (response.data?.length ?? 0),
+      totalCount:
+        (response.meta?.totalItems as number) || (response.data?.length ?? 0),
     };
   },
 
@@ -340,7 +327,12 @@ export const companyService = {
    */
   async getCompanyJobPostings(
     companyId: string,
-    params?: { status?: string; search?: string; page?: number; pageSize?: number },
+    params?: {
+      status?: string;
+      search?: string;
+      page?: number;
+      pageSize?: number;
+    },
   ): Promise<{ items: JobPostingItem[]; totalCount: number }> {
     const response = await axiosClient.get<
       never,

@@ -56,7 +56,13 @@ export function CompanyListPage() {
     return companies.filter((c) => {
       // Role filter
       if (roleFilter !== "ALL") {
-        if (c.membership?.role !== roleFilter) return false;
+        if (roleFilter === "Owner" && c.membership?.role !== "Owner") return false;
+        if (
+          roleFilter === "Member" &&
+          c.membership?.role !== "Member" &&
+          c.membership?.role !== "Recruiter"
+        )
+          return false;
       }
       // Status filter
       if (statusFilter !== "ALL") {
@@ -80,7 +86,8 @@ export function CompanyListPage() {
     (c) => c.membership?.role === "Owner",
   ).length;
   const memberCount = companies.filter(
-    (c) => c.membership?.role === "Member",
+    (c) =>
+      c.membership?.role === "Member" || c.membership?.role === "Recruiter",
   ).length;
 
   return (

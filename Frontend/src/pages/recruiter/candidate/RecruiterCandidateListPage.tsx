@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import { Button } from "@/components/common";
+import { Button, TableSkeleton } from "@/components/common";
 import { PATHS } from "@/constants/paths";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import {
@@ -84,9 +84,8 @@ export function RecruiterCandidateListPage() {
   // 3. Modal states
   const [selectedLetterApp, setSelectedLetterApp] =
     useState<RecruiterCandidateApplicationItem | null>(null);
-  const [pendingChange, setPendingChange] = useState<PendingStatusChange | null>(
-    null,
-  );
+  const [pendingChange, setPendingChange] =
+    useState<PendingStatusChange | null>(null);
   const [transitionNote, setTransitionNote] = useState("");
   const [isSubmittingTransition, setIsSubmittingTransition] = useState(false);
 
@@ -264,10 +263,10 @@ export function RecruiterCandidateListPage() {
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
-          <span className="text-xs font-medium text-sky-600">
-            Đang xem xét
-          </span>
-          <p className="mt-1 text-xl font-bold text-sky-700">{reviewingCount}</p>
+          <span className="text-xs font-medium text-sky-600">Đang xem xét</span>
+          <p className="mt-1 text-xl font-bold text-sky-700">
+            {reviewingCount}
+          </p>
         </div>
         <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
           <span className="text-xs font-medium text-amber-600">
@@ -344,7 +343,10 @@ export function RecruiterCandidateListPage() {
                   </Select.Icon>
                 </Select.Trigger>
                 <Select.Portal>
-                  <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
+                  <Select.Positioner
+                    alignItemWithTrigger={false}
+                    sideOffset={4}
+                  >
                     <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                       <Select.List>
                         {companyFilterOptions.map((opt) => (
@@ -390,7 +392,7 @@ export function RecruiterCandidateListPage() {
                   {jobFilterOptions.find((o) => o.value === selectedJobId)
                     ?.label || "Tất cả vị trí"}
                 </span>
-                <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180 shrink-0">
+                <Select.Icon className="shrink-0 text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
                   <ChevronDown className="size-3.5" />
                 </Select.Icon>
               </Select.Trigger>
@@ -407,7 +409,7 @@ export function RecruiterCandidateListPage() {
                           <Select.ItemText>{opt.label}</Select.ItemText>
                           <Select.ItemIndicator
                             animation="pop"
-                            className="ml-2 text-xs text-primary shrink-0"
+                            className="ml-2 shrink-0 text-xs text-primary"
                           >
                             ✓
                           </Select.ItemIndicator>
@@ -447,20 +449,21 @@ export function RecruiterCandidateListPage() {
                     <Select.List>
                       {APPLICATION_STATUS_OPTIONS.map(
                         (opt: { value: string; label: string }) => (
-                        <Select.Item
-                          key={opt.value}
-                          value={opt.value}
-                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
-                        >
-                          <Select.ItemText>{opt.label}</Select.ItemText>
-                          <Select.ItemIndicator
-                            animation="pop"
-                            className="ml-2 text-xs text-primary"
+                          <Select.Item
+                            key={opt.value}
+                            value={opt.value}
+                            className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                           >
-                            ✓
-                          </Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
+                            <Select.ItemText>{opt.label}</Select.ItemText>
+                            <Select.ItemIndicator
+                              animation="pop"
+                              className="ml-2 text-xs text-primary"
+                            >
+                              ✓
+                            </Select.ItemIndicator>
+                          </Select.Item>
+                        ),
+                      )}
                     </Select.List>
                   </Select.Popup>
                 </Select.Positioner>
@@ -472,7 +475,7 @@ export function RecruiterCandidateListPage() {
 
       {/* 4. DataTable ứng viên */}
       {isLoading ? (
-        <div className="h-96 animate-pulse rounded-2xl border border-border bg-slate-50/70" />
+        <TableSkeleton />
       ) : (
         <div className="space-y-4">
           <CandidateTable
@@ -571,22 +574,22 @@ export function RecruiterCandidateListPage() {
                     Thư giới thiệu của ứng viên
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {resolveCandidateProfile(selectedLetterApp).name} • Ứng tuyển:{" "}
-                    {selectedLetterApp.jobTitle}
+                    {resolveCandidateProfile(selectedLetterApp).name} • Ứng
+                    tuyển: {selectedLetterApp.jobTitle}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLetterApp(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+                className="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <X className="size-4" />
               </button>
             </div>
 
             <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-              <p className="whitespace-pre-line text-xs leading-relaxed text-slate-700 sm:text-sm">
+              <p className="text-xs leading-relaxed whitespace-pre-line text-slate-700 sm:text-sm">
                 {selectedLetterApp.coverLetter}
               </p>
             </div>
@@ -630,7 +633,7 @@ export function RecruiterCandidateListPage() {
                 type="button"
                 disabled={isSubmittingTransition}
                 onClick={() => setPendingChange(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+                className="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <X className="size-4" />
               </button>
@@ -665,7 +668,7 @@ export function RecruiterCandidateListPage() {
                   className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
                     APPLICATION_STATUS_CONFIG[pendingChange.fromStatus]
                       ?.badgeClass ||
-                    "bg-slate-100 text-slate-700 border-slate-200"
+                    "border-slate-200 bg-slate-100 text-slate-700"
                   }`}
                 >
                   {APPLICATION_STATUS_CONFIG[pendingChange.fromStatus]?.label ||
@@ -678,7 +681,7 @@ export function RecruiterCandidateListPage() {
                   className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
                     APPLICATION_STATUS_CONFIG[pendingChange.toStatus]
                       ?.badgeClass ||
-                    "bg-primary/10 text-primary border-primary/20"
+                    "border-primary/20 bg-primary/10 text-primary"
                   }`}
                 >
                   {APPLICATION_STATUS_CONFIG[pendingChange.toStatus]?.label ||
@@ -722,7 +725,9 @@ export function RecruiterCandidateListPage() {
                 onClick={handleConfirmTransition}
                 className="px-4! py-1.5! text-xs! font-semibold!"
               >
-                {isSubmittingTransition ? "Đang cập nhật..." : "Xác nhận chuyển"}
+                {isSubmittingTransition
+                  ? "Đang cập nhật..."
+                  : "Xác nhận chuyển"}
               </Button>
             </div>
           </div>

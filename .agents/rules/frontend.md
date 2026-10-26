@@ -154,7 +154,7 @@ Frontend/src/
 
 ### Icon & Hình ảnh
 
-- **Icon mặc định:** Sử dụng `lucide-react`.
+- **Icon mặc định:** Sử dụng `lucide-react`. Sử dụng màu đồng nhất, hạn chế mỗi icon, mỗi badge mỗi màu khác nhau
 - **Icon có tính tương tác** (nhấn đổi hình như ẩn/hiện mật khẩu): Dùng `<MorphIcon icon={isX ? IconA : IconB} />` với `IconA`, `IconB` import từ `lucide` (KHÔNG phải `lucide-react`).
 - **Logo:** Lấy từ thư mục `assets/`.
 - **Hình ảnh (`img`):** Luôn luôn có fallback phòng trường hợp ảnh lỗi.
@@ -168,14 +168,15 @@ Frontend/src/
 
 ---
 
-## 5. Quy trình tích hợp API mới (Bắt buộc 4 bước)
+## 5. Quy trình tích hợp API mới, sửa đổi liên quan đến API (Bắt buộc 5 bước)
 
 Mỗi khi tích hợp API mới từ Backend, Sub-agent phải làm theo đúng thứ tự:
 
 1. **Khảo sát Request & Response:** Kiểm tra payload gửi lên là gì, dữ liệu trả về là gì (hỏi hoặc tự kiểm tra tài liệu/swagger).
-2. **Kiểm tra Store:** Có cần lưu dữ liệu vào Zustand store không? Store hiện tại đã đủ hay cần tạo store riêng?
-3. **Kiểm tra Error Mapping:** Kiểm tra trong `constants/apiErrorsMessage.ts` đã mapping đủ các mã lỗi có thể xảy ra của API này chưa? Nếu thiếu, bổ sung ngay.
-4. **Viết theo luồng chuẩn:**
+2. **Khảo sát enum từ Backend:** Cần kiểm tra lại enum từ backend nếu bước 1 chưa thấy đủ thông tin
+3. **Kiểm tra Store:** Có cần lưu dữ liệu vào Zustand store không? Store hiện tại đã đủ hay cần tạo store riêng?
+4. **Kiểm tra Error Mapping:** Kiểm tra trong `constants/apiErrorsMessage.ts` đã mapping đủ các mã lỗi có thể xảy ra của API này chưa? Nếu thiếu, bổ sung ngay.
+5. **Viết theo luồng chuẩn:**
    - Viết `services/` (dùng instance axios đã cấu hình).
    - Viết `hooks/queries/` (sử dụng `@tanstack/react-query`).
    - Tích hợp hook vào Component/Page trên UI.
