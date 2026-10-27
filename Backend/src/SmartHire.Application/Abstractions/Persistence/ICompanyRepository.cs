@@ -25,6 +25,12 @@ public interface ICompanyRepository {
         int page,
         int pageSize,
         CancellationToken cancellationToken);
+    Task<(IReadOnlyList<CompanyMembership> Items, int TotalCount)> GetUserActiveCompaniesPagedAsync(
+        Guid userId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
     Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken);
     Task AddMembershipAsync(CompanyMembership membership, CancellationToken cancellationToken);
 

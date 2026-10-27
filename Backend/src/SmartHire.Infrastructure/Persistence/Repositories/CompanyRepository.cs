@@ -123,6 +123,35 @@ public sealed class CompanyRepository : ICompanyRepository {
                 cancellationToken);
     }
 
+    public async Task<(IReadOnlyList<CompanyMembership> Items, int TotalCount)> GetUserActiveCompaniesPagedAsync(
+        Guid userId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.CompanyMemberships
+            .AsNoTracking()
+            .Include(m => m.Company)
+                .ThenInclude(c => c.LogoFile)
+            .Where(m => m.UserId == userId && m.Status == CompanyMembershipStatus.Active);
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var trimmedSearch = search.Trim();
+            query = query.Where(m => m.Company.Name.Contains(trimmedSearch) || m.Company.TaxCode.Contains(trimmedSearch));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(m => m.JoinedAt)
+            .ThenByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task AddMembershipAsync(CompanyMembership membership, CancellationToken cancellationToken) {
         await _dbContext.CompanyMemberships.AddAsync(membership, cancellationToken);
     }

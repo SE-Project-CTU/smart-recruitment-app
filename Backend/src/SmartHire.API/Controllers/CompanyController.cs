@@ -5,6 +5,7 @@ using SmartHire.Api.Contracts.Requests;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Pagination;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Companies.Commands.AcceptInvitation;
 using SmartHire.Application.Features.Companies.Commands.CreateCompany;
@@ -22,6 +23,7 @@ using SmartHire.Application.Features.Companies.Queries.ListCompanyFollowers;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyMembers;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyJobPostings;
 using SmartHire.Application.Features.Companies.Queries.ListJoinRequests;
+using SmartHire.Application.Features.Companies.Queries.ListMyCompanies;
 using SmartHire.Application.Features.Companies.Queries.ListMyInvitations;
 using SmartHire.Domain.Enums;
 
@@ -44,8 +46,7 @@ public sealed class CompanyController : ControllerBase {
     public async Task<IActionResult> ListCompanies(
         [FromQuery] string? search,
         [FromQuery] string? status,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] PaginationParams pagination,
         CancellationToken cancellationToken = default) {
         CompanyVerificationStatus? parsedStatus = null;
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CompanyVerificationStatus>(status, true, out var st)) {
@@ -53,12 +54,27 @@ public sealed class CompanyController : ControllerBase {
         }
 
         var (items, totalCount) = await _sender.Send(
-            new ListCompaniesQuery(search, parsedStatus, page, pageSize),
+            new ListCompaniesQuery(search, parsedStatus, pagination),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(items, page, pageSize, totalCount));
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
- 
+
+    /// Lấy danh sách các công ty mà người dùng hiện tại đang tham gia hoạt động (Active)
+    [HttpGet("/api/v1/me/companies")]
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<IActionResult> ListMyCompanies(
+        [FromQuery] string? search,
+        [FromQuery] PaginationParams pagination,
+        CancellationToken cancellationToken = default) {
+        var (items, totalCount) = await _sender.Send(
+            new ListMyCompaniesQuery(search, pagination),
+            cancellationToken);
+
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
+    }
+
     /// Tạo hồ sơ công ty mới
     [HttpPost]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -148,17 +164,16 @@ public sealed class CompanyController : ControllerBase {
     public async Task<IActionResult> ListCompanyMembers(
         [FromRoute] Guid id,
         [FromQuery] string? status,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] PaginationParams pagination,
         CancellationToken cancellationToken = default) {
         var (items, totalCount) = await _sender.Send(
-            new ListCompanyMembersQuery(id, page, pageSize, status),
+            new ListCompanyMembersQuery(id, pagination, status),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(items, page, pageSize, totalCount));
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
 
-/// <summary>
+    /// <summary>
     /// Lấy tất cả tin tuyển dụng của công ty (dành cho Recruiter là thành viên công ty)
     /// </summary>
     [HttpGet("{id}/job-postings")]
@@ -167,14 +182,13 @@ public sealed class CompanyController : ControllerBase {
         [FromRoute] Guid id,
         [FromQuery] string? status,
         [FromQuery] string? search,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] PaginationParams pagination,
         CancellationToken cancellationToken = default) {
         var (items, totalCount) = await _sender.Send(
-            new ListCompanyJobPostingsQuery(id, status, search, page, pageSize),
+            new ListCompanyJobPostingsQuery(id, status, search, pagination),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(items, page, pageSize, totalCount));
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
 
     /// Mời vào công ty
@@ -201,14 +215,13 @@ public sealed class CompanyController : ControllerBase {
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> ListMyInvitations(
         [FromQuery] string? status,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] PaginationParams pagination,
         CancellationToken cancellationToken = default) {
         var (items, totalCount) = await _sender.Send(
-            new ListMyInvitationsQuery(status, page, pageSize),
+            new ListMyInvitationsQuery(status, pagination),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(items, page, pageSize, totalCount));
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
 
     /// Chấp nhận lời mời gia nhập công ty
@@ -247,14 +260,13 @@ public sealed class CompanyController : ControllerBase {
     public async Task<IActionResult> ListJoinRequests(
         [FromRoute] Guid id,
         [FromQuery] string? status,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] PaginationParams pagination,
         CancellationToken cancellationToken = default) {
         var (items, totalCount) = await _sender.Send(
-            new ListJoinRequestsQuery(id, status, page, pageSize),
+            new ListJoinRequestsQuery(id, status, pagination),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(items, page, pageSize, totalCount));
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
 
     /// Phê duyệt hoặc từ chối yêu cầu gia nhập
@@ -321,13 +333,12 @@ public sealed class CompanyController : ControllerBase {
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> ListCompanyFollowers(
         [FromRoute] Guid id,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] PaginationParams pagination,
         CancellationToken cancellationToken = default) {
         var (response, totalCount) = await _sender.Send(
-            new ListCompanyFollowersQuery(id, page, pageSize),
+            new ListCompanyFollowersQuery(id, pagination),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(response.Followers, page, pageSize, totalCount));
+        return Ok(_responseFactory.Paged(response.Followers, pagination.Page, pagination.PageSize, totalCount));
     }
 }
