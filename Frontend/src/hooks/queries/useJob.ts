@@ -35,14 +35,25 @@ export const useRecruiterJobPostings = (companyIds: string[]) => {
       if (!companyIds || companyIds.length === 0) {
         return { items: [], totalCount: 0 };
       }
+      let failedCount = 0;
       const results = await Promise.all(
         companyIds.map((id) =>
-          companyService.getCompanyJobPostings(id, { pageSize: 100 }).catch(() => ({
-            items: [],
-            totalCount: 0,
-          }))
+          companyService.getCompanyJobPostings(id, { pageSize: 100 }).catch((err) => {
+            failedCount++;
+            console.warn(`[useRecruiterJobPostings] Lỗi lấy tin của công ty ${id}:`, err);
+            return {
+              items: [],
+              totalCount: 0,
+            };
+          })
         )
       );
+
+      if (failedCount > 0) {
+        toast.warning({
+          description: `Không thể tải tin tuyển dụng từ ${failedCount}/${companyIds.length} doanh nghiệp. Vui lòng thử làm mới.`,
+        });
+      }
 
       const allItems = results.flatMap((r) => r.items);
       allItems.sort(
@@ -105,11 +116,15 @@ export const useUpdateJobPosting = (id?: string) => {
       queryClient.invalidateQueries({
         queryKey: ["job-postings", "detail", targetId],
       });
-      // Invalidate toàn bộ query liên quan đến job-postings (recruiter-list, list,...)
+      // Invalidate các danh sách tin tuyển dụng
       queryClient.invalidateQueries({ queryKey: ["job-postings"] });
-      queryClient.invalidateQueries({
-        queryKey: ["recruiter", "all-applications"],
-      });
+
+      // Chỉ invalidate danh sách ứng viên nếu tiêu đề tin tuyển dụng thay đổi (vì danh sách ứng viên hiển thị jobTitle)
+      if (variables.payload.title !== undefined) {
+        queryClient.invalidateQueries({
+          queryKey: ["recruiter", "all-applications"],
+        });
+      }
     },
   });
 };

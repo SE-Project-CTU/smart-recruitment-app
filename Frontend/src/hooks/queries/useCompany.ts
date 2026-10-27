@@ -22,7 +22,7 @@ export const useMyCompanies = () => {
     queryKey: ["companies", "my", user?.id],
     queryFn: () => companyService.getMyCompanies(),
     enabled: Boolean(user?.id),
-    staleTime: 2 * 60 * 1000, // Cache 2 phút
+    staleTime: 5 * 60 * 1000, // Tăng lên 5 phút để giảm thiểu số lần quét nặng
   });
 };
 
@@ -184,9 +184,9 @@ export const useMyCompanyInvitations = (params?: {
 };
 
 /**
- * Hook Query: Lấy toàn bộ lời mời gia nhập và thống kê theo từng trạng thái
+ * Hook Query: Lấy toàn bộ lời mời gia nhập và thống kê theo từng trạng thái (hỗ trợ lazy fetch theo tab)
  */
-export const useMyCompanyInvitationsAll = () => {
+export const useMyCompanyInvitationsAll = (activeTab?: string) => {
   const statuses = ["Pending", "Accepted", "Rejected", "Expired"] as const;
 
   const results = useQueries({
@@ -195,6 +195,7 @@ export const useMyCompanyInvitationsAll = () => {
       queryFn: () =>
         companyService.getMyInvitations({ status, page: 1, pageSize: 50 }),
       staleTime: 1 * 60 * 1000,
+      enabled: !activeTab || activeTab === "ALL" || activeTab === status,
     })),
   });
 

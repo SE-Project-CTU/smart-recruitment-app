@@ -43,11 +43,11 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { key: "ALL", label: "Tất cả" },
   { key: "Pending", label: "Chờ phản hồi" },
   { key: "Accepted", label: "Đã chấp nhận" },
   { key: "Rejected", label: "Đã từ chối" },
   { key: "Expired", label: "Hết hạn" },
+  { key: "ALL", label: "Tất cả" },
 ];
 
 const STATUS_BADGE_CONFIG: Record<
@@ -82,12 +82,12 @@ const columnHelper = createColumnHelper<
 >();
 
 export function CompanyInvitation() {
-  const [activeTab, setActiveTab] = useState<TabStatus>("ALL");
+  const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // Lấy dữ liệu toàn bộ trạng thái để tính đúng số lượng cho từng tab
+  // Lấy dữ liệu theo tab (lazy fetch) để tránh gọi cùng lúc 4 requests khi mount
   const {
     items,
     byStatus,
@@ -95,7 +95,7 @@ export function CompanyInvitation() {
     isLoading: isLoadingInvitations,
     isFetching: isFetchingInvitations,
     refetch: refetchInvitations,
-  } = useMyCompanyInvitationsAll();
+  } = useMyCompanyInvitationsAll(activeTab);
 
   const isLoading = isLoadingInvitations;
   const isFetching = isFetchingInvitations;
