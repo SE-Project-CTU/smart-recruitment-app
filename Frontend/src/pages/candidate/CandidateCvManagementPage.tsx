@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FilePlus2, Plus, AlertCircle, Eye, X, ArrowRight } from "lucide-react";
+import { FilePlus2, Plus, Eye, X, ArrowRight } from "lucide-react";
 import { Button, CVCard, CVTemplateCard } from "@/components/common";
 import {
   useMyCvs,
@@ -15,6 +15,16 @@ import { PATHS } from "@/constants/paths";
 import { useToast } from "@/hooks/use-toast";
 import type { CVItem } from "@/types/cv";
 import type { CVTemplateItemData } from "@/components/common/CVTemplateCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function CandidateCvManagementPage() {
   const navigate = useNavigate();
@@ -25,7 +35,10 @@ export default function CandidateCvManagementPage() {
 
   const { data: templateData, isLoading: isLoadingTemplates } =
     useCvTemplates();
-  const templates = useMemo(() => templateData?.items ?? [], [templateData?.items]);
+  const templates = useMemo(
+    () => templateData?.items ?? [],
+    [templateData?.items],
+  );
 
   const { mutateAsync: togglePublic, isPending: isTogglingPublic } =
     useToggleCvPublic();
@@ -401,42 +414,40 @@ export default function CandidateCvManagementPage() {
         </div>
       )}
 
-      {/* Modal: Xác nhận xóa CV */}
-      {cvToDelete && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6 text-center shadow-xl">
-            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
-              <AlertCircle className="size-6" />
-            </div>
-            <h3 className="text-base font-bold text-text-main">
-              Xóa CV này vĩnh viễn?
-            </h3>
-            <p className="mt-1.5 text-xs text-text-muted">
-              Bạn có chắc chắn muốn xóa CV "
-              <strong className="text-text-main">{cvToDelete.title}</strong>"?
-              Hành động này không thể hoàn tác.
-            </p>
-
-            <div className="mt-6 flex items-center justify-center gap-2.5">
-              <Button
-                variant="secondary"
-                onClick={() => setCvToDelete(null)}
-                disabled={isDeletingCv}
-              >
-                Giữ lại
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleConfirmDelete}
-                isLoading={isDeletingCv}
-                className="bg-rose-600! hover:bg-rose-700!"
-              >
-                Xác nhận xóa
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* AlertDialog: Xác nhận xóa CV */}
+      <AlertDialog
+        open={!!cvToDelete}
+        onOpenChange={(open) => {
+          if (!open && !isDeletingCv) {
+            setCvToDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa CV này vĩnh viễn?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa CV{" "}
+              <strong className="text-text-main font-semibold">
+                "{cvToDelete?.title}"
+              </strong>
+              ? Hành động này không thể hoàn tác và CV sẽ bị gỡ bỏ hoàn toàn khỏi hệ thống.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingCv}>
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isDeletingCv}
+            >
+              {isDeletingCv ? "Đang xóa..." : "Xác nhận xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modal: Xem trước Mẫu CV */}
       {previewItem && (

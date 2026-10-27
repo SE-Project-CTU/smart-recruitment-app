@@ -25,11 +25,6 @@ export function CVCard({
 }: CVCardProps) {
   const templateName = cv.template?.name || "ATS Standard";
 
-  const handleSwitchToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onTogglePublic?.(cv, !cv.isPublic);
-  };
-
   return (
     <div className="group flex flex-col justify-between rounded-2xl border border-border bg-white shadow-2xs transition-all duration-300 hover:border-secondary hover:shadow-md">
       {/* Khung ảnh thumbnail */}
