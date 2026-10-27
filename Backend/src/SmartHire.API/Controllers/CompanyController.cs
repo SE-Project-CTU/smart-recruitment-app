@@ -236,9 +236,8 @@ public sealed class CompanyController : ControllerBase {
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> SubmitJoinRequest(
         [FromRoute] Guid id,
-        [FromBody] SubmitJoinRequestRequest? request,
         CancellationToken cancellationToken) {
-        var result = await _sender.Send(new SubmitJoinRequestCommand(id, request?.Message), cancellationToken);
+        var result = await _sender.Send(new SubmitJoinRequestCommand(id), cancellationToken);
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
 

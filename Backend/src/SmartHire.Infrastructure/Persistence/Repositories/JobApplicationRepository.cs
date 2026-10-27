@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
+using SmartHire.Application.Common.Security;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
@@ -185,7 +186,14 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                 history.Id,
                 history.ApplicationId,
                 history.Status,
-                history.ChangedBy,
+                new ApplicationStatusHistoryActorData(
+                    history.ChangedByUser.Id,
+                    history.ChangedByUser.FullName,
+                    history.ChangedByUser.Email,
+                    history.ChangedByUser.AvatarFile != null ? history.ChangedByUser.AvatarFile.FileUrl : null,
+                    history.ChangedBy == history.Application.CandidateId
+                        ? RoleNames.Candidate
+                        : history.ChangedByUser.UserRoles.Select(ur => ur.Role.Name).FirstOrDefault()),
                 history.Note,
                 history.CreatedAt))
             .ToListAsync(cancellationToken);
