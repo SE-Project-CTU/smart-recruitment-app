@@ -10,6 +10,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   iconSize?: number;
 }
 
+// muốn ghi đè className, phải truyền thêm "!", ví dụ "text-white!"
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {

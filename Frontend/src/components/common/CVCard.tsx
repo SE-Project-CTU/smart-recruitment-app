@@ -1,5 +1,5 @@
 import { Clock, Download, Edit3, Trash } from "lucide-react";
-import Button from "@/components/Button";
+import Button from "./Button";
 import { getTimeAgo } from "@/utils/helper";
 import type { CVItem } from "@/types/cv";
 
@@ -93,7 +93,7 @@ export function CVCard({ cv, onEdit, onDownload, onDelete }: CVCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 p-4 md:flex-row">
+      <div className="flex gap-2.5 p-4">
         <Button
           variant="primary"
           icon={Download}
@@ -108,16 +108,19 @@ export function CVCard({ cv, onEdit, onDownload, onDelete }: CVCardProps) {
           icon={Edit3}
           iconSize={14}
           onClick={() => onEdit?.(cv)}
-          className="aspect-square! justify-center rounded-lg! p-2! text-xs! md:text-sm!"
+          className="aspect-square! w-fit justify-center rounded-lg! p-2! text-xs! md:text-sm!"
         ></Button>
         <Button
           variant="secondary"
           icon={Trash}
           iconSize={14}
           onClick={() => onDelete?.(cv)}
-          className="aspect-square! justify-center rounded-lg! p-2! text-xs! text-status-error! ring-status-error! md:text-sm!"
+          className="aspect-square! w-fit justify-center rounded-lg! p-2! text-xs! text-status-error! ring-status-error! md:text-sm!"
         ></Button>
       </div>
     </div>
   );
 }
+
+export default CVCard;
+

@@ -60,8 +60,5 @@ export interface RefreshResult {
   refreshTokenExpiresAt?: string;
 }
 
-export interface ApiResponse<T> {
-  data: T;
-  meta: Record<string, unknown>;
-  correlationId: string;
-}
+export type { ApiResponse } from "./common";
+

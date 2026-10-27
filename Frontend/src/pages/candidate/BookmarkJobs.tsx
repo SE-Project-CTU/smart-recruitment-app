@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, X, BookmarkCheck } from "lucide-react";
-import { JobCard } from "@/components/JobCard";
+import { JobCard } from "@/components/common";
 import { JobDetailDrawer } from "@/components/job";
 import { MOCK_JOB_POSTINGS, type MockJobPosting } from "@/constants/mockData";
 

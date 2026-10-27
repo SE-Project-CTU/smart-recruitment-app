@@ -1,7 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import Page from "@/components/Page";
+import Page from "@/components/common/Page";
 import {
   SignUp,
   SignIn,
@@ -17,6 +17,23 @@ import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
+import CompanyManagement from "@/pages/recruiter/CompanyManagement";
+import CreateJobPage from "@/pages/recruiter/CreateJobPage";
+import {
+  CompanyListPage,
+  CompanyDetailLayout,
+  CompanyOverviewTab,
+  CompanyMembersTab,
+  CompanySettingsTab,
+  CompanyInvitation,
+  CompanyJoinRequestsTab,
+} from "@/pages/recruiter/company";
+import {
+  RecruiterJobListPage,
+  JobDetailPage,
+  EditJobPage,
+} from "@/pages/recruiter/job";
+import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -97,8 +114,68 @@ const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           {
+            path: PATHS.RECRUITER.JOBS,
+            element: <RecruiterJobListPage />,
+          },
+          {
+            path: PATHS.RECRUITER.JOB_DETAIL,
+            element: <JobDetailPage />,
+          },
+          {
+            path: PATHS.RECRUITER.EDIT_JOB,
+            element: <EditJobPage />,
+          },
+          {
+            path: PATHS.RECRUITER.CREATE_JOB,
+            element: <CreateJobPage />,
+          },
+          {
+            path: PATHS.RECRUITER.CANDIDATES,
+            element: <RecruiterCandidateListPage />,
+          },
+          {
             path: PATHS.RECRUITER.DASHBOARD,
             element: <Page title="Recruiter Dashboard Overview" />,
+          },
+          {
+            path: PATHS.RECRUITER.COMPANY_MANAGEMENT,
+            element: <CompanyManagement />,
+            children: [
+              {
+                index: true,
+                element: <CompanyListPage />,
+              },
+              {
+                path: ":companyId",
+                element: <CompanyDetailLayout />,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate to="overview" replace />,
+                  },
+                  {
+                    path: "overview",
+                    element: <CompanyOverviewTab />,
+                  },
+                  {
+                    path: "members",
+                    element: <CompanyMembersTab />,
+                  },
+                  {
+                    path: "settings",
+                    element: <CompanySettingsTab />,
+                  },
+                  {
+                    path: "invitations",
+                    element: <CompanyJoinRequestsTab />,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: PATHS.RECRUITER.COMPANY_INVITATION,
+            element: <CompanyInvitation />,
           },
           {
             path: PATHS.RECRUITER.USER_PROFILE,

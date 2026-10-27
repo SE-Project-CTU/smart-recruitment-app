@@ -20,10 +20,10 @@ import {
 import {
   dataTableFeatures,
   type DataTableFeatures,
-} from "./ui/dataTableFeatures";
+} from "@/components/ui/dataTableFeatures";
 import { useState } from "react";
 
-export type { DataTableFeatures } from "./ui/dataTableFeatures";
+export type { DataTableFeatures } from "@/components/ui/dataTableFeatures";
 
 export interface DataTableColumnMeta {
   className?: string;
@@ -137,3 +137,6 @@ export function DataTable<TData extends RowData>({
     </div>
   );
 }
+
+export default DataTable;
+

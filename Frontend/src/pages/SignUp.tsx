@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Office, OfficeGirl } from "@/assets/images/decoration";
 import { SmartHire_default } from "@/assets/images/logo";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { AlertCircle, Lock, Mail, Phone, User, Building2 } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
 import { MorphIcon } from "morphicons/react";
@@ -251,6 +251,7 @@ function SignUp() {
             <Link to={PATHS.HOME}>
               <img
                 src={SmartHire_default}
+                loading="lazy"
                 alt="SmartHire Logo"
                 className="max-w-30 md:max-w-none"
               />

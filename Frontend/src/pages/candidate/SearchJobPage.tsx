@@ -8,8 +8,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import { JobCard } from "@/components/JobCard";
-import Button from "@/components/Button";
+import { Button, JobCard } from "@/components/common";
 import {
   JobFilterSidebar,
   type JobFilterState,
