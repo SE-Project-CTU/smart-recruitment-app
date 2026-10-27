@@ -4,6 +4,7 @@ using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
+using SmartHire.Application.Features.Companies.Queries.ListCompanyApplications;
 
 namespace SmartHire.Application.Abstractions.Persistence;
 
@@ -34,6 +35,22 @@ public interface IJobApplicationRepository {
         Guid jobId,
         ApplicationStatus? status,
         JobApplicationsSort sort,
+        SortDirection direction,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<int> CountByCompanyIdAsync(
+        Guid companyId,
+        Guid? jobId,
+        ApplicationStatus? status,
+        string? search,
+        CancellationToken cancellationToken);
+    Task<List<CompanyApplicationListItemData>> GetPageByCompanyIdAsync(
+        Guid companyId,
+        Guid? jobId,
+        ApplicationStatus? status,
+        string? search,
+        CompanyApplicationsSort sort,
         SortDirection direction,
         int skip,
         int pageSize,

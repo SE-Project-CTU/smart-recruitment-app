@@ -110,6 +110,7 @@ flowchart TD
   - `PATCH /api/v1/companies/{id}`: Recruiter cập nhật hồ sơ công ty.
   - `GET /api/v1/companies/{id}/members`: Danh sách thành viên trong công ty.
   - `GET /api/v1/companies/{id}/job-postings`: Danh sách tin tuyển dụng thuộc công ty (dành cho thành viên công ty).
+  - `GET /api/v1/companies/{id}/applications`: **[Mới bổ sung]** Danh sách hồ sơ ứng tuyển thuộc công ty dành cho Recruiter thành viên (hỗ trợ lọc `jobId`, `status`, `search` theo họ tên, email, phone, job title; phân trang và sắp xếp server-side).
   - `POST /api/v1/companies/{id}/invitations`: Mời recruiter gia nhập.
   - `GET /api/v1/me/company-invitations`: Danh sách lời mời gửi tới tài khoản hiện tại.
   - `POST /api/v1/company-invitations/{id}/accept` & `reject`: Chấp nhận / từ chối lời mời.
@@ -256,6 +257,11 @@ Ví dụ cụ thể:
   - Bổ sung object `ChangedBy` đầy đủ thông tin vào `GET /api/v1/applications/{id}/status-history` và `PATCH .../status`.
   - Xây dựng endpoint `GET /api/v1/me/companies` & `GET /api/v1/companies/my`.
   - Chuẩn hóa toàn bộ nhóm API Company dùng `PaginationParams` và `PagedListQueryValidator`.
+- [x] **Backend - API Quản lý Ứng viên theo Công ty (Issue #8 / P3)**:
+  - Xây dựng endpoint chuẩn duy nhất `GET /api/v1/companies/{companyId}/applications` trong `CompanyController.cs`.
+  - Triển khai CQRS MediatR: `ListCompanyApplicationsQuery` (kèm validator và handler kiểm tra active membership).
+  - Tái sử dụng và gom nhóm DTOs: `CompanyApplicationFilterRequest`, `SortRequest`, `PaginationRequest`, `CompanyApplicationFilter`, `CompanyApplicationSort`, `PaginationParams`, `CompanyApplicationListItemResult`, `CompanyApplicationMapper`.
+  - Persistence: Cài đặt `CountByCompanyIdAsync` và `GetPageByCompanyIdAsync` trong `JobApplicationRepository.cs` với bộ lọc đa dạng và phân trang chuẩn.
 - [x] **Frontend Types**:
   - Cập nhật `Frontend/src/types/job.ts` và `Frontend/src/types/application.ts` khớp với DTO backend mới.
   - Cập nhật endpoints trong `Frontend/src/constants/apiEndpoints.ts`.

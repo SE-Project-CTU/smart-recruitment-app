@@ -23,6 +23,9 @@ using SmartHire.Application.Features.Companies.Queries.ListCompanyFollowers;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyMembers;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyJobPostings;
 using SmartHire.Application.Features.Companies.Queries.ListJoinRequests;
+using SmartHire.Application.Features.Companies.Queries.ListCompanyApplications;
+using SmartHire.Application.Features.Companies.DTOs;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.Queries.ListMyCompanies;
 using SmartHire.Application.Features.Companies.Queries.ListMyInvitations;
 using SmartHire.Domain.Enums;
@@ -189,6 +192,36 @@ public sealed class CompanyController : ControllerBase {
             cancellationToken);
 
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
+    }
+
+    [HttpGet("{id}/applications")]
+    [Authorize(Roles = RoleNames.Recruiter)]
+    public async Task<IActionResult> ListCompanyApplications(
+        [FromRoute] Guid id,
+        [FromQuery] CompanyApplicationFilterRequest filter,
+        [FromQuery] SortRequest sort,
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken cancellationToken = default) {
+        var (items, totalCount) = await _sender.Send(
+            new ListCompanyApplicationsQuery(
+                id,
+                new CompanyApplicationFilter(
+                    filter.JobId,
+                    filter.Status,
+                    filter.Search),
+                new CompanyApplicationSort(
+                    sort.Sort,
+                    sort.Direction),
+                new PaginationParams(
+                    pagination.Page,
+                    pagination.PageSize)),
+            cancellationToken);
+
+        return Ok(_responseFactory.Paged(
+            items,
+            pagination.Page,
+            pagination.PageSize,
+            totalCount));
     }
 
     /// Mời vào công ty

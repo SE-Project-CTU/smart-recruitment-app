@@ -5,6 +5,7 @@ using SmartHire.Application.Common.Security;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
+using SmartHire.Application.Features.Companies.Queries.ListCompanyApplications;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -250,6 +251,100 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
             .AsNoTracking()
             .Where(application => application.JobId == jobId);
         if (status.HasValue) query = query.Where(application => application.Status == status.Value);
+        return query;
+    }
+
+    public Task<int> CountByCompanyIdAsync(
+        Guid companyId,
+        Guid? jobId,
+        ApplicationStatus? status,
+        string? search,
+        CancellationToken cancellationToken) =>
+        ApplyCompanyFilters(companyId, jobId, status, search).CountAsync(cancellationToken);
+
+    public Task<List<CompanyApplicationListItemData>> GetPageByCompanyIdAsync(
+        Guid companyId,
+        Guid? jobId,
+        ApplicationStatus? status,
+        string? search,
+        CompanyApplicationsSort sort,
+        SortDirection direction,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = ApplyCompanyFilters(companyId, jobId, status, search);
+        IOrderedQueryable<JobApplication> ordered = (sort, direction) switch {
+            (CompanyApplicationsSort.AppliedAt, SortDirection.Asc) =>
+                query.OrderBy(application => application.AppliedAt).ThenBy(application => application.Id),
+            (CompanyApplicationsSort.AppliedAt, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.AppliedAt).ThenBy(application => application.Id),
+            (CompanyApplicationsSort.CandidateName, SortDirection.Asc) =>
+                query.OrderBy(application => application.Candidate.FullName).ThenBy(application => application.Id),
+            (CompanyApplicationsSort.CandidateName, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.Candidate.FullName).ThenBy(application => application.Id),
+            (CompanyApplicationsSort.JobTitle, SortDirection.Asc) =>
+                query.OrderBy(application => application.Job.Title).ThenBy(application => application.Id),
+            (CompanyApplicationsSort.JobTitle, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.Job.Title).ThenBy(application => application.Id),
+            (CompanyApplicationsSort.Status, SortDirection.Asc) =>
+                query.OrderBy(application => application.Status).ThenBy(application => application.Id),
+            (CompanyApplicationsSort.Status, SortDirection.Desc) =>
+                query.OrderByDescending(application => application.Status).ThenBy(application => application.Id),
+            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unsupported company application ordering.")
+        };
+
+        return ordered
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(application => new CompanyApplicationListItemData(
+                application.Id,
+                application.JobId,
+                application.Job.Title,
+                application.Job.CompanyId,
+                application.Job.Company.Name,
+                application.Job.Company.LogoFile != null ? application.Job.Company.LogoFile.FileUrl : null,
+                new ApplicationCandidateData(
+                    application.Candidate.Id,
+                    application.Candidate.FullName,
+                    application.Candidate.Email,
+                    application.Candidate.Phone,
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
+                application.CvVersionId,
+                application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
+                application.CoverLetter,
+                application.Status,
+                application.AppliedAt,
+                application.UpdatedAt))
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<JobApplication> ApplyCompanyFilters(
+        Guid companyId,
+        Guid? jobId,
+        ApplicationStatus? status,
+        string? search) {
+        var query = dbContext.Applications
+            .AsNoTracking()
+            .Where(application => application.Job.CompanyId == companyId);
+
+        if (jobId.HasValue) {
+            query = query.Where(application => application.JobId == jobId.Value);
+        }
+
+        if (status.HasValue) {
+            query = query.Where(application => application.Status == status.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var trimmed = search.Trim();
+            var pattern = $"%{trimmed}%";
+            query = query.Where(application =>
+                EF.Functions.ILike(application.Candidate.FullName, pattern) ||
+                EF.Functions.ILike(application.Candidate.Email, pattern) ||
+                (application.Candidate.Phone != null && EF.Functions.ILike(application.Candidate.Phone, pattern)) ||
+                EF.Functions.ILike(application.Job.Title, pattern));
+        }
+
         return query;
     }
 }
