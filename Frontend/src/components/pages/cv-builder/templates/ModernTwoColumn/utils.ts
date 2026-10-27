@@ -24,3 +24,33 @@ export function getFieldStyle(
 
   return css;
 }
+
+/**
+ * Tạo một bản sao mới của fields dictionary đã cập nhật một field cụ thể
+ * Thích hợp dùng trong reducer, state updater hoặc util độc lập
+ */
+export function mergeFieldStyle(
+  currentFields: Record<string, CVFieldStyle> = {},
+  fieldPath: string,
+  updates: Partial<CVFieldStyle>
+): Record<string, CVFieldStyle> {
+  return {
+    ...currentFields,
+    [fieldPath]: {
+      ...(currentFields[fieldPath] || {}),
+      ...updates,
+    },
+  };
+}
+
+/**
+ * Xóa một fieldStyle khỏi dictionary
+ */
+export function omitFieldStyle(
+  currentFields: Record<string, CVFieldStyle> = {},
+  fieldPath: string
+): Record<string, CVFieldStyle> {
+  const result = { ...currentFields };
+  delete result[fieldPath];
+  return result;
+}

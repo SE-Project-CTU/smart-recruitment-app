@@ -1,8 +1,12 @@
-import React, { useState } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import type { CVDetail, CVSectionKey } from "@/types/cv";
-import DroppableContainer from "../../components/droppable-container";
-import DraggableSection from "../../components/draggable-section";
+import React from "react";
+import { useFormContext, useWatch } from "react-hook-form";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
+import type { CvEditorValues } from "@/features/cv-builder/schema/cvSchema";
 import { ProfileHeader } from "./ProfileHeader";
 import { ObjectiveSection } from "./ObjectiveSection";
 import { EducationSection } from "./EducationSection";
@@ -14,123 +18,167 @@ import {
   AwardsSection,
   TextSection,
 } from "./OtherSections";
+import DraggableSectionActions from "../../components/draggable-section-actions";
+import { useCvMutations } from "@/features/cv-builder/hooks/useCvMutations";
+import type { FixedSectionKey } from "@/features/cv-builder/types";
 
 interface ModernTwoColumnTemplateProps {
-  data: CVDetail;
   className?: string;
+  data?: CvEditorValues;
+  isReadOnly?: boolean;
 }
 
-const DEFAULT_SECTION_ORDER: CVSectionKey[] = [
-  "objective",
-  "education",
-  "experience",
-  "skills",
-  "projects",
-  "certifications",
-  "awards",
-  "interests",
-  "additionalInfo",
-];
-
+/**
+ * ModernTwoColumnTemplate:
+ * Render CV chuẩn WYSIWYG trên trang giấy A4.
+ * Cho phép nhấp trực tiếp vào text để sửa qua contentEditable,
+ * đồng thời hỗ trợ Kéo thả (Drag & Drop) để sắp xếp lại vị trí các Section.
+ */
 export const ModernTwoColumnTemplate: React.FC<
   ModernTwoColumnTemplateProps
-> = ({ data, className = "" }) => {
-  const { content, presentation, layout } = data;
-  const [profileState, setProfileState] = useState(content.profile);
-  const [sectionState, setSectionState] = useState(content.sections);
+> = ({ className = "", data: externalData, isReadOnly = false }) => {
+  const formContext = useFormContext<CvEditorValues>();
+
+  const watchedData = useWatch({
+    control: formContext?.control,
+  }) as CvEditorValues | undefined;
+
+  const { reorderSections, toggleSectionVisibility } = useCvMutations();
+
+  const data = externalData || watchedData;
+
+  if (!data || !data.content) {
+    return (
+      <div className="flex h-96 items-center justify-center rounded-xl border border-dashed border-border bg-surface text-sm text-text-muted">
+        Chưa có dữ liệu CV để hiển thị.
+      </div>
+    );
+  }
+
+  const { content, presentation } = data;
+  const { profile, sections } = content;
   const fields = presentation?.styles?.fields;
   const globalStyles = presentation?.styles?.global;
 
   const primaryColor = globalStyles?.primaryColor?.[0] || "#0F172A";
-  const fontFamily = globalStyles?.fontFamily || "inherit";
+  const fontFamily = globalStyles?.fontFamily || "inter";
   const lineHeight = globalStyles?.lineHeight || 1.5;
 
-  // Hàm render section dựa theo sectionKey
-  const renderSection = (key: CVSectionKey | string) => {
+  const sectionOrder = (sections.order || [
+    "objective",
+    "education",
+    "experience",
+    "skills",
+    "projects",
+    "certifications",
+    "awards",
+    "interests",
+    "additionalInfo",
+  ]) as string[];
+
+  // Xử lý kéo thả reorder section
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination || isReadOnly) return;
+    const reordered = Array.from(sectionOrder);
+    const [removed] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, removed);
+    reorderSections(reordered);
+  };
+
+  const moveSection = (index: number, direction: "up" | "down") => {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= sectionOrder.length) return;
+    const reordered = Array.from(sectionOrder);
+    const [removed] = reordered.splice(index, 1);
+    reordered.splice(newIndex, 0, removed);
+    reorderSections(reordered);
+  };
+
+  const renderSectionContent = (key: string) => {
     switch (key) {
       case "objective":
         return (
           <ObjectiveSection
-            key={key}
-            section={sectionState.objective}
+            section={sections.objective}
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "education":
         return (
           <EducationSection
-            key={key}
-            section={sectionState.education}
+            section={sections.education}
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "experience":
         return (
           <ExperienceSection
-            key={key}
-            section={sectionState.experience}
+            section={sections.experience}
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "skills":
         return (
           <SkillsSection
-            key={key}
-            section={sectionState.skills}
+            section={sections.skills}
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "projects":
         return (
           <ProjectsSection
-            key={key}
-            section={sectionState.projects}
+            section={sections.projects}
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "certifications":
         return (
           <CertificationsSection
-            key={key}
-            section={sectionState.certifications}
+            section={sections.certifications}
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "awards":
         return (
           <AwardsSection
-            key={key}
-            section={sectionState.awards}
+            section={sections.awards}
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "interests":
         return (
           <TextSection
-            key={key}
-            section={sectionState.interests}
+            section={sections.interests}
             sectionKey="interests"
             defaultTitle="SỞ THÍCH"
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       case "additionalInfo":
         return (
           <TextSection
-            key={key}
-            section={sectionState.additionalInfo}
+            section={sections.additionalInfo}
             sectionKey="additionalInfo"
             defaultTitle="THÔNG TIN BỔ SUNG"
             fields={fields}
             primaryColor={primaryColor}
+            isReadOnly={isReadOnly}
           />
         );
       default:
@@ -138,96 +186,83 @@ export const ModernTwoColumnTemplate: React.FC<
     }
   };
 
-  // Thứ tự hiển thị các sections từ layout
-  const initialSectionOrder =
-    layout.areas[0]?.sections || DEFAULT_SECTION_ORDER;
-  const [sectionOrder, setSectionOrder] = useState<string[]>([
-    ...initialSectionOrder,
-  ]);
-
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-    const destinationIndex = result.destination.index;
-
-    setSectionOrder((currentOrder) => {
-      const nextOrder = [...currentOrder];
-      const [movedSection] = nextOrder.splice(result.source.index, 1);
-
-      if (!movedSection) return currentOrder;
-
-      nextOrder.splice(destinationIndex, 0, movedSection);
-      return nextOrder;
-    });
-  };
-
-  const moveSection = (index: number, direction: -1 | 1) => {
-    setSectionOrder((currentOrder) => {
-      const targetIndex = index + direction;
-
-      if (targetIndex < 0 || targetIndex >= currentOrder.length) {
-        return currentOrder;
-      }
-
-      const nextOrder = [...currentOrder];
-      [nextOrder[index], nextOrder[targetIndex]] = [
-        nextOrder[targetIndex],
-        nextOrder[index],
-      ];
-      return nextOrder;
-    });
-  };
-
-  const handleDeleteSection = (key: CVSectionKey) => {
-    setSectionState((prevSections) => {
-      const updatedSections = { ...prevSections };
-      updatedSections[key].visible = false;
-
-      return updatedSections;
-    });
-  };
-
   return (
     <div
-      className={`mx-auto w-full max-w-[800px] bg-white p-8 text-slate-900 shadow-md sm:p-6 print:m-0 print:p-8 print:shadow-none ${className}`}
+      className={`mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
       style={{
-        fontSize: globalStyles?.baseFontSize,
-        fontFamily: fontFamily.includes("sans")
-          ? fontFamily
-          : `'${fontFamily}', sans-serif`,
+        fontFamily:
+          fontFamily.includes("sans") || fontFamily.includes("serif")
+            ? fontFamily
+            : `'${fontFamily}', sans-serif`,
         lineHeight,
       }}
     >
-      {/* 1. Header: Profile Info */}
-      <ProfileHeader
-        profile={profileState}
-        fields={fields}
-        primaryColor={primaryColor}
-      />
+      {/* 1. Header: Profile Info WYSIWYG */}
+      {profile && (
+        <ProfileHeader
+          profile={profile}
+          fields={fields}
+          primaryColor={primaryColor}
+          isReadOnly={isReadOnly}
+        />
+      )}
 
-      {/* 2. Sections Flow */}
+      {/* 2. DragDropContext cho các Section trực tiếp trên CV */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <DroppableContainer droppableId="cv-sections" className="mt-3">
-          {() =>
-            sectionOrder.map(
-              (sectionKey, index) =>
-                sectionState[sectionKey as CVSectionKey]?.visible && (
-                  <DraggableSection
-                    key={sectionKey}
-                    draggableId={sectionKey}
-                    index={index}
-                    className="group relative"
-                    isFirst={index === 0}
-                    isLast={index === sectionOrder.length - 1}
-                    onMoveUp={() => moveSection(index, -1)}
-                    onMoveDown={() => moveSection(index, 1)}
-                    onDelete={handleDeleteSection}
-                  >
-                    {() => renderSection(sectionKey)}
-                  </DraggableSection>
-                ),
-            )
-          }
-        </DroppableContainer>
+        <Droppable
+          droppableId="cv-template-sections"
+          isDropDisabled={isReadOnly}
+        >
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="mt-3 space-y-1"
+            >
+              {sectionOrder.map((sectionKey, index) => (
+                <Draggable
+                  key={sectionKey}
+                  draggableId={sectionKey}
+                  index={index}
+                  isDragDisabled={isReadOnly}
+                >
+                  {(dragProvided, snapshot) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      className={`group relative rounded-sm px-2 py-1 transition-all ${
+                        !isReadOnly ? "hover:ring-1 hover:ring-slate-300" : ""
+                      } ${
+                        snapshot.isDragging
+                          ? "z-50 bg-white opacity-95 shadow-2xl ring-1"
+                          : ""
+                      }`}
+                    >
+                      {/* Floating toolbar for draggable sections */}
+                      {!isReadOnly && (
+                        <DraggableSectionActions
+                          dragHandleProps={dragProvided.dragHandleProps}
+                          isFirst={index === 0}
+                          isLast={index === sectionOrder.length - 1}
+                          onMoveUp={() => moveSection(index, "up")}
+                          onMoveDown={() => moveSection(index, "down")}
+                          onDelete={() =>
+                            toggleSectionVisibility(
+                              sectionKey as FixedSectionKey,
+                            )
+                          }
+                        />
+                      )}
+
+                      {renderSectionContent(sectionKey)}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
       </DragDropContext>
     </div>
   );

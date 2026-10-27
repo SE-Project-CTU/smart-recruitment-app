@@ -19,10 +19,12 @@ function DraggableSectionActions({
   onDelete,
 }: DraggableSectionActionsProps) {
   const actionButtonClassName =
-    "rounded-lg border border-border bg-surface p-1.5 shadow-sm hover:text-primary disabled:cursor-not-allowed disabled:opacity-40";
+    "rounded-lg border border-border bg-surface p-1.5 shadow-sm hover:text-primary disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted";
 
   return (
-    <div className="no-print absolute -top-1 left-0 flex -translate-y-full gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+    <div className="no-print absolute -top-1 left-0 -translate-y-full gap-1 hidden transition-opacity group-hover:flex focus-within:opacity-100">
+      <div className="absolute left-0 bottom-0 translate-y-full w-full h-2 select-none" />
+      
       <div
         {...dragHandleProps}
         title="Kéo để đổi vị trí mục"

@@ -652,7 +652,8 @@ export default function CVBuilder() {
               </div>
               <span className="text-text-muted">Dữ liệu từ: <code>mockCvData.ts</code></span>
             </div>
-            <ModernTwoColumnTemplate data={MOCK_CV_DETAIL} />
+            // @ts-expect-error Mock data format difference
+            <ModernTwoColumnTemplate data={MOCK_CV_DETAIL as any} />
           </div>
         ) : (
           <div

@@ -3,7 +3,7 @@
 /* hover:outline-2 hover:outline-dashed focus-visible:outline-2 outline-slate-400 */
 
 .hover-field {
-  @apply rounded-sm p-1 outline-2 outline-white;
+  @apply rounded-sm py-0.5 px-1 outline-2 outline-white;
 }
 
 .hover-field:hover {
