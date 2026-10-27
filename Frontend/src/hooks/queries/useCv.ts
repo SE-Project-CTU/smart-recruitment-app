@@ -6,6 +6,7 @@ import {
 import { cvService } from "@/services/cvService";
 import { useAuthStore } from "@/stores/authStore";
 import { toast } from "@/hooks/use-toast";
+import { getApiErrorMessage } from "@/api/errorHandler";
 import type {
   CreateCvPayload,
   CvFilterParams,
@@ -78,9 +79,7 @@ export const useCreateCv = () => {
       toast.success({ description: "Tạo hồ sơ CV thành công" });
     },
     onError: (err: unknown) => {
-      const message =
-        (err as { response?: { data?: { error?: { message?: string } } } })
-          ?.response?.data?.error?.message || "Tạo CV thất bại";
+      const message = getApiErrorMessage(err, "Tạo hồ sơ CV thất bại");
       toast.warning({ description: message });
     },
   });
@@ -108,9 +107,7 @@ export const useUpdateCv = () => {
       toast.success({ description: "Cập nhật hồ sơ CV thành công" });
     },
     onError: (err: unknown) => {
-      const message =
-        (err as { response?: { data?: { error?: { message?: string } } } })
-          ?.response?.data?.error?.message || "Cập nhật CV thất bại";
+      const message = getApiErrorMessage(err, "Cập nhật hồ sơ CV thất bại");
       toast.warning({ description: message });
     },
   });
@@ -129,9 +126,7 @@ export const useDeleteCv = () => {
       toast.success({ description: "Đã xóa hồ sơ CV thành công" });
     },
     onError: (err: unknown) => {
-      const message =
-        (err as { response?: { data?: { error?: { message?: string } } } })
-          ?.response?.data?.error?.message || "Xóa CV thất bại";
+      const message = getApiErrorMessage(err, "Xóa hồ sơ CV thất bại");
       toast.warning({ description: message });
     },
   });

@@ -11,6 +11,7 @@ import type {
   UpdateJobPostingPayload,
 } from "@/types";
 import { toast } from "../use-toast";
+import { getApiErrorMessage } from "@/api/errorHandler";
 
 /**
  * Hook Query: Danh sách tin tuyển dụng Public (API 5)
@@ -236,10 +237,10 @@ export const useUpdateApplicationStatus = (jobId?: string) => {
       toast.success({ description: "Cập nhật trạng thái hồ sơ thành công" });
     },
     onError: (err: unknown) => {
-      const message =
-        (err as { response?: { data?: { error?: { message?: string } } } })
-          ?.response?.data?.error?.message ||
-        "Cập nhật trạng thái hồ sơ thất bại";
+      const message = getApiErrorMessage(
+        err,
+        "Cập nhật trạng thái hồ sơ thất bại",
+      );
       toast.warning({ description: message });
     },
   });

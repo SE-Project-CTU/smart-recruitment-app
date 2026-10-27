@@ -6,6 +6,7 @@ import {
 import { applicationService } from "@/services/applicationService";
 import { useAuthStore } from "@/stores/authStore";
 import { toast } from "@/hooks/use-toast";
+import { getApiErrorMessage } from "@/api/errorHandler";
 import type { ApplyJobPayload } from "@/types/application";
 
 /**
@@ -80,9 +81,10 @@ export const useApplyJob = () => {
       });
     },
     onError: (err: unknown) => {
-      const message =
-        (err as { response?: { data?: { error?: { message?: string } } } })
-          ?.response?.data?.error?.message || "Nộp hồ sơ ứng tuyển thất bại";
+      const message = getApiErrorMessage(
+        err,
+        "Nộp hồ sơ ứng tuyển thất bại",
+      );
       toast.warning({ description: message });
     },
   });

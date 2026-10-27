@@ -60,6 +60,27 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   INDUSTRY_NOT_FOUND: "Ngành nghề được chọn không hợp lệ.",
   SKILL_NOT_FOUND: "Kỹ năng được chọn không hợp lệ.",
   INVALID_JOB_POSTING_SEARCH: "Tiêu chí tìm kiếm tin tuyển dụng không hợp lệ.",
+  // CV Error Codes
+  CV_CANDIDATE_ROLE_REQUIRED: "Chỉ ứng viên mới có quyền quản lý hồ sơ CV.",
+  CV_CV_NOT_FOUND: "Không tìm thấy hồ sơ CV.",
+  CV_NOT_OWNED: "Bạn không có quyền truy cập hồ sơ CV này.",
+  CV_VERSION_NOT_FOUND: "Không tìm thấy phiên bản CV yêu cầu.",
+  CV_UPDATE_CONFLICT: "Hồ sơ CV đã được cập nhật bởi một phiên làm việc khác.",
+  CV_PREVIEW_FILE_ALREADY_IN_USE: "File xem trước đang được sử dụng bởi một CV khác.",
+  // Application Error Codes
+  INVALID_APPLICATION: "Thông tin hồ sơ ứng tuyển không hợp lệ. Vui lòng kiểm tra lại.",
+  JOB_NOT_ACCEPTING_APPLICATIONS: "Tin tuyển dụng này hiện đã dừng tiếp nhận hồ sơ ứng tuyển.",
+  APPLICATION_ALREADY_EXISTS: "Bạn đã nộp hồ sơ ứng tuyển vào vị trí này trước đó.",
+  UPLOADED_CV_FILE_NOT_FOUND: "Không tìm thấy tệp CV tải lên.",
+  UPLOADED_CV_NOT_PDF: "Tệp CV tải lên bắt buộc phải ở định dạng PDF.",
+  UPLOADED_CV_TOO_LARGE: "Dung lượng tệp CV vượt quá giới hạn cho phép (tối đa 5 MB).",
+  UPLOADED_CV_ALREADY_USED: "Tệp CV này đã được sử dụng.",
+  INVALID_APPLICATION_QUERY: "Tham số truy vấn hồ sơ ứng tuyển không hợp lệ.",
+  INVALID_APPLICATION_ID: "Mã hồ sơ ứng tuyển không hợp lệ.",
+  APPLICATION_NOT_FOUND: "Không tìm thấy thông tin đơn ứng tuyển.",
+  APPLICATION_FORBIDDEN: "Bạn không có quyền thao tác trên đơn ứng tuyển này.",
+  INVALID_APPLICATION_STATUS_TRANSITION: "Chuyển đổi trạng thái đơn ứng tuyển không hợp lệ theo quy trình.",
+  APPLICATION_STATUS_CONFLICT: "Trạng thái đơn ứng tuyển đã có sự thay đổi. Vui lòng tải lại trang.",
 };
 
 export const FIELD_LABELS: Record<string, string> = {
@@ -92,6 +113,10 @@ export const FIELD_LABELS: Record<string, string> = {
   deadline: "hạn nộp hồ sơ",
   industryIds: "ngành nghề",
   skillIds: "kỹ năng yêu cầu",
+  coverLetter: "thư giới thiệu",
+  templateId: "mẫu CV",
+  cvVersionId: "phiên bản CV",
+  uploadedCvFileId: "tệp CV tải lên",
 };
 
 export const HTTP_STATUS_MESSAGES: Record<number, string> = {
