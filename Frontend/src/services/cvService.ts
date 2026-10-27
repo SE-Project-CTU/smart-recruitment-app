@@ -76,7 +76,7 @@ export const cvService = {
    * Cập nhật thông tin / trạng thái CV (vd: bật/tắt isPublic, đổi tiêu đề)
    */
   async updateCv(id: string, payload: UpdateCvPayload): Promise<CVItem> {
-    const response = await axiosClient.put<never, ApiResponse<CVItem>>(
+    const response = await axiosClient.patch<never, ApiResponse<CVItem>>(
       API_ENDPOINTS.CV.UPDATE(id),
       payload,
     );

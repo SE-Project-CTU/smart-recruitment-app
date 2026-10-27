@@ -17,6 +17,7 @@ import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
+import CandidateCvManagementPage from "@/pages/candidate/CandidateCvManagementPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
 import CreateJobPage from "@/pages/recruiter/CreateJobPage";
 import {
@@ -83,7 +84,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.CV_MANAGEMENT,
-            element: <Page title="Quản lý CV" />,
+            element: <CandidateCvManagementPage />,
           },
           {
             path: PATHS.CANDIDATE.APPLICATION_STATUS,

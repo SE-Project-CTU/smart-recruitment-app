@@ -114,6 +114,75 @@ export const useUpdateCv = () => {
 };
 
 /**
+ * Hook Mutation: Chuyển đổi nhanh chế độ Công khai / Riêng tư (Optimistic Direct Cache Update)
+ * Cập nhật trực tiếp vào React Query Cache, không gọi invalidateQueries để tránh giật layout khi switch nhiều CV
+ */
+export const useToggleCvPublic = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, isPublic }: { id: string; isPublic: boolean }) =>
+      cvService.updateCv(id, { isPublic }),
+
+    onMutate: async ({ id, isPublic }) => {
+      // Huỷ các fetch dở dang để không ghi đè dữ liệu lạc quan
+      await queryClient.cancelQueries({ queryKey: ["cvs", "my"] });
+
+      // Lưu snapshot cache cũ để rollback nếu có lỗi
+      const previousData = queryClient.getQueriesData({ queryKey: ["cvs", "my"] });
+
+      // Cập nhật lạc quan trực tiếp trên Cache của React Query
+      queryClient.setQueriesData({ queryKey: ["cvs", "my"] }, (old: any) => {
+        if (!old?.items) return old;
+        return {
+          ...old,
+          items: old.items.map((item: any) =>
+            item.id === id ? { ...item, isPublic } : item,
+          ),
+        };
+      });
+
+      return { previousData };
+    },
+
+    onError: (err: unknown, _, context) => {
+      // Rollback lại dữ liệu cũ nếu API thất bại
+      if (context?.previousData) {
+        context.previousData.forEach(([key, data]) => {
+          queryClient.setQueryData(key, data);
+        });
+      }
+      const message = getApiErrorMessage(
+        err,
+        "Không thể thay đổi chế độ hiển thị CV",
+      );
+      toast.warning({ description: message });
+    },
+
+    onSuccess: (updatedCv, variables) => {
+      // Cập nhật trạng thái chuẩn xác từ server vào Cache mà KHÔNG làm giật giao diện
+      queryClient.setQueriesData({ queryKey: ["cvs", "my"] }, (old: any) => {
+        if (!old?.items) return old;
+        return {
+          ...old,
+          items: old.items.map((item: any) =>
+            item.id === variables.id
+              ? { ...item, isPublic: updatedCv.isPublic ?? variables.isPublic }
+              : item,
+          ),
+        };
+      });
+
+      toast.success({
+        description: variables.isPublic
+          ? "Đã chuyển CV sang chế độ Công khai"
+          : "Đã chuyển CV sang chế độ Riêng tư",
+      });
+    },
+  });
+};
+
+/**
  * Hook Mutation: Xóa CV
  */
 export const useDeleteCv = () => {

@@ -7,6 +7,9 @@ export { default as Button } from "./Button";
 export * from "./CVCard";
 export { default as CVCard } from "./CVCard";
 
+export * from "./CVTemplateCard";
+export { default as CVTemplateCard } from "./CVTemplateCard";
+
 export * from "./CustomBackground";
 
 export * from "./DashboardHeader";
