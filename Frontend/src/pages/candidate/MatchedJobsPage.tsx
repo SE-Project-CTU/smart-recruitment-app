@@ -1,13 +1,9 @@
 import { useState, useMemo } from "react";
 import {
   Compass,
-  SlidersHorizontal,
   BriefcaseBusiness,
-  TrendingUp,
   Target,
   CheckCircle,
-  Building2,
-  DollarSign,
   ArrowUpDown,
   ChevronDown,
   Search,
@@ -16,11 +12,8 @@ import {
 import { Button, JobCard } from "@/components/common";
 import { JobDetailDrawer } from "@/components/job";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import {
-  MOCK_JOB_POSTINGS,
-  type MockJobPosting,
-} from "@/constants/mockData";
-import { useCvTemplates, useMyCvs } from "@/hooks/queries/useCv";
+import { MOCK_JOB_POSTINGS, type MockJobPosting } from "@/constants/mockData";
+import { useMyCvs } from "@/hooks/queries/useCv";
 
 type SortKey = "MATCH_DESC" | "SALARY_DESC" | "NEWEST";
 
@@ -61,7 +54,9 @@ export default function MatchedJobsPage() {
       };
     });
 
-    let result = baseList.filter((job) => (job.aiMatchScore ?? 0) >= minMatchScore);
+    let result = baseList.filter(
+      (job) => (job.aiMatchScore ?? 0) >= minMatchScore,
+    );
 
     // Filter theo từ khóa
     if (searchQuery.trim()) {
@@ -118,7 +113,7 @@ export default function MatchedJobsPage() {
   return (
     <div className="min-h-full space-y-6 pb-12">
       {/* 1. Header Banner: Smart Recommendation Intro (Không dùng icon Sparkles/ngôi sao) */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-sm sm:p-8">
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-sm sm:p-8">
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl space-y-2.5">
             <div className="inline-flex items-center gap-2 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-200 backdrop-blur-md">
@@ -130,17 +125,18 @@ export default function MatchedJobsPage() {
               Cơ hội nghề nghiệp phù hợp với hồ sơ của bạn
             </h1>
 
-            <p className="text-xs text-slate-300 sm:text-sm leading-relaxed">
-              Hệ thống tự động phân tích kỹ năng, kinh nghiệm từ CV và lịch sử ứng
-              tuyển của bạn để đề xuất các vị trí có tỷ lệ trúng tuyển cao nhất.
+            <p className="text-xs leading-relaxed text-slate-300 sm:text-sm">
+              Hệ thống tự động phân tích kỹ năng, kinh nghiệm từ CV và lịch sử
+              ứng tuyển của bạn để đề xuất các vị trí có tỷ lệ trúng tuyển cao
+              nhất.
             </p>
 
             {primaryCv && (
               <div className="mt-3 flex items-center gap-2 text-xs text-indigo-200/90">
-                <CheckCircle className="size-3.5 text-emerald-400 shrink-0" />
+                <CheckCircle className="size-3.5 shrink-0 text-emerald-400" />
                 <span>
                   Đang đối sánh theo hồ sơ:{" "}
-                  <strong className="text-white font-semibold underline underline-offset-2">
+                  <strong className="font-semibold text-white underline underline-offset-2">
                     {primaryCv.title}
                   </strong>
                 </span>
@@ -149,44 +145,52 @@ export default function MatchedJobsPage() {
           </div>
 
           {/* Quick Metrics Badge */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 shrink-0">
+          <div className="grid shrink-0 grid-cols-2 gap-3 sm:gap-4">
             <div className="flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-              <span className="text-xs font-medium text-slate-300">Độ khớp cao</span>
+              <span className="text-xs font-medium text-slate-300">
+                Độ khớp cao
+              </span>
               <span className="mt-1 text-2xl font-bold text-white">
                 {matchedJobs.filter((j) => (j.aiMatchScore ?? 0) >= 85).length}
               </span>
-              <span className="text-[10px] text-emerald-400 font-medium">≥ 85% phù hợp</span>
+              <span className="text-[10px] font-medium text-emerald-400">
+                ≥ 85% phù hợp
+              </span>
             </div>
 
             <div className="flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-              <span className="text-xs font-medium text-slate-300">Tổng đề xuất</span>
+              <span className="text-xs font-medium text-slate-300">
+                Tổng đề xuất
+              </span>
               <span className="mt-1 text-2xl font-bold text-white">
                 {matchedJobs.length}
               </span>
-              <span className="text-[10px] text-indigo-300 font-medium">Vị trí mở tuyển</span>
+              <span className="text-[10px] font-medium text-indigo-300">
+                Vị trí mở tuyển
+              </span>
             </div>
           </div>
         </div>
       </section>
 
       {/* 2. Filter Bar & Quick Criteria Selector */}
-      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-4 sm:p-5 shadow-2xs">
+      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-4 shadow-2xs sm:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           {/* Ô tìm kiếm từ khóa */}
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-text-muted" />
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm công việc, doanh nghiệp, kỹ năng đề xuất..."
-              className="w-full rounded-xl border border-border bg-slate-50/60 py-2.5 pl-10 pr-9 text-xs font-medium text-text-main placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border border-border bg-slate-50/60 py-2.5 pr-9 pl-10 text-xs font-medium text-text-main placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-text-muted hover:text-text-main"
+                className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-text-muted hover:text-text-main"
               >
                 <X className="size-4" />
               </button>
@@ -224,7 +228,7 @@ export default function MatchedJobsPage() {
                 aria-label="Hình thức làm việc"
                 value={selectedWorkMode}
                 onChange={(e) => setSelectedWorkMode(e.target.value)}
-                className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+                className="cursor-pointer bg-transparent text-xs font-semibold text-slate-800 focus:outline-none"
               >
                 <option value="ALL">Tất cả</option>
                 <option value="Remote">Remote</option>
@@ -258,7 +262,10 @@ export default function MatchedJobsPage() {
                 </Select.Trigger>
 
                 <Select.Portal>
-                  <Select.Positioner alignItemWithTrigger={false} sideOffset={6}>
+                  <Select.Positioner
+                    alignItemWithTrigger={false}
+                    sideOffset={6}
+                  >
                     <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                       <Select.List>
                         {SORT_OPTIONS.map((opt) => (
@@ -308,8 +315,8 @@ export default function MatchedJobsPage() {
                 Không tìm thấy công việc phù hợp với tiêu chí hiện tại
               </h3>
               <p className="max-w-md text-xs text-text-muted">
-                Bạn có thể giảm yêu cầu về điểm tương thích (ví dụ về mức ≥70%) hoặc
-                xóa bộ lọc từ khóa để khám phá thêm nhiều cơ hội.
+                Bạn có thể giảm yêu cầu về điểm tương thích (ví dụ về mức ≥70%)
+                hoặc xóa bộ lọc từ khóa để khám phá thêm nhiều cơ hội.
               </p>
             </div>
             <Button

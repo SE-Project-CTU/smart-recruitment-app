@@ -7,8 +7,6 @@ import {
   ArrowUpDown,
   ChevronDown,
   ArrowRight,
-  Briefcase,
-  MapPin,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, CTAMeshGradient, JobCard } from "@/components/common";
@@ -241,62 +239,75 @@ export default function SearchJobPage() {
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="relative flex min-h-65 w-full overflow-hidden rounded-3xl p-8 lg:p-10 xl:p-12">
+      {/* Card Tìm kiếm cơ hội việc làm */}
+      <div className="relative flex min-h-60 w-full rounded-3xl p-6 sm:p-8 lg:p-10">
         <CTAMeshGradient />
 
         <div className="relative z-10 flex w-full items-center justify-between gap-8">
-          <div className="flex max-w-3xl flex-col gap-6">
-            <div className="flex flex-col gap-2 text-white">
+          <div className="flex max-w-3xl flex-1 flex-col gap-5">
+            <div className="flex flex-col gap-1.5 text-white">
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
                 Tìm kiếm cơ hội việc làm ngay hôm nay!
               </h1>
-              <p className="text-sm font-normal text-slate-200/90 md:text-base">
+              <p className="text-xs font-normal text-slate-200/90 sm:text-sm md:text-base">
                 Khám phá hơn 12,500+ việc làm với đãi ngộ cạnh tranh được tối ưu
                 riêng cho hồ sơ chuyên môn của bạn.
               </p>
             </div>
 
-            <form className="flex w-full items-center rounded-full bg-white p-2 shadow-xl">
-              <div className="flex flex-1 items-center gap-2.5 px-3">
-                <Search className="size-5 shrink-0 text-slate-400" />
+            {/* Form tìm kiếm tích hợp Địa điểm (Responsive hoàn chỉnh cho mobile và desktop) */}
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="flex w-full flex-col gap-2 rounded-2xl bg-white p-2 shadow-xl sm:flex-row sm:items-center sm:gap-0 sm:rounded-full"
+            >
+              {/* 1. Ô nhập từ khóa tìm kiếm */}
+              <div className="flex flex-1 min-w-0 items-center gap-2.5 px-3 py-1 sm:py-0">
+                <Search className="size-4.5 shrink-0 text-slate-400" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Vị trí tuyển dụng, kỹ năng, công ty..."
-                  className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                  className="w-full min-w-0 bg-transparent text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none sm:text-sm"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="cursor-pointer text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
               </div>
 
-              <div className="h-6 w-px bg-slate-200" />
-
-              <div className="hidden flex-1 items-center gap-2.5 px-3 sm:flex">
-                <Briefcase className="size-5 shrink-0 text-slate-400" />
-                <select className="w-full cursor-pointer bg-transparent text-sm font-medium text-slate-700 focus:outline-none">
-                  <option value="cntt">Công nghệ thông tin</option>
-                  <option value="marketing">Marketing / Truyền thông</option>
-                  <option value="finance">Tài chính / Ngân hàng</option>
-                  <option value="design">Thiết kế / UI-UX</option>
-                </select>
-              </div>
-
+              {/* Đường kẻ phân cách trên desktop */}
               <div className="hidden h-6 w-px bg-slate-200 sm:block" />
 
-              <div className="hidden flex-1 items-center gap-2.5 px-3 md:flex">
-                <MapPin className="size-5 shrink-0 text-slate-400" />
-                <select className="w-full cursor-pointer bg-transparent text-sm font-medium text-slate-700 focus:outline-none">
-                  <option value="hanoi">Hà Nội</option>
-                  <option value="hcm">Thành phố Hồ Chí Minh</option>
-                  <option value="cantho">Cần Thơ</option>
-                  <option value="danang">Đà Nẵng</option>
-                </select>
-              </div>
+              {/* Đường kẻ phân cách mờ trên mobile */}
+              <div className="h-px w-full bg-slate-100 sm:hidden" />
 
-              <button
-                type="submit"
-                aria-label="Tìm kiếm"
-                className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-dark active:scale-95"
-              >
-                <ArrowRight className="size-5" />
-              </button>
+              {/* 2. Hàng Địa điểm + Nút tìm kiếm */}
+              <div className="flex items-center justify-between gap-2 sm:w-auto sm:justify-start">
+                <div className="flex-1 min-w-0 sm:w-44 md:w-56 lg:w-64">
+                  <LocationCombobox
+                    value={selectedLocation}
+                    onChange={setSelectedLocation}
+                    groups={locationHierarchy}
+                    className="w-full"
+                    buttonClassName="flex w-full cursor-pointer items-center justify-between gap-2 border-0 bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none"
+                  />
+                </div>
+
+                {/* 3. Nút submit -> luôn hiển thị ở cả mobile lẫn desktop */}
+                <button
+                  type="submit"
+                  aria-label="Tìm kiếm"
+                  className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-dark active:scale-95 sm:size-10 sm:ml-1"
+                >
+                  <ArrowRight className="size-4.5 sm:size-5" />
+                </button>
+              </div>
             </form>
           </div>
 
@@ -304,95 +315,22 @@ export default function SearchJobPage() {
             <img
               src={Smarthire_icon_default}
               alt="SmartHire Icon"
-              className="h-32 w-auto object-contain drop-shadow-md lg:h-40"
+              className="h-28 w-auto object-contain drop-shadow-md lg:h-36"
             />
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-3 rounded-3xl md:flex-row md:items-center">
-        <div className="relative flex flex-1 items-center">
-          <Search className="pointer-events-none absolute left-3.5 size-4.5 text-text-muted" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo vị trí công việc hoặc công ty..."
-            className="w-full rounded-xl border border-border bg-bg py-2.5 pr-9 pl-10 text-xs font-medium text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none sm:text-sm"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 cursor-pointer text-text-muted hover:text-text-main"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 sm:flex-nowrap">
-          <LocationCombobox
-            value={selectedLocation}
-            onChange={setSelectedLocation}
-            groups={locationHierarchy}
-          />
-
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-bg px-3.5 py-2.5">
-            <ArrowUpDown className="size-3.5 shrink-0 text-text-muted" />
-            <span className="text-xs whitespace-nowrap text-text-muted">
-              Sắp xếp:
-            </span>
-
-            <Select.Root
-              items={SORT_OPTIONS}
-              value={sortBy}
-              onValueChange={(val) => {
-                if (val) setSortBy(val as SortKey);
-              }}
-            >
-              <Select.Trigger
-                aria-label="Sắp xếp công việc"
-                className="group flex cursor-pointer items-center gap-1.5 text-xs font-semibold whitespace-nowrap text-text-main focus:outline-none"
-              >
-                <Select.Value />
-                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
-                  <ChevronDown className="size-3.5" />
-                </Select.Icon>
-              </Select.Trigger>
-
-              <Select.Portal>
-                <Select.Positioner alignItemWithTrigger={false} sideOffset={6}>
-                  <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
-                    <Select.List>
-                      {SORT_OPTIONS.map((opt) => (
-                        <Select.Item
-                          key={opt.value}
-                          value={opt.value}
-                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
-                        >
-                          <Select.ItemText>{opt.label}</Select.ItemText>
-                          <Select.ItemIndicator
-                            animation="pop"
-                            className="ml-2 text-xs text-primary"
-                          >
-                            ✓
-                          </Select.ItemIndicator>
-                        </Select.Item>
-                      ))}
-                    </Select.List>
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          </div>
-
+      {/* Thanh công cụ phụ: Sắp xếp & Nút mở filter trên mobile */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2.5">
           <Button
             type="button"
             variant="secondary"
             icon={SlidersHorizontal}
             iconSize={14}
             onClick={() => setIsMobileFilterOpen(true)}
-            className="shrink-0 rounded-xl! px-3.5! py-2.5! text-xs! lg:hidden!"
+            className="shrink-0 rounded-xl! px-3.5! py-1.5! text-xs! lg:hidden!"
           >
             Bộ lọc
           </Button>
@@ -453,8 +391,59 @@ export default function SearchJobPage() {
               <span className="font-semibold text-text-main">
                 {filteredAndSortedJobs.length}
               </span>{" "}
-              công việc phù hợp
+              công việc
             </p>
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3.5 py-1.5 shadow-2xs">
+              <ArrowUpDown className="size-3.5 shrink-0 text-text-muted" />
+              <span className="text-xs whitespace-nowrap text-text-muted">
+                Sắp xếp:
+              </span>
+
+              <Select.Root
+                items={SORT_OPTIONS}
+                value={sortBy}
+                onValueChange={(val) => {
+                  if (val) setSortBy(val as SortKey);
+                }}
+              >
+                <Select.Trigger
+                  aria-label="Sắp xếp công việc"
+                  className="group flex cursor-pointer items-center gap-1.5 text-xs font-semibold whitespace-nowrap text-text-main focus:outline-none"
+                >
+                  <Select.Value />
+                  <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                    <ChevronDown className="size-3.5" />
+                  </Select.Icon>
+                </Select.Trigger>
+
+                <Select.Portal>
+                  <Select.Positioner
+                    alignItemWithTrigger={false}
+                    sideOffset={6}
+                  >
+                    <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
+                      <Select.List>
+                        {SORT_OPTIONS.map((opt) => (
+                          <Select.Item
+                            key={opt.value}
+                            value={opt.value}
+                            className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                          >
+                            <Select.ItemText>{opt.label}</Select.ItemText>
+                            <Select.ItemIndicator
+                              animation="pop"
+                              className="ml-2 text-xs text-primary"
+                            >
+                              ✓
+                            </Select.ItemIndicator>
+                          </Select.Item>
+                        ))}
+                      </Select.List>
+                    </Select.Popup>
+                  </Select.Positioner>
+                </Select.Portal>
+              </Select.Root>
+            </div>
           </div>
 
           {filteredAndSortedJobs.length === 0 ? (
