@@ -9,14 +9,14 @@ export const APPLICATION_STATUS_OPTIONS: {
   label: string;
 }[] = [
   { value: "ALL", label: "Tất cả trạng thái" },
-  { value: "SUBMITTED", label: "Đã nộp hồ sơ (Submitted)" },
-  { value: "REVIEWING", label: "Đang xem xét (Reviewing)" },
-  { value: "SHORTLISTED", label: "Đã chọn lọc (Shortlisted)" },
-  { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
-  { value: "OFFERED", label: "Mời nhận việc (Offered)" },
-  { value: "HIRED", label: "Đã tuyển dụng (Hired)" },
-  { value: "REJECTED", label: "Từ chối (Rejected)" },
-  { value: "WITHDRAWN", label: "Rút hồ sơ (Withdrawn)" },
+  { value: "SUBMITTED", label: "Đã nộp hồ sơ" },
+  { value: "REVIEWING", label: "Đang xem xét" },
+  { value: "SHORTLISTED", label: "Đã chọn lọc" },
+  { value: "INTERVIEW", label: "Mời phỏng vấn" },
+  { value: "OFFERED", label: "Mời nhận việc" },
+  { value: "HIRED", label: "Đã tuyển dụng" },
+  { value: "REJECTED", label: "Từ chối" },
+  { value: "WITHDRAWN", label: "Rút hồ sơ" },
 ];
 
 /**
@@ -27,34 +27,34 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<
   string,
   { value: UpdateJobApplicationStatus; label: string }[]
 > = {
-  SUBMITTED: [{ value: "REVIEWING", label: "Đang xem xét (Reviewing)" }],
+  SUBMITTED: [{ value: "REVIEWING", label: "Đang xem xét" }],
   REVIEWING: [
-    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc (Shortlisted)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   SHORTLISTED: [
-    { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "INTERVIEW", label: "Mời phỏng vấn" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   INTERVIEW: [
-    { value: "OFFERED", label: "Gửi đề nghị việc làm (Offered)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "OFFERED", label: "Gửi đề nghị việc làm" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   INTERVIEWING: [
-    { value: "OFFERED", label: "Gửi đề nghị việc làm (Offered)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "OFFERED", label: "Gửi đề nghị việc làm" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   OFFERED: [
-    { value: "HIRED", label: "Tuyển dụng thành công (Hired)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "HIRED", label: "Tuyển dụng thành công" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   RECEIVED: [
-    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc (Shortlisted)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   APPROVED: [
-    { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "INTERVIEW", label: "Mời phỏng vấn" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   // Terminal states: Kết thúc quy trình, không được phép chuyển tiếp nữa
   HIRED: [],
@@ -63,6 +63,7 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<
   WITHDRAWN: [],
 };
 
+//label hiển thị trạng thái application bên phía nhà tuyển dụng, sẽ cần thay đổi từ ngữ để phù hợp ngữ cảnh hơn ở phía candidate
 export const APPLICATION_STATUS_CONFIG: Record<
   string,
   { label: string; badgeClass: string }

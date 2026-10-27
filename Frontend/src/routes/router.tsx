@@ -62,6 +62,14 @@ const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           {
+            path: "/candidate",
+            element: <Navigate to={PATHS.CANDIDATE.DASHBOARD} replace />,
+          },
+          {
+            path: "/candidate/bookmarks",
+            element: <Navigate to={PATHS.CANDIDATE.BOOKMARK_JOBS} replace />,
+          },
+          {
             path: PATHS.CANDIDATE.DASHBOARD,
             element: <CandidateDashboard />,
           },
@@ -113,6 +121,10 @@ const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
+          {
+            path: "/recruiter",
+            element: <Navigate to={PATHS.RECRUITER.DASHBOARD} replace />,
+          },
           {
             path: PATHS.RECRUITER.JOBS,
             element: <RecruiterJobListPage />,
@@ -193,6 +205,14 @@ const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
+          {
+            path: "/admin",
+            element: <Navigate to={PATHS.ADMIN.DASHBOARD} replace />,
+          },
+          {
+            path: "/admin/aprove",
+            element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
+          },
           {
             path: PATHS.ADMIN.DASHBOARD,
             element: <Page title="Admin Dashboard Overview" />,

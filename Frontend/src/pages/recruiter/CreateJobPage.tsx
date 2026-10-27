@@ -269,14 +269,23 @@ export default function CreateJobPage() {
       {/* Thanh tiêu đề trên cùng */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <button
+          {/* <button
             type="button"
             onClick={() => navigate(-1)}
             className="mb-2 inline-flex items-center gap-1.5 text-xs text-text-muted transition-colors hover:text-primary"
           >
             <ArrowLeft className="size-3.5" />
             <span>Quay lại</span>
-          </button>
+          </button> */}
+          <Button
+            variant="secondary"
+            icon={ArrowLeft}
+            iconSize={15}
+            onClick={() => navigate(-1)}
+            className="h-8! px-3! text-xs! font-medium!"
+          >
+            Quay lại
+          </Button>
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-xl font-bold tracking-tight text-text-main sm:text-2xl">
