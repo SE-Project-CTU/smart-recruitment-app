@@ -329,6 +329,7 @@ function SignUp() {
           <Blur key="recruiter-img" asChild initialBlur={10} blur={0}>
             <img
               src={OfficeGirl}
+              loading="lazy"
               alt="SmartHire Office Recruiter"
               className="bg-grid-cus absolute inset-0 h-full w-full object-cover"
             />
