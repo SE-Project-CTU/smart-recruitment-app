@@ -6,7 +6,12 @@ namespace SmartHire.Application.Features.JobPostings.Mapping;
 
 public static class JobPostingDetailMapper
 {
-    public static JobPostingDetailResult ToDetailResult(JobPostingDetailData data, DateTimeOffset now) => new(
+    public static JobPostingDetailResult ToDetailResult(
+        JobPostingDetailData data,
+        DateTimeOffset now,
+        bool hasApplied = false,
+        Guid? applicationId = null,
+        bool isFollowingCompany = false) => new(
         data.Id,
         data.Title,
         data.Description,
@@ -33,6 +38,46 @@ public static class JobPostingDetailMapper
         data.Vacancies,
         ToApiWorkMode(data.WorkMode),
         ToApiJobType(data.JobType),
+        data.SalaryMin,
+        data.SalaryMax,
+        data.SalaryNegotiable,
+        data.Deadline,
+        MapStatus(data.Status),
+        data.Industries.Select(i => new IndustrySummary(i.Id, i.Name)).ToArray(),
+        data.Skills.Select(s => new SkillSummary(s.Id, s.Name)).ToArray(),
+        data.CreatedAt,
+        data.UpdatedAt,
+        hasApplied,
+        applicationId,
+        isFollowingCompany);
+
+    public static JobPostingResult ToJobPostingResult(JobPostingDetailData data) => new(
+        data.Id,
+        new CompanySummary(
+            data.Company.Id,
+            data.Company.Name,
+            data.Company.Address,
+            data.Company.LogoUrl),
+        new JobPostingCreatorResult(
+            data.Creator.Id,
+            data.Creator.FullName,
+            data.Creator.Email,
+            data.Creator.AvatarUrl),
+        data.Title,
+        new ProvinceSummary(data.Location.ProvinceId, data.Location.ProvinceName),
+        data.Location.WardId is Guid wardId
+            ? new WardSummary(wardId, data.Location.WardName!)
+            : null,
+        data.Location.DetailedLocation,
+        data.ExperienceYears,
+        data.JobLevel is null ? null : ToApiValue(data.JobLevel.Value),
+        data.EducationLevel is null ? string.Empty : ToApiValue(data.EducationLevel.Value),
+        data.Vacancies,
+        ToApiWorkMode(data.WorkMode),
+        ToApiJobType(data.JobType),
+        data.Description,
+        data.Requirements,
+        data.Benefits,
         data.SalaryMin,
         data.SalaryMax,
         data.SalaryNegotiable,

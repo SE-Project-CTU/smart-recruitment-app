@@ -51,6 +51,7 @@ public interface ICompanyRepository {
     Task AddJoinRequestAsync(CompanyJoinRequest request, CancellationToken cancellationToken);
 
     // Follow
+    Task<bool> IsFollowingAsync(Guid userId, Guid companyId, CancellationToken cancellationToken);
     Task<CompanyFollow?> GetFollowAsync(Guid userId, Guid companyId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<CompanyFollow> Items, int TotalCount)> GetFollowersPagedAsync(
         Guid companyId,

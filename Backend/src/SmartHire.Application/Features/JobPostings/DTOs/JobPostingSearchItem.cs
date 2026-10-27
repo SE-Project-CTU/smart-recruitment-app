@@ -1,11 +1,19 @@
 namespace SmartHire.Application.Features.JobPostings.DTOs;
 
+public sealed record SearchJobProvinceSummary(
+    Guid Id,
+    string Name);
+
+public sealed record SearchJobWardSummary(
+    Guid Id,
+    string Name);
+
 public sealed record JobPostingSearchItem(
     Guid Id,
     SearchJobCompanySummary Company,
     string Title,
-    Guid ProvinceId,
-    Guid? WardId,
+    SearchJobProvinceSummary Province,
+    SearchJobWardSummary? Ward,
     int? ExperienceYears,
     string? JobLevel,
     string WorkMode,
@@ -15,6 +23,8 @@ public sealed record JobPostingSearchItem(
     bool SalaryNegotiable,
     DateTimeOffset? Deadline,
     string Status,
+    IReadOnlyList<string> SkillNames,
+    IReadOnlyList<string> IndustryNames,
     DateTimeOffset CreatedAt);
 
 public record SearchJobCompanySummary(

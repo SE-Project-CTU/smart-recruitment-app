@@ -189,7 +189,10 @@ public sealed class UpdateJobPostingCommandHandler
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            return JobPostingMapper.ToResult(posting);
+            var detail = await _jobPostingRepository.GetDetailByIdAsync(posting.Id, ct)
+                         ?? throw JobPostingExceptions.JobPostingNotFound(posting.Id);
+
+            return JobPostingDetailMapper.ToJobPostingResult(detail);
         }, cancellationToken);
     }
 }

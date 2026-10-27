@@ -18,6 +18,15 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
             .AnyAsync(application => application.JobId == jobId && application.CandidateId == candidateId,
                 cancellationToken);
 
+    public Task<Guid?> GetApplicationIdForCandidateAsync(
+        Guid jobId,
+        Guid candidateId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications.AsNoTracking()
+            .Where(application => application.JobId == jobId && application.CandidateId == candidateId)
+            .Select(application => (Guid?)application.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public Task<bool> IsUploadedCvFileInUseAsync(Guid fileId, CancellationToken cancellationToken) =>
         dbContext.Applications.AsNoTracking()
             .AnyAsync(application => application.UploadedCvFileId == fileId, cancellationToken);
@@ -65,8 +74,14 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                         application.Job.Company.Id,
                         application.Job.Company.Name,
                         application.Job.Company.LogoFile != null ? application.Job.Company.LogoFile.FileUrl : null),
-                    application.Job.ProvinceId,
-                    application.Job.Province.Name,
+                    new ApplicationLocationSummaryData(
+                        application.Job.Province.Id,
+                        application.Job.Province.Name),
+                    application.Job.Ward != null
+                        ? new ApplicationLocationSummaryData(
+                            application.Job.Ward.Id,
+                            application.Job.Ward.Name)
+                        : null,
                     application.Job.ExperienceYears,
                     application.Job.JobLevel,
                     application.Job.WorkMode,
@@ -115,8 +130,14 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                         application.Job.Company.Id,
                         application.Job.Company.Name,
                         application.Job.Company.LogoFile != null ? application.Job.Company.LogoFile.FileUrl : null),
-                    application.Job.ProvinceId,
-                    application.Job.Province.Name,
+                    new ApplicationLocationSummaryData(
+                        application.Job.Province.Id,
+                        application.Job.Province.Name),
+                    application.Job.Ward != null
+                        ? new ApplicationLocationSummaryData(
+                            application.Job.Ward.Id,
+                            application.Job.Ward.Name)
+                        : null,
                     application.Job.ExperienceYears,
                     application.Job.JobLevel,
                     application.Job.WorkMode,

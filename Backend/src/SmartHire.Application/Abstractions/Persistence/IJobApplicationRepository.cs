@@ -9,6 +9,7 @@ namespace SmartHire.Application.Abstractions.Persistence;
 
 public interface IJobApplicationRepository {
     Task<bool> ExistsForCandidateAsync(Guid jobId, Guid candidateId, CancellationToken cancellationToken);
+    Task<Guid?> GetApplicationIdForCandidateAsync(Guid jobId, Guid candidateId, CancellationToken cancellationToken);
     Task<bool> IsUploadedCvFileInUseAsync(Guid fileId, CancellationToken cancellationToken);
     Task AddAsync(JobApplication application, CancellationToken cancellationToken);
     Task<int> CountMineAsync(Guid candidateId, ApplicationStatus? status, CancellationToken cancellationToken);

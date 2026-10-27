@@ -228,6 +228,10 @@ public sealed class CompanyRepository : ICompanyRepository {
     }
 
     // Follow
+    public Task<bool> IsFollowingAsync(Guid userId, Guid companyId, CancellationToken cancellationToken) =>
+        _dbContext.CompanyFollows.AsNoTracking()
+            .AnyAsync(f => f.UserId == userId && f.CompanyId == companyId, cancellationToken);
+
     public async Task<CompanyFollow?> GetFollowAsync(Guid userId, Guid companyId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyFollows
             .FirstOrDefaultAsync(f => f.UserId == userId && f.CompanyId == companyId, cancellationToken);

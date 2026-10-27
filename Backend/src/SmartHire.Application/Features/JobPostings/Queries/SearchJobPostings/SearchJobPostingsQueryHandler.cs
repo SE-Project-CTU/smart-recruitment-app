@@ -58,8 +58,8 @@ public sealed class SearchJobPostingsQueryHandler
                 data.Company.LogoFileUrl
             ),
             data.Title,
-            data.ProvinceId,
-            data.WardId,
+            new SearchJobProvinceSummary(data.Province.Id, data.Province.Name),
+            data.Ward != null ? new SearchJobWardSummary(data.Ward.Id, data.Ward.Name) : null,
             data.ExperienceYears,
             data.JobLevel is null ? null : ToCamelCase(data.JobLevel.Value.ToString()),
             ToCamelCase(data.WorkMode.ToString()),
@@ -69,6 +69,8 @@ public sealed class SearchJobPostingsQueryHandler
             data.SalaryNegotiable,
             data.Deadline,
             data.Status == JobPostingStatus.Published ? "OPEN" : ToCamelCase(data.Status.ToString()),
+            data.SkillNames,
+            data.IndustryNames,
             data.CreatedAt)).ToArray();
         
         return new SearchJobPostingsPage(items, request.Pagination.Page, request.Pagination.PageSize, totalCount);

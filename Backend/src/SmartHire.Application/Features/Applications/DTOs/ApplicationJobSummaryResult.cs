@@ -5,12 +5,16 @@ public sealed record ApplicationCompanySummaryResult(
     string Name,
     string? LogoUrl);
 
+public sealed record ApplicationLocationSummaryResult(
+    Guid Id,
+    string Name);
+
 public sealed record ApplicationJobSummaryResult(
     Guid Id,
     string Title,
     ApplicationCompanySummaryResult Company,
-    Guid ProvinceId,
-    string ProvinceName,
+    ApplicationLocationSummaryResult Province,
+    ApplicationLocationSummaryResult? Ward,
     int? ExperienceYears,
     string? JobLevel,
     string WorkMode,

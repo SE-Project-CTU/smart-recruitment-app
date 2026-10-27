@@ -32,8 +32,14 @@ internal static class ApplicationDetailMapper {
             job.Company.Id,
             job.Company.Name,
             job.Company.LogoUrl),
-        job.ProvinceId,
-        job.ProvinceName,
+        new ApplicationLocationSummaryResult(
+            job.Province.Id,
+            job.Province.Name),
+        job.Ward != null
+            ? new ApplicationLocationSummaryResult(
+                job.Ward.Id,
+                job.Ward.Name)
+            : null,
         job.ExperienceYears,
         job.JobLevel.HasValue ? JobPostingMapper.ToApiValue(job.JobLevel.Value) : null,
         JobPostingMapper.ToApiWorkMode(job.WorkMode),
