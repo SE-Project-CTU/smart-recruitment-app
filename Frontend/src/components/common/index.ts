@@ -32,3 +32,6 @@ export { default as TableSkeleton } from "./TableSkeleton";
 
 export * from "./UserAvatar";
 export { default as UserAvatar } from "./UserAvatar";
+
+export * from "./LoadingScreen";
+export { default as LoadingScreen } from "./LoadingScreen";

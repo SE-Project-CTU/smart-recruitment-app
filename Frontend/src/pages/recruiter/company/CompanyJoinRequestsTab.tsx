@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
@@ -89,7 +89,10 @@ export function CompanyJoinRequestsTab() {
     refetch,
   } = useCompanyJoinRequests(company.id);
 
-  const joinRequests = joinRequestsData?.items ?? [];
+  const joinRequests = useMemo(
+    () => joinRequestsData?.items ?? [],
+    [joinRequestsData?.items],
+  );
 
   const { mutateAsync: reviewJoinRequest, isPending: isReviewing } =
     useReviewJoinRequest();
@@ -134,28 +137,31 @@ export function CompanyJoinRequestsTab() {
   }, [filteredData, currentPage, pageSize]);
 
   // Xử lý phê duyệt yêu cầu gia nhập
-  const handleApprove = async (request: CompanyJoinRequestItem) => {
-    try {
-      setProcessingId(request.id);
-      await reviewJoinRequest({
-        companyId: company.id,
-        requestId: request.id,
-        payload: { status: "APPROVED" },
-      });
-      toast.add({
-        type: "success",
-        description: `Đã phê duyệt yêu cầu của ${request.user?.fullName || "nhà tuyển dụng"}! Thành viên đã được thêm vào công ty.`,
-      });
-    } catch (err) {
-      const msg = getApiErrorMessage(
-        err,
-        "Không thể phê duyệt yêu cầu. Vui lòng thử lại sau.",
-      );
-      toast.add({ type: "error", description: msg });
-    } finally {
-      setProcessingId(null);
-    }
-  };
+  const handleApprove = useCallback(
+    async (request: CompanyJoinRequestItem) => {
+      try {
+        setProcessingId(request.id);
+        await reviewJoinRequest({
+          companyId: company.id,
+          requestId: request.id,
+          payload: { status: "APPROVED" },
+        });
+        toast.add({
+          type: "success",
+          description: `Đã phê duyệt yêu cầu của ${request.user?.fullName || "nhà tuyển dụng"}! Thành viên đã được thêm vào công ty.`,
+        });
+      } catch (err) {
+        const msg = getApiErrorMessage(
+          err,
+          "Không thể phê duyệt yêu cầu. Vui lòng thử lại sau.",
+        );
+        toast.add({ type: "error", description: msg });
+      } finally {
+        setProcessingId(null);
+      }
+    },
+    [company.id, reviewJoinRequest],
+  );
 
   // Xác nhận từ chối yêu cầu gia nhập
   const handleConfirmReject = async () => {
@@ -319,7 +325,7 @@ export function CompanyJoinRequestsTab() {
           },
         }),
       ]),
-    [currentPage, pageSize, processingId, isReviewing],
+    [currentPage, processingId, isReviewing, handleApprove],
   );
 
   // Kiểm tra quyền: Chỉ Company Owner mới được xem và xét duyệt
