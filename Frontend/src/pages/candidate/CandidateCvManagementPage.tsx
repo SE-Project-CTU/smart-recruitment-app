@@ -161,10 +161,10 @@ export default function CandidateCvManagementPage() {
   return (
     <div className="min-h-full space-y-8 pb-12">
       {/* Section 1: Danh sách CV của bạn */}
-      <section className="flex flex-col gap-6 rounded-2xl bg-bg p-6">
+      <section className="flex flex-col gap-6 rounded-2xl bg-bg">
         <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-1">
-            <h2 className="text-xl font-bold text-text-main">
+            <h2 className="text-lg font-bold text-text-main md:text-2xl">
               Danh sách CV của bạn
             </h2>
             <p className="text-sm text-text-muted">
@@ -241,10 +241,10 @@ export default function CandidateCvManagementPage() {
       </section>
 
       {/* 3. Section: Kho mẫu CV chuyên nghiệp (Templates) */}
-      <section id="template-section" className="space-y-4 p-6">
+      <section id="template-section" className="space-y-4 pt-6">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-text-main">
+            <h2 className="text-lg font-bold text-text-main lg:text-2xl">
               Khám phá kho CV mẫu chuẩn tuyển dụng
             </h2>
           </div>
@@ -428,16 +428,15 @@ export default function CandidateCvManagementPage() {
             <AlertDialogTitle>Xóa CV này vĩnh viễn?</AlertDialogTitle>
             <AlertDialogDescription>
               Bạn có chắc chắn muốn xóa CV{" "}
-              <strong className="text-text-main font-semibold">
+              <strong className="font-semibold text-text-main">
                 "{cvToDelete?.title}"
               </strong>
-              ? Hành động này không thể hoàn tác và CV sẽ bị gỡ bỏ hoàn toàn khỏi hệ thống.
+              ? Hành động này không thể hoàn tác và CV sẽ bị gỡ bỏ hoàn toàn
+              khỏi hệ thống.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingCv}>
-              Hủy
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeletingCv}>Hủy</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={handleConfirmDelete}
