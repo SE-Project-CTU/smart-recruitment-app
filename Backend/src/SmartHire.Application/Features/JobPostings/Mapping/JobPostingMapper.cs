@@ -34,14 +34,14 @@ public class JobPostingMapper {
         jobPosting.CreatedAt,
         jobPosting.UpdatedAt);
     
-    private static string ToApiWorkMode(WorkMode value) => value switch {
+    public static string ToApiWorkMode(WorkMode value) => value switch {
         WorkMode.Remote => "REMOTE",
         WorkMode.Onsite => "ON_SITE",
         WorkMode.Hybrid => "HYBRID",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
     };
     
-    private static string ToApiJobType(JobType value) => value switch {
+    public static string ToApiJobType(JobType value) => value switch {
         JobType.FullTime => "FULL_TIME",
         JobType.PartTime => "PART_TIME",
         JobType.Contract => "CONTRACT",
@@ -50,7 +50,7 @@ public class JobPostingMapper {
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
     };
     
-    private static string ToApiValue<TEnum>(TEnum value) where TEnum : struct, Enum =>
+    public static string ToApiValue<TEnum>(TEnum value) where TEnum : struct, Enum =>
         value.ToString().Select((character, index) =>
                 index > 0 && char.IsUpper(character) ? $"_{character}" : character.ToString())
             .Aggregate(string.Empty, (result, part) => result + part)

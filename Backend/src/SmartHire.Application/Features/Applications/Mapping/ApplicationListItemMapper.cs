@@ -11,6 +11,7 @@ internal static class ApplicationListItemMapper {
             row.Candidate.Id,
             row.Candidate.FullName,
             row.Candidate.Email,
+            row.Candidate.Phone,
             row.Candidate.AvatarUrl),
         row.CvVersionId,
         row.UploadedCvUrl,
@@ -22,6 +23,7 @@ internal static class ApplicationListItemMapper {
     public static MyApplicationListItemResult ToMyApplicationResult(MyApplicationListItemData row) => new(
         row.Id,
         row.JobId,
+        ApplicationDetailMapper.ToJobSummaryResult(row.Job),
         row.CvVersionId,
         row.UploadedCvUrl,
         row.CoverLetter,
