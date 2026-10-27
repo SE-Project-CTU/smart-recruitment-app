@@ -6,7 +6,7 @@ import {
   FileText,
   Filter,
   MapPin,
-  Sparkles,
+  Globe,
   ExternalLink,
   ChevronDown,
   Search,
@@ -198,7 +198,7 @@ export default function CandidateApplicationStatusPage() {
                     }
                     className="inline-flex items-center gap-1 rounded-lg border border-border bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary"
                   >
-                    <Sparkles className="size-3.5 text-primary" />
+                    <Globe className="size-3.5 text-primary" />
                     <span>CV Online</span>
                   </span>
                 )}

@@ -19,6 +19,7 @@ import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
 import CandidateCvManagementPage from "@/pages/candidate/CandidateCvManagementPage";
 import CandidateApplicationStatusPage from "@/pages/candidate/CandidateApplicationStatusPage";
+import MatchedJobsPage from "@/pages/candidate/MatchedJobsPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
 import CreateJobPage from "@/pages/recruiter/CreateJobPage";
 import {
@@ -81,7 +82,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.MATCHED_JOBS,
-            element: <Page title="Việc làm phù hợp" />,
+            element: <MatchedJobsPage />,
           },
           {
             path: PATHS.CANDIDATE.CV_MANAGEMENT,
