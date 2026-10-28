@@ -19,61 +19,8 @@ import type {
   LeaveCompanyResult,
 } from "@/types";
 import type { JobPostingItem } from "@/types/job";
-import {
-  addStoredMyCompanyId,
-  clearStoredMyCompanyCache,
-  getCurrentUserId,
-  getStoredMyCompanyIds,
-  getStoredScanTimestamp,
-  saveStoredMyCompanyIds,
-  saveStoredScanTimestamp,
-} from "./companyMembershipCache";
-
-type PublicCompanyParams = {
-  search?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-};
-
-const fetchPublicCompaniesPage = async (
-  params: Required<Pick<PublicCompanyParams, "page" | "pageSize">> &
-    Pick<PublicCompanyParams, "search" | "status">,
-) =>
-  axiosClient.get<never, ApiPagedResponse<CompanyItem>>(
-    API_ENDPOINTS.COMPANY.LIST,
-    { params },
-  );
-
-const getAllPublicCompanyIds = async (): Promise<string[]> => {
-  const pageSize = 100;
-  const firstPage = await fetchPublicCompaniesPage({ page: 1, pageSize });
-  const ids = (firstPage.data ?? []).map((company) => company.id);
-  const totalPages = Math.max(1, firstPage.meta.totalPages);
-  const pageBatchSize = 5;
-
-  for (let startPage = 2; startPage <= totalPages; startPage += pageBatchSize) {
-    const pageNumbers = Array.from(
-      { length: Math.min(pageBatchSize, totalPages - startPage + 1) },
-      (_, index) => startPage + index,
-    );
-    const pages = await Promise.all(
-      pageNumbers.map((page) => fetchPublicCompaniesPage({ page, pageSize })),
-    );
-    ids.push(...pages.flatMap((page) => page.data.map((company) => company.id)));
-  }
-
-  return ids;
-};
 
 export const companyService = {
-  /**
-   * Xóa cache danh sách ID công ty đã lưu của user hiện tại
-   */
-  clearMyCompaniesCache(): void {
-    clearStoredMyCompanyCache();
-  },
-
   /**
    * Lấy danh sách các công ty mà Recruiter hiện tại thực sự thuộc về (Active membership)
    * Sử dụng endpoint trực tiếp /api/v1/me/companies (1 request duy nhất)
@@ -105,7 +52,7 @@ export const companyService = {
   },
 
   /**
-   * Lấy danh sách tất cả các công ty công khai (dùng cho map dữ liệu, tránh N+1 query)
+   * Lấy danh sách tất cả các công ty công khai
    */
   async getPublicCompanies(params?: {
     search?: string;
@@ -113,10 +60,16 @@ export const companyService = {
     page?: number;
     pageSize?: number;
   }): Promise<CompanyItem[]> {
-    const response = await fetchPublicCompaniesPage({
-      page: 1,
-      pageSize: 100,
-      ...params,
+    const response = await axiosClient.get<
+      never,
+      ApiPagedResponse<CompanyItem>
+    >(API_ENDPOINTS.COMPANY.LIST, {
+      params: {
+        page: params?.page ?? 1,
+        pageSize: params?.pageSize ?? 100,
+        search: params?.search,
+        status: params?.status,
+      },
     });
     return response.data ?? [];
   },
@@ -139,9 +92,6 @@ export const companyService = {
       API_ENDPOINTS.COMPANY.CREATE,
       payload,
     );
-    if (response.data?.id) {
-      addStoredMyCompanyId(response.data.id);
-    }
     return response.data;
   },
 
@@ -234,9 +184,6 @@ export const companyService = {
       never,
       ApiResponse<AcceptInvitationResult>
     >(API_ENDPOINTS.COMPANY.ACCEPT_INVITATION(invitationId));
-    if (response.data?.membership?.companyId) {
-      addStoredMyCompanyId(response.data.membership.companyId);
-    }
     return response.data;
   },
 

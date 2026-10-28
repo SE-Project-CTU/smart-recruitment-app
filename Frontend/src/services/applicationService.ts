@@ -15,6 +15,33 @@ export interface PagedCandidateApplicationsResult {
   totalItems: number;
 }
 
+const mapToCandidateMyApplicationItem = (
+  app: JobApplicationItem,
+): CandidateMyApplicationItem => {
+  const job = app.job;
+  return {
+    id: app.id,
+    jobId: app.jobId,
+    job: app.job,
+    jobTitle: job?.title || "Công việc tuyển dụng",
+    companyId: job?.company?.id,
+    companyName: job?.company?.name || "Doanh nghiệp",
+    companyLogoUrl: job?.company?.logoUrl || null,
+    salaryRange:
+      job && job.salaryMin && job.salaryMax
+        ? `${(job.salaryMin / 1000000).toFixed(0)} - ${(job.salaryMax / 1000000).toFixed(0)} triệu`
+        : "Thỏa thuận",
+    locationName: job?.province?.name || "",
+    cvVersionId: app.cvVersionId,
+    uploadedCvUrl: app.uploadedCvUrl,
+    cvSnapshot: app.cvSnapshot,
+    coverLetter: app.coverLetter,
+    status: app.status,
+    appliedAt: app.appliedAt,
+    updatedAt: app.updatedAt,
+  };
+};
+
 export const applicationService = {
   /**
    * Lấy danh sách các đơn ứng tuyển của Candidate hiện tại
@@ -54,30 +81,9 @@ export const applicationService = {
     }
 
     // Ghép nối thông tin hoàn chỉnh trực tiếp từ object job được backend trả về (tránh N+1 query)
-    const enrichedItems: CandidateMyApplicationItem[] = rawList.map((app) => {
-      const job = app.job;
-      return {
-        id: app.id,
-        jobId: app.jobId,
-        job: app.job,
-        jobTitle: job?.title || "Công việc tuyển dụng",
-        companyId: job?.company?.id,
-        companyName: job?.company?.name || "Doanh nghiệp",
-        companyLogoUrl: job?.company?.logoUrl || null,
-        salaryRange:
-          job && job.salaryMin && job.salaryMax
-            ? `${(job.salaryMin / 1000000).toFixed(0)} - ${(job.salaryMax / 1000000).toFixed(0)} triệu`
-            : "Thỏa thuận",
-        locationName: job?.province?.name || "",
-        cvVersionId: app.cvVersionId,
-        uploadedCvUrl: app.uploadedCvUrl,
-        cvSnapshot: app.cvSnapshot,
-        coverLetter: app.coverLetter,
-        status: app.status,
-        appliedAt: app.appliedAt,
-        updatedAt: app.updatedAt,
-      };
-    });
+    const enrichedItems: CandidateMyApplicationItem[] = rawList.map(
+      mapToCandidateMyApplicationItem,
+    );
 
     return {
       items: enrichedItems,
@@ -99,31 +105,7 @@ export const applicationService = {
       ApiResponse<JobApplicationItem>
     >(API_ENDPOINTS.APPLICATION.DETAIL(id));
 
-    const app = response.data;
-    const job = app.job;
-
-    return {
-      id: app.id,
-      jobId: app.jobId,
-      job: app.job,
-      jobTitle: job?.title || "Công việc tuyển dụng",
-      companyId: job?.company?.id,
-      companyName: job?.company?.name || "Doanh nghiệp",
-      companyLogoUrl: job?.company?.logoUrl || null,
-      salaryRange:
-        job && job.salaryMin && job.salaryMax
-          ? `${(job.salaryMin / 1000000).toFixed(0)} - ${(job.salaryMax / 1000000).toFixed(0)} triệu`
-          : "Thỏa thuận",
-      locationName:
-        job?.province?.name || "",
-      cvVersionId: app.cvVersionId,
-      uploadedCvUrl: app.uploadedCvUrl,
-      cvSnapshot: app.cvSnapshot,
-      coverLetter: app.coverLetter,
-      status: app.status,
-      appliedAt: app.appliedAt,
-      updatedAt: app.updatedAt,
-    };
+    return mapToCandidateMyApplicationItem(response.data);
   },
 
   /**

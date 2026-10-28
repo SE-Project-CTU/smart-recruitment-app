@@ -4,7 +4,6 @@ import { jobService } from "@/services/jobService";
 import { companyService } from "@/services/companyService";
 import type {
   CreateJobPostingPayload,
-  JobApplicationItem,
   JobApplicationStatus,
   JobPostingItem,
   RecruiterCandidateApplicationItem,
