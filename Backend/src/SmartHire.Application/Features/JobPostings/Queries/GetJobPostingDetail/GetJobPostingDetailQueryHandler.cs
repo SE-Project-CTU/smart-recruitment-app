@@ -12,14 +12,17 @@ namespace SmartHire.Application.Features.JobPostings.Queries.GetJobPostingDetail
 public sealed class GetJobPostingDetailQueryHandler
     : IRequestHandler<GetJobPostingDetailQuery, JobPostingDetailResult> {
     private readonly IJobPostingRepository _jobPostingRepository;
+    private readonly IJobApplicationRepository _jobApplicationRepository;
     private readonly ICompanyRepository _companyRepository;
     private readonly ICurrentUser _currentUser;
     
     public GetJobPostingDetailQueryHandler(
         IJobPostingRepository jobPostingRepository,
+        IJobApplicationRepository jobApplicationRepository,
         ICompanyRepository companyRepository,
         ICurrentUser currentUser) {
         _jobPostingRepository = jobPostingRepository;
+        _jobApplicationRepository = jobApplicationRepository;
         _companyRepository = companyRepository;
         _currentUser = currentUser;
     }
@@ -55,7 +58,20 @@ public sealed class GetJobPostingDetailQueryHandler
             if (membership is null || membership.Status != CompanyMembershipStatus.Active)
                 throw JobPostingExceptions.JobPostingForbidden();
         }
+
+        Guid? applicationId = null;
+        var hasApplied = false;
+        var isFollowingCompany = false;
+
+        if (_currentUser.UserId is Guid currentUserId) {
+            applicationId = await _jobApplicationRepository.GetApplicationIdForCandidateAsync(
+                id, currentUserId, cancellationToken);
+            hasApplied = applicationId.HasValue;
+            isFollowingCompany = await _companyRepository.IsFollowingAsync(
+                currentUserId, posting.Company.Id, cancellationToken);
+        }
         
-        return JobPostingDetailMapper.ToDetailResult(posting, now);
+        return JobPostingDetailMapper.ToDetailResult(
+            posting, now, hasApplied, applicationId, isFollowingCompany);
     }
 }

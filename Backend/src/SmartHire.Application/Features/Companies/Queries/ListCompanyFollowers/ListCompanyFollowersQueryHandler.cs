@@ -1,5 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Common.Pagination;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Application.Features.Companies.Mapping;
@@ -20,10 +22,14 @@ public sealed class ListCompanyFollowersQueryHandler : IRequestHandler<ListCompa
         }
 
         var totalFollowers = await _companyRepository.CountFollowersAsync(request.CompanyId, cancellationToken);
+        var pagination = request.Pagination ?? new PaginationParams();
+        var page = PagedListQueryValidator.ValidatePage(pagination.Page);
+        var pageSize = PagedListQueryValidator.ValidatePageSize(pagination.PageSize);
+
         var (items, _) = await _companyRepository.GetFollowersPagedAsync(
             request.CompanyId,
-            request.Page,
-            request.PageSize,
+            page,
+            pageSize,
             cancellationToken);
 
         var followersList = items.Select(CompanyResultMapper.ToCompanyFollowerItem).ToList();

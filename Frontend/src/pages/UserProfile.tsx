@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
 import dayjs from "dayjs";
-import Button from "@/components/Button";
+import { Button, UserAvatar } from "@/components/common";
 
 import { useAuthStore } from "@/stores/authStore";
 import { getApiErrorMessage } from "@/api/errorHandler";
@@ -23,8 +23,19 @@ import {
 } from "@/hooks/queries/useAccount";
 import { useDeleteMedia, useUploadImage } from "@/hooks/queries/useMedia";
 import { MorphIcon } from "morphicons/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type TabKey = "profile" | "security" | "delete";
+type PendingProfileAction = "cancel-edit" | "remove-avatar";
 
 interface ProfileErrors {
   avatar?: string;
@@ -67,6 +78,8 @@ export default function UserProfile() {
   );
   const currentAvatar = account?.avatarUrl ?? null;
 
+  const [pendingProfileAction, setPendingProfileAction] =
+    useState<PendingProfileAction | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -92,6 +105,20 @@ export default function UserProfile() {
       }
     };
   }, [deleteMedia]);
+
+  useEffect(() => {
+    if (!isUploadingAvatar && !pendingAvatarFileId) return;
+
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", warnBeforeUnload);
+    };
+  }, [isUploadingAvatar, pendingAvatarFileId]);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -134,11 +161,22 @@ export default function UserProfile() {
 
   const handleRemovePendingAvatar = async () => {
     // Nếu vừa upload ảnh mới -> xóa ảnh đó khỏi server và khôi phục ảnh cũ ban đầu
+
     if (pendingAvatarFileId) {
       await safeDeleteMedia(pendingAvatarFileId);
     }
     setPendingAvatarUrl(currentAvatar);
     setPendingAvatarFileId(null);
+  };
+
+  const handleConfirmProfileAction = async () => {
+    if (pendingProfileAction === "cancel-edit") {
+      await handleCancelEdit();
+    } else if (pendingProfileAction === "remove-avatar") {
+      await handleRemovePendingAvatar();
+    }
+
+    setPendingProfileAction(null);
   };
 
   const handleAvatarFileChange = async (
@@ -309,12 +347,6 @@ export default function UserProfile() {
   }
 
   const displayAvatar = isEditingProfile ? pendingAvatarUrl : currentAvatar;
-  const initials = account.fullName
-    .split(" ")
-    .filter(Boolean)
-    .slice(-2)
-    .map((n) => n[0]?.toUpperCase())
-    .join("");
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -355,7 +387,7 @@ export default function UserProfile() {
               className={`flex cursor-pointer items-center gap-2.5 rounded-full px-4 py-2.5 text-left text-xs font-semibold whitespace-nowrap transition-colors md:mt-4 ${
                 activeTab === "delete"
                   ? "bg-rose-50 text-status-error"
-                  : "text-rose-500 hover:bg-rose-50/60"
+                  : "text-status-error hover:bg-rose-50/60"
               }`}
             >
               <Trash2 className="size-4 shrink-0" />
@@ -380,17 +412,11 @@ export default function UserProfile() {
                   <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
                       <div className="relative -mt-12 size-36 shrink-0 rounded-full border-4 border-white bg-white shadow-sm">
-                        {displayAvatar ? (
-                          <img
-                            src={displayAvatar}
-                            alt={account.fullName}
-                            className="size-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex size-full items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
-                            {initials || "U"}
-                          </div>
-                        )}
+                        <UserAvatar
+                          src={displayAvatar || ""}
+                          name={account.fullName}
+                          className="size-full! rounded-full!"
+                        />
 
                         <input
                           ref={fileInputRef}
@@ -426,7 +452,9 @@ export default function UserProfile() {
                         pendingAvatarUrl !== currentAvatar && (
                           <Button
                             variant="secondary"
-                            onClick={handleRemovePendingAvatar}
+                            onClick={() =>
+                              setPendingProfileAction("remove-avatar")
+                            }
                             className="h-9! rounded-full! px-3! py-1.5! text-xs!"
                           >
                             Gỡ ảnh
@@ -484,7 +512,7 @@ export default function UserProfile() {
                     <div className="flex items-center gap-2">
                       <Button
                         variant="secondary"
-                        onClick={handleCancelEdit}
+                        onClick={() => setPendingProfileAction("cancel-edit")}
                         className="h-9! rounded-full! px-3.5! py-1.5! text-xs!"
                       >
                         Hủy
@@ -525,7 +553,7 @@ export default function UserProfile() {
                           placeholder="Nhập họ và tên (2 - 100 ký tự)"
                           className={`rounded-xl border bg-white px-3.5 py-2 text-sm text-text-main focus:outline-none ${
                             profileErrors.fullName
-                              ? "border-rose-400 focus:border-rose-500"
+                              ? "border-rose-400 focus:border-status-error"
                               : "border-border focus:border-primary"
                           }`}
                         />
@@ -565,7 +593,7 @@ export default function UserProfile() {
                           placeholder="Ví dụ: +84901234567 (để trống để xóa)"
                           className={`rounded-xl border bg-white px-3.5 py-2 text-sm text-text-main focus:outline-none ${
                             profileErrors.phone
-                              ? "border-rose-400 focus:border-rose-500"
+                              ? "border-rose-400 focus:border-status-error"
                               : "border-border focus:border-primary"
                           }`}
                         />
@@ -662,7 +690,7 @@ export default function UserProfile() {
                       placeholder="Nhập mật khẩu hiện tại"
                       className={`w-full rounded-xl border bg-white py-2 pr-10 pl-3.5 text-sm text-text-main focus:outline-none ${
                         pwErrors.currentPassword
-                          ? "border-rose-400 focus:border-rose-500"
+                          ? "border-rose-400 focus:border-status-error"
                           : "border-border focus:border-primary"
                       }`}
                     />
@@ -706,7 +734,7 @@ export default function UserProfile() {
                       placeholder="Tối thiểu 8 ký tự"
                       className={`w-full rounded-xl border bg-white py-2 pr-10 pl-3.5 text-sm text-text-main focus:outline-none ${
                         pwErrors.newPassword
-                          ? "border-rose-400 focus:border-rose-500"
+                          ? "border-rose-400 focus:border-status-error"
                           : "border-border focus:border-primary"
                       }`}
                     />
@@ -746,7 +774,7 @@ export default function UserProfile() {
                     placeholder="Nhập lại mật khẩu mới"
                     className={`w-full rounded-xl border bg-white px-3.5 py-2 text-sm text-text-main focus:outline-none ${
                       pwErrors.confirmPassword
-                        ? "border-rose-400 focus:border-rose-500"
+                        ? "border-rose-400 focus:border-status-error"
                         : "border-border focus:border-primary"
                     }`}
                   />
@@ -837,6 +865,35 @@ export default function UserProfile() {
           )}
         </main>
       </div>
+      <AlertDialog
+        open={pendingProfileAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingProfileAction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingProfileAction === "cancel-edit"
+                ? "Hủy chỉnh sửa hồ sơ?"
+                : "Gỡ ảnh đại diện?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingProfileAction === "cancel-edit"
+                ? "Các thay đổi chưa lưu sẽ bị mất. Ảnh vừa tải lên cũng sẽ bị xóa."
+                : "Ảnh vừa tải lên sẽ bị xóa và ảnh đại diện đã lưu trước đó được khôi phục."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Tiếp tục chỉnh sửa</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmProfileAction}>
+              {pendingProfileAction === "cancel-edit"
+                ? "Hủy chỉnh sửa"
+                : "Gỡ ảnh"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

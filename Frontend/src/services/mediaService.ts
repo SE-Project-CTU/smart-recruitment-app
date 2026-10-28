@@ -1,7 +1,6 @@
 import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
-import type { ApiResponse } from "@/types/auth";
-import type { MediaFile, DeleteMediaResult } from "@/types/media";
+import type { ApiResponse, MediaFile, DeleteMediaResult } from "@/types";
 
 export const mediaService = {
   /**

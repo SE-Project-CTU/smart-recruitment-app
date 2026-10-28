@@ -168,6 +168,12 @@ dotnet ef migrations list `
   --startup-project src/SmartHire.API/SmartHire.Api.csproj
 ```
 
+### Cập nhật migrates & database khi mới pull code mới về (cd vào Backend, nhớ docker compose up db -d thành công)
+
+```powershell
+dotnet ef database update --project src/SmartHire.Infrastructure/SmartHire.Infrastructure.csproj --startup-project src/SmartHire.API/SmartHire.Api.csproj
+```
+
 > Sau khi tạo migration, commit cả file migration và `SmartHireDbContextModelSnapshot.cs`.  
 > Thành viên còn lại chỉ cần `docker compose up --build` — migration tự áp dụng.
 

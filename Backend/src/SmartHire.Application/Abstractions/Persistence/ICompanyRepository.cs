@@ -1,3 +1,4 @@
+using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -18,6 +19,7 @@ public interface ICompanyRepository {
 
     // Membership
     Task<CompanyMembership?> GetMembershipAsync(Guid companyId, Guid userId, CancellationToken cancellationToken);
+    Task<CompanyMembership?> GetMembershipByIdOrUserIdAsync(Guid companyId, Guid memberId, CancellationToken cancellationToken);
     Task<CompanyMembership?> GetActiveOwnerMembershipAsync(Guid companyId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<CompanyMembership> Items, int TotalCount)> GetMembersPagedAsync(
         Guid companyId,
@@ -25,6 +27,13 @@ public interface ICompanyRepository {
         int page,
         int pageSize,
         CancellationToken cancellationToken);
+    Task<(IReadOnlyList<CompanyMembership> Items, int TotalCount)> GetUserActiveCompaniesPagedAsync(
+        Guid userId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<List<Guid>> GetActiveCompanyIdsForUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken);
     Task AddMembershipAsync(CompanyMembership membership, CancellationToken cancellationToken);
 
@@ -51,9 +60,16 @@ public interface ICompanyRepository {
     Task AddJoinRequestAsync(CompanyJoinRequest request, CancellationToken cancellationToken);
 
     // Follow
+    Task<bool> IsFollowingAsync(Guid userId, Guid companyId, CancellationToken cancellationToken);
     Task<CompanyFollow?> GetFollowAsync(Guid userId, Guid companyId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<CompanyFollow> Items, int TotalCount)> GetFollowersPagedAsync(
         Guid companyId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<(IReadOnlyList<FollowedCompanyResult> Items, int TotalCount)> GetFollowedCompaniesPagedAsync(
+        Guid userId,
+        string? search,
         int page,
         int pageSize,
         CancellationToken cancellationToken);

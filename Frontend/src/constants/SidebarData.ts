@@ -11,6 +11,7 @@ import {
   LibraryBig,
   ListCheck,
   Search,
+  Settings,
   Star,
   UserRound,
   UserRoundGroup,
@@ -84,11 +85,14 @@ export const recruiterSidebarData = {
       title: "Quản lý JD",
       url: "#",
       icon: LibraryBig,
-      items: [],
+      items: [
+        { title: "Danh sách JD", url: PATHS.RECRUITER.JOBS },
+        { title: "Tạo tin mới", url: PATHS.RECRUITER.CREATE_JOB },
+      ],
     },
     {
       title: "Ứng viên",
-      url: "#",
+      url: PATHS.RECRUITER.CANDIDATES,
       icon: UserRoundGroup,
       items: [],
     },
@@ -97,8 +101,8 @@ export const recruiterSidebarData = {
       url: "#",
       icon: BuildingComplex,
       items: [
-        { title: "Quản lý", url: "#" },
-        { title: "Lời mời", url: "#" },
+        { title: "Quản lý", url: PATHS.RECRUITER.COMPANY_MANAGEMENT },
+        { title: "Lời mời", url: PATHS.RECRUITER.COMPANY_INVITATION },
       ],
     },
   ],
@@ -106,6 +110,7 @@ export const recruiterSidebarData = {
   setting: [
     {
       title: "Cài đặt",
+      icon: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },
@@ -151,6 +156,7 @@ export const adminSidebarData = {
   setting: [
     {
       title: "Cài đặt",
+      icons: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },

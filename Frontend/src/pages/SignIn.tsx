@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { Office } from "@/assets/images/decoration";
 import { SmartHire_default } from "@/assets/images/logo";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { AlertCircle, Lock, UserRound } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
 import { useLogin } from "@/hooks/queries/useAccount";
@@ -70,6 +70,7 @@ function SignIn() {
               <img
                 src={SmartHire_default}
                 alt="SmartHire Logo"
+                loading="lazy"
                 className="max-w-30 md:max-w-none"
               />
             </Link>
@@ -184,6 +185,7 @@ function SignIn() {
               <img
                 key={item}
                 className="h-8 w-8 rounded-full border-2 border-white object-cover md:h-12 md:w-12"
+                loading="lazy"
                 src={`https://i.pravatar.cc/100?img=${item + 39}`}
                 alt="Avatar"
               />
@@ -205,6 +207,7 @@ function SignIn() {
         <img
           src={Office}
           alt="SmartHire Office"
+          loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
         />
 

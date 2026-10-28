@@ -1,6 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Application.Features.Cv.Exceptions;
 
@@ -11,15 +12,18 @@ public sealed class GetCvVersionQueryHandler
 {
     private readonly ICvRepository _cvRepository;
     private readonly ICvVersionRepository _cvVersionRepository;
+    private readonly IJobApplicationRepository _applicationRepository;
     private readonly ICurrentUser _currentUser;
 
     public GetCvVersionQueryHandler(
         ICvRepository cvRepository,
         ICvVersionRepository cvVersionRepository,
+        IJobApplicationRepository applicationRepository,
         ICurrentUser currentUser)
     {
         _cvRepository = cvRepository;
         _cvVersionRepository = cvVersionRepository;
+        _applicationRepository = applicationRepository;
         _currentUser = currentUser;
     }
 
@@ -37,7 +41,32 @@ public sealed class GetCvVersionQueryHandler
             throw CvExceptions.CvNotFound();
         }
 
-        CvExceptions.EnsureOwner(_currentUser.UserId, candidateId.Value);
+        var userId = _currentUser.UserId ?? throw CvExceptions.InvalidAccessToken("The access token does not contain a valid user id.");
+        var isOwner = userId == candidateId.Value;
+
+        if (!isOwner)
+        {
+            var isAdmin = _currentUser.Roles.Contains(RoleNames.Admin);
+            if (!isAdmin)
+            {
+                var isRecruiter = _currentUser.Roles.Contains(RoleNames.Recruiter);
+                if (!isRecruiter)
+                {
+                    CvExceptions.EnsureOwner(userId, candidateId.Value);
+                }
+
+                var hasAccess = await _applicationRepository.CanRecruiterAccessCvVersionAsync(
+                    validated.CvId,
+                    validated.VersionId,
+                    userId,
+                    cancellationToken);
+
+                if (!hasAccess)
+                {
+                    throw CvExceptions.AccountNotAllowed();
+                }
+            }
+        }
 
         var version = await _cvVersionRepository.GetByIdAsync(
             validated.CvId,

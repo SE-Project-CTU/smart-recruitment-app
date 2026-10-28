@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -79,6 +80,15 @@ public sealed class CompanyRepository : ICompanyRepository {
             .FirstOrDefaultAsync(m => m.CompanyId == companyId && m.UserId == userId, cancellationToken);
     }
 
+    public async Task<CompanyMembership?> GetMembershipByIdOrUserIdAsync(Guid companyId, Guid memberId, CancellationToken cancellationToken) {
+        return await _dbContext.CompanyMemberships
+            .Include(m => m.User)
+                .ThenInclude(u => u.AvatarFile)
+            .FirstOrDefaultAsync(
+                m => m.CompanyId == companyId && (m.Id == memberId || m.UserId == memberId),
+                cancellationToken);
+    }
+
     public async Task<CompanyMembership?> GetActiveOwnerMembershipAsync(Guid companyId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyMemberships
             .FirstOrDefaultAsync(
@@ -122,6 +132,42 @@ public sealed class CompanyRepository : ICompanyRepository {
                      m.Status == CompanyMembershipStatus.Active,
                 cancellationToken);
     }
+
+    public async Task<(IReadOnlyList<CompanyMembership> Items, int TotalCount)> GetUserActiveCompaniesPagedAsync(
+        Guid userId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.CompanyMemberships
+            .AsNoTracking()
+            .Include(m => m.Company)
+                .ThenInclude(c => c.LogoFile)
+            .Where(m => m.UserId == userId && m.Status == CompanyMembershipStatus.Active);
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var trimmedSearch = search.Trim();
+            query = query.Where(m => m.Company.Name.Contains(trimmedSearch) || m.Company.TaxCode.Contains(trimmedSearch));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(m => m.JoinedAt)
+            .ThenByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public Task<List<Guid>> GetActiveCompanyIdsForUserAsync(Guid userId, CancellationToken cancellationToken) =>
+        _dbContext.CompanyMemberships
+            .AsNoTracking()
+            .Where(m => m.UserId == userId && m.Status == CompanyMembershipStatus.Active)
+            .Select(m => m.CompanyId)
+            .ToListAsync(cancellationToken);
 
     public async Task AddMembershipAsync(CompanyMembership membership, CancellationToken cancellationToken) {
         await _dbContext.CompanyMemberships.AddAsync(membership, cancellationToken);
@@ -228,6 +274,10 @@ public sealed class CompanyRepository : ICompanyRepository {
     }
 
     // Follow
+    public Task<bool> IsFollowingAsync(Guid userId, Guid companyId, CancellationToken cancellationToken) =>
+        _dbContext.CompanyFollows.AsNoTracking()
+            .AnyAsync(f => f.UserId == userId && f.CompanyId == companyId, cancellationToken);
+
     public async Task<CompanyFollow?> GetFollowAsync(Guid userId, Guid companyId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyFollows
             .FirstOrDefaultAsync(f => f.UserId == userId && f.CompanyId == companyId, cancellationToken);
@@ -249,6 +299,46 @@ public sealed class CompanyRepository : ICompanyRepository {
             .OrderByDescending(f => f.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public async Task<(IReadOnlyList<FollowedCompanyResult> Items, int TotalCount)> GetFollowedCompaniesPagedAsync(
+        Guid userId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.CompanyFollows
+            .AsNoTracking()
+            .Where(f => f.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var trimmedSearch = search.Trim();
+            query = query.Where(f => f.Company.Name.Contains(trimmedSearch));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(f => f.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(f => new FollowedCompanyResult(
+                f.Company.Id,
+                f.Company.Name,
+                f.Company.TaxCode,
+                f.Company.Email,
+                f.Company.Phone,
+                f.Company.Address,
+                f.Company.Website,
+                f.Company.Description,
+                f.Company.LogoFile != null ? f.Company.LogoFile.FileUrl : null,
+                f.Company.VerificationStatus.ToString(),
+                f.Company.Followers.Count(),
+                f.Company.JobPostings.Count(j => j.Status == JobPostingStatus.Published),
+                f.CreatedAt))
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);

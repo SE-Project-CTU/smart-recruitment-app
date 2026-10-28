@@ -34,7 +34,7 @@ public sealed class GetApplicationDetailQueryHandler
             ?? throw ApplicationExceptions.ApplicationNotFound(applicationId);
 
         var isCandidateOwner = _currentUser.Roles.Contains(RoleNames.Candidate) &&
-                               application.CandidateId == userId;
+                               application.Candidate.Id == userId;
         if (!isCandidateOwner) {
             var isRecruiter = _currentUser.Roles.Contains(RoleNames.Recruiter);
             if (!isRecruiter) throw ApplicationExceptions.ApplicationForbidden();
