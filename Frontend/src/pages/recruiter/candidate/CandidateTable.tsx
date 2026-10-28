@@ -32,8 +32,10 @@ import {
   resolveCandidateProfile,
 } from "@/types/application";
 
-const columnHelper =
-  createColumnHelper<DataTableFeatures, RecruiterCandidateApplicationItem>();
+const columnHelper = createColumnHelper<
+  DataTableFeatures,
+  RecruiterCandidateApplicationItem
+>();
 
 interface CandidateTableProps {
   data: RecruiterCandidateApplicationItem[];
@@ -166,7 +168,9 @@ export function CandidateTable({
           header: () => <div className="text-center">Thư giới thiệu</div>,
           cell: ({ row }) => {
             const app = row.original;
-            const hasLetter = Boolean(app.coverLetter && app.coverLetter.trim());
+            const hasLetter = Boolean(
+              app.coverLetter && app.coverLetter.trim(),
+            );
 
             if (!hasLetter) {
               return (
@@ -229,7 +233,9 @@ export function CandidateTable({
         columnHelper.accessor("status", {
           header: "Trạng thái",
           cell: ({ row }) => {
-            const rawStatus = (row.original.status || "SUBMITTED").toUpperCase();
+            const rawStatus = (
+              row.original.status || "SUBMITTED"
+            ).toUpperCase();
             const cfg = APPLICATION_STATUS_CONFIG[rawStatus] || {
               label: rawStatus,
               badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
@@ -319,7 +325,10 @@ export function CandidateTable({
                   </Select.Trigger>
 
                   <Select.Portal>
-                    <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
+                    <Select.Positioner
+                      alignItemWithTrigger={false}
+                      sideOffset={4}
+                    >
                       <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                         <Select.List>
                           {nextAllowedOptions.map(
@@ -327,18 +336,19 @@ export function CandidateTable({
                               value: UpdateJobApplicationStatus;
                               label: string;
                             }) => (
-                            <Select.Item
-                              key={opt.value}
-                              value={opt.value}
-                              className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-100 ${
-                                opt.value === "REJECTED"
-                                  ? "text-rose-600 hover:bg-rose-50"
-                                  : "text-slate-700 hover:text-primary"
-                              }`}
-                            >
-                              <Select.ItemText>{opt.label}</Select.ItemText>
-                            </Select.Item>
-                          ))}
+                              <Select.Item
+                                key={opt.value}
+                                value={opt.value}
+                                className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-100 ${
+                                  opt.value === "REJECTED"
+                                    ? "text-rose-600 hover:bg-rose-50"
+                                    : "text-slate-700 hover:text-primary"
+                                }`}
+                              >
+                                <Select.ItemText>{opt.label}</Select.ItemText>
+                              </Select.Item>
+                            ),
+                          )}
                         </Select.List>
                       </Select.Popup>
                     </Select.Positioner>
@@ -364,7 +374,12 @@ export function CandidateTable({
           },
         }),
       ]),
-    [isUpdatingStatus, onReadCoverLetter, onRequestChangeStatus, onViewJobDetail],
+    [
+      isUpdatingStatus,
+      onReadCoverLetter,
+      onRequestChangeStatus,
+      onViewJobDetail,
+    ],
   );
 
   return (

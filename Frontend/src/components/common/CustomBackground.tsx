@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 // Container bọc bên ngoài phải là relative nhé hihi
 export function GradientBackground() {
   return (
@@ -44,10 +46,10 @@ export function HightlightSideBackground() {
   );
 }
 
-export function CTAMeshGradient() {
+export function CTAMeshGradient({ className }: { className?: string }) {
   return (
     <div
-      className="absolute inset-0 z-0"
+      className={cn(className, "absolute inset-0 z-0")}
       style={{
         background: `
       radial-gradient(ellipse 60% 80% at 8% 10%, rgba(2, 18, 69, 0.95), transparent 70%),

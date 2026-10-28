@@ -9,14 +9,14 @@ export const APPLICATION_STATUS_OPTIONS: {
   label: string;
 }[] = [
   { value: "ALL", label: "Tất cả trạng thái" },
-  { value: "SUBMITTED", label: "Đã nộp hồ sơ (Submitted)" },
-  { value: "REVIEWING", label: "Đang xem xét (Reviewing)" },
-  { value: "SHORTLISTED", label: "Đã chọn lọc (Shortlisted)" },
-  { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
-  { value: "OFFERED", label: "Mời nhận việc (Offered)" },
-  { value: "HIRED", label: "Đã tuyển dụng (Hired)" },
-  { value: "REJECTED", label: "Từ chối (Rejected)" },
-  { value: "WITHDRAWN", label: "Rút hồ sơ (Withdrawn)" },
+  { value: "SUBMITTED", label: "Đã nộp hồ sơ" },
+  { value: "REVIEWING", label: "Đang xem xét" },
+  { value: "SHORTLISTED", label: "Đã chọn lọc" },
+  { value: "INTERVIEW", label: "Mời phỏng vấn" },
+  { value: "OFFERED", label: "Mời nhận việc" },
+  { value: "HIRED", label: "Đã tuyển dụng" },
+  { value: "REJECTED", label: "Từ chối" },
+  { value: "WITHDRAWN", label: "Rút hồ sơ" },
 ];
 
 /**
@@ -27,34 +27,34 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<
   string,
   { value: UpdateJobApplicationStatus; label: string }[]
 > = {
-  SUBMITTED: [{ value: "REVIEWING", label: "Đang xem xét (Reviewing)" }],
+  SUBMITTED: [{ value: "REVIEWING", label: "Đang xem xét" }],
   REVIEWING: [
-    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc (Shortlisted)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   SHORTLISTED: [
-    { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "INTERVIEW", label: "Mời phỏng vấn" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   INTERVIEW: [
-    { value: "OFFERED", label: "Gửi đề nghị việc làm (Offered)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "OFFERED", label: "Gửi đề nghị việc làm" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   INTERVIEWING: [
-    { value: "OFFERED", label: "Gửi đề nghị việc làm (Offered)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "OFFERED", label: "Gửi đề nghị việc làm" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   OFFERED: [
-    { value: "HIRED", label: "Tuyển dụng thành công (Hired)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "HIRED", label: "Tuyển dụng thành công" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   RECEIVED: [
-    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc (Shortlisted)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "SHORTLISTED", label: "Vào danh sách chọn lọc" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   APPROVED: [
-    { value: "INTERVIEW", label: "Mời phỏng vấn (Interviewing)" },
-    { value: "REJECTED", label: "Từ chối hồ sơ (Rejected)" },
+    { value: "INTERVIEW", label: "Mời phỏng vấn" },
+    { value: "REJECTED", label: "Từ chối hồ sơ" },
   ],
   // Terminal states: Kết thúc quy trình, không được phép chuyển tiếp nữa
   HIRED: [],
@@ -63,6 +63,7 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<
   WITHDRAWN: [],
 };
 
+//label hiển thị trạng thái application bên phía nhà tuyển dụng, sẽ cần thay đổi từ ngữ để phù hợp ngữ cảnh hơn ở phía candidate
 export const APPLICATION_STATUS_CONFIG: Record<
   string,
   { label: string; badgeClass: string }
@@ -155,4 +156,164 @@ export function resolveCandidateProfile(
     avatarUrl,
     initials,
   };
+}
+
+export interface ApplicationJobSummary {
+  id: string;
+  title: string;
+  company: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+  };
+  province: {
+    id: string;
+    name: string;
+  };
+  ward?: {
+    id: string;
+    name: string;
+  } | null;
+  experienceYears?: number | null;
+  jobLevel?: string | null;
+  workMode: string;
+  jobType: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryNegotiable: boolean;
+  deadline?: string | null;
+  status: string;
+}
+
+export interface CvDocumentMetadata {
+  version: string;
+  templateCode: string;
+  language: string;
+  updatedAt: string;
+}
+
+export interface CvProfile {
+  fullName: string;
+  title: string;
+  avatarUrl: string;
+  email: string;
+  phone: string;
+  dob?: string;
+  address?: string;
+  website?: string;
+  socialLink?: string;
+}
+
+export interface CvContentDocument {
+  metadata?: CvDocumentMetadata;
+  profile?: CvProfile;
+  sections?: Record<string, unknown>;
+}
+
+export interface CvLayoutArea {
+  id: string;
+  sections: string[];
+}
+
+export interface CvLayoutDocument {
+  version: string;
+  areas: CvLayoutArea[];
+}
+
+export interface CvGlobalStyle {
+  fontFamily: string;
+  baseFontSize: number;
+  primaryColor: string[];
+  lineHeight: number;
+}
+
+export interface CvFieldStyle {
+  color: string;
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: string;
+  fontStyle: string;
+  textDecoration: string;
+  textAlign?: string | null;
+  listStyle?: string | null;
+}
+
+export interface CvPresentationStyles {
+  global?: CvGlobalStyle;
+  fields?: Record<string, CvFieldStyle>;
+}
+
+export interface CvPresentationDocument {
+  metadata?: {
+    version: string;
+    templateCode: string;
+    updatedAt: string;
+  };
+  styles?: CvPresentationStyles;
+}
+
+export interface ApplicationCvSnapshot {
+  versionId: string;
+  cvId: string;
+  templateId: string;
+  versionNumber: number;
+  language: string;
+  content: CvContentDocument;
+  layout: CvLayoutDocument;
+  presentation: CvPresentationDocument;
+  createdAt: string;
+}
+
+/**
+ * Đơn ứng tuyển của ứng viên (sau khi được enrich thông tin JD và Doanh nghiệp)
+ */
+export interface CandidateMyApplicationItem {
+  id: string;
+  jobId: string;
+  job?: ApplicationJobSummary;
+  jobTitle?: string;
+  companyId?: string;
+  companyName?: string;
+  companyLogoUrl?: string | null;
+  salaryRange?: string;
+  locationName?: string;
+  cvVersionId?: string | null;
+  uploadedCvUrl?: string | null;
+  cvSnapshot?: ApplicationCvSnapshot | null;
+  coverLetter?: string | null;
+  status: JobApplicationStatus | string;
+  appliedAt: string;
+  updatedAt?: string;
+}
+
+export interface ApplicationStatusHistoryActor {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string | null;
+  role?: string | null;
+}
+
+/**
+ * Lịch sử thay đổi trạng thái của đơn ứng tuyển
+ */
+export interface ApplicationStatusHistoryItem {
+  id: string;
+  applicationId: string;
+  oldStatus?: string | null;
+  newStatus?: string;
+  status?: string;
+  note?: string | null;
+  changedBy?: ApplicationStatusHistoryActor | string | null;
+  changedAt?: string;
+  createdAt?: string;
+}
+
+/**
+ * Payload nộp hồ sơ ứng tuyển
+ */
+export interface ApplyJobPayload {
+  cvVersionId?: string;
+  uploadedCvFileId?: string;
+  coverLetter?: string;
 }

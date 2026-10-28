@@ -185,6 +185,7 @@ function SignIn() {
               <img
                 key={item}
                 className="h-8 w-8 rounded-full border-2 border-white object-cover md:h-12 md:w-12"
+                loading="lazy"
                 src={`https://i.pravatar.cc/100?img=${item + 39}`}
                 alt="Avatar"
               />
@@ -206,6 +207,7 @@ function SignIn() {
         <img
           src={Office}
           alt="SmartHire Office"
+          loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
         />
 

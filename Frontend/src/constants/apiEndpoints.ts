@@ -22,7 +22,13 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/companies/${id}`,
     CREATE: "/companies",
     UPDATE: (id: string) => `/companies/${id}`,
+    MY_COMPANIES: "/me/companies",
     MEMBERS: (id: string) => `/companies/${id}/members`,
+    REMOVE_MEMBER: (companyId: string, memberId: string) =>
+      `/companies/${companyId}/members/${memberId}`,
+    LEAVE: (companyId: string) => `/companies/${companyId}/leave`,
+    APPLICATIONS: (companyId: string) =>
+      `/companies/${companyId}/applications`,
     INVITATIONS: (id: string) => `/companies/${id}/invitations`,
     MY_INVITATIONS: "/me/company-invitations",
     ACCEPT_INVITATION: (id: string) => `/company-invitations/${id}/accept`,
@@ -32,6 +38,9 @@ export const API_ENDPOINTS = {
       `/companies/${id}/join-requests/${requestId}`,
     TRANSFER_OWNERSHIP: (id: string) => `/companies/${id}/ownership`,
     JOB_POSTINGS: (companyId: string) => `/companies/${companyId}/job-postings`,
+    FOLLOW: (companyId: string) => `/companies/${companyId}/followers`,
+    UNFOLLOW: (companyId: string) => `/companies/${companyId}/followers`,
+    FOLLOWED_COMPANIES: "/me/followed-companies",
   },
   CATALOG: {
     PROVINCES: "/provinces",
@@ -49,9 +58,24 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/job-postings/${id}`,
     UPDATE_STATUS: (id: string) => `/job-postings/${id}/status`,
     APPLICATIONS: (id: string) => `/job-postings/${id}/applications`,
+    APPLY: (id: string) => `/job-postings/${id}/applications`,
   },
   APPLICATION: {
-    UPDATE_STATUS: (id: string) => `/applications/${id}/status`,
+    MY_APPLICATIONS: "/applications/me",
     DETAIL: (id: string) => `/applications/${id}`,
+    UPDATE_STATUS: (id: string) => `/applications/${id}/status`,
+    STATUS_HISTORY: (id: string) => `/applications/${id}/status-history`,
+  },
+  CV: {
+    LIST: "/cvs",
+    DETAIL: (id: string) => `/cvs/${id}`,
+    CREATE: "/cvs",
+    UPDATE: (id: string) => `/cvs/${id}`,
+    DELETE: (id: string) => `/cvs/${id}`,
+    VERSIONS: (id: string) => `/cvs/${id}/versions`,
+    VERSION_DETAIL: (cvId: string, versionId: string) =>
+      `/cvs/${cvId}/versions/${versionId}`,
+    TEMPLATES: "/cv-templates",
+    TEMPLATE_DETAIL: (id: string) => `/cv-templates/${id}`,
   },
 } as const;
