@@ -55,4 +55,9 @@ public interface IJobApplicationRepository {
         int skip,
         int pageSize,
         CancellationToken cancellationToken);
+    Task<bool> CanRecruiterAccessCvVersionAsync(
+        Guid cvId,
+        Guid versionId,
+        Guid recruiterUserId,
+        CancellationToken cancellationToken);
 }

@@ -321,6 +321,17 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
             .ToListAsync(cancellationToken);
     }
 
+    public Task<bool> CanRecruiterAccessCvVersionAsync(
+        Guid cvId,
+        Guid versionId,
+        Guid recruiterUserId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications.AsNoTracking()
+            .AnyAsync(a => a.CvVersionId == versionId
+                        && a.CvVersion != null && a.CvVersion.CvId == cvId
+                        && a.Job.Company.Memberships.Any(m => m.UserId == recruiterUserId && m.Status == CompanyMembershipStatus.Active),
+                      cancellationToken);
+
     private IQueryable<JobApplication> ApplyCompanyFilters(
         Guid companyId,
         Guid? jobId,
