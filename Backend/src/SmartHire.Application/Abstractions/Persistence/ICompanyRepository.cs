@@ -19,6 +19,7 @@ public interface ICompanyRepository {
 
     // Membership
     Task<CompanyMembership?> GetMembershipAsync(Guid companyId, Guid userId, CancellationToken cancellationToken);
+    Task<CompanyMembership?> GetMembershipByIdOrUserIdAsync(Guid companyId, Guid memberId, CancellationToken cancellationToken);
     Task<CompanyMembership?> GetActiveOwnerMembershipAsync(Guid companyId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<CompanyMembership> Items, int TotalCount)> GetMembersPagedAsync(
         Guid companyId,

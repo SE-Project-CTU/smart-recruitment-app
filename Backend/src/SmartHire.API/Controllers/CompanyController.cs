@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Requests;
@@ -11,7 +11,9 @@ using SmartHire.Application.Features.Companies.Commands.AcceptInvitation;
 using SmartHire.Application.Features.Companies.Commands.CreateCompany;
 using SmartHire.Application.Features.Companies.Commands.FollowCompany;
 using SmartHire.Application.Features.Companies.Commands.InviteRecruiter;
+using SmartHire.Application.Features.Companies.Commands.LeaveCompany;
 using SmartHire.Application.Features.Companies.Commands.RejectInvitation;
+using SmartHire.Application.Features.Companies.Commands.RemoveCompanyMember;
 using SmartHire.Application.Features.Companies.Commands.ReviewJoinRequest;
 using SmartHire.Application.Features.Companies.Commands.SubmitJoinRequest;
 using SmartHire.Application.Features.Companies.Commands.TransferOwnership;
@@ -38,12 +40,12 @@ namespace SmartHire.Api.Controllers;
 public sealed class CompanyController : ControllerBase {
     private readonly ISender _sender;
     private readonly ApiResponseFactory _responseFactory;
-
+    
     public CompanyController(ISender sender, ApiResponseFactory responseFactory) {
         _sender = sender;
         _responseFactory = responseFactory;
     }
-
+    
     /// Lấy danh sách công ty
     [HttpGet]
     [AllowAnonymous]
@@ -56,14 +58,14 @@ public sealed class CompanyController : ControllerBase {
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CompanyVerificationStatus>(status, true, out var st)) {
             parsedStatus = st;
         }
-
+        
         var (items, totalCount) = await _sender.Send(
             new ListCompaniesQuery(search, parsedStatus, pagination),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
-
+    
     /// Lấy danh sách các công ty mà người dùng hiện tại đang tham gia hoạt động (Active)
     [HttpGet("/api/v1/me/companies")]
     [HttpGet("my")]
@@ -75,10 +77,10 @@ public sealed class CompanyController : ControllerBase {
         var (items, totalCount) = await _sender.Send(
             new ListMyCompaniesQuery(search, pagination),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
-
+    
     /// Tạo hồ sơ công ty mới
     [HttpPost]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -91,7 +93,7 @@ public sealed class CompanyController : ControllerBase {
                 CommonErrorCodes.InvalidRequestBody,
                 "Request body is required.");
         }
-
+        
         var command = new CreateCompanyCommand(
             request.Name,
             request.TaxCode,
@@ -102,11 +104,11 @@ public sealed class CompanyController : ControllerBase {
             request.Description,
             request.LogoFileId,
             request.LogoUrl);
-
+        
         var result = await _sender.Send(command, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
-
+    
     /// Xem thông tin chi tiết công ty
     [HttpGet("{id}")]
     [AllowAnonymous]
@@ -130,7 +132,7 @@ public sealed class CompanyController : ControllerBase {
                 CommonErrorCodes.InvalidRequestBody,
                 "Request body is required.");
         }
-
+        
         if (request.AdditionalFields is { Count: > 0 }) {
             var details = request.AdditionalFields.Keys
                 .Select(fieldName => new AppErrorDetail(
@@ -138,14 +140,14 @@ public sealed class CompanyController : ControllerBase {
                     ValidationReasons.NotAllowed,
                     $"Field '{fieldName}' cannot be updated through this endpoint."))
                 .ToArray();
-
+            
             throw new AppException(
                 AppErrorKind.Validation,
                 CompanyErrorCodes.InvalidCompanyData,
                 "Request body contains disallowed fields.",
                 details);
         }
-
+        
         var command = new UpdateCompanyCommand(
             id,
             request.Name,
@@ -157,11 +159,11 @@ public sealed class CompanyController : ControllerBase {
             request.LogoFileId,
             request.LogoFileIdProvided,
             request.LogoUrl);
-
+        
         var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));
     }
-
+    
     /// Lấy danh sách thành viên công ty
     [HttpGet("{id}/members")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -173,10 +175,35 @@ public sealed class CompanyController : ControllerBase {
         var (items, totalCount) = await _sender.Send(
             new ListCompanyMembersQuery(id, pagination, status),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
-
+    
+    /// <summary>
+    /// Owner loại bỏ thành viên khỏi công ty. Chỉ có Owner mới có quyền thực hiện hành động này.
+    /// </summary>
+    [HttpDelete("{id}/members/{memberId}")]
+    [Authorize(Roles = RoleNames.Recruiter)]
+    public async Task<IActionResult> RemoveMember(
+        [FromRoute] Guid id,
+        [FromRoute] Guid memberId,
+        CancellationToken cancellationToken) {
+        await _sender.Send(new RemoveCompanyMemberCommand(id, memberId), cancellationToken);
+        return NoContent();
+    }
+    
+    /// <summary>
+    /// Thành viên tự rời khỏi công ty
+    /// </summary>
+    [HttpPost("{id}/leave")]
+    [Authorize(Roles = RoleNames.Recruiter)]
+    public async Task<IActionResult> LeaveCompany(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken) {
+        var result = await _sender.Send(new LeaveCompanyCommand(id), cancellationToken);
+        return Ok(_responseFactory.Success(result));
+    }
+    
     /// <summary>
     /// Lấy tất cả tin tuyển dụng của công ty (dành cho Recruiter là thành viên công ty)
     /// </summary>
@@ -191,10 +218,10 @@ public sealed class CompanyController : ControllerBase {
         var (items, totalCount) = await _sender.Send(
             new ListCompanyJobPostingsQuery(id, status, search, pagination),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
-
+    
     [HttpGet("{id}/applications")]
     [Authorize(Roles = RoleNames.Recruiter)]
     public async Task<IActionResult> ListCompanyApplications(
@@ -217,14 +244,14 @@ public sealed class CompanyController : ControllerBase {
                     pagination.Page,
                     pagination.PageSize)),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(
             items,
             pagination.Page,
             pagination.PageSize,
             totalCount));
     }
-
+    
     /// Mời vào công ty
     [HttpPost("{id}/invitations")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -238,12 +265,12 @@ public sealed class CompanyController : ControllerBase {
                 CommonErrorCodes.InvalidRequestBody,
                 "Request body is required.");
         }
-
+        
         var command = new InviteRecruiterCommand(id, request.Email, request.ExpiresAt);
         var result = await _sender.Send(command, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
-
+    
     /// Danh sách lời mời gia nhập của recruiter hiện tại
     [HttpGet("/api/v1/me/company-invitations")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -254,10 +281,10 @@ public sealed class CompanyController : ControllerBase {
         var (items, totalCount) = await _sender.Send(
             new ListMyInvitationsQuery(status, pagination),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
-
+    
     /// Chấp nhận lời mời gia nhập công ty
     [HttpPost("/api/v1/company-invitations/{invitationId}/accept")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -267,7 +294,7 @@ public sealed class CompanyController : ControllerBase {
         var result = await _sender.Send(new AcceptInvitationCommand(invitationId), cancellationToken);
         return Ok(_responseFactory.Success(result));
     }
-
+    
     /// Từ chối lời mời gia nhập công ty
     [HttpPost("/api/v1/company-invitations/{invitationId}/reject")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -277,7 +304,7 @@ public sealed class CompanyController : ControllerBase {
         await _sender.Send(new RejectInvitationCommand(invitationId), cancellationToken);
         return NoContent();
     }
-
+    
     /// Yêu cầu gia nhập công ty
     [HttpPost("{id}/join-requests")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -287,7 +314,7 @@ public sealed class CompanyController : ControllerBase {
         var result = await _sender.Send(new SubmitJoinRequestCommand(id), cancellationToken);
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
-
+    
     /// Danh sách yêu cầu gia nhập
     [HttpGet("{id}/join-requests")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -299,10 +326,10 @@ public sealed class CompanyController : ControllerBase {
         var (items, totalCount) = await _sender.Send(
             new ListJoinRequestsQuery(id, status, pagination),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
-
+    
     /// Phê duyệt hoặc từ chối yêu cầu gia nhập
     [HttpPatch("{id}/join-requests/{requestId}")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -317,12 +344,12 @@ public sealed class CompanyController : ControllerBase {
                 CommonErrorCodes.InvalidRequestBody,
                 "Request body is required.");
         }
-
+        
         var command = new ReviewJoinRequestCommand(id, requestId, request.Status);
         var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));
     }
-
+    
     /// Chuyển quyền Chủ sở hữu công ty
     [HttpPut("{id}/ownership")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -336,12 +363,12 @@ public sealed class CompanyController : ControllerBase {
                 CommonErrorCodes.InvalidRequestBody,
                 "Request body is required.");
         }
-
+        
         var command = new TransferOwnershipCommand(id, request.NewOwnerId);
         var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));
     }
-
+    
     /// Theo dõi công ty
     [HttpPost("{id}/followers")]
     [Authorize(Roles = RoleNames.Candidate)]
@@ -351,7 +378,7 @@ public sealed class CompanyController : ControllerBase {
         var result = await _sender.Send(new FollowCompanyCommand(id), cancellationToken);
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
-
+    
     /// Bỏ theo dõi công ty
     [HttpDelete("{id}/followers")]
     [Authorize(Roles = RoleNames.Candidate)]
@@ -361,7 +388,7 @@ public sealed class CompanyController : ControllerBase {
         await _sender.Send(new UnfollowCompanyCommand(id), cancellationToken);
         return NoContent();
     }
-
+    
     /// Danh sách người theo dõi công ty
     [HttpGet("{id}/followers")]
     [Authorize(Roles = RoleNames.Recruiter)]
@@ -372,10 +399,10 @@ public sealed class CompanyController : ControllerBase {
         var (response, totalCount) = await _sender.Send(
             new ListCompanyFollowersQuery(id, pagination),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(response.Followers, pagination.Page, pagination.PageSize, totalCount));
     }
-
+    
     /// <summary>
     /// Lấy danh sách các công ty mà ứng viên hiện tại đã theo dõi
     /// </summary>
@@ -388,7 +415,7 @@ public sealed class CompanyController : ControllerBase {
         var (items, totalCount) = await _sender.Send(
             new ListFollowedCompaniesQuery(search, pagination),
             cancellationToken);
-
+        
         return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
 }

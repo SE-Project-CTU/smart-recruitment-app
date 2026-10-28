@@ -109,6 +109,8 @@ flowchart TD
   - `POST /api/v1/companies`: Recruiter tạo hồ sơ công ty (tự động trở thành `Owner`).
   - `PATCH /api/v1/companies/{id}`: Recruiter cập nhật hồ sơ công ty.
   - `GET /api/v1/companies/{id}/members`: Danh sách thành viên trong công ty.
+  - `DELETE /api/v1/companies/{id}/members/{memberId}`: Owner loại bỏ thành viên đã thôi việc (cập nhật trạng thái thành `Left`).
+  - `POST /api/v1/companies/{id}/leave`: Recruiter tự rời khỏi công ty (cập nhật trạng thái thành `Left`).
   - `GET /api/v1/companies/{id}/job-postings`: Danh sách tin tuyển dụng thuộc công ty (dành cho thành viên công ty).
   - `GET /api/v1/companies/{id}/applications`: **[Mới bổ sung]** Danh sách hồ sơ ứng tuyển thuộc công ty dành cho Recruiter thành viên (hỗ trợ lọc `jobId`, `status`, `search` theo họ tên, email, phone, job title; phân trang và sắp xếp server-side).
   - `POST /api/v1/companies/{id}/invitations`: Mời recruiter gia nhập.

@@ -80,6 +80,15 @@ public sealed class CompanyRepository : ICompanyRepository {
             .FirstOrDefaultAsync(m => m.CompanyId == companyId && m.UserId == userId, cancellationToken);
     }
 
+    public async Task<CompanyMembership?> GetMembershipByIdOrUserIdAsync(Guid companyId, Guid memberId, CancellationToken cancellationToken) {
+        return await _dbContext.CompanyMemberships
+            .Include(m => m.User)
+                .ThenInclude(u => u.AvatarFile)
+            .FirstOrDefaultAsync(
+                m => m.CompanyId == companyId && (m.Id == memberId || m.UserId == memberId),
+                cancellationToken);
+    }
+
     public async Task<CompanyMembership?> GetActiveOwnerMembershipAsync(Guid companyId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyMemberships
             .FirstOrDefaultAsync(
