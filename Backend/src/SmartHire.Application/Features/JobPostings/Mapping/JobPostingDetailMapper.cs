@@ -71,7 +71,7 @@ public static class JobPostingDetailMapper
         data.Location.DetailedLocation,
         data.ExperienceYears,
         data.JobLevel is null ? null : ToApiValue(data.JobLevel.Value),
-        data.EducationLevel is null ? string.Empty : ToApiValue(data.EducationLevel.Value),
+        data.EducationLevel is null ? null : ToApiValue(data.EducationLevel.Value),
         data.Vacancies,
         ToApiWorkMode(data.WorkMode),
         ToApiJobType(data.JobType),

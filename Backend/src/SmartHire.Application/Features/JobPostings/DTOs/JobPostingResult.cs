@@ -10,7 +10,7 @@ public sealed record JobPostingResult(
     string? DetailedLocation,
     int? ExperienceYears,
     string? JobLevel,
-    string EducationLevel,
+    string? EducationLevel,
     int Vacancies,
     string WorkMode,
     string JobType,

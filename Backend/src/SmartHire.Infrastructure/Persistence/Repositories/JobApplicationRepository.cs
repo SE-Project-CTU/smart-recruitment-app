@@ -194,7 +194,10 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     history.ChangedByUser.AvatarFile != null ? history.ChangedByUser.AvatarFile.FileUrl : null,
                     history.ChangedBy == history.Application.CandidateId
                         ? RoleNames.Candidate
-                        : history.ChangedByUser.UserRoles.Select(ur => ur.Role.Name).FirstOrDefault()),
+                        : history.ChangedByUser.UserRoles
+                            .Select(ur => ur.Role.Name)
+                            .OrderBy(name => name)
+                            .FirstOrDefault()),
                 history.Note,
                 history.CreatedAt))
             .ToListAsync(cancellationToken);
