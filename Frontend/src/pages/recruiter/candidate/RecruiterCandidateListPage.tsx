@@ -64,7 +64,7 @@ export function RecruiterCandidateListPage() {
   }, [jobResponse]);
 
   const { data: allApplications = [], isLoading: isLoadingApplications } =
-    useRecruiterAllApplications(allJobs);
+    useRecruiterAllApplications(myCompanyIdsList);
 
   const updateStatusMutation = useUpdateApplicationStatus();
 
@@ -104,7 +104,11 @@ export function RecruiterCandidateListPage() {
     const targetJobs =
       selectedCompanyId === "ALL"
         ? allJobs
-        : allJobs.filter((j) => j.companyId === selectedCompanyId);
+        : allJobs.filter(
+            (j) =>
+              (j.companyId || j.company?.id)?.toLowerCase() ===
+              selectedCompanyId.toLowerCase(),
+          );
 
     targetJobs.forEach((j) => {
       opts.push({ value: j.id, label: j.title });
@@ -115,8 +119,11 @@ export function RecruiterCandidateListPage() {
   // 4. Lọc danh sách ứng viên (useMemo)
   const filteredApplications = useMemo(() => {
     return allApplications.filter((app) => {
-      // Lọc theo công ty
-      if (selectedCompanyId !== "ALL" && app.companyId !== selectedCompanyId) {
+      // Lọc theo công ty (so sánh GUID không phân biệt hoa thường)
+      if (
+        selectedCompanyId !== "ALL" &&
+        app.companyId?.toLowerCase() !== selectedCompanyId.toLowerCase()
+      ) {
         return false;
       }
 

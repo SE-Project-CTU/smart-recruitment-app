@@ -11,6 +11,7 @@ import type {
   InviteRecruiterPayload,
   ReviewJoinRequestPayload,
   UpdateCompanyPayload,
+  CompanyApplicationFilterParams,
 } from "@/types/company";
 
 /**
@@ -317,6 +318,119 @@ export const useReviewJoinRequest = () => {
       queryClient.invalidateQueries({
         queryKey: ["companies", "members", variables.companyId],
       });
+    },
+  });
+};
+
+/**
+ * Hook Query: Lấy danh sách hồ sơ ứng tuyển của một công ty (dành cho Recruiter thành viên)
+ */
+export const useCompanyApplications = (
+  companyId?: string,
+  params?: CompanyApplicationFilterParams,
+  options?: { enabled?: boolean },
+) => {
+  return useQuery({
+    queryKey: ["companies", "applications", companyId, params],
+    queryFn: () => companyService.getCompanyApplications(companyId!, params),
+    enabled: Boolean(companyId) && (options?.enabled ?? true),
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
+ * Hook Mutation: Owner loại bỏ thành viên khỏi công ty
+ */
+export const useRemoveCompanyMember = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      companyId,
+      memberId,
+    }: {
+      companyId: string;
+      memberId: string;
+    }) => companyService.removeMember(companyId, memberId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "members", variables.companyId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Recruiter tự rời khỏi công ty
+ */
+export const useLeaveCompany = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (companyId: string) => companyService.leaveCompany(companyId),
+    onSuccess: (_, companyId) => {
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "members", companyId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
+    },
+  });
+};
+
+/**
+ * Hook Query: Danh sách công ty mà Candidate đang theo dõi
+ */
+export const useMyFollowedCompanies = (params?: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}) => {
+  return useQuery({
+    queryKey: [
+      "companies",
+      "followed",
+      params?.search,
+      params?.page,
+      params?.pageSize,
+    ],
+    queryFn: () => companyService.getMyFollowedCompanies(params),
+    staleTime: 60 * 1000,
+  });
+};
+
+/**
+ * Hook Mutation: Theo dõi công ty
+ */
+export const useFollowCompany = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (companyId: string) => companyService.followCompany(companyId),
+    onSuccess: (_, companyId) => {
+      queryClient.invalidateQueries({ queryKey: ["companies", "followed"] });
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "detail", companyId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["job-postings", "detail"] });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Hủy theo dõi công ty
+ */
+export const useUnfollowCompany = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (companyId: string) => companyService.unfollowCompany(companyId),
+    onSuccess: (_, companyId) => {
+      queryClient.invalidateQueries({ queryKey: ["companies", "followed"] });
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "detail", companyId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["job-postings", "detail"] });
     },
   });
 };

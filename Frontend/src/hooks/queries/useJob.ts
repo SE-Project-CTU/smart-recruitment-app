@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { jobService } from "@/services/jobService";
 import { companyService } from "@/services/companyService";
@@ -174,39 +175,77 @@ export const useJobApplications = (
 };
 
 /**
- * Hook Query: Lấy toàn bộ hồ sơ ứng tuyển thuộc quyền quản lý của Recruiter (từ các JD của họ)
+ * Hook Query: Lấy toàn bộ hồ sơ ứng tuyển thuộc quyền quản lý của Recruiter (sử dụng API gom theo công ty mới)
  */
-export const useRecruiterAllApplications = (jobs: JobPostingItem[]) => {
-  const jobIds = jobs.map((j) => j.id);
+export const useRecruiterAllApplications = (
+  jobsOrCompanyIds: JobPostingItem[] | string[],
+) => {
+  const companyIds = useMemo(() => {
+    if (jobsOrCompanyIds.length === 0) return [];
+    if (typeof jobsOrCompanyIds[0] === "string") {
+      return Array.from(new Set(jobsOrCompanyIds as string[]));
+    }
+    return Array.from(
+      new Set(
+        (jobsOrCompanyIds as JobPostingItem[])
+          .map((j) => j.companyId || j.company?.id)
+          .filter(Boolean) as string[],
+      ),
+    );
+  }, [jobsOrCompanyIds]);
 
   return useQuery({
-    queryKey: ["recruiter", "all-applications", jobIds],
+    queryKey: ["recruiter", "all-applications", companyIds],
     queryFn: async (): Promise<RecruiterCandidateApplicationItem[]> => {
-      if (jobs.length === 0) return [];
+      if (companyIds.length === 0) return [];
 
       const results = await Promise.all(
-        jobs.map((job) =>
-          jobService
-            .getJobApplications(job.id, { pageSize: 100 })
+        companyIds.map((cId) =>
+          companyService
+            .getCompanyApplications(cId, { pageSize: 100 })
             .then((res) => ({
-              job,
+              companyId: cId,
               items: res.items,
             }))
-            .catch(() => ({
-              job,
-              items: [] as JobApplicationItem[],
-            })),
+            .catch((err) => {
+              console.error(
+                `[useRecruiterAllApplications] Lỗi gọi API applications công ty ${cId}:`,
+                err,
+              );
+              return {
+                companyId: cId,
+                items: [],
+              };
+            }),
         ),
       );
 
       const allApps: RecruiterCandidateApplicationItem[] = [];
       for (const res of results) {
         for (const app of res.items) {
+          const cand = app.candidate;
           allApps.push({
-            ...app,
-            jobTitle: res.job.title,
-            companyId: res.job.companyId,
-            companyName: res.job.company?.name || "Doanh nghiệp",
+            id: app.id,
+            jobId: app.jobId,
+            jobTitle: app.jobTitle,
+            companyId: app.companyId || app.company?.id || res.companyId,
+            companyName: app.companyName || app.company?.name || "Doanh nghiệp",
+            candidate: {
+              id: cand?.id || "",
+              fullName: cand?.fullName || "Ứng viên",
+              email: cand?.email || "",
+              avatarUrl: cand?.avatarUrl,
+            },
+            candidateName: cand?.fullName || "Ứng viên",
+            candidateEmail: cand?.email || "",
+            candidatePhone: cand?.phone || undefined,
+            candidateAvatarUrl: cand?.avatarUrl || undefined,
+            cvVersionId: app.cvVersionId,
+            uploadedCvUrl: app.uploadedCvUrl,
+            coverLetter: app.coverLetter,
+            status: app.status,
+            appliedAt: app.appliedAt,
+            updatedAt: app.updatedAt,
           });
         }
       }
@@ -219,7 +258,7 @@ export const useRecruiterAllApplications = (jobs: JobPostingItem[]) => {
 
       return allApps;
     },
-    enabled: jobs.length > 0,
+    enabled: companyIds.length > 0,
     staleTime: 30 * 1000,
   });
 };

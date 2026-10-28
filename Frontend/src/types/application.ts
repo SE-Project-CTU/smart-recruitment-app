@@ -158,12 +158,119 @@ export function resolveCandidateProfile(
   };
 }
 
+export interface ApplicationJobSummary {
+  id: string;
+  title: string;
+  company: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+  };
+  province: {
+    id: string;
+    name: string;
+  };
+  ward?: {
+    id: string;
+    name: string;
+  } | null;
+  experienceYears?: number | null;
+  jobLevel?: string | null;
+  workMode: string;
+  jobType: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryNegotiable: boolean;
+  deadline?: string | null;
+  status: string;
+}
+
+export interface CvDocumentMetadata {
+  version: string;
+  templateCode: string;
+  language: string;
+  updatedAt: string;
+}
+
+export interface CvProfile {
+  fullName: string;
+  title: string;
+  avatarUrl: string;
+  email: string;
+  phone: string;
+  dob?: string;
+  address?: string;
+  website?: string;
+  socialLink?: string;
+}
+
+export interface CvContentDocument {
+  metadata?: CvDocumentMetadata;
+  profile?: CvProfile;
+  sections?: Record<string, unknown>;
+}
+
+export interface CvLayoutArea {
+  id: string;
+  sections: string[];
+}
+
+export interface CvLayoutDocument {
+  version: string;
+  areas: CvLayoutArea[];
+}
+
+export interface CvGlobalStyle {
+  fontFamily: string;
+  baseFontSize: number;
+  primaryColor: string[];
+  lineHeight: number;
+}
+
+export interface CvFieldStyle {
+  color: string;
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: string;
+  fontStyle: string;
+  textDecoration: string;
+  textAlign?: string | null;
+  listStyle?: string | null;
+}
+
+export interface CvPresentationStyles {
+  global?: CvGlobalStyle;
+  fields?: Record<string, CvFieldStyle>;
+}
+
+export interface CvPresentationDocument {
+  metadata?: {
+    version: string;
+    templateCode: string;
+    updatedAt: string;
+  };
+  styles?: CvPresentationStyles;
+}
+
+export interface ApplicationCvSnapshot {
+  versionId: string;
+  cvId: string;
+  templateId: string;
+  versionNumber: number;
+  language: string;
+  content: CvContentDocument;
+  layout: CvLayoutDocument;
+  presentation: CvPresentationDocument;
+  createdAt: string;
+}
+
 /**
  * Đơn ứng tuyển của ứng viên (sau khi được enrich thông tin JD và Doanh nghiệp)
  */
 export interface CandidateMyApplicationItem {
   id: string;
   jobId: string;
+  job?: ApplicationJobSummary;
   jobTitle?: string;
   companyId?: string;
   companyName?: string;
@@ -172,10 +279,19 @@ export interface CandidateMyApplicationItem {
   locationName?: string;
   cvVersionId?: string | null;
   uploadedCvUrl?: string | null;
+  cvSnapshot?: ApplicationCvSnapshot | null;
   coverLetter?: string | null;
   status: JobApplicationStatus | string;
   appliedAt: string;
   updatedAt?: string;
+}
+
+export interface ApplicationStatusHistoryActor {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string | null;
+  role?: string | null;
 }
 
 /**
@@ -185,9 +301,12 @@ export interface ApplicationStatusHistoryItem {
   id: string;
   applicationId: string;
   oldStatus?: string | null;
-  newStatus: string;
+  newStatus?: string;
+  status?: string;
   note?: string | null;
-  changedAt: string;
+  changedBy?: ApplicationStatusHistoryActor | string | null;
+  changedAt?: string;
+  createdAt?: string;
 }
 
 /**

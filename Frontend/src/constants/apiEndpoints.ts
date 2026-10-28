@@ -22,7 +22,13 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/companies/${id}`,
     CREATE: "/companies",
     UPDATE: (id: string) => `/companies/${id}`,
+    MY_COMPANIES: "/me/companies",
     MEMBERS: (id: string) => `/companies/${id}/members`,
+    REMOVE_MEMBER: (companyId: string, memberId: string) =>
+      `/companies/${companyId}/members/${memberId}`,
+    LEAVE: (companyId: string) => `/companies/${companyId}/leave`,
+    APPLICATIONS: (companyId: string) =>
+      `/companies/${companyId}/applications`,
     INVITATIONS: (id: string) => `/companies/${id}/invitations`,
     MY_INVITATIONS: "/me/company-invitations",
     ACCEPT_INVITATION: (id: string) => `/company-invitations/${id}/accept`,
@@ -32,6 +38,9 @@ export const API_ENDPOINTS = {
       `/companies/${id}/join-requests/${requestId}`,
     TRANSFER_OWNERSHIP: (id: string) => `/companies/${id}/ownership`,
     JOB_POSTINGS: (companyId: string) => `/companies/${companyId}/job-postings`,
+    FOLLOW: (companyId: string) => `/companies/${companyId}/followers`,
+    UNFOLLOW: (companyId: string) => `/companies/${companyId}/followers`,
+    FOLLOWED_COMPANIES: "/me/followed-companies",
   },
   CATALOG: {
     PROVINCES: "/provinces",

@@ -241,7 +241,7 @@ export default function SearchJobPage() {
     <div className="flex w-full flex-col gap-6">
       {/* Card Tìm kiếm cơ hội việc làm */}
       <div className="relative flex min-h-60 w-full rounded-3xl p-6 sm:p-8 lg:p-10">
-        <CTAMeshGradient />
+        <CTAMeshGradient className="rounded-3xl" />
 
         <div className="relative z-10 flex w-full items-center justify-between gap-8">
           <div className="flex max-w-3xl flex-1 flex-col gap-5">
@@ -261,7 +261,7 @@ export default function SearchJobPage() {
               className="flex w-full flex-col gap-2 rounded-2xl bg-white p-2 shadow-xl sm:flex-row sm:items-center sm:gap-0 sm:rounded-full"
             >
               {/* 1. Ô nhập từ khóa tìm kiếm */}
-              <div className="flex flex-1 min-w-0 items-center gap-2.5 px-3 py-1 sm:py-0">
+              <div className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-1 sm:py-0">
                 <Search className="size-4.5 shrink-0 text-slate-400" />
                 <input
                   type="text"
@@ -289,7 +289,7 @@ export default function SearchJobPage() {
 
               {/* 2. Hàng Địa điểm + Nút tìm kiếm */}
               <div className="flex items-center justify-between gap-2 sm:w-auto sm:justify-start">
-                <div className="flex-1 min-w-0 sm:w-44 md:w-56 lg:w-64">
+                <div className="min-w-0 flex-1 sm:w-44 md:w-56 lg:w-64">
                   <LocationCombobox
                     value={selectedLocation}
                     onChange={setSelectedLocation}
@@ -303,7 +303,7 @@ export default function SearchJobPage() {
                 <button
                   type="submit"
                   aria-label="Tìm kiếm"
-                  className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-dark active:scale-95 sm:size-10 sm:ml-1"
+                  className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-dark active:scale-95 sm:ml-1 sm:size-10"
                 >
                   <ArrowRight className="size-4.5 sm:size-5" />
                 </button>
