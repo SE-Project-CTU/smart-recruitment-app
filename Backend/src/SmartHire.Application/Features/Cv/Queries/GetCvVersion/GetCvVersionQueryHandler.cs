@@ -1,6 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Application.Features.Cv.Exceptions;
 
@@ -37,7 +38,14 @@ public sealed class GetCvVersionQueryHandler
             throw CvExceptions.CvNotFound();
         }
 
-        CvExceptions.EnsureOwner(_currentUser.UserId, candidateId.Value);
+        var isOwner = _currentUser.UserId.HasValue && _currentUser.UserId.Value == candidateId.Value;
+        var isRecruiterOrAdmin = _currentUser.Roles.Contains(RoleNames.Recruiter) ||
+                                 _currentUser.Roles.Contains(RoleNames.Admin);
+
+        if (!isOwner && !isRecruiterOrAdmin)
+        {
+            CvExceptions.EnsureOwner(_currentUser.UserId, candidateId.Value);
+        }
 
         var version = await _cvVersionRepository.GetByIdAsync(
             validated.CvId,

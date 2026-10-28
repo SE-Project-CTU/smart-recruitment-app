@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Requests;
@@ -16,7 +16,7 @@ using SmartHire.Application.Features.Cv.Queries.GetCvVersion;
 namespace SmartHire.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = RoleNames.Candidate)]
+[Authorize]
 [Route("api/v1/cvs")]
 public sealed class CvController : ControllerBase {
     private readonly ISender _sender;
@@ -28,6 +28,7 @@ public sealed class CvController : ControllerBase {
     }
     
     [HttpPost]
+    [Authorize(Roles = RoleNames.Candidate)]
     public async Task<IActionResult> CreateNewCv(
         [FromBody] CreateCvRequest request,
         CancellationToken cancellationToken
@@ -42,6 +43,7 @@ public sealed class CvController : ControllerBase {
     }
     
     [HttpGet]
+    [Authorize(Roles = RoleNames.Candidate)]
     public async Task<IActionResult> GetMyCvs(
         [FromQuery] int page = PagedListQueryValidator.FirstPage,
         [FromQuery] int pageSize = 20,
@@ -75,6 +77,7 @@ public sealed class CvController : ControllerBase {
     }
 
     [HttpGet("{id}/versions")]
+    [Authorize(Roles = RoleNames.Candidate)]
     public async Task<IActionResult> GetCvVersions(
         Guid id,
         [FromQuery] int page = PagedListQueryValidator.FirstPage,
@@ -93,6 +96,7 @@ public sealed class CvController : ControllerBase {
     }
 
     [HttpGet("{id}/versions/{versionId}")]
+    [Authorize(Roles = $"{RoleNames.Candidate},{RoleNames.Recruiter},{RoleNames.Admin}")]
     public async Task<IActionResult> GetCvVersion(
         Guid id,
         Guid versionId,
@@ -106,6 +110,7 @@ public sealed class CvController : ControllerBase {
     }
     
     [HttpPatch("{id}")]
+    [Authorize(Roles = RoleNames.Candidate)]
     public async Task<IActionResult> UpdateCv(
         Guid id,
         [FromBody] UpdateCvRequest request,
@@ -135,6 +140,7 @@ public sealed class CvController : ControllerBase {
     }
     
     [HttpDelete("{id}")]
+    [Authorize(Roles = RoleNames.Candidate)]
     public async Task<IActionResult> DeleteCv(
         Guid id,
         CancellationToken cancellationToken

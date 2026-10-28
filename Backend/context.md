@@ -176,6 +176,7 @@ flowchart TD
   - `PUT /api/v1/cvs/{id}`: Cập nhật CV (tự động tạo phiên bản mới nếu cần).
   - `DELETE /api/v1/cvs/{id}`: Xóa CV.
   - `GET /api/v1/cvs/{id}/versions`: Danh sách các phiên bản lịch sử của CV.
+  - `GET /api/v1/cvs/{id}/versions/{versionId}`: Chi tiết một phiên bản CV (cho phép Candidate chủ sở hữu, Recruiter và Admin truy cập để xem nội dung CV được ứng viên nộp).
   - `GET /api/v1/cv-templates`: Danh sách template CV hệ thống.
   - `GET /api/v1/cv-templates/{id}`: Chi tiết template CV.
 
