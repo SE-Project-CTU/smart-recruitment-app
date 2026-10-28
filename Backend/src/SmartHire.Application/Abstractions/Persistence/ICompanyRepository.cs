@@ -1,3 +1,4 @@
+using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -62,6 +63,12 @@ public interface ICompanyRepository {
     Task<CompanyFollow?> GetFollowAsync(Guid userId, Guid companyId, CancellationToken cancellationToken);
     Task<(IReadOnlyList<CompanyFollow> Items, int TotalCount)> GetFollowersPagedAsync(
         Guid companyId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<(IReadOnlyList<FollowedCompanyResult> Items, int TotalCount)> GetFollowedCompaniesPagedAsync(
+        Guid userId,
+        string? search,
         int page,
         int pageSize,
         CancellationToken cancellationToken);

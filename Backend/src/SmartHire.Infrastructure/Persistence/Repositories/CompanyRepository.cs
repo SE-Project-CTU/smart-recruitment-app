@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -289,6 +290,46 @@ public sealed class CompanyRepository : ICompanyRepository {
             .OrderByDescending(f => f.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public async Task<(IReadOnlyList<FollowedCompanyResult> Items, int TotalCount)> GetFollowedCompaniesPagedAsync(
+        Guid userId,
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.CompanyFollows
+            .AsNoTracking()
+            .Where(f => f.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var trimmedSearch = search.Trim();
+            query = query.Where(f => f.Company.Name.Contains(trimmedSearch));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(f => f.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(f => new FollowedCompanyResult(
+                f.Company.Id,
+                f.Company.Name,
+                f.Company.TaxCode,
+                f.Company.Email,
+                f.Company.Phone,
+                f.Company.Address,
+                f.Company.Website,
+                f.Company.Description,
+                f.Company.LogoFile != null ? f.Company.LogoFile.FileUrl : null,
+                f.Company.VerificationStatus.ToString(),
+                f.Company.Followers.Count(),
+                f.Company.JobPostings.Count(j => j.Status == JobPostingStatus.Published),
+                f.CreatedAt))
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);

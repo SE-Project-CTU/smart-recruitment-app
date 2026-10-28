@@ -20,6 +20,7 @@ using SmartHire.Application.Features.Companies.Commands.UpdateCompany;
 using SmartHire.Application.Features.Companies.Queries.GetCompanyDetail;
 using SmartHire.Application.Features.Companies.Queries.ListCompanies;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyFollowers;
+using SmartHire.Application.Features.Companies.Queries.ListFollowedCompanies;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyMembers;
 using SmartHire.Application.Features.Companies.Queries.ListCompanyJobPostings;
 using SmartHire.Application.Features.Companies.Queries.ListJoinRequests;
@@ -373,5 +374,21 @@ public sealed class CompanyController : ControllerBase {
             cancellationToken);
 
         return Ok(_responseFactory.Paged(response.Followers, pagination.Page, pagination.PageSize, totalCount));
+    }
+
+    /// <summary>
+    /// Lấy danh sách các công ty mà ứng viên hiện tại đã theo dõi
+    /// </summary>
+    [HttpGet("/api/v1/me/followed-companies")]
+    [Authorize(Roles = RoleNames.Candidate)]
+    public async Task<IActionResult> ListMyFollowedCompanies(
+        [FromQuery] string? search,
+        [FromQuery] PaginationParams pagination,
+        CancellationToken cancellationToken = default) {
+        var (items, totalCount) = await _sender.Send(
+            new ListFollowedCompaniesQuery(search, pagination),
+            cancellationToken);
+
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
 }

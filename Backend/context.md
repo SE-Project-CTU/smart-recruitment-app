@@ -119,7 +119,8 @@ flowchart TD
   - `PATCH /api/v1/companies/{id}/join-requests/{requestId}`: Owner duyệt/từ chối yêu cầu.
   - `PUT /api/v1/companies/{id}/ownership`: Owner chuyển giao quyền chủ sở hữu cho thành viên khác.
   - `POST / DELETE /api/v1/companies/{id}/followers`: Candidate theo dõi / hủy theo dõi công ty.
-  - `GET /api/v1/companies/{id}/followers`: Danh sách người theo dõi.
+  - `GET /api/v1/companies/{id}/followers`: Danh sách người theo dõi công ty (dành cho Recruiter).
+  - `GET /api/v1/me/followed-companies`: Candidate lấy danh sách công ty mình đã theo dõi kèm phân trang, tìm kiếm và số lượng tin tuyển dụng/followers.
 
 ---
 
