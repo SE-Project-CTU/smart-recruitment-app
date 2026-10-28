@@ -114,7 +114,7 @@ flowchart TD
   - `GET /api/v1/companies/{id}/job-postings`: Danh sách tin tuyển dụng thuộc công ty (dành cho thành viên công ty).
   - `GET /api/v1/companies/{id}/applications`: **[Mới bổ sung]** Danh sách hồ sơ ứng tuyển thuộc công ty dành cho Recruiter thành viên (hỗ trợ lọc `jobId`, `status`, `search` theo họ tên, email, phone, job title; phân trang và sắp xếp server-side).
   - `POST /api/v1/companies/{id}/invitations`: Mời recruiter gia nhập.
-  - `GET /api/v1/me/company-invitations`: Danh sách lời mời gửi tới tài khoản hiện tại.
+  - `GET /api/v1/me/company-invitations`: Danh sách lời mời gửi tới tài khoản hiện tại (mặc định lấy tất cả khi không truyền status; hỗ trợ lọc theo status `Pending`, `Accepted`, `Rejected`, `Expired`).
   - `POST /api/v1/company-invitations/{id}/accept` & `reject`: Chấp nhận / từ chối lời mời.
   - `POST /api/v1/companies/{id}/join-requests`: Gửi yêu cầu xin gia nhập công ty.
   - `GET /api/v1/companies/{id}/join-requests`: Owner xem danh sách yêu cầu.

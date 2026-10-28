@@ -1,6 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Pagination;
 using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.DTOs;
@@ -26,10 +27,16 @@ public sealed class ListMyInvitationsQueryHandler : IRequestHandler<ListMyInvita
             throw CompanyExceptions.InvalidAccessToken();
         }
 
-        CompanyInvitationStatus? filterStatus = CompanyInvitationStatus.Pending;
-        if (!string.IsNullOrWhiteSpace(request.Status) &&
-            Enum.TryParse<CompanyInvitationStatus>(request.Status, true, out var parsedStatus)) {
-            filterStatus = parsedStatus;
+        CompanyInvitationStatus? filterStatus = null;
+        if (!string.IsNullOrWhiteSpace(request.Status)) {
+            if (Enum.TryParse<CompanyInvitationStatus>(request.Status, true, out var parsedStatus)) {
+                filterStatus = parsedStatus;
+            } else {
+                throw CompanyExceptions.Validation(
+                    "Invalid invitation status.",
+                    [new AppErrorDetail("status", ValidationReasons.InvalidFormat,
+                        $"Status must be one of: {string.Join(", ", Enum.GetNames<CompanyInvitationStatus>())}.")]);
+            }
         }
 
         var pagination = request.Pagination ?? new PaginationParams();
