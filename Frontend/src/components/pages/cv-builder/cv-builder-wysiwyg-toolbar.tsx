@@ -1,6 +1,6 @@
-import { Palette, Plus, Type } from "lucide-react";
+import { Palette, Type } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import type { CvEditorValues } from "@/features/cv-builder/schema/cvSchema";
+import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
 
 export const THEME_COLORS = [
   { name: "Classic Navy (Primary)", value: "#0F172A", light: "#D6F1FC" },
@@ -19,7 +19,6 @@ export const FONT_OPTIONS = [
 
 interface CvBuilderWysiwygToolbarProps {
   isCompleted: boolean;
-  onAddSection?: () => void;
 }
 
 /**
@@ -32,21 +31,20 @@ interface CvBuilderWysiwygToolbarProps {
  */
 export default function CvBuilderWysiwygToolbar({
   isCompleted,
-  onAddSection,
 }: CvBuilderWysiwygToolbarProps) {
-  const { register, setValue, control } = useFormContext<CvEditorValues>();
+  const { register, setValue, control } = useFormContext<RichTextCvEditorValues>();
 
   const currentStyles = useWatch({
     control,
-    name: "presentation.styles.global",
+    name: "content.metadata.defaultStyle",
   });
 
-  const primaryColor = currentStyles?.primaryColor?.[0] || "#0F172A";
+  const primaryColor = currentStyles?.primaryColors?.[0] || "#0F172A";
 
   if (isCompleted) return null;
 
   const handleSelectColor = (color: string) => {
-    setValue("presentation.styles.global.primaryColor", [color, "#1E293B"], {
+    setValue("content.metadata.defaultStyle.primaryColors", [color, "#1E293B"], {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -58,7 +56,7 @@ export default function CvBuilderWysiwygToolbar({
       <div className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 shadow-2xs">
         <Type className="h-4 w-4 text-text-muted" />
         <select
-          {...register("presentation.styles.global.fontFamily")}
+          {...register("content.metadata.defaultStyle.fontFamily")}
           className="bg-transparent text-xs font-medium text-text-main focus:outline-none cursor-pointer"
         >
           {FONT_OPTIONS.map((f) => (
@@ -98,7 +96,7 @@ export default function CvBuilderWysiwygToolbar({
           type="number"
           min={11}
           max={16}
-          {...register("presentation.styles.global.baseFontSize", {
+          {...register("content.metadata.defaultStyle.baseFontSize", {
             valueAsNumber: true,
           })}
           className="w-10 rounded border border-border bg-bg px-1 py-0.5 text-center text-xs focus:border-primary focus:outline-none"
@@ -113,24 +111,13 @@ export default function CvBuilderWysiwygToolbar({
           step="0.1"
           min={1.2}
           max={2.0}
-          {...register("presentation.styles.global.lineHeight", {
+          {...register("content.metadata.defaultStyle.lineHeight", {
             valueAsNumber: true,
           })}
           className="w-12 rounded border border-border bg-bg px-1 py-0.5 text-center text-xs focus:border-primary focus:outline-none"
         />
       </div>
 
-      {/* 4. Thêm mục (nếu có) */}
-      {onAddSection && (
-        <button
-          type="button"
-          onClick={onAddSection}
-          className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-secondary-light px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-secondary"
-        >
-          <Plus className="h-4 w-4" />
-          Thêm mục mới
-        </button>
-      )}
     </div>
   );
 }

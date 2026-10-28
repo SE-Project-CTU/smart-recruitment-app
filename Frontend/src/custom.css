@@ -13,3 +13,36 @@
 .hover-field:focus-visible {
   @apply outline-slate-400 outline-solid;
 }
+
+/* Keep list markers inside the editable field's outline. */
+.cv-tiptap-content ul,
+.cv-tiptap-content ol {
+  margin-block: 0;
+  padding-inline-start: 1rem;
+  list-style-position: outside;
+}
+
+.cv-tiptap-content ul:not([style*="list-style-type"]) {
+  list-style-type: disc;
+}
+
+.cv-tiptap-content ol:not([style*="list-style-type"]) {
+  list-style-type: decimal;
+}
+
+.cv-tiptap-content li {
+  margin: 0;
+  padding: 0;
+}
+
+.cv-tiptap-content li > p {
+  margin: 0;
+}
+
+.cv-tiptap-content:has(> p:only-child > br.ProseMirror-trailingBreak)::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

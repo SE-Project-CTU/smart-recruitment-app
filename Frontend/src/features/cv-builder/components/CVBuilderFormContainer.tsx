@@ -10,9 +10,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-import { MOCK_CV_DETAIL } from "@/constants/mockCvData";
-import { cvEditorSchema, type CvEditorValues } from "@/features/cv-builder/schema/cvSchema";
-import { buildInitialCvEditorValues } from "@/features/cv-builder/utils/initialValues";
+import { MOCK_CV_DETAIL_TIPTAP } from "@/constants/mockCvData";
+import { richTextCvEditorSchema, type RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
+import { buildRichTextCvInitialValues } from "@/features/cv-builder/utils/richTextInitialValues";
+import { extractTiptapPlainText } from "@/features/cv-builder/utils/tiptapJson";
 import { ModernTwoColumnTemplate } from "@/components/pages/cv-builder/templates/ModernTwoColumn";
 import CvBuilderWysiwygToolbar from "@/components/pages/cv-builder/cv-builder-wysiwyg-toolbar";
 
@@ -21,9 +22,9 @@ export const CVBuilderFormContainer: React.FC = () => {
   const cvPrintRef = useRef<HTMLDivElement>(null);
 
   // Khởi tạo React Hook Form với zodResolver
-  const methods = useForm<CvEditorValues>({
-    resolver: zodResolver(cvEditorSchema),
-    defaultValues: buildInitialCvEditorValues(MOCK_CV_DETAIL),
+  const methods = useForm<RichTextCvEditorValues>({
+    resolver: zodResolver(richTextCvEditorSchema),
+    defaultValues: buildRichTextCvInitialValues(MOCK_CV_DETAIL_TIPTAP),
     mode: "onSubmit",
   });
 
@@ -34,10 +35,10 @@ export const CVBuilderFormContainer: React.FC = () => {
 
   const handleDownloadPdf = useReactToPrint({
     contentRef: cvPrintRef,
-    documentTitle: `SmartHire_CV_${methods.getValues("content.profile.fullName") || "Candidate"}`,
+    documentTitle: `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
   });
 
-  const onValidSubmit = (data: CvEditorValues) => {
+  const onValidSubmit = (data: RichTextCvEditorValues) => {
     console.log("CV Data is valid:", data);
     setIsLocked(true);
   };

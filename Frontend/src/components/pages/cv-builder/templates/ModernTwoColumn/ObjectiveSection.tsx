@@ -1,49 +1,21 @@
 import React from "react";
-import type { CVTextSection, CVFieldStyle } from "@/types/cv";
+import type { RichTextCVTextSection } from "@/types/cv";
+import { TiptapField } from "../../components/TiptapField";
 import { SectionTitle } from "./SectionTitle";
-import { getFieldStyle } from "./utils";
-import { EditableField } from "../../components/EditableField";
 
 interface ObjectiveSectionProps {
-  section: CVTextSection;
-  fields?: Record<string, CVFieldStyle>;
+  section: RichTextCVTextSection;
   primaryColor?: string;
   isReadOnly?: boolean;
 }
 
-export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
-  section,
-  fields,
-  primaryColor,
-  isReadOnly = false,
-}) => {
+export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({ section, primaryColor, isReadOnly = false }) => {
   if (!section.visible) return null;
-
   return (
     <div className="section-objective mb-3 group relative">
-      <SectionTitle
-        title={section.title || "MỤC TIÊU NGHỀ NGHIỆP"}
-        fieldKey="sections.objective.title"
-        formFieldName="content.sections.objective.title"
-        fields={fields}
-        primaryColor={primaryColor}
-        isReadOnly={isReadOnly}
-      />
-      <div
-        className="text-xs leading-relaxed text-slate-700 text-justify block min-h-[20px]"
-        style={getFieldStyle(fields, "sections.objective.content", {
-          fontSize: "12px",
-          lineHeight: 1.5,
-          color: "#334155",
-        })}
-      >
-        <EditableField
-          name="content.sections.objective.content"
-          placeholder="Mô tả mục tiêu nghề nghiệp của bạn..."
-          multiline
-          isReadOnly={isReadOnly}
-          className="w-full block"
-        />
+      <SectionTitle placeholder="MỤC TIÊU NGHỀ NGHIỆP" formFieldName="content.sections.objective.title" primaryColor={primaryColor} isReadOnly={isReadOnly} />
+      <div className="min-h-5 text-xs leading-relaxed text-slate-700">
+        <TiptapField name="content.sections.objective.content" placeholder="Mô tả mục tiêu nghề nghiệp của bạn..." multiline isReadOnly={isReadOnly} />
       </div>
     </div>
   );

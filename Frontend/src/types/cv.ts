@@ -187,3 +187,141 @@ export interface CVDetail {
   updatedAt: string;
   previewFile?: CVPreviewFile | null;
 }
+
+export type CvTiptapAttributeValue = string | number | boolean | null;
+
+export interface CvTiptapMark {
+  type: string;
+  attrs?: Record<string, CvTiptapAttributeValue>;
+}
+
+export interface CvTiptapNode {
+  type: string;
+  text?: string;
+  attrs?: Record<string, CvTiptapAttributeValue>;
+  marks?: CvTiptapMark[];
+  content?: CvTiptapNode[];
+}
+
+export interface CvTiptapDocument extends CvTiptapNode {
+  type: "doc";
+  content: CvTiptapNode[];
+}
+
+export interface CvDefaultStyle {
+  fontFamily: string;
+  baseFontSize: number;
+  primaryColors: string[];
+  lineHeight: number;
+}
+
+export interface CvTiptapDocumentMetadata {
+  version: string;
+  templateCode: string;
+  language: "vi" | "en";
+  updatedAt?: string;
+  defaultStyle: CvDefaultStyle;
+}
+
+export interface RichTextCVProfile {
+  fullName: CvTiptapDocument;
+  title: CvTiptapDocument;
+  avatarUrl: string;
+  email: CvTiptapDocument;
+  phone: CvTiptapDocument;
+  dob: CvTiptapDocument;
+  address: CvTiptapDocument;
+  website: CvTiptapDocument;
+  socialLink: CvTiptapDocument;
+}
+
+export interface RichTextCVTextSection {
+  title: CvTiptapDocument;
+  visible: boolean;
+  content: CvTiptapDocument;
+}
+
+export interface RichTextCVItemSection<TItem> {
+  title: CvTiptapDocument;
+  visible: boolean;
+  items: TItem[];
+}
+
+export interface RichTextCVExperienceItem {
+  id: string;
+  company: CvTiptapDocument;
+  position: CvTiptapDocument;
+  startDate: CvTiptapDocument;
+  endDate: CvTiptapDocument;
+  description: CvTiptapDocument;
+}
+
+export interface RichTextCVEducationItem {
+  id: string;
+  school: CvTiptapDocument;
+  title: CvTiptapDocument;
+  start: CvTiptapDocument;
+  end: CvTiptapDocument;
+  details: CvTiptapDocument;
+}
+
+export interface RichTextCVSkillItem {
+  id: string;
+  name: CvTiptapDocument;
+  description: CvTiptapDocument;
+}
+
+export interface RichTextCVProjectItem {
+  id: string;
+  projectName: CvTiptapDocument;
+  role: CvTiptapDocument;
+  start: CvTiptapDocument;
+  end: CvTiptapDocument;
+  description: CvTiptapDocument;
+}
+
+export interface RichTextCVCertificationItem {
+  id: string;
+  name: CvTiptapDocument;
+  issueDate: CvTiptapDocument;
+}
+
+export interface RichTextCVAwardItem {
+  id: string;
+  awardName: CvTiptapDocument;
+  date: CvTiptapDocument;
+}
+
+export interface RichTextCVSections {
+  order: CVSectionKey[];
+  objective: RichTextCVTextSection;
+  experience: RichTextCVItemSection<RichTextCVExperienceItem>;
+  education: RichTextCVItemSection<RichTextCVEducationItem>;
+  skills: RichTextCVItemSection<RichTextCVSkillItem>;
+  projects: RichTextCVItemSection<RichTextCVProjectItem>;
+  certifications: RichTextCVItemSection<RichTextCVCertificationItem>;
+  awards: RichTextCVItemSection<RichTextCVAwardItem>;
+  interests: RichTextCVTextSection;
+  additionalInfo: RichTextCVTextSection;
+}
+
+export interface RichTextCVContentDocument {
+  metadata: CvTiptapDocumentMetadata;
+  profile: RichTextCVProfile;
+  sections: RichTextCVSections;
+}
+
+export interface RichTextCVDetail {
+  id: string;
+  candidateId: string;
+  templateId: string;
+  template: CVTemplateSummary;
+  title: string;
+  content: RichTextCVContentDocument;
+  layout: CVLayoutDocument;
+  language: "vi" | "en";
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+  previewFile?: CVPreviewFile | null;
+}

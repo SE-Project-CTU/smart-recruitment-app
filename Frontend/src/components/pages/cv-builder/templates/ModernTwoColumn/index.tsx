@@ -6,7 +6,7 @@ import {
   Draggable,
   type DropResult,
 } from "@hello-pangea/dnd";
-import type { CvEditorValues } from "@/features/cv-builder/schema/cvSchema";
+import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
 import { ProfileHeader } from "./ProfileHeader";
 import { ObjectiveSection } from "./ObjectiveSection";
 import { EducationSection } from "./EducationSection";
@@ -24,24 +24,24 @@ import type { FixedSectionKey } from "@/features/cv-builder/types";
 
 interface ModernTwoColumnTemplateProps {
   className?: string;
-  data?: CvEditorValues;
+  data?: RichTextCvEditorValues;
   isReadOnly?: boolean;
 }
 
 /**
  * ModernTwoColumnTemplate:
  * Render CV chuẩn WYSIWYG trên trang giấy A4.
- * Cho phép nhấp trực tiếp vào text để sửa qua contentEditable,
+ * Cho phép chỉnh sửa trực tiếp các field rich text bằng Tiptap,
  * đồng thời hỗ trợ Kéo thả (Drag & Drop) để sắp xếp lại vị trí các Section.
  */
 export const ModernTwoColumnTemplate: React.FC<
   ModernTwoColumnTemplateProps
 > = ({ className = "", data: externalData, isReadOnly = false }) => {
-  const formContext = useFormContext<CvEditorValues>();
+  const formContext = useFormContext<RichTextCvEditorValues>();
 
   const watchedData = useWatch({
     control: formContext?.control,
-  }) as CvEditorValues | undefined;
+  }) as RichTextCvEditorValues | undefined;
 
   const { reorderSections, toggleSectionVisibility } = useCvMutations();
 
@@ -55,14 +55,14 @@ export const ModernTwoColumnTemplate: React.FC<
     );
   }
 
-  const { content, presentation } = data;
+  const { content } = data;
   const { profile, sections } = content;
-  const fields = presentation?.styles?.fields;
-  const globalStyles = presentation?.styles?.global;
+  const globalStyles = content.metadata.defaultStyle;
 
-  const primaryColor = globalStyles?.primaryColor?.[0] || "#0F172A";
+  const primaryColor = globalStyles?.primaryColors?.[0] || "#0F172A";
   const fontFamily = globalStyles?.fontFamily || "inter";
   const lineHeight = globalStyles?.lineHeight || 1.5;
+  const baseFontSize = globalStyles?.baseFontSize || 14;
 
   const sectionOrder = (sections.order || [
     "objective",
@@ -98,9 +98,8 @@ export const ModernTwoColumnTemplate: React.FC<
     switch (key) {
       case "objective":
         return (
-          <ObjectiveSection
+        <ObjectiveSection
             section={sections.objective}
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -109,7 +108,6 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <EducationSection
             section={sections.education}
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -118,7 +116,6 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <ExperienceSection
             section={sections.experience}
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -127,7 +124,6 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <SkillsSection
             section={sections.skills}
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -136,7 +132,6 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <ProjectsSection
             section={sections.projects}
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -145,7 +140,6 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <CertificationsSection
             section={sections.certifications}
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -154,7 +148,6 @@ export const ModernTwoColumnTemplate: React.FC<
         return (
           <AwardsSection
             section={sections.awards}
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -165,7 +158,6 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.interests}
             sectionKey="interests"
             defaultTitle="SỞ THÍCH"
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -176,7 +168,6 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.additionalInfo}
             sectionKey="additionalInfo"
             defaultTitle="THÔNG TIN BỔ SUNG"
-            fields={fields}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
           />
@@ -190,18 +181,14 @@ export const ModernTwoColumnTemplate: React.FC<
     <div
       className={`mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
       style={{
-        fontFamily:
-          fontFamily.includes("sans") || fontFamily.includes("serif")
-            ? fontFamily
-            : `'${fontFamily}', sans-serif`,
+        fontFamily: `'${fontFamily}', sans-serif`,
+        fontSize: `${baseFontSize}px`,
         lineHeight,
       }}
     >
       {/* 1. Header: Profile Info WYSIWYG */}
       {profile && (
         <ProfileHeader
-          profile={profile}
-          fields={fields}
           primaryColor={primaryColor}
           isReadOnly={isReadOnly}
         />
@@ -217,7 +204,7 @@ export const ModernTwoColumnTemplate: React.FC<
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className="mt-3 space-y-1"
+              className="mt-3"
             >
               {sectionOrder.map((sectionKey, index) => (
                 <Draggable
