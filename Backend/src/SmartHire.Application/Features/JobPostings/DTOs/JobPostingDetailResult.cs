@@ -45,4 +45,7 @@ public sealed record JobPostingDetailResult(
     IReadOnlyList<IndustrySummary> Industries,
     IReadOnlyList<SkillSummary> Skills,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    bool HasApplied,
+    Guid? ApplicationId,
+    bool IsFollowingCompany);

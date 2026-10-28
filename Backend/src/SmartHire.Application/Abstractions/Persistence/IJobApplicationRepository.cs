@@ -4,11 +4,13 @@ using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Common.Sorting;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
 using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
+using SmartHire.Application.Features.Companies.Queries.ListCompanyApplications;
 
 namespace SmartHire.Application.Abstractions.Persistence;
 
 public interface IJobApplicationRepository {
     Task<bool> ExistsForCandidateAsync(Guid jobId, Guid candidateId, CancellationToken cancellationToken);
+    Task<Guid?> GetApplicationIdForCandidateAsync(Guid jobId, Guid candidateId, CancellationToken cancellationToken);
     Task<bool> IsUploadedCvFileInUseAsync(Guid fileId, CancellationToken cancellationToken);
     Task AddAsync(JobApplication application, CancellationToken cancellationToken);
     Task<int> CountMineAsync(Guid candidateId, ApplicationStatus? status, CancellationToken cancellationToken);
@@ -36,5 +38,26 @@ public interface IJobApplicationRepository {
         SortDirection direction,
         int skip,
         int pageSize,
+        CancellationToken cancellationToken);
+    Task<int> CountByCompanyIdAsync(
+        Guid companyId,
+        Guid? jobId,
+        ApplicationStatus? status,
+        string? search,
+        CancellationToken cancellationToken);
+    Task<List<CompanyApplicationListItemData>> GetPageByCompanyIdAsync(
+        Guid companyId,
+        Guid? jobId,
+        ApplicationStatus? status,
+        string? search,
+        CompanyApplicationsSort sort,
+        SortDirection direction,
+        int skip,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<bool> CanRecruiterAccessCvVersionAsync(
+        Guid cvId,
+        Guid versionId,
+        Guid recruiterUserId,
         CancellationToken cancellationToken);
 }

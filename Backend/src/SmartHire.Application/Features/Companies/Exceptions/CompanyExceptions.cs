@@ -39,6 +39,12 @@ internal static class CompanyExceptions {
         "Only an active Company Owner can perform this action.",
         [new AppErrorDetail("role", ValidationReasons.NotAllowed, "Caller must be an active company owner.")]);
 
+    public static AppException CompanyMembershipNotFound(string? message = null) => new(
+        AppErrorKind.NotFound,
+        CompanyErrorCodes.CompanyMembershipNotFound,
+        message ?? "Company membership was not found.",
+        [new AppErrorDetail("memberId", ErrorDetailReasons.NotFound, message ?? "The specified company member could not be found.")]);
+
     public static AppException CompanyMembershipAlreadyExists() => new(
         AppErrorKind.Conflict,
         CompanyErrorCodes.CompanyMembershipAlreadyExists,

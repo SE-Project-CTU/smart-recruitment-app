@@ -80,6 +80,7 @@ public sealed class JobPostingRepository : IJobPostingRepository {
         var items = await ordered
             .Skip(criteria.Pagination.Skip)
             .Take(criteria.Pagination.PageSize)
+            .AsSplitQuery()
             .Select(posting => new JobPostingSearchData(
                 posting.Id,
                 new SearchJobCompanySummaryData(
@@ -87,8 +88,8 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     posting.Company.Name,
                     posting.Company.LogoFile != null ? posting.Company.LogoFile.FileUrl : null),
                 posting.Title,
-                posting.ProvinceId,
-                posting.WardId,
+                new SearchJobProvinceData(posting.Province.Id, posting.Province.Name),
+                posting.Ward != null ? new SearchJobWardData(posting.Ward.Id, posting.Ward.Name) : null,
                 posting.ExperienceYears,
                 posting.JobLevel,
                 posting.WorkMode,
@@ -98,6 +99,8 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                 posting.SalaryNegotiable,
                 posting.Deadline,
                 posting.Status,
+                posting.JobSkills.Select(js => js.Skill.Name).ToList(),
+                posting.JobIndustries.Select(ji => ji.Industry.Name).ToList(),
                 posting.CreatedAt))
             .ToListAsync(cancellationToken);
         

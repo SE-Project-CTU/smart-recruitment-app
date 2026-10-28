@@ -1,7 +1,9 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Common.Pagination;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Application.Features.Companies.Mapping;
@@ -56,13 +58,15 @@ public sealed class ListCompanyJobPostingsQueryHandler
             }
         }
 
-        var page = request.Page < 1 ? 1 : request.Page;
-        var pageSize = request.PageSize < 1 ? 20 : (request.PageSize > 100 ? 100 : request.PageSize);
+        var pagination = request.Pagination ?? new PaginationParams();
+        var page = PagedListQueryValidator.ValidatePage(pagination.Page);
+        var pageSize = PagedListQueryValidator.ValidatePageSize(pagination.PageSize);
+        var search = PagedListQueryValidator.NormalizeSearch(request.Search);
 
         var (items, totalCount) = await _jobPostingRepository.GetByCompanyIdPagedAsync(
             request.CompanyId,
             parsedStatus,
-            request.Search,
+            search,
             page,
             pageSize,
             cancellationToken);

@@ -1,7 +1,5 @@
 namespace SmartHire.Api.Contracts.Requests;
 
-public sealed class JobPostingSortRequest
+public sealed class JobPostingSortRequest : SortRequest
 {
-    public string? Sort { get; init; }
-    public string? Direction { get; init; }
 }

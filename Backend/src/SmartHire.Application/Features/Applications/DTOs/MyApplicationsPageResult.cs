@@ -9,6 +9,7 @@ public sealed record MyApplicationsPageResult(
 public sealed record MyApplicationListItemResult(
     Guid Id,
     Guid JobId,
+    ApplicationJobSummaryResult Job,
     Guid? CvVersionId,
     string? UploadedCvUrl,
     string CoverLetter,
