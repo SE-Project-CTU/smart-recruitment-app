@@ -199,24 +199,42 @@ export const useRecruiterAllApplications = (
       if (companyIds.length === 0) return [];
 
       const results = await Promise.all(
-        companyIds.map((cId) =>
-          companyService
-            .getCompanyApplications(cId, { pageSize: 100 })
-            .then((res) => ({
-              companyId: cId,
-              items: res.items,
-            }))
-            .catch((err) => {
-              console.error(
-                `[useRecruiterAllApplications] Lỗi gọi API applications công ty ${cId}:`,
-                err,
-              );
-              return {
-                companyId: cId,
-                items: [],
-              };
-            }),
-        ),
+        companyIds.map(async (cId) => {
+          const pageSize = 100;
+          const firstPage = await companyService.getCompanyApplications(cId, {
+            page: 1,
+            pageSize,
+          });
+
+          const items = [...firstPage.items];
+          const totalCount = firstPage.totalCount;
+
+          if (totalCount > pageSize) {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const remainingPages = Array.from(
+              { length: totalPages - 1 },
+              (_, i) => i + 2,
+            );
+
+            const nextPages = await Promise.all(
+              remainingPages.map((page) =>
+                companyService.getCompanyApplications(cId, {
+                  page,
+                  pageSize,
+                }),
+              ),
+            );
+
+            for (const pageRes of nextPages) {
+              items.push(...pageRes.items);
+            }
+          }
+
+          return {
+            companyId: cId,
+            items,
+          };
+        }),
       );
 
       const allApps: RecruiterCandidateApplicationItem[] = [];

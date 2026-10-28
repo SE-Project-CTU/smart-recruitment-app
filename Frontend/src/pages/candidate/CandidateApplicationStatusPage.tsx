@@ -19,6 +19,7 @@ import {
   FileQuestion,
 } from "lucide-react";
 import dayjs from "dayjs";
+import { cn } from "@/lib/utils";
 import { Button, DataTable, type DataTableFeatures } from "@/components/common";
 import {
   Tooltip,
@@ -84,6 +85,16 @@ export default function CandidateApplicationStatusPage() {
   // Hook lấy lịch sử trạng thái của application đang xem
   const { data: historyList = [], isLoading: isLoadingHistory } =
     useApplicationStatusHistory(selectedApplication?.id);
+
+  // Sắp xếp timeline theo thứ tự thời gian tăng dần để xác định chính xác isLatest
+  const sortedHistory = useMemo(() => {
+    if (!historyList || historyList.length === 0) return [];
+    return [...historyList].sort((a, b) => {
+      const timeA = new Date(a.changedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.changedAt || b.createdAt || 0).getTime();
+      return timeA - timeB;
+    });
+  }, [historyList]);
 
   // Thống kê nhanh số lượng theo trạng thái
   const stats = useMemo(() => {
@@ -572,11 +583,31 @@ export default function CandidateApplicationStatusPage() {
                     <div className="h-8 animate-pulse rounded-lg bg-slate-100" />
                     <div className="h-8 animate-pulse rounded-lg bg-slate-100" />
                   </div>
-                ) : historyList.length > 0 ? (
+                ) : sortedHistory.length > 0 ? (
                   <div className="relative ml-3 space-y-4 border-l-2 border-slate-200 py-1 pl-4">
-                    {historyList.map(
+                    {sortedHistory.map(
                       (step: ApplicationStatusHistoryItem, idx: number) => {
-                        const isLatest = idx === historyList.length - 1;
+                        const isLatest = idx === sortedHistory.length - 1;
+                        const stepTime = step.changedAt || step.createdAt;
+                        const currentStatusKey = (
+                          step.newStatus ||
+                          step.status ||
+                          ""
+                        ).toUpperCase();
+                        const oldStatusKey = (
+                          step.oldStatus || ""
+                        ).toUpperCase();
+                        const currentConfig = currentStatusKey
+                          ? APPLICATION_STATUS_CONFIG[currentStatusKey]
+                          : undefined;
+                        const statusLabel =
+                          currentConfig?.label ||
+                          currentStatusKey ||
+                          "Cập nhật trạng thái";
+                        const oldConfig = oldStatusKey
+                          ? APPLICATION_STATUS_CONFIG[oldStatusKey]
+                          : undefined;
+                        const oldLabel = oldConfig?.label || oldStatusKey;
 
                         return (
                           <div key={step.id || idx} className="group relative">
@@ -589,13 +620,32 @@ export default function CandidateApplicationStatusPage() {
                               }`}
                             />
 
-                            <div className="flex flex-col gap-0.5">
-                              <div className="flex items-center gap-2">
-                                <span className="text-[11px] text-text-muted">
-                                  {dayjs(step.changedAt).format(
-                                    "DD/MM/YYYY HH:mm",
+                            <div className="flex flex-col gap-1">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  <span
+                                    className={cn(
+                                      "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
+                                      currentConfig?.badgeClass ||
+                                        "border-slate-200 bg-slate-100 text-slate-700",
+                                    )}
+                                  >
+                                    {statusLabel}
+                                  </span>
+                                  {oldLabel && oldLabel !== statusLabel && (
+                                    <span className="text-[11px] text-text-muted">
+                                      (từ {oldLabel})
+                                    </span>
                                   )}
-                                </span>
+                                </div>
+
+                                {stepTime && (
+                                  <span className="text-[11px] text-text-muted">
+                                    {dayjs(stepTime).format(
+                                      "DD/MM/YYYY HH:mm",
+                                    )}
+                                  </span>
+                                )}
                               </div>
 
                               {step.note && (
