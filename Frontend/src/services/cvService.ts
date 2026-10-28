@@ -65,11 +65,15 @@ export const cvService = {
    * Tạo một hồ sơ CV mới từ Template
    */
   async createCv(payload: CreateCvPayload): Promise<CVItem> {
-    const response = await axiosClient.post<never, ApiResponse<CVItem>>(
+    const response = await axiosClient.post<never, ApiResponse<CVItem> | CVItem>(
       API_ENDPOINTS.CV.CREATE,
       payload,
     );
-    return response.data;
+    // Tương thích cả response bọc envelope { data: ... } và response trả thẳng DTO
+    if (response && typeof response === "object" && "data" in response && response.data) {
+      return response.data;
+    }
+    return response as unknown as CVItem;
   },
 
   /**
