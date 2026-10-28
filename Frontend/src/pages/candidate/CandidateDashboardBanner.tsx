@@ -16,6 +16,9 @@ import {
   Undo2,
   XCircle,
   Bookmark,
+  Zap,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
@@ -23,13 +26,13 @@ import { useMyApplications } from "@/hooks/queries/useApplication";
 import { useMyCvs } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import { getTimeAgo } from "@/utils/helper";
-import { Button, GradientBackground } from "@/components/common";
+import { Button, GradientGridBackground } from "@/components/common";
 import {
   getJobLevelLabel,
   getJobTypeLabel,
   getWorkModeLabel,
 } from "@/utils/jobHelpers";
-import { EmptyStreet } from "@/assets/images/decoration";
+import { OfficeGirl2NoBg } from "@/assets/images/decoration";
 
 dayjs.locale("vi");
 
@@ -129,11 +132,9 @@ export function CandidateDashboardBanner() {
   const { user } = useAuthStore();
   const userName = user?.fullName || "Ứng viên";
 
-  // 1. Dữ liệu Thời tiết
   const weather = useWeather();
   const weatherMeta = getWeatherInfo(weather.weatherCode);
 
-  // 2. Dữ liệu thật từ Backend: Ứng tuyển & CVs
   const { data: applicationsData, isLoading: isLoadingApps } =
     useMyApplications({
       pageSize: 20,
@@ -143,15 +144,12 @@ export function CandidateDashboardBanner() {
   const applications = applicationsData?.items ?? [];
   const cvs = cvsData?.items ?? [];
 
-  // Lấy đơn ứng tuyển mới nhất
   const latestApplication = applications.length > 0 ? applications[0] : null;
 
-  // Số lượng đơn nộp đang xử lý (không tính REJECTED hoặc WITHDRAWN)
   const activeApplicationsCount = applications.filter(
     (app) => app.status !== "REJECTED" && app.status !== "WITHDRAWN",
   ).length;
 
-  // Lấy số lượng job đã bookmark từ localStorage
   const bookmarkedJobsCount = (() => {
     try {
       const stored = localStorage.getItem("candidate_bookmarked_jobs");
@@ -160,30 +158,29 @@ export function CandidateDashboardBanner() {
         if (Array.isArray(parsed)) return parsed.length;
       }
     } catch {
-      // ignore
+      return 4;
     }
-    return 4; // Mock fallback
+    return 4;
   })();
 
-  // Ngày tháng format tiếng Việt: "Thứ tư, 28 tháng 10"
   const currentDateStr = dayjs().format("dddd, DD [tháng] MM");
   const formattedDate =
     currentDateStr.charAt(0).toUpperCase() + currentDateStr.slice(1);
 
-  // Thứ trong tuần dạng chữ đồng bộ (ví dụ: "Thứ tư", "Chủ nhật")
   const dayOfWeekStr = dayjs().format("dddd");
   const formattedDayOfWeek =
     dayOfWeekStr.charAt(0).toUpperCase() + dayOfWeekStr.slice(1);
 
-  // Theme trạng thái ứng tuyển của job gần nhất
   const statusTheme = getApplicationStatusTheme(latestApplication?.status);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border border-border p-6 shadow-2xs lg:p-8">
-      <GradientBackground />
-      <div className="relative flex flex-col justify-between md:flex-row">
-        <div className="flex flex-col gap-6">
-          {/* 1. KHỐI THỜI TIẾT + NGÀY THÁNG */}
+    <div className="relative w-full overflow-hidden rounded-3xl border border-border shadow-2xs">
+      <GradientGridBackground />
+
+      <div className="relative grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12 lg:gap-8">
+        {/* ================= CỘT TRÁI (Chiếm 7/12) ================= */}
+        <div className="flex flex-col justify-between gap-6 p-6 lg:col-span-7 lg:p-8">
+          {/* Khối thời tiết và ngày tháng */}
           <div className="flex flex-col items-start justify-center gap-1">
             <span className="text-sm text-text-muted">{formattedDate}</span>
             <div className="inline-flex items-center gap-2 text-lg font-medium text-text-main">
@@ -198,7 +195,7 @@ export function CandidateDashboardBanner() {
             </div>
           </div>
 
-          {/* 2. KHỐI LỜI CHÀO */}
+          {/* Khối lời chào */}
           <div className="space-y-1.5">
             <h1 className="text-2xl font-medium tracking-tight text-text-main sm:text-3xl">
               {formattedDayOfWeek} tốt lành, {userName}!
@@ -209,9 +206,8 @@ export function CandidateDashboardBanner() {
             </p>
           </div>
 
-          {/* 3. KHỐI 3 THẺ STATS (Đổ dữ liệu thật) */}
+          {/* Khối thống kê */}
           <div className="grid grid-cols-3 gap-3 pt-2">
-            {/* Stat 1: Đang ứng tuyển */}
             <div
               onClick={() => navigate(PATHS.CANDIDATE.APPLICATION_STATUS)}
               className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white hover:shadow-xs"
@@ -229,7 +225,6 @@ export function CandidateDashboardBanner() {
               </span>
             </div>
 
-            {/* Stat 2: CV hiện có */}
             <div
               onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
               className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white hover:shadow-xs"
@@ -245,7 +240,6 @@ export function CandidateDashboardBanner() {
               </span>
             </div>
 
-            {/* Stat 3: Đã lưu */}
             <div
               onClick={() => navigate(PATHS.CANDIDATE.BOOKMARK_JOBS)}
               className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white hover:shadow-xs"
@@ -263,155 +257,162 @@ export function CandidateDashboardBanner() {
           </div>
         </div>
 
-        {/* ================= CỘT PHẢI: CARD CÔNG VIỆC ỨNG TUYỂN GẦN NHẤT (Chiếm 5/12) ================= */}
-        {latestApplication ? (
-          <div
-            onClick={() => navigate(PATHS.CANDIDATE.APPLICATION_STATUS)}
-            className="group relative flex cursor-pointer flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-xs transition-all duration-300 hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200 lg:col-span-5"
-          >
-            <div>
-              {/* 1. Header chuẩn JobCard: Mức lương bên trái, nhãn "Đơn gần nhất" và action bên phải */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-semibold tracking-tight text-text-main">
-                    {latestApplication.salaryRange || "Thỏa thuận"}
-                  </span>
-                  {!latestApplication.salaryRange?.includes("Thỏa thuận") && (
-                    <span className="text-xs font-semibold text-text-muted">
-                      /tháng
+        {/* ================= CỘT PHẢI (Chiếm 5/12) ================= */}
+        <div className="flex flex-col justify-end lg:col-span-5">
+          {latestApplication ? (
+            <div
+              onClick={() => navigate(PATHS.CANDIDATE.APPLICATION_STATUS)}
+              className="group relative flex h-full cursor-pointer flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-xs transition-all duration-300 hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg font-semibold tracking-tight text-text-main">
+                      {latestApplication.salaryRange || "Thỏa thuận"}
                     </span>
-                  )}
-                </div>
+                    {!latestApplication.salaryRange?.includes("Thỏa thuận") && (
+                      <span className="text-xs font-semibold text-text-muted">
+                        /tháng
+                      </span>
+                    )}
+                  </div>
 
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                    Ứng tuyển gần đây
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
-                    }}
-                    className="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:text-text-main"
-                    title="Xem chi tiết đơn ứng tuyển"
-                  >
-                    <Ellipsis className="size-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* 2. Tiêu đề công việc + Tên công ty + Logo chuẩn JobCard */}
-              <div className="mt-5 flex items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <h3
-                    title={latestApplication.jobTitle}
-                    className="line-clamp-1 text-base leading-snug font-semibold text-text-main transition-colors group-hover:text-primary"
-                  >
-                    {latestApplication.jobTitle || "Vị trí tuyển dụng"}
-                  </h3>
-                  <p className="truncate text-xs font-medium text-text-muted">
-                    {latestApplication.companyName || "Doanh nghiệp"}
-                  </p>
-                </div>
-
-                <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2">
-                  {latestApplication.companyLogoUrl ? (
-                    <img
-                      src={latestApplication.companyLogoUrl}
-                      alt={latestApplication.companyName || "Logo"}
-                      className="size-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
-                      {(latestApplication.companyName || "DN")
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 3. Địa điểm + Thời gian đã nộp */}
-              <div className="mt-4 flex flex-col gap-1.5 text-xs font-medium text-text-muted">
-                <div className="flex items-center gap-2">
-                  <MapPin className="size-4 shrink-0 text-text-muted" />
-                  <span className="truncate">
-                    {latestApplication.locationName ||
-                      latestApplication.job?.province?.name ||
-                      "Toàn quốc"}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Clock className="size-4 shrink-0 text-text-muted" />
-                  <span>Đã nộp: {getTimeAgo(latestApplication.appliedAt)}</span>
-                </div>
-              </div>
-
-              {/* 4. Tags hình thức, mô hình và cấp bậc chuẩn JobCard */}
-              <div className="mt-5 flex flex-wrap gap-2">
-                <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
-                  {getJobTypeLabel(latestApplication.job?.jobType)}
-                </span>
-                <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
-                  {getWorkModeLabel(latestApplication.job?.workMode)}
-                </span>
-                {latestApplication.job?.jobLevel && (
-                  <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
-                    {getJobLevelLabel(latestApplication.job.jobLevel)}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* 5. VỊ TRÍ NÚT ỨNG TUYỂN & LƯU CỦA JOBCARD ĐƯỢC THAY BẰNG TRẠNG THÁI ĐƠN ĐẦY ĐỦ */}
-            <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-white/90 p-3 shadow-2xs backdrop-blur-xs">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${statusTheme.badgeClass}`}
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                      Ứng tuyển gần đây
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
+                      }}
+                      className="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:text-text-main"
+                      title="Xem chi tiết đơn ứng tuyển"
                     >
-                      {statusTheme.label}
+                      <Ellipsis className="size-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <h3
+                      title={latestApplication.jobTitle}
+                      className="line-clamp-1 text-base leading-snug font-semibold text-text-main transition-colors group-hover:text-primary"
+                    >
+                      {latestApplication.jobTitle || "Vị trí tuyển dụng"}
+                    </h3>
+                    <p className="truncate text-xs font-medium text-text-muted">
+                      {latestApplication.companyName || "Doanh nghiệp"}
+                    </p>
+                  </div>
+
+                  <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2">
+                    {latestApplication.companyLogoUrl ? (
+                      <img
+                        src={latestApplication.companyLogoUrl}
+                        alt={latestApplication.companyName || "Logo"}
+                        className="size-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                        {(latestApplication.companyName || "DN")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-1.5 text-xs font-medium text-text-muted">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="size-4 shrink-0 text-text-muted" />
+                    <span className="truncate">
+                      {latestApplication.locationName ||
+                        latestApplication.job?.province?.name ||
+                        "Toàn quốc"}
                     </span>
                   </div>
-                  <p className="mt-0.5 truncate text-[11px] text-text-muted">
-                    {statusTheme.description}
-                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-4 shrink-0 text-text-muted" />
+                    <span>
+                      Đã nộp: {getTimeAgo(latestApplication.appliedAt)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
+                    {getJobTypeLabel(latestApplication.job?.jobType)}
+                  </span>
+                  <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
+                    {getWorkModeLabel(latestApplication.job?.workMode)}
+                  </span>
+                  {latestApplication.job?.jobLevel && (
+                    <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
+                      {getJobLevelLabel(latestApplication.job.jobLevel)}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <Button
-                icon={ArrowUpRight}
-                iconSize={16}
-                variant="secondary"
-                className="p-1!"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
-                }}
-              />
-            </div>
-          </div>
-        ) : (
-          /* Empty state khi chưa có đơn nào */
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-surface p-6 text-center shadow-xs lg:col-span-5">
-            <img src={EmptyStreet} alt="" />
-            <h3 className="mt-3 text-sm font-semibold text-text-main">
-              Chưa có hồ sơ ứng tuyển nào
-            </h3>
+              <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-white/90 p-3 shadow-2xs backdrop-blur-xs">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${statusTheme.badgeClass}`}
+                      >
+                        {statusTheme.label}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 truncate text-[11px] text-text-muted">
+                      {statusTheme.description}
+                    </p>
+                  </div>
+                </div>
 
-            <button
-              type="button"
-              onClick={() => navigate(PATHS.CANDIDATE.SEARCH_JOBS)}
-              className="mt-5 flex cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-dark"
-            >
-              <span>Khám phá việc làm</span>
-              <ArrowUpRight className="size-4" />
-            </button>
-          </div>
-        )}
+                <Button
+                  icon={ArrowUpRight}
+                  iconSize={16}
+                  variant="secondary"
+                  className="p-1!"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="relative flex h-full min-h-65 w-full flex-col items-center justify-end overflow-hidden">
+              <div className="relative flex h-full w-full max-w-xs items-end justify-center pt-4">
+                <img
+                  src={OfficeGirl2NoBg}
+                  alt="Chưa có hồ sơ"
+                  className="h-full max-h-72.5 w-auto object-contain object-bottom drop-shadow-xs transition-transform duration-300"
+                />
+
+                <div className="absolute top-2 left-0 z-10 flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-sky-700 shadow-2xs backdrop-blur-md transition-all">
+                  <Zap className="size-3.5 fill-sky-100 text-sky-600" />
+                  <span>Ứng tuyển nhanh chóng</span>
+                </div>
+
+                <div className="absolute top-[40%] -right-1 z-10 flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 shadow-2xs backdrop-blur-md transition-all">
+                  <ShieldCheck className="size-3.5 text-emerald-600" />
+                  <span>Uy tín & trách nhiệm</span>
+                </div>
+
+                <div className="absolute bottom-4 left-0 z-10 flex items-center gap-1.5 rounded-full border border-purple-200/80 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-purple-700 shadow-2xs backdrop-blur-md transition-all">
+                  <Sparkles className="size-3.5 text-purple-600" />
+                  <span>Cơ hội rộng mở</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
