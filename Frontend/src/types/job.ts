@@ -195,49 +195,12 @@ export interface CandidateItem {
   id: string;
   fullName: string;
   email: string;
-  phone?: string | null;
   avatarUrl?: string | null;
-}
-
-export interface ApplicationCompanySummary {
-  id: string;
-  name: string;
-  logoUrl?: string | null;
-}
-
-export interface ApplicationJobSummary {
-  id: string;
-  title: string;
-  company: ApplicationCompanySummary;
-  provinceId: string;
-  provinceName: string;
-  experienceYears?: number | null;
-  jobLevel?: string | null;
-  workMode: string;
-  jobType: string;
-  salaryMin?: number | null;
-  salaryMax?: number | null;
-  salaryNegotiable: boolean;
-  deadline?: string | null;
-  status: string;
-}
-
-export interface ApplicationCvSnapshot {
-  id: string;
-  cvId: string;
-  templateId: string;
-  versionNumber: number;
-  language: string;
-  content: Record<string, unknown>;
-  layout: Record<string, unknown>;
-  presentation: Record<string, unknown>;
-  createdAt: string;
 }
 
 export interface JobApplicationItem {
   id: string;
   jobId: string;
-  job?: ApplicationJobSummary;
   candidateId?: string;
   candidate?: CandidateItem;
   candidateName?: string;
@@ -246,23 +209,10 @@ export interface JobApplicationItem {
   candidatePhone?: string;
   cvVersionId?: string | null;
   uploadedCvUrl?: string | null;
-  cvSnapshot?: ApplicationCvSnapshot | null;
   coverLetter?: string | null;
   status: JobApplicationStatus | string;
   appliedAt: string;
   updatedAt?: string;
-}
-
-export interface MyApplicationItem {
-  id: string;
-  jobId: string;
-  job: ApplicationJobSummary;
-  cvVersionId?: string | null;
-  uploadedCvUrl?: string | null;
-  coverLetter: string;
-  status: JobApplicationStatus | string;
-  appliedAt: string;
-  updatedAt: string;
 }
 
 export interface UpdateApplicationStatusPayload {
