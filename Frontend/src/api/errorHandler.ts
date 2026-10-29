@@ -30,7 +30,18 @@ const getValidationMessages = (value: unknown): string[] => {
       return [];
     }
 
-    const field = getString(item, "field", "Field");
+    const message = getString(
+      item,
+      "message",
+      "Message",
+      "description",
+      "Description",
+    );
+    if (message) {
+      return [message];
+    }
+
+    const field = getString(item, "field", "Field", "target", "Target");
     const reason = getString(item, "reason", "Reason");
     if (!field) {
       return ["Thông tin nhập vào chưa hợp lệ. Vui lòng kiểm tra lại."];
@@ -109,14 +120,20 @@ export const getApiErrorMessage = (
       getString(errorBody, "message", "Message") ??
       getString(payload, "message", "Message");
 
+    // 1. Ưu tiên mã lỗi đã được dịch nghĩa chuẩn theo nghiệp vụ
+    if (code && API_ERROR_MESSAGES[code]) {
+      return API_ERROR_MESSAGES[code];
+    }
+
+    // 2. Chi tiết lỗi từ details array
     const validationMessages = getValidationMessages(
       errorBody.details ?? errorBody.Details,
     );
-
     if (validationMessages.length > 0) {
       return validationMessages.join(" ");
     }
 
+    // 3. Problem validation errors
     const problemValidationMessages = getProblemValidationMessages(
       errorBody.errors ?? errorBody.Errors ?? payload.errors ?? payload.Errors,
     );
@@ -124,10 +141,7 @@ export const getApiErrorMessage = (
       return problemValidationMessages.join(" ");
     }
 
-    if (code && API_ERROR_MESSAGES[code]) {
-      return API_ERROR_MESSAGES[code];
-    }
-
+    // 4. Server message trực tiếp
     if (serverMessage) {
       return serverMessage;
     }

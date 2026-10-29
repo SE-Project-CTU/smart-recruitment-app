@@ -16,6 +16,7 @@ import { JobDetailDrawer } from "@/components/job";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { MOCK_JOB_POSTINGS, type MockJobPosting } from "@/constants/mockData";
 import { useMyCvs } from "@/hooks/queries/useCv";
+import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
 
 type SortKey = "MATCH_DESC" | "SALARY_DESC" | "NEWEST";
 
@@ -129,8 +130,15 @@ export default function MatchedJobsPage() {
     });
   };
 
+  const { openApplyModal } = useApplyJobModalStore();
+
   const handleApply = (jobId: string) => {
-    console.log("Ứng tuyển việc làm phù hợp:", jobId);
+    const targetJob =
+      matchedJobs.find((j) => j.id === jobId) ||
+      (selectedJob?.id === jobId ? selectedJob : null);
+    if (targetJob) {
+      openApplyModal(targetJob);
+    }
   };
 
   const handleResetFilters = () => {

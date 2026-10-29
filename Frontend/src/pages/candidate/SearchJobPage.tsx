@@ -19,6 +19,7 @@ import {
   type SelectedLocation,
 } from "@/components/LocationCombobox";
 import { JobDetailDrawer } from "@/components/job";
+import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
 import {
   MOCK_JOB_POSTINGS,
   MOCK_LOCATION_HIERARCHY,
@@ -233,8 +234,15 @@ export default function SearchJobPage() {
     });
   };
 
+  const { openApplyModal } = useApplyJobModalStore();
+
   const handleApply = (jobId: string) => {
-    console.log("Applying to job:", jobId);
+    const targetJob =
+      filteredAndSortedJobs.find((j) => j.id === jobId) ||
+      (selectedJob?.id === jobId ? selectedJob : null);
+    if (targetJob) {
+      openApplyModal(targetJob);
+    }
   };
 
   return (
@@ -447,7 +455,7 @@ export default function SearchJobPage() {
           </div>
 
           {filteredAndSortedJobs.length === 0 ? (
-            <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-surface p-8 text-center">
+            <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
               <div className="flex size-12 items-center justify-center rounded-full bg-secondary-light text-primary">
                 <BriefcaseBusiness className="size-6" />
               </div>

@@ -11,6 +11,8 @@ import { MorphIcon } from "morphicons/react";
 import { Bookmark, BookmarkCheck } from "lucide";
 import { useState } from "react";
 
+import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
+
 export interface JobCardProps {
   job: MockJobPosting;
   isSelected?: boolean;
@@ -28,6 +30,7 @@ export const JobCard = ({
   isBookmarked: externalIsBookmarked,
   onToggleBookmark,
 }: JobCardProps) => {
+  const { openApplyModal } = useApplyJobModalStore();
   const [internalMarked, setInternalMarked] = useState(false);
   const isMarked =
     externalIsBookmarked !== undefined ? externalIsBookmarked : internalMarked;
@@ -50,14 +53,14 @@ export const JobCard = ({
     if (onApply) {
       onApply(job);
     } else {
-      console.log("Apply for job:", job.id);
+      openApplyModal(job);
     }
   };
 
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex min-h-80.5 max-w-90 min-w-90 cursor-pointer flex-col justify-between rounded-3xl border p-6 shadow-xs transition-all duration-300 ${
+      className={`group relative flex min-h-80.5 max-w-90 min-w-90 cursor-pointer flex-col justify-between rounded-2xl border p-6 shadow-xs transition-all duration-300 ${
         isSelected
           ? "border-primary bg-secondary-light/20 shadow-md ring-2 ring-primary/20"
           : "border-border bg-surface hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200"

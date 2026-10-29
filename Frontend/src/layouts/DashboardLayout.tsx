@@ -1,6 +1,7 @@
 import DashboardHeader from "@/components/common/DashboardHeader";
 import DashboardSidebar from "@/components/common/DashboardSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { ApplyJobModal } from "@/components/job/ApplyJobModal";
 import { Outlet } from "react-router-dom";
 
 const DashboardLayout = () => {
@@ -18,6 +19,9 @@ const DashboardLayout = () => {
           </SidebarInset>
         </div>
       </SidebarProvider>
+
+      {/* Global Apply Job Modal cho toàn bộ hệ thống */}
+      <ApplyJobModal />
     </div>
   );
 };

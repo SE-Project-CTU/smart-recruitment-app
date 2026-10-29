@@ -33,30 +33,49 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   MEDIA_FILE_STORAGE_ERROR: "Không thể lưu tệp. Vui lòng thử lại.",
   MEDIA_FILE_DELETE_STORAGE_ERROR: "Không thể xóa tệp. Vui lòng thử lại.",
   COMPANY_NOT_FOUND: "Không tìm thấy thông tin doanh nghiệp.",
-  COMPANY_TAX_CODE_ALREADY_EXISTS: "Mã số thuế này đã được đăng ký trên hệ thống.",
-  COMPANY_FORBIDDEN: "Bạn không có quyền thực hiện thao tác trên doanh nghiệp này.",
-  NOT_COMPANY_OWNER: "Chỉ Chủ sở hữu (Owner) mới có quyền thực hiện hành động này.",
-  COMPANY_MEMBERSHIP_NOT_FOUND: "Không tìm thấy tư cách thành viên trong doanh nghiệp.",
-  COMPANY_MEMBERSHIP_ALREADY_EXISTS: "Nhà tuyển dụng này đã là thành viên của doanh nghiệp.",
+  COMPANY_TAX_CODE_ALREADY_EXISTS:
+    "Mã số thuế này đã được đăng ký trên hệ thống.",
+  COMPANY_FORBIDDEN:
+    "Bạn không có quyền thực hiện thao tác trên doanh nghiệp này.",
+  NOT_COMPANY_OWNER:
+    "Chỉ Chủ sở hữu (Owner) mới có quyền thực hiện hành động này.",
+  COMPANY_MEMBERSHIP_NOT_FOUND:
+    "Không tìm thấy tư cách thành viên trong doanh nghiệp.",
+  COMPANY_MEMBERSHIP_ALREADY_EXISTS:
+    "Nhà tuyển dụng này đã là thành viên của doanh nghiệp.",
   COMPANY_INVITATION_NOT_FOUND: "Không tìm thấy lời mời tham gia doanh nghiệp.",
-  COMPANY_INVITATION_ALREADY_EXISTS: "Đã có một lời mời đang chờ xử lý gửi tới nhân sự này.",
-  COMPANY_INVITATION_ALREADY_PROCESSED: "Lời mời này đã được phản hồi trước đó.",
-  COMPANY_INVITATION_EXPIRED: "Lời mời tham gia doanh nghiệp đã hết hạn hiệu lực.",
-  COMPANY_JOIN_REQUEST_NOT_FOUND: "Không tìm thấy yêu cầu gia nhập doanh nghiệp.",
-  COMPANY_JOIN_REQUEST_ALREADY_EXISTS: "Bạn đã gửi yêu cầu gia nhập doanh nghiệp này trước đó.",
-  COMPANY_JOIN_REQUEST_ALREADY_PROCESSED: "Yêu cầu gia nhập này đã được xét duyệt.",
+  COMPANY_INVITATION_ALREADY_EXISTS:
+    "Đã có một lời mời đang chờ xử lý gửi tới nhân sự này.",
+  COMPANY_INVITATION_ALREADY_PROCESSED:
+    "Lời mời này đã được phản hồi trước đó.",
+  COMPANY_INVITATION_EXPIRED:
+    "Lời mời tham gia doanh nghiệp đã hết hạn hiệu lực.",
+  COMPANY_JOIN_REQUEST_NOT_FOUND:
+    "Không tìm thấy yêu cầu gia nhập doanh nghiệp.",
+  COMPANY_JOIN_REQUEST_ALREADY_EXISTS:
+    "Bạn đã gửi yêu cầu gia nhập doanh nghiệp này trước đó.",
+  COMPANY_JOIN_REQUEST_ALREADY_PROCESSED:
+    "Yêu cầu gia nhập này đã được xét duyệt.",
   COMPANY_ALREADY_FOLLOWED: "Bạn đã theo dõi doanh nghiệp này.",
   COMPANY_NOT_FOLLOWED: "Bạn chưa theo dõi doanh nghiệp này.",
-  COMPANY_NEW_OWNER_INVALID: "Thành viên nhận chuyển nhượng quyền Owner không hợp lệ.",
+  COMPANY_NEW_OWNER_INVALID:
+    "Thành viên nhận chuyển nhượng quyền Owner không hợp lệ.",
   INVALID_COMPANY_DATA: "Dữ liệu thông tin doanh nghiệp không hợp lệ.",
   USER_NOT_FOUND: "Không tìm thấy tài khoản người dùng tương ứng.",
-  COMPANY_LOGO_ALREADY_IN_USE: "Logo này đã được gán cho một doanh nghiệp khác.",
-  INVITEE_ROLE_REQUIRED: "Tài khoản được mời phải có vai trò Nhà tuyển dụng (Recruiter).",
-  INVALID_JOB_POSTING_DATA: "Thông tin tin tuyển dụng chưa hợp lệ. Vui lòng kiểm tra lại.",
+  COMPANY_LOGO_ALREADY_IN_USE:
+    "Logo này đã được gán cho một doanh nghiệp khác.",
+  INVITEE_ROLE_REQUIRED:
+    "Tài khoản được mời phải có vai trò Nhà tuyển dụng (Recruiter).",
+  INVALID_JOB_POSTING_DATA:
+    "Thông tin tin tuyển dụng chưa hợp lệ. Vui lòng kiểm tra lại.",
+  INVALID_JOB_POSTING_ID: "Mã tin tuyển dụng không đúng định dạng.",
   JOB_POSTING_NOT_FOUND: "Không tìm thấy tin tuyển dụng.",
-  JOB_POSTING_FORBIDDEN: "Bạn không có quyền chỉnh sửa hoặc tạo tin cho doanh nghiệp này.",
-  PROVINCE_NOT_FOUND: "Tỉnh/Thành phố được chọn không tồn tại hoặc đã ngừng hoạt động.",
-  WARD_NOT_FOUND: "Phường/Xã không tồn tại hoặc không thuộc tỉnh/thành phố đã chọn.",
+  JOB_POSTING_FORBIDDEN:
+    "Bạn không có quyền chỉnh sửa hoặc tạo tin cho doanh nghiệp này.",
+  PROVINCE_NOT_FOUND:
+    "Tỉnh/Thành phố được chọn không tồn tại hoặc đã ngừng hoạt động.",
+  WARD_NOT_FOUND:
+    "Phường/Xã không tồn tại hoặc không thuộc tỉnh/thành phố đã chọn.",
   INDUSTRY_NOT_FOUND: "Ngành nghề được chọn không hợp lệ.",
   SKILL_NOT_FOUND: "Kỹ năng được chọn không hợp lệ.",
   INVALID_JOB_POSTING_SEARCH: "Tiêu chí tìm kiếm tin tuyển dụng không hợp lệ.",
@@ -66,21 +85,28 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   CV_NOT_OWNED: "Bạn không có quyền truy cập hồ sơ CV này.",
   CV_VERSION_NOT_FOUND: "Không tìm thấy phiên bản CV yêu cầu.",
   CV_UPDATE_CONFLICT: "Hồ sơ CV đã được cập nhật bởi một phiên làm việc khác.",
-  CV_PREVIEW_FILE_ALREADY_IN_USE: "File xem trước đang được sử dụng bởi một CV khác.",
+  CV_PREVIEW_FILE_ALREADY_IN_USE:
+    "File xem trước đang được sử dụng bởi một CV khác.",
   // Application Error Codes
-  INVALID_APPLICATION: "Thông tin hồ sơ ứng tuyển không hợp lệ. Vui lòng kiểm tra lại.",
-  JOB_NOT_ACCEPTING_APPLICATIONS: "Tin tuyển dụng này hiện đã dừng tiếp nhận hồ sơ ứng tuyển.",
-  APPLICATION_ALREADY_EXISTS: "Bạn đã nộp hồ sơ ứng tuyển vào vị trí này trước đó.",
+  INVALID_APPLICATION:
+    "Thông tin hồ sơ ứng tuyển không hợp lệ. Vui lòng kiểm tra lại.",
+  JOB_NOT_ACCEPTING_APPLICATIONS:
+    "Tin tuyển dụng này hiện đã dừng tiếp nhận hồ sơ ứng tuyển.",
+  APPLICATION_ALREADY_EXISTS:
+    "Bạn đã nộp hồ sơ ứng tuyển vào vị trí này trước đó.",
   UPLOADED_CV_FILE_NOT_FOUND: "Không tìm thấy tệp CV tải lên.",
   UPLOADED_CV_NOT_PDF: "Tệp CV tải lên bắt buộc phải ở định dạng PDF.",
-  UPLOADED_CV_TOO_LARGE: "Dung lượng tệp CV vượt quá giới hạn cho phép (tối đa 5 MB).",
+  UPLOADED_CV_TOO_LARGE:
+    "Dung lượng tệp CV vượt quá giới hạn cho phép (tối đa 5 MB).",
   UPLOADED_CV_ALREADY_USED: "Tệp CV này đã được sử dụng.",
   INVALID_APPLICATION_QUERY: "Tham số truy vấn hồ sơ ứng tuyển không hợp lệ.",
   INVALID_APPLICATION_ID: "Mã hồ sơ ứng tuyển không hợp lệ.",
   APPLICATION_NOT_FOUND: "Không tìm thấy thông tin đơn ứng tuyển.",
   APPLICATION_FORBIDDEN: "Bạn không có quyền thao tác trên đơn ứng tuyển này.",
-  INVALID_APPLICATION_STATUS_TRANSITION: "Chuyển đổi trạng thái đơn ứng tuyển không hợp lệ theo quy trình.",
-  APPLICATION_STATUS_CONFLICT: "Trạng thái đơn ứng tuyển đã có sự thay đổi. Vui lòng tải lại trang.",
+  INVALID_APPLICATION_STATUS_TRANSITION:
+    "Chuyển đổi trạng thái đơn ứng tuyển không hợp lệ theo quy trình.",
+  APPLICATION_STATUS_CONFLICT:
+    "Trạng thái đơn ứng tuyển đã có sự thay đổi. Vui lòng tải lại trang.",
 };
 
 export const FIELD_LABELS: Record<string, string> = {
