@@ -335,15 +335,14 @@ export function JobDetailDrawer({
           <div className="flex items-center gap-2.5">
             {isAlreadyApplied ? (
               <Button
-                variant="outline"
-                className="flex-1 justify-center rounded-xl border-emerald-200 bg-emerald-50/50 py-2.5 text-xs font-semibold text-emerald-700"
+                variant="secondary"
+                icon={CheckCircle2}
                 onClick={() => {
                   onClose();
                   navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
                 }}
               >
-                <CheckCircle2 className="mr-1 size-4 text-emerald-600" />
-                <span>Đã nộp hồ sơ • Xem tiến trình</span>
+                <span>Đã nộp hồ sơ</span>
               </Button>
             ) : (
               <Button
