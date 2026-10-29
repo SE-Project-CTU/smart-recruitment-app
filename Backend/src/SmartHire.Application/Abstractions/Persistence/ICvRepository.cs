@@ -24,6 +24,8 @@ public interface ICvRepository {
         int pageSize,
         CancellationToken cancellationToken);
 
+    Task<List<Cv>> GetByCandidateIdAsync(Guid candidateId, CancellationToken cancellationToken);
+
     Task<bool> IsPreviewFileInUseAsync(
         Guid previewFileId,
         Guid? excludeCvId,

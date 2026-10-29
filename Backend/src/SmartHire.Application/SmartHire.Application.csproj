@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\SmartHire.Domain\SmartHire.Domain.csproj" />
@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="14.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup>

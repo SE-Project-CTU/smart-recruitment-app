@@ -99,6 +99,14 @@ public sealed class CvRepository : ICvRepository {
 
         return query.AnyAsync(cancellationToken);
     }
+
+    public Task<List<Cv>> GetByCandidateIdAsync(Guid candidateId, CancellationToken cancellationToken) {
+        return _dbContext.Cvs
+            .AsNoTracking()
+            .Where(cv => cv.CandidateId == candidateId && cv.DeletedAt == null)
+            .OrderByDescending(cv => cv.UpdatedAt)
+            .ToListAsync(cancellationToken);
+    }
     
     private IQueryable<Cv> ApplyMineFilters(
         Guid candidateId,

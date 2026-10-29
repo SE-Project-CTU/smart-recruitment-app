@@ -17,6 +17,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using SmartHire.Application.Abstractions.Ai;
+using SmartHire.Application.Features.Ai.Commands.RefreshRecommendations;
+using SmartHire.Infrastructure.Ai;
 
 namespace SmartHire.Infrastructure;
 
@@ -65,7 +68,40 @@ public static class DependencyInjection {
         services.AddScoped<ICvRepository, CvRepository>();
         services.AddScoped<ICvVersionRepository, CvVersionRepository>();
         services.AddSingleton<ICvDocumentHasher, CvDocumentHasher>();
-        
+
+        services.AddScoped<IAiMatchResultRepository, AiMatchResultRepository>();
+        services.AddScoped<IJobRecommendationRepository, JobRecommendationRepository>();
+        services.AddScoped<ICvEmbeddingRepository, CvEmbeddingRepository>();
+        services.AddScoped<IJobEmbeddingRepository, JobEmbeddingRepository>();
+        services.AddScoped<IAiConversationRepository, AiConversationRepository>();
+
+        services.Configure<GeminiOptions>(configuration.GetSection(GeminiOptions.SectionName));
+        services.Configure<CohereOptions>(configuration.GetSection(CohereOptions.SectionName));
+
+        services.AddHttpClient<IGeminiAiService, GeminiAiService>();
+        services.AddHttpClient<ICohereRerankService, CohereRerankService>();
+
+        services.AddMemoryCache();
+
+        var redisHost = configuration["REDIS_HOST"];
+        var redisPort = configuration["REDIS_PORT"] ?? "6379";
+        var redisPassword = configuration["REDIS_PASSWORD"];
+
+        if (!string.IsNullOrWhiteSpace(redisHost)) {
+            var redisConfig = $"{redisHost}:{redisPort},abortConnect=false";
+            if (!string.IsNullOrWhiteSpace(redisPassword)) {
+                redisConfig += $",password={redisPassword}";
+            }
+            services.AddStackExchangeRedisCache(options => {
+                options.Configuration = redisConfig;
+                options.InstanceName = "SmartHire:";
+            });
+        } else {
+            services.AddDistributedMemoryCache();
+        }
+
+        services.AddScoped<RefreshRecommendationsJob>();
+
         // --- Cloudinary ---
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         

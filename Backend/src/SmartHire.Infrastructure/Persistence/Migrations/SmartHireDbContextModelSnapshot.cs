@@ -26,6 +26,58 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SmartHire.Domain.Entities.AiConversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("CandidateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("candidate_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CvId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cv_id");
+
+                    b.Property<bool>("IsPinned")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_pinned");
+
+                    b.Property<DateTimeOffset>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_message_at");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ai_conversations");
+
+                    b.HasIndex("LastMessageAt")
+                        .HasDatabaseName("ix_ai_conversations_last_message_at");
+
+                    b.HasIndex("CandidateId", "IsPinned", "LastMessageAt")
+                        .HasDatabaseName("ix_ai_conversations_candidate_id_is_pinned_last_message_at");
+
+                    b.ToTable("ai_conversations", (string)null);
+                });
+
             modelBuilder.Entity("SmartHire.Domain.Entities.AiMatchResult", b =>
                 {
                     b.Property<Guid>("Id")
@@ -66,6 +118,46 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_ai_match_results_cv_version_id");
 
                     b.ToTable("ai_match_results", (string)null);
+                });
+
+            modelBuilder.Entity("SmartHire.Domain.Entities.AiMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("metadata_json");
+
+                    b.Property<string>("Sender")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("sender");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ai_messages");
+
+                    b.HasIndex("ConversationId", "CreatedAt")
+                        .HasDatabaseName("ix_ai_messages_conversation_id_created_at");
+
+                    b.ToTable("ai_messages", (string)null);
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.ApplicationStatusHistory", b =>
@@ -1395,6 +1487,18 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.ToTable("wards", (string)null);
                 });
 
+            modelBuilder.Entity("SmartHire.Domain.Entities.AiConversation", b =>
+                {
+                    b.HasOne("SmartHire.Domain.Entities.User", "Candidate")
+                        .WithMany()
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ai_conversations_users_candidate_id");
+
+                    b.Navigation("Candidate");
+                });
+
             modelBuilder.Entity("SmartHire.Domain.Entities.AiMatchResult", b =>
                 {
                     b.HasOne("SmartHire.Domain.Entities.JobApplication", "Application")
@@ -1414,6 +1518,18 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("Application");
 
                     b.Navigation("CvVersion");
+                });
+
+            modelBuilder.Entity("SmartHire.Domain.Entities.AiMessage", b =>
+                {
+                    b.HasOne("SmartHire.Domain.Entities.AiConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ai_messages_ai_conversations_conversation_id");
+
+                    b.Navigation("Conversation");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.ApplicationStatusHistory", b =>
@@ -1866,6 +1982,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_wards_provinces_province_id");
 
                     b.Navigation("Province");
+                });
+
+            modelBuilder.Entity("SmartHire.Domain.Entities.AiConversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.Company", b =>

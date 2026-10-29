@@ -31,6 +31,24 @@ public sealed class ApiExceptionHandler(
             ?? Guid.NewGuid().ToString("D");
         
         var (statusCode, error) = exception switch {
+            AppExceptionBase appException when appException.Code == AiErrorCodes.AiQuotaExceeded => (
+                StatusCodes.Status429TooManyRequests,
+                new ApiError(
+                    appException.Code,
+                    appException.Message,
+                    appException.Details,
+                    appException.ErrorData)
+            ),
+
+            AppExceptionBase appException when appException.Code == AiErrorCodes.AiServiceUnavailable => (
+                StatusCodes.Status503ServiceUnavailable,
+                new ApiError(
+                    appException.Code,
+                    appException.Message,
+                    appException.Details,
+                    appException.ErrorData)
+            ),
+
             AppExceptionBase appException => (
                 GetStatusCode(appException.Kind),
                 new ApiError(

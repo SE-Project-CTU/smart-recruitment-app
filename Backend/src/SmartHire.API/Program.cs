@@ -78,7 +78,17 @@ using (var scope = app.Services.CreateScope()) {
             TimeOfDay: new TimeOnly(0, 5),
             TimeZoneId: "Asia/Ho_Chi_Minh")
     );
+
+    jobScheduler.AddOrUpdateRecurring<SmartHire.Application.Features.Ai.Jobs.CleanupExpiredAiConversations.CleanupExpiredAiConversationsJob, SmartHire.Application.Features.Ai.Jobs.CleanupExpiredAiConversations.CleanupExpiredAiConversationsJobArgs>(
+        "cleanup-expired-ai-conversations",
+        new SmartHire.Application.Features.Ai.Jobs.CleanupExpiredAiConversations.CleanupExpiredAiConversationsJobArgs(),
+        new RecurringSchedule(
+            RecurringScheduleKind.Daily,
+            TimeOfDay: new TimeOnly(2, 0),
+            TimeZoneId: "Asia/Ho_Chi_Minh")
+    );
 }
+
 
 // ── OpenAPI / Swagger UI ──
 app.MapOpenApi();

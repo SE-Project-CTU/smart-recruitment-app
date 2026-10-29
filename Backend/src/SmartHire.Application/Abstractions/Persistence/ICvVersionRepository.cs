@@ -17,5 +17,7 @@ public interface ICvVersionRepository {
         Guid cvId,
         Guid versionId,
         CancellationToken cancellationToken);
+    Task<CvVersion?> GetByVersionIdAsync(Guid versionId, CancellationToken cancellationToken);
+    Task<CvVersion?> GetLatestByCvIdAsync(Guid cvId, CancellationToken cancellationToken);
     Task<bool> IsOwnedByCandidateAsync(Guid versionId, Guid candidateId, CancellationToken cancellationToken);
 }
