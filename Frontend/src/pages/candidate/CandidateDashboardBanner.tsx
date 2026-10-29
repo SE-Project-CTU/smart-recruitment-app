@@ -174,7 +174,7 @@ export function CandidateDashboardBanner() {
   const statusTheme = getApplicationStatusTheme(latestApplication?.status);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border border-border shadow-2xs">
+    <div className="relative w-full overflow-hidden rounded-2xl border border-border">
       <GradientGridBackground />
 
       <div className="relative grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12 lg:gap-8">
@@ -182,7 +182,7 @@ export function CandidateDashboardBanner() {
         <div className="flex flex-col justify-between gap-6 p-6 lg:col-span-7 lg:p-8">
           {/* Khối thời tiết và ngày tháng */}
           <div className="flex flex-col items-start justify-center gap-1">
-            <span className="text-sm text-text-muted">{formattedDate}</span>
+            <span className="text-sm font-medium text-text-muted">{formattedDate}</span>
             <div className="inline-flex items-center gap-2 text-lg font-medium text-text-main">
               <span>{weatherMeta.icon}</span>
               {weather.isLoading ? (
@@ -197,7 +197,7 @@ export function CandidateDashboardBanner() {
 
           {/* Khối lời chào */}
           <div className="space-y-1.5">
-            <h1 className="text-2xl font-medium tracking-tight text-text-main sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
               {formattedDayOfWeek} tốt lành, {userName}!
             </h1>
             <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
@@ -209,16 +209,24 @@ export function CandidateDashboardBanner() {
           {/* Khối thống kê */}
           <div className="grid grid-cols-3 gap-3 pt-2">
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => navigate(PATHS.CANDIDATE.APPLICATION_STATUS)}
-              className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white hover:shadow-xs"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
+                }
+              }}
+              className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
-              <div className="flex items-center gap-1.5 text-blue-600">
+              <div className="flex items-center gap-1.5 text-primary">
                 <Send className="size-3.5 sm:size-4" />
                 <span className="truncate text-[11px] font-semibold text-text-muted">
                   Đang ứng tuyển
                 </span>
               </div>
-              <span className="mt-2 text-xl font-bold text-text-main sm:text-2xl">
+              <span className="mt-2 text-xl font-semibold text-text-main sm:text-2xl">
                 {isLoadingApps
                   ? "..."
                   : String(activeApplicationsCount).padStart(2, "0")}
@@ -226,8 +234,16 @@ export function CandidateDashboardBanner() {
             </div>
 
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
-              className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white hover:shadow-xs"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate(PATHS.CANDIDATE.CV_MANAGEMENT);
+                }
+              }}
+              className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               <div className="flex items-center gap-1.5 text-emerald-600">
                 <FileCheck className="size-3.5 sm:size-4" />
@@ -235,14 +251,22 @@ export function CandidateDashboardBanner() {
                   CV hiện có
                 </span>
               </div>
-              <span className="mt-2 text-xl font-bold text-text-main sm:text-2xl">
+              <span className="mt-2 text-xl font-semibold text-text-main sm:text-2xl">
                 {String(cvs.length).padStart(2, "0")}
               </span>
             </div>
 
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => navigate(PATHS.CANDIDATE.BOOKMARK_JOBS)}
-              className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white hover:shadow-xs"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate(PATHS.CANDIDATE.BOOKMARK_JOBS);
+                }
+              }}
+              className="flex cursor-pointer flex-col rounded-2xl border border-border bg-surface p-3.5 transition-all hover:border-primary/40 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               <div className="flex items-center gap-1.5 text-amber-600">
                 <Bookmark className="size-3.5 sm:size-4" />
@@ -250,7 +274,7 @@ export function CandidateDashboardBanner() {
                   Đã lưu
                 </span>
               </div>
-              <span className="mt-2 text-xl font-bold text-text-main sm:text-2xl">
+              <span className="mt-2 text-xl font-semibold text-text-main sm:text-2xl">
                 {String(bookmarkedJobsCount).padStart(2, "0")}
               </span>
             </div>
@@ -261,8 +285,16 @@ export function CandidateDashboardBanner() {
         <div className="flex flex-col justify-end lg:col-span-5">
           {latestApplication ? (
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => navigate(PATHS.CANDIDATE.APPLICATION_STATUS)}
-              className="group relative flex h-full cursor-pointer flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-xs transition-all duration-300 hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
+                }
+              }}
+              className="group relative flex h-full cursor-pointer flex-col justify-between rounded-2xl border border-border bg-surface p-6 transition-all duration-300 hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-secondary-light/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
@@ -283,11 +315,12 @@ export function CandidateDashboardBanner() {
                     </span>
                     <button
                       type="button"
+                      aria-label="Xem chi tiết đơn ứng tuyển"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
                       }}
-                      className="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:text-text-main"
+                      className="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:text-text-main focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                       title="Xem chi tiết đơn ứng tuyển"
                     >
                       <Ellipsis className="size-5" />
@@ -316,7 +349,7 @@ export function CandidateDashboardBanner() {
                         className="size-full object-contain"
                       />
                     ) : (
-                      <div className="flex size-full items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                      <div className="flex size-full items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary">
                         {(latestApplication.companyName || "DN")
                           .slice(0, 2)
                           .toUpperCase()}
@@ -344,21 +377,21 @@ export function CandidateDashboardBanner() {
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
+                  <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-main">
                     {getJobTypeLabel(latestApplication.job?.jobType)}
                   </span>
-                  <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
+                  <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-main">
                     {getWorkModeLabel(latestApplication.job?.workMode)}
                   </span>
                   {latestApplication.job?.jobLevel && (
-                    <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs text-text-main">
+                    <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-main">
                       {getJobLevelLabel(latestApplication.job.jobLevel)}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-white/90 p-3 shadow-2xs backdrop-blur-xs">
+              <div className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-border bg-neutral-bg/60 p-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -378,6 +411,7 @@ export function CandidateDashboardBanner() {
                   icon={ArrowUpRight}
                   iconSize={16}
                   variant="secondary"
+                  aria-label="Xem tiến trình ứng tuyển"
                   className="p-1!"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -392,20 +426,20 @@ export function CandidateDashboardBanner() {
                 <img
                   src={OfficeGirl2NoBg}
                   alt="Chưa có hồ sơ"
-                  className="h-full max-h-72.5 w-auto object-contain object-bottom drop-shadow-xs transition-transform duration-300"
+                  className="h-full max-h-72.5 w-auto object-contain object-bottom transition-transform duration-300"
                 />
 
-                <div className="absolute top-2 left-0 z-10 flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-sky-700 shadow-2xs backdrop-blur-md transition-all">
+                <div className="absolute top-2 left-0 z-10 flex items-center gap-1.5 rounded-full border border-sky-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-sky-700 transition-all">
                   <Zap className="size-3.5 fill-sky-100 text-sky-600" />
                   <span>Ứng tuyển nhanh chóng</span>
                 </div>
 
-                <div className="absolute top-[40%] -right-1 z-10 flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 shadow-2xs backdrop-blur-md transition-all">
+                <div className="absolute top-[40%] -right-1 z-10 flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 transition-all">
                   <ShieldCheck className="size-3.5 text-emerald-600" />
                   <span>Uy tín & trách nhiệm</span>
                 </div>
 
-                <div className="absolute bottom-4 left-0 z-10 flex items-center gap-1.5 rounded-full border border-purple-200/80 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-purple-700 shadow-2xs backdrop-blur-md transition-all">
+                <div className="absolute bottom-4 left-0 z-10 flex items-center gap-1.5 rounded-full border border-purple-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-purple-700 transition-all">
                   <Sparkles className="size-3.5 text-purple-600" />
                   <span>Cơ hội rộng mở</span>
                 </div>
