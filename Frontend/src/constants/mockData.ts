@@ -139,7 +139,7 @@ export const MOCK_LOCATION_HIERARCHY: LocationGroup[] = [
 
 export const MOCK_JOB_POSTINGS: MockJobPosting[] = [
   {
-    id: "d1a1ccb0-93b4-4788-ae90-961e86230db0",
+    id: "a5000000-0000-4000-8000-000000000002",
     company: {
       id: "comp-uuid-101",
       name: "TechNova Solutions Vietnam",
