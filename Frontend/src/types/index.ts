@@ -6,3 +6,4 @@ export * from "./cv";
 export * from "./media";
 export * from "./catalog";
 export * from "./job";
+export * from "./application";

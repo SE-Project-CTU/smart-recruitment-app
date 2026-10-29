@@ -69,7 +69,7 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
             <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
               <span className="text-text-muted">Kinh nghiệm</span>
               <span className="font-semibold text-text-main">
-                {job.experienceYears > 0
+                {(job.experienceYears ?? 0) > 0
                   ? `${job.experienceYears} năm`
                   : "Không yêu cầu"}
               </span>
@@ -87,7 +87,7 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
             <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
               <span className="text-text-muted">Số lượng tuyển</span>
               <span className="font-semibold text-text-main">
-                {job.vacancies > 0
+                {(job.vacancies ?? 0) > 0
                   ? `${job.vacancies} người`
                   : "Không giới hạn"}
               </span>

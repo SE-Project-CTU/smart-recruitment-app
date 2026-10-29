@@ -3,8 +3,14 @@ import DashboardSidebar from "@/components/common/DashboardSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ApplyJobModal } from "@/components/job/ApplyJobModal";
 import { Outlet } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
 
 const DashboardLayout = () => {
+  const user = useAuthStore((state) => state.user);
+  const isCandidate = user?.roles?.some(
+    (role) => role.toLowerCase() === "candidate",
+  );
+
   return (
     <div className="font-sans text-text-main">
       <SidebarProvider className="flex min-h-screen flex-col">
@@ -20,8 +26,8 @@ const DashboardLayout = () => {
         </div>
       </SidebarProvider>
 
-      {/* Global Apply Job Modal cho toàn bộ hệ thống */}
-      <ApplyJobModal />
+      {/* Global Apply Job Modal chỉ cần mount cho Candidate */}
+      {isCandidate && <ApplyJobModal />}
     </div>
   );
 };

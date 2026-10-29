@@ -16,13 +16,20 @@ import type {
 /**
  * Hook Query: Lấy danh sách CV của ứng viên
  */
-export const useMyCvs = (params?: CvFilterParams) => {
+export const useMyCvs = (
+  params?: CvFilterParams,
+  options?: { enabled?: boolean },
+) => {
   const user = useAuthStore((state) => state.user);
+  const isCandidate = user?.roles?.some(
+    (role) => role.toLowerCase() === "candidate",
+  );
 
   return useQuery({
     queryKey: ["cvs", "my", user?.id, params],
     queryFn: () => cvService.getMyCvs(params),
-    enabled: Boolean(user?.id),
+    enabled:
+      Boolean(user?.id) && Boolean(isCandidate) && (options?.enabled ?? true),
     staleTime: 2 * 60 * 1000, // 2 phút
   });
 };

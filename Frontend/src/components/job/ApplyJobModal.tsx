@@ -71,8 +71,10 @@ export function ApplyJobModal({
     }
   };
 
-  // 1. Dữ liệu CVs của ứng viên
-  const { data: myCvsData, isLoading: isLoadingCvs } = useMyCvs();
+  // 1. Dữ liệu CVs của ứng viên (chỉ query khi modal thực sự mở)
+  const { data: myCvsData, isLoading: isLoadingCvs } = useMyCvs(undefined, {
+    enabled: isOpen,
+  });
   const cvList = myCvsData?.items ?? [];
 
   // 2. State hình thức nộp CV: 'online' | 'upload'
