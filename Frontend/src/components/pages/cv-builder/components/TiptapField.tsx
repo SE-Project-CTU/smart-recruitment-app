@@ -91,7 +91,7 @@ function FieldToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="no-print fixed z-[100] flex w-max max-w-[calc(100vw-1rem)] flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+      className="no-print fixed z-[99] flex w-max max-w-[calc(100vw-1rem)] flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
       style={{ top: position.top, left: position.left }}
       role="toolbar"
       aria-label="Định dạng field CV"

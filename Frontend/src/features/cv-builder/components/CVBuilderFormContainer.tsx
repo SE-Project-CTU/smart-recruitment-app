@@ -123,7 +123,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
     <FormProvider {...methods}>
       <div className="flex min-h-screen flex-col">
         {/* ================= 1. TOP NAVBAR ================= */}
-        <header className="no-print sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface px-6 py-3 shadow-xs">
+        <header className="no-print sticky top-0 z-100 flex items-center justify-between border-b border-border bg-surface px-6 py-3 shadow-xs">
           <div className="flex items-center gap-3">
             <button
               type="button"

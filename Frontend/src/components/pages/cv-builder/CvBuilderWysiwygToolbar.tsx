@@ -65,7 +65,7 @@ export default function CvBuilderWysiwygToolbar({
   };
 
   return (
-    <div className="no-print sticky top-15.25 z-20 flex flex-wrap items-center justify-center gap-3 border-b border-border bg-bg/95 px-6 py-2 shadow-xs backdrop-blur-md">
+    <div className="no-print sticky top-15.25 z-100 flex flex-wrap items-center justify-center gap-3 border-b border-border bg-bg/95 px-6 py-2 shadow-xs backdrop-blur-md">
       {/* 1. Chọn Font chữ */}
       <div className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 shadow-2xs">
         <Type className="h-4 w-4 text-text-muted" />
