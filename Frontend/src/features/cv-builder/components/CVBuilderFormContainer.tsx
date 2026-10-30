@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useReactToPrint } from "react-to-print";
@@ -77,9 +77,11 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
       await updateCv({
         id: cvId,
         payload: {
-          title: values.title,
+          title: values.title?.trim() || initialData.title,
           content: values.content as unknown as RichTextCVContentDocument,
           layout: values.layout as unknown as CVLayoutDocument,
+          language: values.language,
+          isPublic: values.isPublic,
         },
       });
     } catch {
@@ -90,15 +92,16 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   // Xác nhận hoàn tất: vừa validate qua Zod, vừa lưu data lên server, vừa chuyển sang preview
   const handleCompleteCv = handleSubmit(
     async (data) => {
-      console.log("[CVBuilder] Form valid -> saving & locking CV:", data);
       if (cvId) {
         try {
           await updateCv({
             id: cvId,
             payload: {
-              title: data.title,
+              title: data.title?.trim() || initialData.title,
               content: data.content as unknown as RichTextCVContentDocument,
               layout: data.layout as unknown as CVLayoutDocument,
+              language: data.language,
+              isPublic: data.isPublic,
             },
           });
         } catch {
@@ -188,7 +191,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
                   className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-medium text-surface shadow-md transition-all hover:bg-primary-dark disabled:opacity-50 md:text-sm"
                 >
                   <CheckCircle2 className="h-4 w-4 text-secondary" />
-                  Kiểm tra & Hoàn tất CV
+                  {isUpdatingCv ? "Đang xử lý..." : "Kiểm tra & Hoàn tất CV"}
                 </button>
               </>
             ) : (

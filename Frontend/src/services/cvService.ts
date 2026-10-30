@@ -93,9 +93,10 @@ export const cvService = {
   ): Promise<RichTextCVDetail> {
     const response = await axiosClient.patch<
       never,
-      ApiResponse<RichTextCVDetail>
+      ApiResponse<RichTextCVDetail> | RichTextCVDetail
     >(API_ENDPOINTS.CV.UPDATE(id), payload);
-    return response.data;
+    const data = (response as ApiResponse<RichTextCVDetail>)?.data ?? response;
+    return data as RichTextCVDetail;
   },
 
   /**

@@ -135,6 +135,10 @@ export default function CandidateCvManagementPage() {
                 onEdit={(item) => {
                   navigate(`${PATHS.EDIT_CV}?id=${item.id}`);
                 }}
+                onRename={(item) => {
+                  setCvToRename(item);
+                  setRenameTitle(item.title);
+                }}
                 onDelete={(item) => setCvToDelete(item)}
               />
             ))}
