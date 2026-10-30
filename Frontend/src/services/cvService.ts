@@ -1,4 +1,4 @@
-import axiosClient from "@/api/axios";
+﻿import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type { ApiResponse } from "@/types";
 import type {
@@ -78,9 +78,10 @@ export const cvService = {
   async createCv(payload: CreateCvPayload): Promise<RichTextCVDetail> {
     const response = await axiosClient.post<
       never,
-      ApiResponse<RichTextCVDetail>
+      ApiResponse<RichTextCVDetail> | RichTextCVDetail
     >(API_ENDPOINTS.CV.CREATE, payload);
-    return response.data;
+    const data = (response as ApiResponse<RichTextCVDetail>)?.data ?? response;
+    return data as RichTextCVDetail;
   },
 
   /**

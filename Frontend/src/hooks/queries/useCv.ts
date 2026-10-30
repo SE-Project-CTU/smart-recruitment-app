@@ -102,7 +102,11 @@ export const useCreateCv = () => {
 
   return useMutation({
     mutationFn: (payload: CreateCvPayload) => cvService.createCv(payload),
-    onSuccess: () => {
+    onSuccess: (newCv) => {
+      // Nạp trước dữ liệu CV mới tạo vào cache chi tiết của TanStack Query
+      if (newCv?.id) {
+        queryClient.setQueryData(["cvs", "detail", newCv.id], newCv);
+      }
       queryClient.invalidateQueries({ queryKey: ["cvs", "my"] });
       toast.success({ description: "Tạo hồ sơ CV thành công" });
     },
@@ -127,7 +131,11 @@ export const useUpdateCv = () => {
       id: string;
       payload: UpdateCvPayload;
     }) => cvService.updateCv(id, payload),
-    onSuccess: (_, variables) => {
+    onSuccess: (updatedCv, variables) => {
+      // Cập nhật lại cache chi tiết nếu Backend trả về dữ liệu mới
+      if (updatedCv?.id) {
+        queryClient.setQueryData(["cvs", "detail", variables.id], updatedCv);
+      }
       queryClient.invalidateQueries({ queryKey: ["cvs", "my"] });
       queryClient.invalidateQueries({
         queryKey: ["cvs", "detail", variables.id],

@@ -10,10 +10,10 @@ import {
   Edit3,
   FileCheck,
   AlertCircle,
+  Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { MOCK_CV_DETAIL_TIPTAP } from "@/constants/mockCvData";
 import {
   richTextCvEditorSchema,
   type RichTextCvEditorValues,
@@ -22,20 +22,37 @@ import { buildRichTextCvInitialValues } from "@/features/cv-builder/utils/richTe
 import { extractTiptapPlainText } from "@/features/cv-builder/utils/tiptapJson";
 import CvBuilderWysiwygToolbar from "@/components/pages/cv-builder/CvBuilderWysiwygToolbar";
 import CvBuilderWorkspace from "@/components/pages/cv-builder/CvBuilderWorkspace";
+import { useUpdateCv } from "@/hooks/queries/useCv";
+import { PATHS } from "@/constants/paths";
+import type {
+  RichTextCVDetail,
+  RichTextCVContentDocument,
+  CVLayoutDocument,
+} from "@/types/cv";
 
-export const CVBuilderFormContainer: React.FC = () => {
+interface CVBuilderFormContainerProps {
+  initialData: RichTextCVDetail;
+  cvId?: string;
+}
+
+export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
+  initialData,
+  cvId,
+}) => {
   const [isLocked, setIsLocked] = useState(false);
   const cvPrintRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const { mutateAsync: updateCv, isPending: isUpdatingCv } = useUpdateCv();
 
   useEffect(() => {
     console.log("[CVBuilder] isLocked state changed:", isLocked);
   }, [isLocked]);
 
-  // Khởi tạo React Hook Form với zodResolver
+  // Khởi tạo React Hook Form từ initialData nhận được
   const methods = useForm<RichTextCvEditorValues>({
     resolver: zodResolver(richTextCvEditorSchema),
-    defaultValues: buildRichTextCvInitialValues(MOCK_CV_DETAIL_TIPTAP),
+    defaultValues: buildRichTextCvInitialValues(initialData),
     mode: "onSubmit",
   });
 
@@ -52,9 +69,42 @@ export const CVBuilderFormContainer: React.FC = () => {
       `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
   });
 
+  // Lưu bản nháp lên server mà không khóa chế độ chỉnh sửa
+  const handleSaveDraft = async () => {
+    if (!cvId) return;
+    const values = methods.getValues();
+    try {
+      await updateCv({
+        id: cvId,
+        payload: {
+          title: values.title,
+          content: values.content as unknown as RichTextCVContentDocument,
+          layout: values.layout as unknown as CVLayoutDocument,
+        },
+      });
+    } catch {
+      // Lỗi đã được toast trong hook useUpdateCv
+    }
+  };
+
+  // Xác nhận hoàn tất: vừa validate qua Zod, vừa lưu data lên server, vừa chuyển sang preview
   const handleCompleteCv = handleSubmit(
-    (data) => {
-      console.log("[CVBuilder] Form valid -> locking CV:", data);
+    async (data) => {
+      console.log("[CVBuilder] Form valid -> saving & locking CV:", data);
+      if (cvId) {
+        try {
+          await updateCv({
+            id: cvId,
+            payload: {
+              title: data.title,
+              content: data.content as unknown as RichTextCVContentDocument,
+              layout: data.layout as unknown as CVLayoutDocument,
+            },
+          });
+        } catch {
+          return;
+        }
+      }
       setIsLocked(true);
     },
     (fieldErrors) => {
@@ -77,9 +127,9 @@ export const CVBuilderFormContainer: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
               className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main"
-              title="Quay lại"
+              title="Quay lại danh sách CV"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
@@ -92,7 +142,7 @@ export const CVBuilderFormContainer: React.FC = () => {
                   title="Nhấp để đổi tên CV"
                   placeholder="Nhập tiêu đề CV..."
                   className={cn(
-                    "h-8 w-max min-w-[540px] rounded-md px-2 text-base font-semibold text-text-main transition-all",
+                    "h-8 w-max min-w-[300px] md:min-w-[440px] rounded-md px-2 text-base font-semibold text-text-main transition-all",
                     "border border-transparent hover:border-border hover:bg-bg",
                     "focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary focus:outline-none",
                     errors.title &&
@@ -114,17 +164,33 @@ export const CVBuilderFormContainer: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {!isLocked ? (
-              <button
-                key="btn-complete-cv"
-                type="button"
-                onClick={handleCompleteCv}
-                className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-surface shadow-md transition-all hover:bg-primary-dark"
-              >
-                <CheckCircle2 className="h-4 w-4 text-secondary" />
-                Kiểm tra & Hoàn tất CV
-              </button>
+              <>
+                {cvId && (
+                  <button
+                    key="btn-save-draft"
+                    type="button"
+                    onClick={handleSaveDraft}
+                    disabled={isUpdatingCv}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-text-main transition-all hover:bg-bg disabled:opacity-50"
+                  >
+                    <Save className="h-3.5 w-3.5 text-primary" />
+                    {isUpdatingCv ? "Đang lưu..." : "Lưu thay đổi"}
+                  </button>
+                )}
+
+                <button
+                  key="btn-complete-cv"
+                  type="button"
+                  onClick={handleCompleteCv}
+                  disabled={isUpdatingCv}
+                  className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-medium text-surface shadow-md transition-all hover:bg-primary-dark disabled:opacity-50 md:text-sm"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-secondary" />
+                  Kiểm tra & Hoàn tất CV
+                </button>
+              </>
             ) : (
               <>
                 <button
@@ -156,7 +222,7 @@ export const CVBuilderFormContainer: React.FC = () => {
           onSubmit={(e) => e.preventDefault()}
           className="flex flex-1 flex-col"
         >
-          {/* ================= 2. WYSIWYG TOOLBAR: FONT, MÀU, CỠ CHỮ, DÃN DÒNG ================= */}
+          {/* ================= 2. WYSIWYG TOOLBAR ================= */}
           <CvBuilderWysiwygToolbar isCompleted={isLocked} />
 
           {/* Banner thông báo khóa CV */}
@@ -164,8 +230,7 @@ export const CVBuilderFormContainer: React.FC = () => {
             <div className="no-print flex items-center justify-center gap-2 border-b border-secondary-dark bg-secondary-light px-6 py-2.5 text-sm font-medium text-primary-dark">
               <FileCheck className="h-4 w-4 text-primary" />
               <span>
-                Hồ sơ CV đã được kiểm tra tính hợp lệ qua Zod và khóa chỉnh sửa!
-                Bạn có thể xuất PDF ngay.
+                Hồ sơ CV đã được kiểm tra tính hợp lệ và khóa chỉnh sửa! Bạn có thể xuất PDF ngay.
               </span>
             </div>
           )}

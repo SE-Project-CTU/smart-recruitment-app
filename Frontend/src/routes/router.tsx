@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+﻿import { createBrowserRouter, Navigate } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/common/Page";
@@ -18,6 +18,7 @@ import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
 import CandidateCvManagementPage from "@/pages/candidate/CandidateCvManagementPage";
+import CandidateCvTemplatesPage from "@/pages/candidate/CandidateCvTemplatesPage";
 import CandidateApplicationStatusPage from "@/pages/candidate/CandidateApplicationStatusPage";
 import MatchedJobsPage from "@/pages/candidate/MatchedJobsPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
@@ -58,15 +59,14 @@ const router = createBrowserRouter([
     ],
   },
 
-  {
-    path: PATHS.CREATE_CV,
-    element: <CVBuilder />,
-  },
-
   //CANDIDATE ROUTES
   {
     element: <ProtectedRoute allowRoles={["candidate"]} />,
     children: [
+      {
+        path: PATHS.CANDIDATE.EDIT_CV,
+        element: <CVBuilder />,
+      },
       {
         element: <DashboardLayout />,
         children: [
@@ -94,6 +94,11 @@ const router = createBrowserRouter([
             path: PATHS.CANDIDATE.CV_MANAGEMENT,
             element: <CandidateCvManagementPage />,
           },
+          {
+            path: PATHS.CANDIDATE.CV_TEMPLATES,
+            element: <CandidateCvTemplatesPage />,
+          },
+
           {
             path: PATHS.CANDIDATE.APPLICATION_STATUS,
             element: <CandidateApplicationStatusPage />,
