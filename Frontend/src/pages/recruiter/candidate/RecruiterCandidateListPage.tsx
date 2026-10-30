@@ -26,15 +26,13 @@ import {
   useUpdateApplicationStatus,
 } from "@/hooks/queries/useJob";
 import { useCompanyStore } from "@/stores";
-import type {
-  JobPostingItem,
-  RecruiterCandidateApplicationItem,
-  UpdateJobApplicationStatus,
-} from "@/types/job";
+import type { JobPostingItem } from "@/types/job";
 import {
   APPLICATION_STATUS_CONFIG,
   APPLICATION_STATUS_OPTIONS,
   resolveCandidateProfile,
+  type RecruiterCandidateApplicationItem,
+  type UpdateJobApplicationStatus,
 } from "@/types/application";
 import { CandidateTable } from "./CandidateTable";
 

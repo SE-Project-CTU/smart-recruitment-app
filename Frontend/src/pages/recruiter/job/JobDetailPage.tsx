@@ -33,7 +33,7 @@ import {
   useUpdateApplicationStatus,
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
-import type { JobApplicationStatus } from "@/types/job";
+import type { JobApplicationStatus } from "@/types/application";
 import {
   formatSalaryRange,
   getJobLevelLabel,

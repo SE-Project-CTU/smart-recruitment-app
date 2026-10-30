@@ -106,6 +106,8 @@ export interface JobPostingResult {
   companyLogoUrl?: string | null;
   provinceId?: string;
   wardId?: string | null;
+  industryIds?: string[];
+  skillIds?: string[];
 }
 
 /**
@@ -167,14 +169,14 @@ export interface JobPostingItem extends Partial<JobPostingDetailResult> {
   createdAt: string;
 
   // Flattened helpers cho các component giao diện cũ
-  companyId?: string;
-  companyName?: string;
-  companyLogoUrl?: string | null;
-  createdBy?: string;
-  provinceId?: string;
-  wardId?: string | null;
-  skillIds?: string[];
-  industryIds?: string[];
+  // companyId?: string;
+  // companyName?: string;
+  // companyLogoUrl?: string | null;
+  // createdBy?: string;
+  // provinceId?: string;
+  // wardId?: string | null;
+  // skillIds?: string[];
+  // industryIds?: string[];
 }
 
 // -------------------------------------------------------------------------
@@ -303,17 +305,3 @@ export const JOB_STATUS_CONFIG: Record<
   },
 };
 
-// -------------------------------------------------------------------------
-// 7. RE-EXPORTS (Cảnh báo: Nên import trực tiếp từ "@/types/application")
-// -------------------------------------------------------------------------
-
-export type {
-  ApplicationStatus,
-  JobApplicationStatus,
-  UpdateJobApplicationStatus,
-  CandidateItem,
-  JobApplicationItem,
-  UpdateApplicationStatusPayload,
-  RecruiterCandidateApplicationItem,
-  CandidateMyApplicationItem,
-} from "./application";

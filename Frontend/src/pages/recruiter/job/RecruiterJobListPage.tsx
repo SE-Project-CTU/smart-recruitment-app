@@ -27,11 +27,10 @@ import { JobPostingsTable } from "./JobPostingsTable";
 
 const STATUS_FILTER_OPTIONS = [
   { value: "ALL", label: "Tất cả trạng thái" },
-  { value: "OPEN", label: "Đang nhận hồ sơ" },
-  { value: "PENDING_REVIEW", label: "Chờ duyệt" },
-  { value: "PAUSED", label: "Tạm dừng" },
-  { value: "CLOSED", label: "Đã đóng" },
-  { value: "EXPIRED", label: "Hết hạn" },
+  { value: "Published", label: "Đang nhận hồ sơ" },
+  { value: "PendingReview", label: "Chờ duyệt" },
+  { value: "Closed", label: "Đã đóng" },
+  { value: "Expired", label: "Hết hạn" },
 ];
 
 const WORK_MODE_FILTER_OPTIONS = [
@@ -111,24 +110,11 @@ export function RecruiterJobListPage() {
       // Status filter
       if (statusFilter !== "ALL") {
         const s = (job.status || "").toUpperCase();
-        if (
-          statusFilter === "OPEN" &&
-          s !== "OPEN" &&
-          s !== "PUBLISHED" &&
-          s !== "ACTIVE"
-        ) {
-          return false;
-        }
-        if (statusFilter === "CLOSED" && s !== "CLOSED") return false;
-        if (statusFilter === "PAUSED" && s !== "PAUSED") return false;
-        if (statusFilter === "EXPIRED" && s !== "EXPIRED") return false;
-        if (
-          statusFilter === "PENDING_REVIEW" &&
-          s !== "PENDING_REVIEW" &&
-          s !== "PENDINGREVIEW"
-        ) {
-          return false;
-        }
+        const target = statusFilter.toUpperCase();
+        if (target === "PUBLISHED" && s !== "PUBLISHED" && s !== "OPEN" && s !== "ACTIVE") return false;
+        if (target === "PENDINGREVIEW" && s !== "PENDINGREVIEW" && s !== "PENDING_REVIEW") return false;
+        if (target === "CLOSED" && s !== "CLOSED") return false;
+        if (target === "EXPIRED" && s !== "EXPIRED") return false;
       }
 
       // WorkMode filter
