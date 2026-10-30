@@ -105,14 +105,14 @@ flowchart TD
 - **Endpoints:**
   - `GET /api/v1/companies`: Public - Danh sách công ty (Search, VerificationStatus, Pagination).
   - `GET /api/v1/companies/{id}`: Public - Chi tiết công ty (kèm trạng thái membership nếu caller đã đăng nhập).
-  - `GET /api/v1/me/companies` & `GET /api/v1/companies/my`: **[Mới bổ sung]** Danh sách các công ty mà user đang có `CompanyMembership.Status == Active`, kèm thông tin `Membership: { role, status }`.
+  - `GET /api/v1/me/companies` & `GET /api/v1/companies/my`: Danh sách các công ty mà user đang có `CompanyMembership.Status == Active`, kèm thông tin `Membership: { role, status }`.
   - `POST /api/v1/companies`: Recruiter tạo hồ sơ công ty (tự động trở thành `Owner`).
   - `PATCH /api/v1/companies/{id}`: Recruiter cập nhật hồ sơ công ty.
   - `GET /api/v1/companies/{id}/members`: Danh sách thành viên trong công ty.
   - `DELETE /api/v1/companies/{id}/members/{memberId}`: Owner loại bỏ thành viên đã thôi việc (cập nhật trạng thái thành `Left`).
   - `POST /api/v1/companies/{id}/leave`: Recruiter tự rời khỏi công ty (cập nhật trạng thái thành `Left`).
   - `GET /api/v1/companies/{id}/job-postings`: Danh sách tin tuyển dụng thuộc công ty (dành cho thành viên công ty).
-  - `GET /api/v1/companies/{id}/applications`: **[Mới bổ sung]** Danh sách hồ sơ ứng tuyển thuộc công ty dành cho Recruiter thành viên (hỗ trợ lọc `jobId`, `status`, `search` theo họ tên, email, phone, job title; phân trang và sắp xếp server-side).
+  - `GET /api/v1/companies/{id}/applications`: Danh sách hồ sơ ứng tuyển thuộc công ty dành cho Recruiter thành viên (hỗ trợ lọc `jobId`, `status`, `search` theo họ tên, email, phone, job title; phân trang và sắp xếp server-side).
   - `POST /api/v1/companies/{id}/invitations`: Mời recruiter gia nhập.
   - `GET /api/v1/me/company-invitations`: Danh sách lời mời gửi tới tài khoản hiện tại (mặc định lấy tất cả khi không truyền status; hỗ trợ lọc theo status `Pending`, `Accepted`, `Rejected`, `Expired`).
   - `POST /api/v1/company-invitations/{id}/accept` & `reject`: Chấp nhận / từ chối lời mời.
@@ -162,23 +162,29 @@ flowchart TD
 
 ### 2.5. Phân hệ Quản lý CV & Tạo CV (`CvBuilder` & `CvTemplates`)
 - **Entities:**
-  - `Cv`: `Id`, `CandidateId`, `Title`, `IsPublic`, `Language`, `CreatedAt`, `UpdatedAt`.
-  - `CvVersion`: `Id`, `CvId`, `VersionNumber`, `Content` (JSON), `Layout` (JSON), `Presentation` (JSON), `IsCurrent`, `CreatedAt`.
-  - `CvTemplate`: Template có sẵn do hệ thống cung cấp (`ModernTwoColumn`, `Minimalist`, ...).
-- **Cấu trúc Document CV dạng JSON (Headless CV):**
-  - `Content`: Gồm thông tin cá nhân (Profile: name, title, email, phone, address, summary, avatar) và các sections (Experiences, Educations, Skills, Projects, Certifications, Awards). Nội dung mô tả lưu dưới dạng **TipTap HTML string**.
-  - `Layout`: Cấu hình danh sách sections và vị trí của từng section trong các khu vực hiển thị (`main`, `sidebar`...).
-  - `Presentation`: Cấu hình màu sắc chủ đạo (`primaryColor`), kiểu font (`fontFamily`), cỡ chữ, line-height, spacing...
+  - `Cv`: `Id`, `CandidateId`, `Title`, `IsPublic`, `Language`, `Content` (JSONB), `Layout` (JSONB), `ContentHash`, `LayoutHash`, `CreatedAt`, `UpdatedAt`. *(Đã bỏ hoàn toàn Presentation và PresentationHash).*
+  - `CvVersion`: `Id`, `CvId`, `VersionNumber`, `Content` (JSONB), `Layout` (JSONB), `CreatedAt`.
+  - `CvTemplate`: Template hệ thống (`ModernTwoColumn`, `Minimalist`, ...), `DefaultContent` (JSONB), `DefaultLayout` (JSONB).
+- **Cấu trúc Document CV dạng JSON (Headless Tiptap CV):**
+  - **Nội dung hiển thị (`Content`):** Mọi trường văn bản hiển thị trên CV (Profile: fullName, title, email, phone, dob, address, website, socialLink; Text Sections & Items: company, position, description, school, title, details, skill name, project name...) đều lưu dưới dạng **Tiptap JSON document đệ quy** (`type`, `text`, `attrs`, `marks`, `content`). Riêng `avatarUrl` là chuỗi `string`.
+  - **Hệ thống Hằng số & Strict Schema (`CvTiptapSchema`):**
+    - Tập trung constants tại `CvTiptapNodeTypes` (`Doc`, `Paragraph`, `Text`, `BulletList`, `OrderedList`, `ListItem`, `HardBreak`), `CvTiptapMarkTypes` (`Bold`, `Italic`, `Underline`, `Link`, `TextStyle`), `CvTiptapAttributeNames` (`TextAlign`, `ListStyleType`, `Href`, `Target`, `Color`, `FontSize`, `FontFamily`), `CvTextAlignments` (`Left`, `Center`, `Right`, `Justify`), `CvListStyleTypes` (`Disc`, `Decimal`).
+    - Tuyệt đối không hardcode chuỗi literal trong code; dùng các class constants này.
+    - `CvDocumentUpdateValidator` thực hiện strict validation: chặn lỗi chính tả (như typo `"paragrap"`), chặn mark lạ, chặn các thuộc tính thừa không thuộc phạm vi app.
+  - **Style toàn cục (`defaultStyle`):** Nằm gọn trong `content.metadata.defaultStyle` (`fontFamily`, `baseFontSize`, `primaryColors`, `lineHeight`).
+  - **Bố cục (`Layout`):** Cấu hình danh sách areas và vị trí của từng section (`areas: [{ id, sections: [...] }]`).
+  - **Tài liệu `presentation`:** **ĐÃ BỎ HOÀN TOÀN**. Các định dạng inline (bold, italic, link, align...) được lưu trực tiếp trên từng Tiptap node / mark.
+  - **Cơ chế Hash & Versioning:** `CvDocumentHasher` chuẩn hóa `UpdatedAt = MinValue` và `Version = ""` trước khi tính SHA-256 để việc client gửi timestamp khác nhau không sinh version snapshot thừa ngoài ý muốn.
 - **Endpoints:**
   - `GET /api/v1/cvs`: Danh sách CV của Candidate.
-  - `GET /api/v1/cvs/{id}`: Chi tiết CV.
-  - `POST /api/v1/cvs`: Tạo CV mới (từ template hoặc tạo mới).
-  - `PUT /api/v1/cvs/{id}`: Cập nhật CV (tự động tạo phiên bản mới nếu cần).
+  - `GET /api/v1/cvs/{id}`: Chi tiết CV (trả về `content` và `layout`, không còn `presentation`).
+  - `POST /api/v1/cvs`: Tạo CV mới từ template (tính `ContentHash` và `LayoutHash`).
+  - `PATCH /api/v1/cvs/{id}`: Cập nhật CV (kiểm tra thay đổi qua `ContentHash` và `LayoutHash` để tự động tạo version mới).
   - `DELETE /api/v1/cvs/{id}`: Xóa CV.
   - `GET /api/v1/cvs/{id}/versions`: Danh sách các phiên bản lịch sử của CV.
-  - `GET /api/v1/cvs/{id}/versions/{versionId}`: Chi tiết một phiên bản CV (Candidate chủ sở hữu, Admin, hoặc Recruiter có đơn ứng tuyển nộp phiên bản này tới công ty mà Recruiter đang là Active Member).
+  - `GET /api/v1/cvs/{id}/versions/{versionId}`: Chi tiết một phiên bản snapshot CV.
   - `GET /api/v1/cv-templates`: Danh sách template CV hệ thống.
-  - `GET /api/v1/cv-templates/{id}`: Chi tiết template CV.
+  - `GET /api/v1/cv-templates/{id}`: Chi tiết template CV (`defaultContent` chứa `defaultStyle`, `defaultLayout`).
 
 ---
 
@@ -202,12 +208,6 @@ flowchart TD
 
 ### 3.1. Chuẩn hóa Navigation Properties (Quy tắc bắt buộc)
 > **Mọi response API trả về navigation property giữa các bảng PHẢI được đóng gói dạng object gồm các key (ví dụ `{ id, name/fullName, ... }`), TUYỆT ĐỐI KHÔNG chỉ trả về `Guid` thô (`provinceId`, `wardId`, `changedBy: Guid`).**
-
-Ví dụ cụ thể:
-- `Province`: `{ id: "...", name: "Hồ Chí Minh" }`
-- `Ward`: `{ id: "...", name: "Bến Nghé" }`
-- `Company`: `{ id: "...", name: "FPT Software", logoUrl: "..." }`
-- `ChangedBy`: `{ id: "...", fullName: "Nguyễn Văn A", email: "...", avatarUrl: "...", role: "Recruiter" }`
 
 ### 3.2. Tiêu chuẩn Phân trang (Pagination Standard)
 1. **Model tham số tầng Application:** Sử dụng record dùng chung:
@@ -240,11 +240,9 @@ Ví dụ cụ thể:
   - `BadRequest` (400), `Unauthorized` (401), `Forbidden` (403), `NotFound` (404), `Conflict` (409), `Validation` (422), `Internal` (500).
 - Mã lỗi thống nhất định nghĩa trong `SmartHire.Application.Common.Errors.ErrorCodes` (ví dụ `CommonErrorCodes`, `CompanyErrorCodes`, `JobPostingErrorCodes`...).
 
-### 3.4. Định dạng CV WYSIWYG Editor
-- Trình chỉnh sửa CV trực quan: Chỉnh sửa trực tiếp trên từng component nội dung bằng `contentEditable` (không tách cột nhập form bên trái).
-- Top bar giữ lại để điều chỉnh style toàn cục (Font, Cỡ chữ, Màu chủ đạo, Line-height).
-- Action buttons của item nằm ở cạnh phải, hover vào item sẽ hiện nút thêm item mới ngay phía sau vị trí hover.
-- Mô tả công việc/kinh nghiệm lưu trữ dạng **TipTap HTML string**.
+### 3.4. Định dạng CV WYSIWYG Editor & Tiptap JSON
+- Toàn bộ nội dung CV được lưu dưới dạng **Tiptap JSON document** (cây node đệ quy: `{ type: "doc", content: [...] }`).
+- Validation tầng Backend: Trích xuất plain text (`CvTiptapDocument.ExtractPlainText`) để kiểm tra các ràng buộc bắt buộc (Required, MaxLength, Email, Phone di động VN).
 - State quản lý qua **React Hook Form + Zod (Headless Form Provider)**. Template thuần túy chỉ render dữ liệu nhận được, không lưu giữ state trùng lặp.
 
 ---
@@ -252,6 +250,15 @@ Ví dụ cụ thể:
 ## 4. Trạng thái Công việc (Work Status)
 
 ### Đã hoàn thành (Done):
+- [x] **Backend - Cập nhật CV Schema Mới (Tiptap JSON & Loại bỏ Presentation)**:
+  - Định nghĩa `CvTiptapDocument`, `CvTiptapNode`, `CvTiptapMark` với trích xuất plain text và deep clone đệ quy.
+  - Thêm `DefaultStyle` (`fontFamily`, `baseFontSize`, `primaryColors`, `lineHeight`) vào `CvDocumentMetadata`.
+  - Thay đổi toàn bộ trường text trong Profile, Sections, Items sang `CvTiptapDocument`. Giữ `avatarUrl` kiểu `string`.
+  - Xóa hoàn toàn `CvPresentationDocument`, các thuộc tính `Presentation`, `PresentationHash`, `DefaultPresentation`.
+  - Cập nhật `ICvDocumentHasher` và `CvDocumentHasher` chỉ hash `ContentHash` (bao gồm cả style) và `LayoutHash`.
+  - Cập nhật `CvDocumentUpdateValidator`: Validate cấu trúc Tiptap document, validate `defaultStyle`, trích xuất plain text để validate nghiệp vụ.
+  - Cập nhật các DTO và Mapper: `CvResult`, `CvVersionResult`, `CvTemplateResult`, `ApplicationCvSnapshotResult`.
+  - Cấu hình EF Core và sinh migration `20261029094828_UpdateCvSchemaToTiptapAndDropPresentation` drop các cột presentation.
 - [x] **Backend - Đợt chuẩn hóa response Issue #105**:
   - Bổ sung `JobBriefSummary` vào `GET /api/v1/applications/me`.
   - Bổ sung `JobBriefSummary`, `Candidate.Phone`, `CvSnapshot` vào `GET /api/v1/applications/{id}`.
@@ -263,23 +270,21 @@ Ví dụ cụ thể:
   - Chuẩn hóa toàn bộ nhóm API Company dùng `PaginationParams` và `PagedListQueryValidator`.
 - [x] **Backend - API Quản lý Ứng viên theo Công ty (Issue #8 / P3)**:
   - Xây dựng endpoint chuẩn duy nhất `GET /api/v1/companies/{companyId}/applications` trong `CompanyController.cs`.
-  - Triển khai CQRS MediatR: `ListCompanyApplicationsQuery` (kèm validator và handler kiểm tra active membership).
-  - Tái sử dụng và gom nhóm DTOs: `CompanyApplicationFilterRequest`, `SortRequest`, `PaginationRequest`, `CompanyApplicationFilter`, `CompanyApplicationSort`, `PaginationParams`, `CompanyApplicationListItemResult`, `CompanyApplicationMapper`.
-  - Persistence: Cài đặt `CountByCompanyIdAsync` và `GetPageByCompanyIdAsync` trong `JobApplicationRepository.cs` với bộ lọc đa dạng và phân trang chuẩn.
+  - Triển khai CQRS MediatR: `ListCompanyApplicationsQuery`.
+  - Persistence: Cài đặt `CountByCompanyIdAsync` và `GetPageByCompanyIdAsync` trong `JobApplicationRepository.cs`.
 - [x] **Frontend Types**:
-  - Cập nhật `Frontend/src/types/job.ts` và `Frontend/src/types/application.ts` khớp với DTO backend mới.
+  - Cập nhật `Frontend/src/types/job.ts`, `Frontend/src/types/application.ts`, `Frontend/src/types/cv.ts`.
   - Cập nhật endpoints trong `Frontend/src/constants/apiEndpoints.ts`.
 - [x] **Kiểm tra biên dịch**:
   - Backend: `dotnet build /t:Compile Backend/src/SmartHire.API/SmartHire.Api.csproj` -> **0 Warning, 0 Error**.
-  - Frontend: `npm --prefix Frontend run build` -> **0 Error**.
+  - EF Migrations: `dotnet tool run dotnet-ef migrations list` -> **Build succeeded**.
 
 ---
 
 ## 5. Tasks Tiếp theo Cần Thực Hiện (Backlog & Next Steps)
 
 1. **Frontend - Tích hợp `GET /api/v1/me/companies` vào `companyService.ts` (Ưu tiên cao - Fix P1)**:
-   - **Hiện trạng:** Hàm `companyService.getMyCompanies` đang quét toàn bộ công ty trên hệ thống (`getAllPublicCompanyIds`), sau đó loop gọi `getCompanyDetail(id)` từng công ty một. Điều này gây quá tải request nghiêm trọng (P1).
-   - **Giải pháp:** Thay thế toàn bộ logic quét này bằng 1 lời gọi duy nhất tới `GET /api/v1/me/companies`.
+   - Thay thế toàn bộ logic quét này bằng 1 lời gọi duy nhất tới `GET /api/v1/me/companies`.
 2. **Frontend - Tận dụng dữ liệu Backend mới trên UI**:
    - `MyApplicationsPage`: Hiển thị thông tin công việc từ `JobBriefSummary` có sẵn thay vì gọi batch `resolveJobsBatch()`.
    - `JobDetailPage`: Dùng trực tiếp `hasApplied`, `applicationId`, `isFollowingCompany` từ API để set trạng thái nút bấm "Đã ứng tuyển", "Đã theo dõi".

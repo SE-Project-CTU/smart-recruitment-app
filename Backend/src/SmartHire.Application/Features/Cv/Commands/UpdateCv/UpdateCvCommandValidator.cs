@@ -14,8 +14,6 @@ public sealed record ValidatedUpdateCvCommand(
     CvContentDocument? Content,
     bool LayoutProvided,
     CvLayoutDocument? Layout,
-    bool PresentationProvided,
-    CvPresentationDocument? Presentation,
     bool LanguageProvided,
     string? Language,
     bool? IsPublic,
@@ -38,8 +36,7 @@ public static class UpdateCvCommandValidator {
         
         if (!command.TitleProvided && !command.IsPublicProvided &&
             !command.ContentProvided && !command.LayoutProvided &&
-            !command.PresentationProvided && !command.LanguageProvided &&
-            !command.PreviewFileIdProvided) {
+            !command.LanguageProvided && !command.PreviewFileIdProvided) {
             details.Add(new AppErrorDetail("body", ValidationReasons.Required,
                 "Provide at least one field to update."));
         }
@@ -69,11 +66,6 @@ public static class UpdateCvCommandValidator {
         if (command.LayoutProvided && command.Layout is null) {
             details.Add(new AppErrorDetail("layout", ValidationReasons.Required,
                 "Layout cannot be null."));
-        }
-        
-        if (command.PresentationProvided && command.Presentation is null) {
-            details.Add(new AppErrorDetail("presentation", ValidationReasons.Required,
-                "Presentation cannot be null."));
         }
         
         CvLanguage? parsedLanguage = null;
@@ -119,8 +111,6 @@ public static class UpdateCvCommandValidator {
             command.Content,
             command.LayoutProvided,
             command.Layout,
-            command.PresentationProvided,
-            command.Presentation,
             command.LanguageProvided,
             language,
             command.IsPublic,

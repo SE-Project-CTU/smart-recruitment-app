@@ -58,6 +58,5 @@ internal static class ApplicationDetailMapper {
         version.Language == CvLanguage.English ? "en" : "vi",
         version.Content,
         version.Layout,
-        version.Presentation,
         version.CreatedAt);
 }

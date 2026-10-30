@@ -822,18 +822,6 @@ const linkedText = (text: string, href: string) =>
     },
   );
 
-const hiddenTextSection = (title: string) => ({
-  title: richText(paragraph(title, { marks: [{ type: "bold" }] })),
-  visible: false,
-  content: richText(),
-});
-
-const hiddenItemSection = (title: string) => ({
-  title: richText(paragraph(title, { marks: [{ type: "bold" }] })),
-  visible: false,
-  items: [],
-});
-
 /** CV parsed from the LaTeX sample, using the proposed Tiptap JSON structure. */
 export const MOCK_CV_DETAIL_TIPTAP = {
   id: "1deb74e0-5228-4704-b680-1c9f4cc56cfd",
@@ -1016,10 +1004,48 @@ export const MOCK_CV_DETAIL_TIPTAP = {
           },
         ],
       },
-      certifications: hiddenItemSection("Certifications"),
-      awards: hiddenItemSection("Awards"),
-      interests: hiddenTextSection("Interests"),
-      additionalInfo: hiddenTextSection("Additional Information"),
+      certifications: {
+        title: richText(paragraph("Certifications", { marks: [{ type: "bold" }] })),
+        visible: true,
+        items: [
+          {
+            id: "cert_01",
+            name: richText(paragraph("TOEIC 675 – IIG Vietnam", { marks: [{ type: "bold" }] })),
+            issueDate: richText(paragraph("2026-01")),
+          },
+          {
+            id: "cert_02",
+            name: richText(paragraph("Responsive Web Design – freeCodeCamp")),
+            issueDate: richText(paragraph("2025")),
+          },
+        ],
+      },
+      awards: {
+        title: richText(paragraph("Awards", { marks: [{ type: "bold" }] })),
+        visible: true,
+        items: [
+          {
+            id: "award_01",
+            awardName: richText(paragraph("First Prize – CTU IT Hackathon", { marks: [{ type: "bold" }] })),
+            date: richText(paragraph("2025-12")),
+          },
+        ],
+      },
+      interests: {
+        title: richText(paragraph("Interests", { marks: [{ type: "bold" }] })),
+        visible: true,
+        content: richText(
+          paragraph("Building side projects and exploring new web technologies."),
+        ),
+      },
+      additionalInfo: {
+        title: richText(paragraph("Additional Information", { marks: [{ type: "bold" }] })),
+        visible: true,
+        content: richText(
+          paragraph("Languages: Vietnamese (native), English (TOEIC 675)."),
+          paragraph("Availability: Open to full-time opportunities from July 2027."),
+        ),
+      },
     },
   },
   layout: {

@@ -84,7 +84,6 @@ public sealed class GetCvVersionQueryHandler
             version.TemplateId,
             version.Content,
             version.Layout,
-            version.Presentation,
             version.Language,
             version.VersionNumber,
             version.CreatedAt);

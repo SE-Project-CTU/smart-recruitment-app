@@ -9,11 +9,29 @@ public sealed class CvDocumentHasher : ICvDocumentHasher
 {
     public CvDocumentHashes Calculate(
         CvContentDocument content,
-        CvPresentationDocument presentation,
         CvLayoutDocument layout) => new(
-        CalculateHash(content),
-        CalculateHash(presentation),
+        CalculateContentHash(content),
         CalculateHash(layout));
+
+    public static string CalculateContentHash(CvContentDocument content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
+        var normalizedMetadata = content.Metadata is null
+            ? new CvDocumentMetadata()
+            : content.Metadata with
+            {
+                Version = string.Empty,
+                UpdatedAt = DateTimeOffset.MinValue
+            };
+
+        var normalizedContent = content with
+        {
+            Metadata = normalizedMetadata
+        };
+
+        return CalculateHash(normalizedContent);
+    }
 
     public static string CalculateHash<TDocument>(TDocument document)
     {

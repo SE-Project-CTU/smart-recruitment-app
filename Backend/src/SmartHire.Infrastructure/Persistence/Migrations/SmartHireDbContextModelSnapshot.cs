@@ -417,16 +417,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("layout_hash");
 
-                    b.Property<string>("Presentation")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("presentation");
-
-                    b.Property<string>("PresentationHash")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("presentation_hash");
-
                     b.Property<Guid?>("PreviewFileId")
                         .HasColumnType("uuid")
                         .HasColumnName("preview_file_id");
@@ -527,11 +517,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("default_layout");
 
-                    b.Property<string>("DefaultPresentation")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("default_presentation");
-
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("description");
@@ -611,11 +596,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("layout");
-
-                    b.Property<string>("Presentation")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("presentation");
 
                     b.Property<Guid>("TemplateId")
                         .HasColumnType("uuid")

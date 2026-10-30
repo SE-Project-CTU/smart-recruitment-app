@@ -1,5 +1,4 @@
 using MediatR;
-using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.ValueObjects.Cv;
 
@@ -13,8 +12,6 @@ public sealed record UpdateCvCommand(
     CvContentDocument? Content,
     bool LayoutProvided,
     CvLayoutDocument? Layout,
-    bool PresentationProvided,
-    CvPresentationDocument? Presentation,
     bool LanguageProvided,
     string? Language,
     bool? IsPublic,
