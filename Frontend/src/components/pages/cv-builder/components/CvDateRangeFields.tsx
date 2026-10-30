@@ -20,7 +20,7 @@ export const CvDateRangeFields: React.FC<CvDateRangeFieldsProps> = ({
   yearOnly = false,
   isReadOnly = false,
 }) => {
-  const dateWidth = yearOnly ? "w-12" : "w-[3.5rem]";
+  const dateWidth = yearOnly ? "w-12" : "w-max min-w-[3.5rem]";
 
   return (
     <div className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-normal text-slate-600">

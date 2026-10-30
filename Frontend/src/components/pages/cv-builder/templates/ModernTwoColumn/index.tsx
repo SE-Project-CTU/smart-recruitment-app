@@ -21,12 +21,8 @@ import {
 import DraggableSectionActions from "../../components/draggable-section-actions";
 import { useCvMutations } from "@/features/cv-builder/hooks/useCvMutations";
 import type { FixedSectionKey } from "@/features/cv-builder/types";
-
-interface ModernTwoColumnTemplateProps {
-  className?: string;
-  data?: RichTextCvEditorValues;
-  isReadOnly?: boolean;
-}
+import { getCvFontFamilyCss } from "@/features/cv-builder/constants/fonts";
+import type { CvTemplateProps } from "../CvTemplateProps";
 
 /**
  * ModernTwoColumnTemplate:
@@ -35,7 +31,7 @@ interface ModernTwoColumnTemplateProps {
  * đồng thời hỗ trợ Kéo thả (Drag & Drop) để sắp xếp lại vị trí các Section.
  */
 export const ModernTwoColumnTemplate: React.FC<
-  ModernTwoColumnTemplateProps
+  CvTemplateProps
 > = ({ className = "", data: externalData, isReadOnly = false }) => {
   const formContext = useFormContext<RichTextCvEditorValues>();
 
@@ -181,7 +177,7 @@ export const ModernTwoColumnTemplate: React.FC<
     <div
       className={`mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
       style={{
-        fontFamily: `'${fontFamily}', sans-serif`,
+        fontFamily: getCvFontFamilyCss(fontFamily),
         fontSize: `${baseFontSize}px`,
         lineHeight,
       }}
@@ -204,7 +200,7 @@ export const ModernTwoColumnTemplate: React.FC<
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className="mt-3"
+              // className="mt-3"
             >
               {sectionOrder.map((sectionKey, index) => (
                 <Draggable

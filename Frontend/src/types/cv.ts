@@ -18,7 +18,8 @@ export interface CVTemplateItem {
 
 export interface CVPreviewFile {
   id: string;
-  fileUrl: string;
+  fileUrl?: string;
+  url?: string;
 }
 
 export interface CVItem {
@@ -64,14 +65,10 @@ export interface CvFilterParams {
   search?: string;
 }
 
-export interface CVPreviewFile {
-  id: string;
-  url: string;
-}
 
 export interface CVDocumentMetadata {
   version: string;
-  templateCode: string;
+  templateCode: CvTemplateCode;
   language: "vi" | "en" | string;
   updatedAt: string;
 }
@@ -262,9 +259,11 @@ export interface CvDefaultStyle {
   lineHeight: number;
 }
 
+export type CvTemplateCode = "modern_two_column";
+
 export interface CvTiptapDocumentMetadata {
   version: string;
-  templateCode: string;
+  templateCode: CvTemplateCode;
   language: "vi" | "en";
   updatedAt?: string;
   defaultStyle: CvDefaultStyle;

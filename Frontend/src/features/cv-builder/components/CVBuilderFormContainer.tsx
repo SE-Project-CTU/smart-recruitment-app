@@ -14,8 +14,8 @@ import { MOCK_CV_DETAIL_TIPTAP } from "@/constants/mockCvData";
 import { richTextCvEditorSchema, type RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
 import { buildRichTextCvInitialValues } from "@/features/cv-builder/utils/richTextInitialValues";
 import { extractTiptapPlainText } from "@/features/cv-builder/utils/tiptapJson";
-import { ModernTwoColumnTemplate } from "@/components/pages/cv-builder/templates/ModernTwoColumn";
 import CvBuilderWysiwygToolbar from "@/components/pages/cv-builder/cv-builder-wysiwyg-toolbar";
+import CvBuilderWorkspace from "@/components/pages/cv-builder/cv-builder-workspace";
 
 export const CVBuilderFormContainer: React.FC = () => {
   const [isLocked, setIsLocked] = useState(false);
@@ -133,11 +133,10 @@ export const CVBuilderFormContainer: React.FC = () => {
         )}
 
         {/* ================= 3. TRANG GIẤY A4 WYSIWYG WORKSPACE ================= */}
-        <main className="flex flex-1 justify-center overflow-x-auto px-4 py-8 bg-slate-100">
-          <div ref={cvPrintRef} className="print-container">
-            <ModernTwoColumnTemplate isReadOnly={isLocked} />
-          </div>
-        </main>
+        <CvBuilderWorkspace
+          contentRef={cvPrintRef}
+          isReadOnly={isLocked}
+        />
       </form>
     </FormProvider>
   );

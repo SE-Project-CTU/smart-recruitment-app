@@ -840,7 +840,7 @@ export const MOCK_CV_DETAIL_TIPTAP = {
       language: "en",
       updatedAt: "2026-10-28T00:00:00.000000+00:00",
       defaultStyle: {
-        fontFamily: "Computer Modern",
+        fontFamily: "inter",
         baseFontSize: 11,
         primaryColors: ["#000000", "#466E8C"],
         lineHeight: 1.2,

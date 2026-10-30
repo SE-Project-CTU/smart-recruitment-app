@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import type { CvTiptapDocument } from "@/types/cv";
 import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
 import { cvTiptapExtensions } from "@/features/cv-builder/editor/cvTiptapExtensions";
+import { CV_FONT_OPTIONS } from "@/features/cv-builder/constants/fonts";
 import {
   createEmptyTiptapDocument,
   sanitizeTiptapDocument,
@@ -30,11 +31,7 @@ interface TiptapFieldProps {
   multiline?: boolean;
 }
 
-const FONT_FAMILIES = [
-  { label: "Inter", value: "inter" },
-  { label: "Roboto", value: "roboto" },
-  { label: "Merriweather", value: "merriweather" },
-];
+
 
 function FieldToolbar({
   editor,
@@ -47,13 +44,18 @@ function FieldToolbar({
 }) {
   const active = useEditorState({
     editor,
-    selector: ({ editor: current }) => ({
-      bold: current.isActive("bold"),
-      italic: current.isActive("italic"),
-      underline: current.isActive("underline"),
-      bulletList: current.isActive("bulletList"),
-      orderedList: current.isActive("orderedList"),
-    }),
+    selector: ({ editor: current }) => {
+      const rawFont = (current.getAttributes("textStyle").fontFamily as string) || "";
+      const normalizedFont = rawFont.replace(/['"]/g, "").trim().toLowerCase();
+      return {
+        bold: current.isActive("bold"),
+        italic: current.isActive("italic"),
+        underline: current.isActive("underline"),
+        bulletList: current.isActive("bulletList"),
+        orderedList: current.isActive("orderedList"),
+        fontFamily: normalizedFont,
+      };
+    },
   });
 
   const actionClass = (isActive = false) =>
@@ -132,19 +134,20 @@ function FieldToolbar({
         aria-label="Font chữ"
         title="Font chữ"
         className="h-7 max-w-28 rounded border border-slate-200 bg-white px-1 text-xs"
-        defaultValue=""
+        value={active?.fontFamily || ""}
         onChange={(event) => {
-          if (event.target.value)
-            editor.chain().focus().setFontFamily(event.target.value).run();
-          event.target.value = "";
+          const selectedFont = event.target.value;
+          if (selectedFont) {
+            editor.chain().focus().setFontFamily(selectedFont).run();
+          } else {
+            editor.chain().focus().unsetFontFamily().run();
+          }
         }}
       >
-        <option value="" disabled>
-          Font
-        </option>
-        {FONT_FAMILIES.map((font) => (
-          <option key={font.value} value={font.value}>
-            {font.label}
+        <option value="">Mặc định</option>
+        {CV_FONT_OPTIONS.map((font) => (
+          <option key={font.id} value={font.id}>
+            {font.name}
           </option>
         ))}
       </select>

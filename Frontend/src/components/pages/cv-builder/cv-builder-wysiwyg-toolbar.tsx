@@ -1,20 +1,15 @@
 import { Palette, Type } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
+import { CV_FONT_OPTIONS } from "@/features/cv-builder/constants/fonts";
 
-export const THEME_COLORS = [
+const THEME_COLORS = [
   { name: "Classic Navy (Primary)", value: "#0F172A", light: "#D6F1FC" },
   { name: "SmartHire Sky (Secondary)", value: "#0284C7", light: "#E0F2FE" },
   { name: "Emerald Professional", value: "#047857", light: "#D1FAE5" },
   { name: "Slate Minimal", value: "#334155", light: "#F1F5F9" },
   { name: "Crimson Red", value: "#DC2626", light: "#FEE2E2" },
   { name: "Purple Elegance", value: "#7C3AED", light: "#EDE9FE" },
-];
-
-export const FONT_OPTIONS = [
-  { name: "Inter (Hiện đại)", value: "inter" },
-  { name: "Roboto (Tiêu chuẩn)", value: "roboto" },
-  { name: "Merriweather (Cổ điển Serif)", value: "merriweather" },
 ];
 
 interface CvBuilderWysiwygToolbarProps {
@@ -59,9 +54,9 @@ export default function CvBuilderWysiwygToolbar({
           {...register("content.metadata.defaultStyle.fontFamily")}
           className="bg-transparent text-xs font-medium text-text-main focus:outline-none cursor-pointer"
         >
-          {FONT_OPTIONS.map((f) => (
-            <option key={f.value} value={f.value}>
-              {f.name}
+          {CV_FONT_OPTIONS.map((font) => (
+            <option key={font.id} value={font.id}>
+              {font.name}
             </option>
           ))}
         </select>
