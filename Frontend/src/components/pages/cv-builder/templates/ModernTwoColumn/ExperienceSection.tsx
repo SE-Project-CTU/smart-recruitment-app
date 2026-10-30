@@ -59,6 +59,7 @@ export const ExperienceSection: React.FC<Props> = ({
               <ItemActions
                 isFirst={index === 0}
                 isLast={index === fields.length - 1}
+                canDelete={fields.length > 1}
                 onMoveUp={() => move(index, index - 1)}
                 onMoveDown={() => move(index, index + 1)}
                 onAddAfter={() => add(index)}

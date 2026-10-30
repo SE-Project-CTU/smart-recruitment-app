@@ -9,6 +9,7 @@ interface ItemActionsProps {
   onMoveDown?: () => void;
   onAddAfter?: () => void;
   onDelete?: () => void;
+  canDelete?: boolean;
   className?: string;
 }
 
@@ -19,6 +20,7 @@ export const ItemActions: React.FC<ItemActionsProps> = ({
   onMoveDown,
   onAddAfter,
   onDelete,
+  canDelete = true,
   className,
 }) => {
   const actionBtnClass =
@@ -61,8 +63,8 @@ export const ItemActions: React.FC<ItemActionsProps> = ({
         </button>
       )}
 
-      {/* Nút Xóa */}
-      {onDelete && (
+      {/* Nút Xóa: chỉ hiện khi có nhiều hơn 1 item */}
+      {onDelete && canDelete && (
         <button
           type="button"
           onClick={onDelete}
