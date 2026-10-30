@@ -111,8 +111,19 @@ export function RecruiterJobListPage() {
       if (statusFilter !== "ALL") {
         const s = (job.status || "").toUpperCase();
         const target = statusFilter.toUpperCase();
-        if (target === "PUBLISHED" && s !== "PUBLISHED" && s !== "OPEN" && s !== "ACTIVE") return false;
-        if (target === "PENDINGREVIEW" && s !== "PENDINGREVIEW" && s !== "PENDING_REVIEW") return false;
+        if (
+          target === "PUBLISHED" &&
+          s !== "PUBLISHED" &&
+          s !== "OPEN" &&
+          s !== "ACTIVE"
+        )
+          return false;
+        if (
+          target === "PENDINGREVIEW" &&
+          s !== "PENDINGREVIEW" &&
+          s !== "PENDING_REVIEW"
+        )
+          return false;
         if (target === "CLOSED" && s !== "CLOSED") return false;
         if (target === "EXPIRED" && s !== "EXPIRED") return false;
       }
@@ -195,7 +206,7 @@ export function RecruiterJobListPage() {
               <LibraryBig className="size-5" />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-text-main sm:text-2xl">
-              Danh sách tin tuyển dụng (JD)
+              Danh sách tin tuyển dụng
             </h1>
           </div>
           <p className="mt-1 text-xs text-text-muted sm:text-sm">

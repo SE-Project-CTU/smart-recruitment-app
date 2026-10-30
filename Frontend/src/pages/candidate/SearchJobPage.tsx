@@ -20,12 +20,7 @@ import {
 } from "@/components/LocationCombobox";
 import { JobDetailDrawer } from "@/components/job";
 import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
-import {
-  MOCK_JOB_POSTINGS,
-  MOCK_LOCATION_HIERARCHY,
-  type MockJobPosting,
-  type LocationGroup,
-} from "@/constants/mockData";
+import { MOCK_JOB_POSTINGS, type MockJobPosting } from "@/constants/mockData";
 import { Smarthire_icon_default } from "@/assets/images/logo";
 
 type SortKey = "AI_MATCH" | "NEWEST" | "SALARY_DESC" | "SALARY_ASC";
@@ -62,27 +57,6 @@ export default function SearchJobPage() {
   const [bookmarkedJobIds, setBookmarkedJobIds] = useState<Set<string>>(
     new Set(),
   );
-
-  const locationHierarchy = useMemo<LocationGroup[]>(() => {
-    const map = new Map<string, Set<string>>();
-
-    MOCK_LOCATION_HIERARCHY.forEach((group) => {
-      map.set(group.province, new Set(group.wards));
-    });
-
-    (MOCK_JOB_POSTINGS || []).forEach((job) => {
-      const p = job.location.provinceName;
-      const w = job.location.wardName;
-      if (!p) return;
-      if (!map.has(p)) map.set(p, new Set());
-      if (w) map.get(p)!.add(w);
-    });
-
-    return Array.from(map.entries()).map(([province, wardsSet]) => ({
-      province,
-      wards: Array.from(wardsSet),
-    }));
-  }, []);
 
   const handleToggleArrayFilter = (
     key: "industries" | "jobTypes" | "workModes" | "jobLevels",
@@ -301,7 +275,6 @@ export default function SearchJobPage() {
                   <LocationCombobox
                     value={selectedLocation}
                     onChange={setSelectedLocation}
-                    groups={locationHierarchy}
                     className="w-full"
                     buttonClassName="flex w-full cursor-pointer items-center justify-between gap-2 border-0 bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none"
                   />
@@ -346,7 +319,7 @@ export default function SearchJobPage() {
       </div>
 
       <div className="flex flex-col items-start gap-6 lg:flex-row">
-        <div className="sticky top-4 hidden w-72 shrink-0 lg:block">
+        <div className="sticky top-4 hidden w-78 shrink-0 lg:block">
           <JobFilterSidebar
             filters={filters}
             onToggleArrayFilter={handleToggleArrayFilter}
