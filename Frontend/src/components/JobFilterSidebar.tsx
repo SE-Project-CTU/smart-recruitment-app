@@ -247,10 +247,11 @@ export function JobFilterSidebar({
             Mức lương
           </h3>
           <span className="text-[11px] font-semibold text-primary">
-            ${effectiveRange[0]} -$
+            {effectiveRange[0]} -{" "}
             {effectiveRange[1] >= SALARY_MAX_LIMIT
-              ? `${SALARY_MAX_LIMIT}+`
-              : effectiveRange[1]}
+              ? `${SALARY_MAX_LIMIT}`
+              : effectiveRange[1]}{" "}
+            triệu
           </span>
         </div>
 
@@ -323,11 +324,8 @@ export function JobFilterSidebar({
               }
               onChange={(e) => handleInputChange("minSalary", e.target.value)}
               placeholder="Từ 0"
-              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-6 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
+              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
-            <span className="pointer-events-none absolute right-2.5 text-xs font-semibold text-text-muted">
-              $
-            </span>
           </div>
 
           <div className="relative flex items-center">
@@ -345,11 +343,8 @@ export function JobFilterSidebar({
               }
               onChange={(e) => handleInputChange("maxSalary", e.target.value)}
               placeholder={`Đến ${SALARY_MAX_LIMIT}`}
-              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-6 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
+              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
-            <span className="pointer-events-none absolute right-2.5 text-xs font-semibold text-text-muted">
-              $
-            </span>
           </div>
         </div>
 
