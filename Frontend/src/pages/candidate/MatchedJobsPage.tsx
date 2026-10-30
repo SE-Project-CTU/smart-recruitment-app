@@ -237,7 +237,7 @@ export default function MatchedJobsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm công việc, doanh nghiệp, kỹ năng đề xuất..."
-              className="w-full rounded-full border border-border bg-slate-50/70 py-2.5 pr-9 pl-10 text-xs font-medium text-text-main placeholder:text-text-muted transition-colors focus:border-primary focus:bg-white focus:outline-none"
+              className="w-full rounded-full border border-border bg-slate-50/70 py-2.5 pr-9 pl-10 text-xs font-medium text-text-main transition-colors placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
             />
             {searchQuery && (
               <button
@@ -253,11 +253,27 @@ export default function MatchedJobsPage() {
 
           {/* Nhóm bộ lọc & sắp xếp */}
           <div className="flex flex-wrap items-center gap-2.5 sm:flex-nowrap">
+            {/* Nút reset nhanh khi có bộ lọc */}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                title="Đặt lại bộ lọc về mặc định"
+                className="flex cursor-pointer items-center gap-1 rounded-full border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-primary/40 hover:text-text-main"
+              >
+                <RotateCcw className="size-3" />
+                <span className="hidden sm:inline">Đặt lại</span>
+              </button>
+            )}
             {/* Lọc theo mức độ phù hợp tối thiểu */}
             <div className="flex items-center gap-1.5 rounded-full border border-border bg-slate-50/70 px-3 py-1.5 text-xs">
               <Target className="size-3.5 text-text-muted" />
               <span className="font-medium text-text-muted">Độ khớp:</span>
-              <div className="flex items-center gap-1" role="group" aria-label="Lọc theo ngưỡng điểm khớp">
+              <div
+                className="flex items-center gap-1"
+                role="group"
+                aria-label="Lọc theo ngưỡng điểm khớp"
+              >
                 {[70, 80, 90].map((score) => {
                   const isSelected = minMatchScore === score;
                   return (
@@ -334,7 +350,10 @@ export default function MatchedJobsPage() {
                 </Select.Trigger>
 
                 <Select.Portal>
-                  <Select.Positioner alignItemWithTrigger={false} sideOffset={6}>
+                  <Select.Positioner
+                    alignItemWithTrigger={false}
+                    sideOffset={6}
+                  >
                     <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1">
                       <Select.List>
                         {SORT_OPTIONS.map((opt) => (
@@ -358,19 +377,6 @@ export default function MatchedJobsPage() {
                 </Select.Portal>
               </Select.Root>
             </div>
-
-            {/* Nút reset nhanh khi có bộ lọc */}
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                title="Đặt lại bộ lọc về mặc định"
-                className="flex cursor-pointer items-center gap-1 rounded-full border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-primary/40 hover:text-text-main"
-              >
-                <RotateCcw className="size-3" />
-                <span className="hidden sm:inline">Đặt lại</span>
-              </button>
-            )}
           </div>
         </div>
       </section>

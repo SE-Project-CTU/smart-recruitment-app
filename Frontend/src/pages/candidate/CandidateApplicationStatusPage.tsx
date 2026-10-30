@@ -20,7 +20,12 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
-import { Button, DataTable, type DataTableFeatures } from "@/components/common";
+import {
+  Button,
+  DataTable,
+  TableSkeleton,
+  type DataTableFeatures,
+} from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,
@@ -308,7 +313,7 @@ export default function CandidateApplicationStatusPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-text-muted">
             Tổng đơn nộp
           </span>
@@ -316,19 +321,19 @@ export default function CandidateApplicationStatusPage() {
             {stats.total}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-sky-600">Đang xem xét</span>
           <span className="mt-2 text-2xl font-bold text-sky-700">
             {stats.reviewing}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-amber-600">Phỏng vấn</span>
           <span className="mt-2 text-2xl font-bold text-amber-700">
             {stats.interview}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-emerald-600">
             Được đề nghị việc
           </span>
@@ -339,7 +344,7 @@ export default function CandidateApplicationStatusPage() {
       </div>
 
       {/* 2. Main Tracking Table Section with Filter & Search */}
-      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-6 shadow-2xs">
+      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-2xs">
         {/* Toolbar: Search input + Status Select Filter */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-xs">
@@ -349,12 +354,12 @@ export default function CandidateApplicationStatusPage() {
               placeholder="Tìm theo vị trí, công ty..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-3 pl-9 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-3 pl-9 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
             />
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-1.5 shadow-2xs">
               <Filter className="size-3.5 text-slate-400" />
               <span className="text-xs text-slate-500">Trạng thái:</span>
 
@@ -381,7 +386,7 @@ export default function CandidateApplicationStatusPage() {
                     alignItemWithTrigger={false}
                     sideOffset={4}
                   >
-                    <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                    <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
                       <Select.List>
                         {APPLICATION_STATUS_OPTIONS.map((status) => (
                           <Select.Item
@@ -409,14 +414,7 @@ export default function CandidateApplicationStatusPage() {
 
         {/* Bảng dữ liệu ứng tuyển */}
         {isLoading ? (
-          <div className="space-y-3 py-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-14 w-full animate-pulse rounded-xl border border-border bg-slate-50"
-              />
-            ))}
-          </div>
+          <TableSkeleton />
         ) : filteredApplications.length > 0 ? (
           <>
             <DataTable
@@ -532,7 +530,7 @@ export default function CandidateApplicationStatusPage() {
                     className="size-11 shrink-0 rounded-xl border border-border object-cover"
                   />
                 ) : (
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-white text-xs font-bold text-slate-600">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-xs font-bold text-slate-600">
                     <Building2 className="size-5 text-slate-400" />
                   </div>
                 )}
@@ -561,7 +559,7 @@ export default function CandidateApplicationStatusPage() {
 
               {/* Cover Letter nếu có */}
               {selectedApplication.coverLetter && (
-                <div className="rounded-xl border border-border bg-white p-3">
+                <div className="rounded-xl border border-border bg-surface p-3">
                   <span className="text-xs font-semibold text-slate-700">
                     Thư giới thiệu của bạn:
                   </span>
@@ -641,9 +639,7 @@ export default function CandidateApplicationStatusPage() {
 
                                 {stepTime && (
                                   <span className="text-[11px] text-text-muted">
-                                    {dayjs(stepTime).format(
-                                      "DD/MM/YYYY HH:mm",
-                                    )}
+                                    {dayjs(stepTime).format("DD/MM/YYYY HH:mm")}
                                   </span>
                                 )}
                               </div>
