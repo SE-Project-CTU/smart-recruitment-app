@@ -147,8 +147,10 @@ export default function CandidateCvManagementPage() {
 
   // Tải file CV
   const handleDownloadCv = (cv: CVItem) => {
-    if (cv.previewFile?.fileUrl) {
-      window.open(cv.previewFile.fileUrl, "_blank");
+    const previewFileUrl = cv.previewFile?.url
+
+    if (previewFileUrl) {
+      window.open(previewFileUrl, "_blank");
     } else {
       toast({
         title: "Tải file CV",

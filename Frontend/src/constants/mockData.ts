@@ -1,4 +1,4 @@
-import type { CVItem } from "@/types/cv";
+﻿import type { CVItem } from "@/types/cv";
 
 export const isLoggedIn = false;
 
@@ -494,9 +494,8 @@ export const MOCK_CVS: CVItem[] = [
     candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
     createdAt: "2026-10-15T09:00:00Z",
     updatedAt: "2026-10-17T11:20:00Z",
-    // Test trường hợp không có ảnh -> Sẽ tự render khung Skeleton vẽ sẵn
-    thumbnailUrl:
-      "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-tieu-chuan-it-kinh-nghiem-_AwMBBgcFDlZRVAYCWQwLUgBVB1ACUlQAAlsHUg57b4.webp?t=1763723169&color=F6F6F6&template_name=default_junior&lang=vi",
+    // Test trường hợp không có ảnh preview -> Sẽ tự render khung Skeleton vẽ sẵn
+    previewFile: null,
   },
   {
     id: "c4f7bf86-4375-48fd-a5d7-f3g2g8b81d0e",
@@ -512,8 +511,10 @@ export const MOCK_CVS: CVItem[] = [
     candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
     createdAt: "2026-10-10T08:30:00Z",
     updatedAt: "2026-10-12T14:45:00Z",
-    thumbnailUrl:
-      "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-toi-gian-2-_BQIFVQdWDgNUDgJXVlcNCw0KDwxSV1ZTVFAJBge3ff.webp?t=1762145812&color=263A4D&template_name=minimalism_v2&lang=vi",
+    previewFile: {
+      id: "preview-c4f7bf86",
+      url: "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-toi-gian-2-_BQIFVQdWDgNUDgJXVlcNCw0KDwxSV1ZTVFAJBge3ff.webp?t=1762145812&color=263A4D&template_name=minimalism_v2&lang=vi",
+    },
   },
   {
     id: "d5g8cf97-5486-49ge-b6e8-g4h3h9c92e1f",
@@ -529,9 +530,11 @@ export const MOCK_CVS: CVItem[] = [
     candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
     createdAt: "2026-09-28T14:15:00Z",
     updatedAt: "2026-10-05T09:10:00Z",
-    // Test trường hợp có ảnh thumbnail mẫu
-    thumbnailUrl:
-      "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-senior-_B1tfBFEAUgALBAgBBl0MD1wECQBQAQFQAwIAAw44ec.webp?t=1756265781&color=000000&template_name=senior_v2&lang=vi",
+    // Test trường hợp có ảnh thumbnail preview
+    previewFile: {
+      id: "preview-d5g8cf97",
+      url: "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-senior-_B1tfBFEAUgALBAgBBl0MD1wECQBQAQFQAwIAAw44ec.webp?t=1756265781&color=000000&template_name=senior_v2&lang=vi",
+    },
   },
   {
     id: "e6h9dg08-6597-40hf-c7f9-h5i4i0d03f2g",
@@ -547,8 +550,10 @@ export const MOCK_CVS: CVItem[] = [
     candidateId: "7d9e6f7a-08d8-4e2a-8f68-5d0cb4f47e4a",
     createdAt: "2026-09-15T16:00:00Z",
     updatedAt: "2026-09-25T10:30:00Z",
-    thumbnailUrl:
-      "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-clarity-_A1QFA1EGBwJXUVcACgcPAA1RVAVcUlcBBwYEAg90e5.webp?t=1751514549&color=2E2E2E&template_name=clarity&lang=vi",
+    previewFile: {
+      id: "preview-e6h9dg08",
+      url: "https://www.topcv.vn/cv/snapshot/template-cv/mau-cv-clarity-_A1QFA1EGBwJXUVcACgcPAA1RVAVcUlcBBwYEAg90e5.webp?t=1751514549&color=2E2E2E&template_name=clarity&lang=vi",
+    },
   },
 ];
 

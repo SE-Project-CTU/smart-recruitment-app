@@ -29,9 +29,9 @@ export function CVCard({
     <div className="group flex flex-col justify-between rounded-2xl border border-border bg-white shadow-2xs transition-all duration-300 hover:border-secondary hover:shadow-md">
       {/* Khung ảnh thumbnail */}
       <div className="group/image relative flex aspect-3/4 w-full flex-col justify-between overflow-hidden rounded-t-2xl">
-        {cv.thumbnailUrl ? (
+        {cv.previewFile?.url ? (
           <img
-            src={cv.thumbnailUrl}
+            src={cv.previewFile.url}
             alt={cv.title}
             className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
           />

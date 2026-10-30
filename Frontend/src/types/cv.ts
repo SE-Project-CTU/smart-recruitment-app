@@ -18,8 +18,7 @@ export interface CVTemplateItem {
 
 export interface CVPreviewFile {
   id: string;
-  fileUrl?: string;
-  url?: string;
+  url: string;
 }
 
 export interface CVItem {
@@ -31,7 +30,6 @@ export interface CVItem {
   language: "vi" | "en" | string;
   isPublic: boolean;
   previewFile?: CVPreviewFile | null;
-  thumbnailUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,11 +37,13 @@ export interface CVItem {
 export interface CreateCvPayload {
   templateId: string;
   title: string;
-  language: "vi" | "en" | string;
+  language?: "vi" | "en" | string;
 }
 
 export interface UpdateCvPayload {
   title?: string;
+  content?: RichTextCVContentDocument;
+  layout?: CVLayoutDocument;
   isPublic?: boolean;
   language?: "vi" | "en" | string;
   previewFileId?: string;
@@ -53,7 +53,7 @@ export interface CVVersionItem {
   id: string;
   cvId: string;
   versionNumber: number;
-  title?: string;
+  language: string;
   createdAt: string;
 }
 
@@ -224,4 +224,20 @@ export interface RichTextCVDetail {
   createdAt: string;
   updatedAt: string;
   previewFile?: CVPreviewFile | null;
+}
+
+export interface CVTemplateDetail extends CVTemplateItem {
+  defaultLayout: CVLayoutDocument;
+  defaultContent: RichTextCVContentDocument;
+}
+
+export interface CVVersionDetail {
+  id: string;
+  cvId: string;
+  templateId: string;
+  content: RichTextCVContentDocument;
+  layout: CVLayoutDocument;
+  language: "vi" | "en";
+  versionNumber: number;
+  createdAt: string;
 }
