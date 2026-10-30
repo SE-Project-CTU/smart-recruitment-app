@@ -105,7 +105,7 @@ function richTextSchema(options: {
 
 const defaultStyleSchema = z.object({
   fontFamily: z.string().min(1, "Font chữ không được để trống"),
-  baseFontSize: z.number().positive("Cỡ chữ phải là số dương"),
+  fontScale: z.number().min(0.5, "Tỉ lệ cỡ chữ tối thiểu là 50%").max(2.0, "Tỉ lệ cỡ chữ tối đa là 200%").default(1.0),
   primaryColors: z.array(z.string()).min(1, "Cần ít nhất một màu chủ đạo"),
   lineHeight: z.number().positive("Khoảng cách dòng phải là số dương"),
 });

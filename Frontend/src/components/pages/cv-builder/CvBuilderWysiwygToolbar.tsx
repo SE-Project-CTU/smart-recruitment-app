@@ -1,3 +1,22 @@
+const FONT_SCALE_OPTIONS = [
+  { value: 0.5, label: "50%" },
+  { value: 0.6, label: "60%" },
+  { value: 0.7, label: "70%" },
+  { value: 0.8, label: "80%" },
+  { value: 0.9, label: "90%" },
+  { value: 1.0, label: "100%" },
+  { value: 1.1, label: "110%" },
+  { value: 1.2, label: "120%" },
+  { value: 1.3, label: "130%" },
+  { value: 1.4, label: "140%" },
+  { value: 1.5, label: "150%" },
+  { value: 1.6, label: "160%" },
+  { value: 1.7, label: "170%" },
+  { value: 1.8, label: "180%" },
+  { value: 1.9, label: "190%" },
+  { value: 2.0, label: "200%" },
+];
+
 import { Palette, Type } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
@@ -84,19 +103,21 @@ export default function CvBuilderWysiwygToolbar({
         </div>
       </div>
 
-      {/* 3. Cỡ chữ & Line Height */}
+      {/* 3. Tỉ lệ cỡ chữ & Line Height */}
       <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1 text-xs text-text-main shadow-2xs">
         <span className="text-text-muted">Cỡ chữ:</span>
-        <input
-          type="number"
-          min={11}
-          max={16}
-          {...register("content.metadata.defaultStyle.baseFontSize", {
+        <select
+          {...register("content.metadata.defaultStyle.fontScale", {
             valueAsNumber: true,
           })}
-          className="w-10 rounded border border-border bg-bg px-1 py-0.5 text-center text-xs focus:border-primary focus:outline-none"
-        />
-        <span className="text-slate-400">px</span>
+          className="rounded border border-border bg-bg px-1.5 py-0.5 text-center text-xs text-text-main focus:border-primary focus:outline-none cursor-pointer"
+        >
+          {FONT_SCALE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
 
         <div className="mx-1 h-4 w-px bg-border" />
 
@@ -112,7 +133,6 @@ export default function CvBuilderWysiwygToolbar({
           className="w-12 rounded border border-border bg-bg px-1 py-0.5 text-center text-xs focus:border-primary focus:outline-none"
         />
       </div>
-
     </div>
   );
 }

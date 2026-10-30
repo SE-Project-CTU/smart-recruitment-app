@@ -14,7 +14,7 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({ section, pri
   return (
     <div className="section-objective mb-3 group relative">
       <SectionTitle placeholder="MỤC TIÊU NGHỀ NGHIỆP" formFieldName="content.sections.objective.title" primaryColor={primaryColor} isReadOnly={isReadOnly} />
-      <div className="min-h-5 text-xs leading-relaxed text-slate-700">
+      <div className="min-h-5 text-slate-700">
         <TiptapField name="content.sections.objective.content" placeholder="Mô tả mục tiêu nghề nghiệp của bạn..." multiline isReadOnly={isReadOnly} />
       </div>
     </div>

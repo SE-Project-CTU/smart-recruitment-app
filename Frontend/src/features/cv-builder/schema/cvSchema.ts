@@ -207,7 +207,8 @@ export const cvLayoutDocumentSchema = z
 // ==========================================
 export const cvGlobalStyleSchema = z.object({
   fontFamily: z.string().min(1, "Font chữ không được để trống"),
-  baseFontSize: z.number().positive("Cỡ chữ phải là số dương"),
+  fontScale: z.number().min(0.5).max(2.0).default(1.0),
+  baseFontSize: z.number().optional(),
   primaryColor: z.array(z.string()).min(1, "Màu chủ đạo không được để trống"),
   lineHeight: z.number().positive("Khoảng cách dòng phải là số dương"),
 });

@@ -2,24 +2,28 @@ import React, { useState, useRef } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useReactToPrint } from "react-to-print";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   CheckCircle2,
   Download,
   Edit3,
   FileCheck,
   AlertCircle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { MOCK_CV_DETAIL_TIPTAP } from "@/constants/mockCvData";
 import { richTextCvEditorSchema, type RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
 import { buildRichTextCvInitialValues } from "@/features/cv-builder/utils/richTextInitialValues";
 import { extractTiptapPlainText } from "@/features/cv-builder/utils/tiptapJson";
-import CvBuilderWysiwygToolbar from "@/components/pages/cv-builder/cv-builder-wysiwyg-toolbar";
-import CvBuilderWorkspace from "@/components/pages/cv-builder/cv-builder-workspace";
+import CvBuilderWysiwygToolbar from "@/components/pages/cv-builder/CvBuilderWysiwygToolbar";
+import CvBuilderWorkspace from "@/components/pages/cv-builder/CvBuilderWorkspace";
 
 export const CVBuilderFormContainer: React.FC = () => {
   const [isLocked, setIsLocked] = useState(false);
   const cvPrintRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Khởi tạo React Hook Form với zodResolver
   const methods = useForm<RichTextCvEditorValues>({
@@ -29,13 +33,14 @@ export const CVBuilderFormContainer: React.FC = () => {
   });
 
   const {
+    register,
     handleSubmit,
     formState: { errors },
   } = methods;
 
   const handleDownloadPdf = useReactToPrint({
     contentRef: cvPrintRef,
-    documentTitle: `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
+    documentTitle: methods.getValues("title") || `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
   });
 
   const onValidSubmit = (data: RichTextCvEditorValues) => {
@@ -53,21 +58,40 @@ export const CVBuilderFormContainer: React.FC = () => {
         {/* ================= 1. TOP NAVBAR ================= */}
         <header className="no-print sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface px-6 py-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-lg font-bold text-secondary shadow-sm">
-              S
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-primary">SmartHire</span>
-                <span className="rounded-full bg-secondary-light px-2.5 py-0.5 text-xs font-semibold text-primary">
-                  WYSIWYG CV Studio
-                </span>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main"
+              title="Quay lại"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+
+            <div className="flex flex-col">
+              <div className="group flex items-center gap-1.5">
+                <input
+                  {...register("title")}
+                  disabled={isLocked}
+                  title="Nhấp để đổi tên CV"
+                  placeholder="Nhập tiêu đề CV..."
+                  className={cn(
+                    "h-8 min-w-[540px] w-max rounded-md px-2 text-base font-semibold text-text-main transition-all",
+                    "border border-transparent hover:border-border hover:bg-bg",
+                    "focus:border-primary focus:bg-surface focus:outline-none focus:ring-1 focus:ring-primary",
+                    errors.title && "border-status-error focus:border-status-error focus:ring-status-error",
+                    isLocked && "cursor-default bg-transparent hover:border-transparent hover:bg-transparent"
+                  )}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      e.currentTarget.blur();
+                    }
+                  }}
+                />
+                {!isLocked && (
+                  <Edit3 className="h-3.5 w-3.5 text-text-muted opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
+                )}
               </div>
-              <p className="text-xs text-text-muted">
-                {isLocked
-                  ? "Chế độ Xem trước bản in (Đã khóa chỉnh sửa)"
-                  : "Chỉnh sửa trực tiếp trên trang giấy A4 (WYSIWYG) - Kéo thả để đổi vị trí các mục"}
-              </p>
             </div>
           </div>
 

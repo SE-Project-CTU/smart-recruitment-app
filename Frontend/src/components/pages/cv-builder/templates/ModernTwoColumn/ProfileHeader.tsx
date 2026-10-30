@@ -31,7 +31,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   return (
     <div className="flex flex-col items-center px-4 text-center">
       <h1
-        className="w-full text-2xl font-bold tracking-tight text-slate-900"
+        className="cv-text-title w-full font-bold tracking-tight text-slate-900"
         style={{ color: primaryColor }}
       >
         <TiptapField
@@ -40,7 +40,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           isReadOnly={isReadOnly}
         />
       </h1>
-      <h2 className="mt-1 w-full text-sm font-semibold tracking-wide text-slate-700">
+      <h2 className="cv-text-subtitle mt-1 w-full font-semibold tracking-wide text-slate-700">
         <TiptapField
           name="content.profile.title"
           placeholder="Chức danh nghề nghiệp"
@@ -49,7 +49,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       </h2>
 
       {hasContactInfo && (
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-slate-600">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-slate-600">
           {hasText(profile?.phone) && (
             <div className="flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5 shrink-0 text-slate-800" />

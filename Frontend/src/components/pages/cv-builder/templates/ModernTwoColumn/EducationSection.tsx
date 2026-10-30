@@ -8,7 +8,7 @@ import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTe
 import { createEmptyTiptapDocument } from "@/features/cv-builder/utils/tiptapJson";
 import { TiptapField } from "../../components/TiptapField";
 import { CvDateRangeFields } from "../../components/CvDateRangeFields";
-import ItemActions from "../../components/item-actions";
+import ItemActions from "../../components/ItemActions";
 import { SectionTitle } from "./SectionTitle";
 
 interface Props {
@@ -50,7 +50,7 @@ export const EducationSection: React.FC<Props> = ({
         {fields.map((item, index) => (
           <div
             key={item._fieldKey}
-            className="group/item relative rounded-sm p-1 text-xs hover:bg-slate-50/60"
+            className="group/item relative rounded-sm p-1 hover:bg-slate-50/60"
           >
             {!isReadOnly && (
               <ItemActions
@@ -93,7 +93,7 @@ export const EducationSection: React.FC<Props> = ({
           </div>
         ))}
         {fields.length === 0 && (
-          <p className="py-1 text-center text-xs text-slate-400 italic">
+          <p className="cv-text-meta py-1 text-center text-slate-400 italic">
             Chưa có thông tin học vấn.
           </p>
         )}

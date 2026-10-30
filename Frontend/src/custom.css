@@ -46,3 +46,46 @@
   height: 0;
   pointer-events: none;
 }
+
+/* ==========================================================================
+   CV Scalable Typography & Consistent Line Height
+   ========================================================================== */
+.cv-page-container {
+  --cv-font-scale: 1;
+  --cv-line-height: 1.5;
+  font-size: calc(12px * var(--cv-font-scale, 1));
+  line-height: var(--cv-line-height, 1.5);
+}
+
+/* Đảm bảo toàn bộ nội dung, tiêu đề, đoạn văn và danh sách kế thừa lineHeight nhất quán */
+.cv-page-container p,
+.cv-page-container h1,
+.cv-page-container h2,
+.cv-page-container h3,
+.cv-page-container h4,
+.cv-page-container li,
+.cv-page-container span,
+.cv-page-container .cv-tiptap-content {
+  line-height: inherit;
+}
+
+/* Các cấp độ cỡ chữ có thể scale */
+.cv-text-title {
+  font-size: calc(24px * var(--cv-font-scale, 1));
+}
+
+.cv-text-subtitle {
+  font-size: calc(14px * var(--cv-font-scale, 1));
+}
+
+.cv-text-section-header {
+  font-size: calc(12px * var(--cv-font-scale, 1));
+}
+
+.cv-text-body {
+  font-size: calc(12px * var(--cv-font-scale, 1));
+}
+
+.cv-text-meta {
+  font-size: calc(11px * var(--cv-font-scale, 1));
+}

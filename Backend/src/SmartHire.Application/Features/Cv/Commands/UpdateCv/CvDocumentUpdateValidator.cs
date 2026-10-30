@@ -45,12 +45,12 @@ public static partial class CvDocumentUpdateValidator {
             else {
                 var style = content.Metadata.DefaultStyle;
                 if (string.IsNullOrWhiteSpace(style.FontFamily) ||
-                    style.BaseFontSize <= 0 ||
+                    style.FontScale <= 0 ||
                     style.LineHeight <= 0 ||
                     style.PrimaryColors is null ||
                     style.PrimaryColors.Count == 0) {
                     errors.Add(Invalid("content.metadata.defaultStyle",
-                        "Default style must include a font family, positive sizes, and at least one primary color."));
+                        "Default style must include a font family, positive fontScale and lineHeight, and at least one primary color."));
                 }
             }
         }

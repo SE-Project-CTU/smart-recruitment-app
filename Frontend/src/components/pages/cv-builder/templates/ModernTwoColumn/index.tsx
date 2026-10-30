@@ -18,7 +18,7 @@ import {
   AwardsSection,
   TextSection,
 } from "./OtherSections";
-import DraggableSectionActions from "../../components/draggable-section-actions";
+import DraggableSectionActions from "../../components/DraggableSectionActions";
 import { useCvMutations } from "@/features/cv-builder/hooks/useCvMutations";
 import type { FixedSectionKey } from "@/features/cv-builder/types";
 import { getCvFontFamilyCss } from "@/features/cv-builder/constants/fonts";
@@ -58,7 +58,7 @@ export const ModernTwoColumnTemplate: React.FC<
   const primaryColor = globalStyles?.primaryColors?.[0] || "#0F172A";
   const fontFamily = globalStyles?.fontFamily || "inter";
   const lineHeight = globalStyles?.lineHeight || 1.5;
-  const baseFontSize = globalStyles?.baseFontSize || 14;
+  const fontScale = globalStyles?.fontScale ?? 1.0;
 
   const sectionOrder = (sections.order || [
     "objective",
@@ -175,11 +175,12 @@ export const ModernTwoColumnTemplate: React.FC<
 
   return (
     <div
-      className={`mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
+      className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
       style={{
         fontFamily: getCvFontFamilyCss(fontFamily),
-        fontSize: `${baseFontSize}px`,
         lineHeight,
+        ["--cv-font-scale" as string]: fontScale,
+        ["--cv-line-height" as string]: lineHeight,
       }}
     >
       {/* 1. Header: Profile Info WYSIWYG */}
@@ -200,7 +201,6 @@ export const ModernTwoColumnTemplate: React.FC<
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              // className="mt-3"
             >
               {sectionOrder.map((sectionKey, index) => (
                 <Draggable

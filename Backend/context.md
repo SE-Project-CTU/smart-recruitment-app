@@ -171,7 +171,7 @@ flowchart TD
     - Tập trung constants tại `CvTiptapNodeTypes` (`Doc`, `Paragraph`, `Text`, `BulletList`, `OrderedList`, `ListItem`, `HardBreak`), `CvTiptapMarkTypes` (`Bold`, `Italic`, `Underline`, `Link`, `TextStyle`), `CvTiptapAttributeNames` (`TextAlign`, `ListStyleType`, `Href`, `Target`, `Color`, `FontSize`, `FontFamily`), `CvTextAlignments` (`Left`, `Center`, `Right`, `Justify`), `CvListStyleTypes` (`Disc`, `Decimal`).
     - Tuyệt đối không hardcode chuỗi literal trong code; dùng các class constants này.
     - `CvDocumentUpdateValidator` thực hiện strict validation: chặn lỗi chính tả (như typo `"paragrap"`), chặn mark lạ, chặn các thuộc tính thừa không thuộc phạm vi app.
-  - **Style toàn cục (`defaultStyle`):** Nằm gọn trong `content.metadata.defaultStyle` (`fontFamily`, `baseFontSize`, `primaryColors`, `lineHeight`).
+  - **Style toàn cục (`defaultStyle`):** Nằm gọn trong `content.metadata.defaultStyle` (`fontFamily`, `fontScale`, `primaryColors`, `lineHeight`). `fontScale` lưu tỷ lệ phần trăm (1.0 là 100%).
   - **Bố cục (`Layout`):** Cấu hình danh sách areas và vị trí của từng section (`areas: [{ id, sections: [...] }]`).
   - **Tài liệu `presentation`:** **ĐÃ BỎ HOÀN TOÀN**. Các định dạng inline (bold, italic, link, align...) được lưu trực tiếp trên từng Tiptap node / mark.
   - **Cơ chế Hash & Versioning:** `CvDocumentHasher` chuẩn hóa `UpdatedAt = MinValue` và `Version = ""` trước khi tính SHA-256 để việc client gửi timestamp khác nhau không sinh version snapshot thừa ngoài ý muốn.
@@ -252,7 +252,7 @@ flowchart TD
 ### Đã hoàn thành (Done):
 - [x] **Backend - Cập nhật CV Schema Mới (Tiptap JSON & Loại bỏ Presentation)**:
   - Định nghĩa `CvTiptapDocument`, `CvTiptapNode`, `CvTiptapMark` với trích xuất plain text và deep clone đệ quy.
-  - Thêm `DefaultStyle` (`fontFamily`, `baseFontSize`, `primaryColors`, `lineHeight`) vào `CvDocumentMetadata`.
+  - Thêm `DefaultStyle` (`fontFamily`, `fontScale`, `primaryColors`, `lineHeight`) vào `CvDocumentMetadata`.
   - Thay đổi toàn bộ trường text trong Profile, Sections, Items sang `CvTiptapDocument`. Giữ `avatarUrl` kiểu `string`.
   - Xóa hoàn toàn `CvPresentationDocument`, các thuộc tính `Presentation`, `PresentationHash`, `DefaultPresentation`.
   - Cập nhật `ICvDocumentHasher` và `CvDocumentHasher` chỉ hash `ContentHash` (bao gồm cả style) và `LayoutHash`.

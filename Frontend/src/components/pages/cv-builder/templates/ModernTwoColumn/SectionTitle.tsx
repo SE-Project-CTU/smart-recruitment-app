@@ -18,7 +18,7 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
 }) => (
   <div className="mb-2 mt-4">
     <h3
-      className="cv-section-header text-xs font-bold uppercase tracking-wider text-slate-900 border-b pb-0.5"
+      className="cv-section-header cv-text-section-header font-bold uppercase tracking-wider text-slate-900 border-b pb-0.5"
       style={{ borderColor: primaryColor, color: primaryColor }}
     >
       <TiptapField name={formFieldName} placeholder={placeholder} isReadOnly={isReadOnly} />

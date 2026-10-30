@@ -31,7 +31,7 @@ interface TiptapFieldProps {
   multiline?: boolean;
 }
 
-
+const FONT_SIZE_OPTIONS = [10, 11, 12, 13, 14, 16, 18, 20, 24, 28];
 
 function FieldToolbar({
   editor,
@@ -45,8 +45,12 @@ function FieldToolbar({
   const active = useEditorState({
     editor,
     selector: ({ editor: current }) => {
-      const rawFont = (current.getAttributes("textStyle").fontFamily as string) || "";
+      const rawFont =
+        (current.getAttributes("textStyle").fontFamily as string) || "";
       const normalizedFont = rawFont.replace(/['"]/g, "").trim().toLowerCase();
+      const rawSize =
+        (current.getAttributes("textStyle").fontSize as string) || "";
+      const normalizedSize = rawSize.replace(/[^0-9.]/g, "");
       return {
         bold: current.isActive("bold"),
         italic: current.isActive("italic"),
@@ -54,6 +58,7 @@ function FieldToolbar({
         bulletList: current.isActive("bulletList"),
         orderedList: current.isActive("orderedList"),
         fontFamily: normalizedFont,
+        fontSize: normalizedSize,
       };
     },
   });
@@ -155,18 +160,19 @@ function FieldToolbar({
         aria-label="Cỡ chữ"
         title="Cỡ chữ"
         className="h-7 w-16 rounded border border-slate-200 bg-white px-1 text-xs"
-        defaultValue=""
+        value={active?.fontSize || ""}
         onChange={(event) => {
-          if (event.target.value)
-            editor.chain().focus().setFontSize(`${event.target.value}px`).run();
-          event.target.value = "";
+          const selectedSize = event.target.value;
+          if (selectedSize) {
+            editor.chain().focus().setFontSize(`${selectedSize}px`).run();
+          } else {
+            editor.chain().focus().unsetFontSize().run();
+          }
         }}
       >
-        <option value="" disabled>
-          Cỡ
-        </option>
-        {[10, 12, 14, 16, 18, 20, 24, 28].map((size) => (
-          <option key={size} value={size}>
+        <option value="">Cỡ</option>
+        {FONT_SIZE_OPTIONS.map((size) => (
+          <option key={size} value={String(size)}>
             {size}px
           </option>
         ))}
@@ -336,9 +342,7 @@ export const TiptapField: React.FC<TiptapFieldProps> = ({
       );
 
       setToolbarPosition((current) =>
-        current.top === top && current.left === left
-          ? current
-          : { top, left },
+        current.top === top && current.left === left ? current : { top, left },
       );
     };
 

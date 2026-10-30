@@ -10,8 +10,8 @@ public sealed record CvDefaultStyle
     [JsonPropertyName("fontFamily")]
     public string FontFamily { get; init; } = "Inter, sans-serif";
 
-    [JsonPropertyName("baseFontSize")]
-    public float BaseFontSize { get; init; } = 14f;
+    [JsonPropertyName("fontScale")]
+    public float FontScale { get; init; } = 1.0f;
 
     [JsonPropertyName("primaryColors")]
     public List<string> PrimaryColors { get; init; } = ["#2563EB", "#1D4ED8"];
@@ -29,7 +29,7 @@ public sealed record CvDefaultStyle
         return new CvDefaultStyle
         {
             FontFamily = style.FontFamily,
-            BaseFontSize = style.BaseFontSize,
+            FontScale = style.FontScale,
             PrimaryColors = style.PrimaryColors is null ? [] : [.. style.PrimaryColors],
             LineHeight = style.LineHeight
         };
