@@ -1,35 +1,47 @@
-import { getTimeAgo } from "@/utils/helper";
+import React, { useState } from "react";
+import { Clock, Ellipsis, MapPin } from "lucide-react";
+import { Bookmark, BookmarkCheck } from "lucide";
+import { MorphIcon } from "morphicons/react";
 import Button from "./Button";
-import type { MockJobPosting } from "@/constants/mockData";
-import { Ellipsis, MapPin, Clock } from "lucide-react";
+import { CompanyLogo } from "@/components/company/CompanyLogo";
 import {
   Tooltip,
   TooltipPanel,
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
-import { MorphIcon } from "morphicons/react";
-import { Bookmark, BookmarkCheck } from "lucide";
-import { useState } from "react";
+import {
+  extractJobDisplayData,
+  getJobLevelLabel,
+  getJobTypeLabel,
+  getWorkModeLabel,
+} from "@/utils/jobHelpers";
+import { useApplyJobModalStore, type AnyJob } from "@/stores/applyJobModalStore";
+import type { JobPostingItem, JobPostingSearchItem } from "@/types/job";
+import type { MockJobPosting } from "@/constants/mockData";
 
-import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
+export type JobCardItem =
+  | JobPostingItem
+  | JobPostingSearchItem
+  | MockJobPosting
+  | AnyJob;
 
-export interface JobCardProps {
-  job: MockJobPosting;
+export interface JobCardProps<T extends JobCardItem = JobCardItem> {
+  job: T;
   isSelected?: boolean;
-  onSelect?: (job: MockJobPosting) => void;
-  onApply?: (job: MockJobPosting) => void;
+  onSelect?: (job: T) => void;
+  onApply?: (job: T) => void;
   isBookmarked?: boolean;
   onToggleBookmark?: (jobId: string) => void;
 }
 
-export const JobCard = ({
+export function JobCard<T extends JobCardItem = JobCardItem>({
   job,
   isSelected = false,
   onSelect,
   onApply,
   isBookmarked: externalIsBookmarked,
   onToggleBookmark,
-}: JobCardProps) => {
+}: JobCardProps<T>) {
   const { openApplyModal } = useApplyJobModalStore();
   const [internalMarked, setInternalMarked] = useState(false);
   const isMarked =
@@ -57,6 +69,15 @@ export const JobCard = ({
     }
   };
 
+  const {
+    companyName,
+    companyLogoUrl,
+    displayLocation,
+    displayTimeAgo,
+    salaryInfo,
+    aiScore,
+  } = extractJobDisplayData(job);
+
   return (
     <div
       onClick={handleCardClick}
@@ -69,29 +90,23 @@ export const JobCard = ({
       <div>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-baseline gap-1">
-            {job.salaryNegotiable ? (
-              <span className="text-lg font-semibold tracking-tight text-text-main">
-                Thỏa thuận
+            <span className="text-lg font-semibold tracking-tight text-text-main">
+              {salaryInfo.text}
+            </span>
+            {salaryInfo.unit && (
+              <span className="text-xs font-semibold text-text-muted">
+                {salaryInfo.unit}
               </span>
-            ) : (
-              <>
-                <span className="text-lg font-semibold tracking-tight text-text-main">
-                  {job.salaryMin} - {job.salaryMax} triệu
-                </span>
-                <span className="text-xs font-semibold text-text-muted">
-                  /tháng
-                </span>
-              </>
             )}
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            {job.aiMatchScore && (
+            {aiScore != null && (
               <Tooltip>
                 <TooltipTrigger
                   render={
                     <div className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
-                      <span>{job.aiMatchScore}%</span>
+                      <span>{aiScore}%</span>
                     </div>
                   }
                 />
@@ -127,44 +142,41 @@ export const JobCard = ({
               {job.title}
             </h3>
             <p className="truncate text-xs font-medium text-text-muted">
-              {job.company.name}
+              {companyName}
             </p>
           </div>
 
-          <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2">
-            <img
-              src={job.company.logoUrl}
-              alt={job.company.name}
-              className="size-full object-contain"
-            />
-          </div>
+          <CompanyLogo logoUrl={companyLogoUrl} name={companyName} size="md" />
         </div>
 
         <div className="mt-4 flex flex-col gap-1.5 text-xs font-medium text-text-muted">
           <div className="flex items-center gap-2">
             <MapPin className="size-4 shrink-0 text-text-muted" />
-            <span className="truncate">
-              {job.location.wardName ? `${job.location.wardName}, ` : ""}
-              {job.location.provinceName}
-            </span>
+            <span className="truncate">{displayLocation}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <Clock className="size-4 shrink-0 text-text-muted" />
-            <span>{getTimeAgo(job.createAt)}</span>
+            <span>{displayTimeAgo}</span>
           </div>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
-            {job.jobType || "Full-time"}
-          </span>
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
-            {job.workMode || "Hybrid"}
-          </span>
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
-            {job.jobLevel || "Middle"}
-          </span>
+          {job.jobType && (
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
+              {getJobTypeLabel(job.jobType)}
+            </span>
+          )}
+          {job.workMode && (
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
+              {getWorkModeLabel(job.workMode)}
+            </span>
+          )}
+          {job.jobLevel && (
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
+              {getJobLevelLabel(job.jobLevel)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -197,6 +209,6 @@ export const JobCard = ({
       </div>
     </div>
   );
-};
+}
 
 export default JobCard;

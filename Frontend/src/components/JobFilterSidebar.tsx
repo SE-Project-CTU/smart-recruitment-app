@@ -4,10 +4,11 @@ import { Slider } from "@/components/ui/slider";
 import { CheckIcon, ChevronDown, RotateCcw } from "lucide-react";
 import { MOCK_INDUSTRY_HIERARCHY } from "@/constants/mockData";
 import { useIndustryGroupsWithIndustries } from "@/hooks/queries/useCatalog";
+import { JOB_LEVEL_OPTIONS } from "@/utils/jobHelpers";
 
 export const SALARY_MIN_LIMIT = 0;
-export const SALARY_MAX_LIMIT = 5000;
-export const SALARY_STEP = 100;
+export const SALARY_MAX_LIMIT = 100;
+export const SALARY_STEP = 1;
 
 export interface JobFilterState {
   industries: string[];
@@ -37,9 +38,9 @@ interface JobFilterSidebarProps {
 }
 
 const SALARY_PRESETS = [
-  { label: "Dưới $1,000", min: "", max: "1000" },
-  { label: "$1,000 - $2,000", min: "1000", max: "2000" },
-  { label: "Trên $2,000", min: "2000", max: "" },
+  { label: "Dưới 10 triệu", min: "", max: "10" },
+  { label: "10 - 20 triệu", min: "10", max: "20" },
+  { label: "Trên 25 triệu", min: "25", max: "" },
 ];
 
 const JOB_TYPE_OPTIONS: FilterOption[] = [
@@ -52,19 +53,6 @@ const WORK_MODE_OPTIONS: FilterOption[] = [
   { label: "On-site", value: "On-site" },
   { label: "Hybrid", value: "Hybrid" },
   { label: "Remote", value: "Remote" },
-];
-
-const JOB_LEVEL_OPTIONS: FilterOption[] = [
-  { label: "Intern", value: "Intern" },
-  { label: "Fresher", value: "Fresher" },
-  { label: "Junior", value: "Junior" },
-  { label: "Middle", value: "Middle" },
-  { label: "Senior", value: "Senior" },
-  { label: "Lead", value: "Lead" },
-];
-
-const HISTOGRAM_BARS = [
-  30, 50, 75, 95, 100, 85, 65, 80, 55, 45, 70, 60, 40, 25,
 ];
 
 interface FilterCheckboxItemProps {
@@ -171,7 +159,10 @@ export function JobFilterSidebar({
   };
 
   const handleInputChange = (field: "minSalary" | "maxSalary", raw: string) => {
-    if (raw !== "" && Number(raw) < 0) return;
+    if (raw !== "") {
+      const num = Number(raw);
+      if (isNaN(num) || num < 0 || num > SALARY_MAX_LIMIT) return;
+    }
     if (field === "minSalary") {
       onSalaryRangeChange(raw, filters.maxSalary);
     } else {
@@ -202,7 +193,8 @@ export function JobFilterSidebar({
             const isExpanded = expandedGroups[group.parent] ?? false;
             const isParentChecked =
               filters.industries.includes(group.parent) ||
-              group.children.every((c) => filters.industries.includes(c));
+              (group.children.length > 0 &&
+                group.children.every((c) => filters.industries.includes(c)));
 
             return (
               <div key={group.parent} className="flex w-full flex-col gap-1">
@@ -292,25 +284,6 @@ export function JobFilterSidebar({
         </div>
 
         <div className="flex flex-col gap-2 pt-1">
-          <div className="flex h-8 items-end justify-between gap-1 px-1">
-            {HISTOGRAM_BARS.map((height, idx) => {
-              const barValue =
-                ((idx + 0.5) / HISTOGRAM_BARS.length) * SALARY_MAX_LIMIT;
-              const isInRange =
-                barValue >= effectiveRange[0] && barValue <= effectiveRange[1];
-
-              return (
-                <div
-                  key={idx}
-                  style={{ height: `${height}%` }}
-                  className={`flex-1 rounded-t-xs transition-colors duration-150 ${
-                    isInRange ? "bg-secondary-dark" : "bg-border"
-                  }`}
-                />
-              );
-            })}
-          </div>
-
           <Slider
             min={SALARY_MIN_LIMIT}
             max={SALARY_MAX_LIMIT}
@@ -337,7 +310,7 @@ export function JobFilterSidebar({
                   : filters.minSalary
               }
               onChange={(e) => handleInputChange("minSalary", e.target.value)}
-              placeholder="Từ 0"
+              placeholder="Tối thiểu 0"
               className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
           </div>
@@ -356,14 +329,14 @@ export function JobFilterSidebar({
                   : filters.maxSalary
               }
               onChange={(e) => handleInputChange("maxSalary", e.target.value)}
-              placeholder={`Đến ${SALARY_MAX_LIMIT}`}
+              placeholder="Tối đa 100"
               className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
           </div>
         </div>
 
         <FilterCheckboxItem
-          label="Bao gồm lương thỏa thuận"
+          label="Chỉ gồm lương thỏa thuận"
           checked={filters.negotiableOnly}
           onChange={() => onToggleNegotiable(!filters.negotiableOnly)}
         />
@@ -389,7 +362,7 @@ export function JobFilterSidebar({
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Môi trường làm việc
         </h3>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
           {WORK_MODE_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
