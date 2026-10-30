@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { MockJobPosting } from "@/constants/mockData";
 import type { ApplicationJobSummary } from "@/types/application";
-import type { JobPostingItem } from "@/types/job";
+import type { JobPostingItem, JobPostingResult, JobPostingDetailResult, JobPostingSearchItem } from "@/types/job";
 
 /**
  * Kiểu dữ liệu linh hoạt của Job khi đưa vào Modal Ứng tuyển
@@ -35,7 +35,10 @@ export type AnyJob =
   | ApplyTargetJob
   | MockJobPosting
   | ApplicationJobSummary
-  | JobPostingItem;
+  | JobPostingItem
+  | JobPostingResult
+  | JobPostingDetailResult
+  | JobPostingSearchItem;
 
 interface ApplyJobModalState {
   isOpen: boolean;

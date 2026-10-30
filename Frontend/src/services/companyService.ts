@@ -18,7 +18,7 @@ import type {
   FollowedCompanyItem,
   LeaveCompanyResult,
 } from "@/types";
-import type { JobPostingItem } from "@/types/job";
+import type { JobPostingResult } from "@/types";
 
 export const companyService = {
   /**
@@ -242,10 +242,10 @@ export const companyService = {
       page?: number;
       pageSize?: number;
     },
-  ): Promise<{ items: JobPostingItem[]; totalCount: number }> {
+  ): Promise<{ items: JobPostingResult[]; totalCount: number }> {
     const response = await axiosClient.get<
       never,
-      ApiResponse<JobPostingItem[]>
+      ApiResponse<JobPostingResult[]>
     >(API_ENDPOINTS.COMPANY.JOB_POSTINGS(companyId), { params });
 
     return {
@@ -293,13 +293,11 @@ export const companyService = {
       "items" in response &&
       Array.isArray((response as unknown as { items: unknown }).items)
     ) {
-      items = (
-        response as unknown as { items: CompanyApplicationListItem[] }
-      ).items;
+      items = (response as unknown as { items: CompanyApplicationListItem[] })
+        .items;
     }
 
-    const totalCount =
-      (response?.meta?.totalItems as number) || items.length;
+    const totalCount = (response?.meta?.totalItems as number) || items.length;
 
     return {
       items,
@@ -359,8 +357,7 @@ export const companyService = {
       items = (rawData as { items: FollowedCompanyItem[] }).items;
     }
 
-    const totalCount =
-      (response?.meta?.totalItems as number) || items.length;
+    const totalCount = (response?.meta?.totalItems as number) || items.length;
 
     return {
       items,

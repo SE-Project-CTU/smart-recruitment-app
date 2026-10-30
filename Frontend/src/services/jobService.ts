@@ -4,76 +4,67 @@ import type {
   ApiPagedResponse,
   ApiResponse,
   CreateJobPostingPayload,
-  JobApplicationItem,
-  JobApplicationStatus,
-  JobPostingItem,
+  JobPostingDetailResult,
+  JobPostingResult,
+  JobPostingSearchItem,
   PaginationMeta,
   SearchJobPostingsRequest,
   UpdateJobPostingPayload,
+  UpdateJobPostingStatusResult,
 } from "@/types";
+import type {
+  JobApplicationItem,
+  JobApplicationStatus,
+} from "@/types/application";
 
 export const jobService = {
-  /**
-   * Tạo tin tuyển dụng mới (Role: Recruiter, công ty đã Verified)
-   */
   async createJobPosting(
     payload: CreateJobPostingPayload,
-  ): Promise<JobPostingItem> {
-    const response = await axiosClient.post<never, ApiResponse<JobPostingItem>>(
+  ): Promise<JobPostingResult> {
+    const response = await axiosClient.post<never, ApiResponse<JobPostingResult>>(
       API_ENDPOINTS.JOB_POSTING.CREATE,
       payload,
     );
     return response.data;
   },
 
-  /**
-   * Xem chi tiết tin tuyển dụng (API 6)
-   */
-  async getJobPostingDetail(id: string): Promise<JobPostingItem> {
-    const response = await axiosClient.get<never, ApiResponse<JobPostingItem>>(
-      API_ENDPOINTS.JOB_POSTING.DETAIL(id),
-    );
+  async getJobPostingDetail(id: string): Promise<JobPostingDetailResult> {
+    const response = await axiosClient.get<
+      never,
+      ApiResponse<JobPostingDetailResult>
+    >(API_ENDPOINTS.JOB_POSTING.DETAIL(id));
     return response.data;
   },
 
-  /**
-   * Cập nhật thông tin tin tuyển dụng (API 7)
-   */
   async updateJobPosting(
     id: string,
     payload: UpdateJobPostingPayload,
-  ): Promise<JobPostingItem> {
+  ): Promise<JobPostingResult> {
     const response = await axiosClient.patch<
       never,
-      ApiResponse<JobPostingItem>
+      ApiResponse<JobPostingResult>
     >(API_ENDPOINTS.JOB_POSTING.UPDATE(id), payload);
     return response.data;
   },
 
-  /**
-   * Cập nhật trạng thái tin tuyển dụng (API 8 - Recruiter đóng tin: CLOSED)
-   */
   async updateJobPostingStatus(
     id: string,
     status: string,
-  ): Promise<{ id: string; status: string; updatedAt: string }> {
+  ): Promise<UpdateJobPostingStatusResult> {
     const response = await axiosClient.patch<
       never,
-      ApiResponse<{ id: string; status: string; updatedAt: string }>
+      ApiResponse<UpdateJobPostingStatusResult>
     >(API_ENDPOINTS.JOB_POSTING.UPDATE_STATUS(id), { status });
     return response.data;
   },
 
-  /**
-   * Tìm kiếm và lọc danh sách tin tuyển dụng (API 5)
-   */
   async searchJobPostings(params?: SearchJobPostingsRequest): Promise<{
-    items: JobPostingItem[];
+    items: JobPostingSearchItem[];
     meta: PaginationMeta;
   }> {
     const response = await axiosClient.get<
       never,
-      ApiPagedResponse<JobPostingItem>
+      ApiPagedResponse<JobPostingSearchItem>
     >(API_ENDPOINTS.JOB_POSTING.SEARCH, { params });
 
     return {
@@ -89,9 +80,6 @@ export const jobService = {
     };
   },
 
-  /**
-   * Danh sách hồ sơ ứng tuyển theo tin tuyển dụng (API 11)
-   */
   async getJobApplications(
     jobId: string,
     params?: {
@@ -123,9 +111,6 @@ export const jobService = {
     };
   },
 
-  /**
-   * Cập nhật trạng thái hồ sơ ứng tuyển (API 13)
-   */
   async updateApplicationStatus(
     applicationId: string,
     status: JobApplicationStatus | string,
@@ -141,4 +126,3 @@ export const jobService = {
     return response.data;
   },
 };
-

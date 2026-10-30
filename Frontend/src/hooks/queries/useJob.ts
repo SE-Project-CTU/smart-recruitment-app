@@ -4,12 +4,16 @@ import { jobService } from "@/services/jobService";
 import { companyService } from "@/services/companyService";
 import type {
   CreateJobPostingPayload,
-  JobApplicationStatus,
   JobPostingItem,
-  RecruiterCandidateApplicationItem,
+  JobPostingResult,
+  JobPostingStatus,
   SearchJobPostingsRequest,
   UpdateJobPostingPayload,
 } from "@/types";
+import type {
+  JobApplicationStatus,
+  RecruiterCandidateApplicationItem,
+} from "@/types/application";
 import { toast } from "../use-toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 
@@ -136,7 +140,7 @@ export const useUpdateJobPostingStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ jobId, status }: { jobId: string; status: string }) =>
+    mutationFn: ({ jobId, status }: { jobId: string; status: JobPostingStatus | string }) =>
       jobService.updateJobPostingStatus(jobId, status),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -177,7 +181,7 @@ export const useJobApplications = (
  * Hook Query: Lấy toàn bộ hồ sơ ứng tuyển thuộc quyền quản lý của Recruiter (sử dụng API gom theo công ty mới)
  */
 export const useRecruiterAllApplications = (
-  jobsOrCompanyIds: JobPostingItem[] | string[],
+  jobsOrCompanyIds: (JobPostingResult | JobPostingItem)[] | string[],
 ) => {
   const companyIds = useMemo(() => {
     if (jobsOrCompanyIds.length === 0) return [];
@@ -186,7 +190,7 @@ export const useRecruiterAllApplications = (
     }
     return Array.from(
       new Set(
-        (jobsOrCompanyIds as JobPostingItem[])
+        (jobsOrCompanyIds as (JobPostingResult | JobPostingItem)[])
           .map((j) => j.companyId || j.company?.id)
           .filter(Boolean) as string[],
       ),

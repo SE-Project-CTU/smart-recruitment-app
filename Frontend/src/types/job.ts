@@ -99,6 +99,13 @@ export interface JobPostingResult {
   skills: SkillSummary[];
   createdAt: string;
   updatedAt: string;
+
+  // Flattened helpers tiện ích cho component
+  companyId?: string;
+  companyName?: string;
+  companyLogoUrl?: string | null;
+  provinceId?: string;
+  wardId?: string | null;
 }
 
 /**
