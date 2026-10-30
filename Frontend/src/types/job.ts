@@ -1,18 +1,21 @@
+// =========================================================================
 // SmartHire Job & JobPosting Type Definitions
-// Ánh xạ 1:1 với Backend C# DTOs và Enums trong SmartHire.Application.Features.JobPostings
+// =========================================================================
+
+import type {
+  ProvinceSummary,
+  WardSummary,
+  IndustrySummary,
+  SkillSummary,
+  SearchJobProvinceSummary,
+  SearchJobWardSummary,
+} from "./common";
 
 export type JobPostingStatus =
-  | "PendingReview"
-  | "Published"
-  | "Closed"
-  | "Expired";
+  "PendingReview" | "Published" | "Closed" | "Expired";
 
 export type JobType =
-  | "FullTime"
-  | "PartTime"
-  | "Contract"
-  | "Internship"
-  | "Freelance";
+  "FullTime" | "PartTime" | "Contract" | "Internship" | "Freelance";
 
 export type WorkMode = "Remote" | "Onsite" | "Hybrid";
 
@@ -36,17 +39,27 @@ export type EducationLevel =
   | "Bachelor"
   | "Postgraduate";
 
-// ==========================================
-// BACKEND SUMMARY MODELS (Ánh xạ 1:1 DTOs)
-// ==========================================
+// -------------------------------------------------------------------------
+// 2. COMMON SUMMARY RECORDS (Tinh gọn, tránh trùng lặp model)
+// -------------------------------------------------------------------------
 
+/**
+ * Tóm tắt Doanh nghiệp tuyển dụng trong tin tuyển dụng
+ */
 export interface CompanySummary {
   id: string;
   name: string;
   address?: string | null;
   logoUrl?: string | null;
+  logoFileUrl?: string | null;
+  verificationStatus?: string | null;
 }
 
+export type SearchJobCompanySummary = CompanySummary;
+
+/**
+ * Thông tin Người tạo tin (Recruiter Membership)
+ */
 export interface JobPostingCreatorResult {
   id: string;
   fullName: string;
@@ -54,48 +67,11 @@ export interface JobPostingCreatorResult {
   avatarUrl?: string | null;
 }
 
-export interface ProvinceSummary {
-  id: string;
-  name: string;
-}
-
-export interface WardSummary {
-  id: string;
-  name: string;
-}
-
-export interface IndustrySummary {
-  id: string;
-  name: string;
-}
-
-export interface SkillSummary {
-  id: string;
-  name: string;
-}
-
-export interface SearchJobCompanySummary {
-  id: string;
-  name: string;
-  logoFileUrl?: string | null;
-}
-
-export interface SearchJobProvinceSummary {
-  id: string;
-  name: string;
-}
-
-export interface SearchJobWardSummary {
-  id: string;
-  name: string;
-}
-
-// ==========================================
-// JOB POSTING CORE DTOS (Ánh xạ 1:1 DTOs C#)
-// ==========================================
+// -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 
 /**
- * Ánh xạ 1:1 với SmartHire.Application.Features.JobPostings.DTOs.JobPostingResult
+ * DTO tin tuyển dụng tiêu chuẩn (Dùng cho Create, Update, Company JobList)
  */
 export interface JobPostingResult {
   id: string;
@@ -126,7 +102,7 @@ export interface JobPostingResult {
 }
 
 /**
- * Ánh xạ 1:1 với SmartHire.Application.Features.JobPostings.DTOs.JobPostingDetailResult
+ * DTO chi tiết tin tuyển dụng xem bởi người dùng (API 6)
  */
 export interface JobPostingDetailResult extends JobPostingResult {
   hasApplied: boolean;
@@ -135,7 +111,7 @@ export interface JobPostingDetailResult extends JobPostingResult {
 }
 
 /**
- * Ánh xạ 1:1 với SmartHire.Application.Features.JobPostings.DTOs.JobPostingSearchItem
+ * DTO tóm tắt tối ưu cho danh sách Tìm kiếm việc làm công khai (API 5)
  */
 export interface JobPostingSearchItem {
   id: string;
@@ -155,37 +131,35 @@ export interface JobPostingSearchItem {
   skillNames: string[];
   industryNames: string[];
   createdAt: string;
-
-  // Flattened compatibility properties (hỗ trợ component dùng nhanh)
-  companyId?: string;
-  companyName?: string;
-  companyLogoUrl?: string | null;
-  provinceId?: string;
-  wardId?: string | null;
 }
 
 /**
- * JobPostingItem: Tương thích mở rộng từ JobPostingResult, hỗ trợ cả nested và flattened fields
+ * DTO kết quả đổi trạng thái tin tuyển dụng (API 8)
  */
-export interface JobPostingItem extends Partial<JobPostingResult> {
+export interface UpdateJobPostingStatusResult {
+  id: string;
+  status: JobPostingStatus | string;
+  updatedAt: string;
+}
+
+// -------------------------------------------------------------------------
+// 4. TRANSITIONAL COMPATIBILITY DTO
+// -------------------------------------------------------------------------
+
+/**
+ * @deprecated Khuyến nghị chuyển dần sang JobPostingResult / JobPostingDetailResult / JobPostingSearchItem.
+ * Interface hợp nhất hỗ trợ các component hiện tại chưa refactor xong.
+ */
+export interface JobPostingItem extends Partial<JobPostingDetailResult> {
   id: string;
   title: string;
   workMode: WorkMode | string;
   jobType: JobType | string;
   salaryNegotiable: boolean;
-  vacancies?: number;
   status: JobPostingStatus | string;
   createdAt: string;
 
-  // Nested structures (khớp 1:1 backend)
-  company?: CompanySummary;
-  creator?: JobPostingCreatorResult;
-  province?: ProvinceSummary;
-  ward?: WardSummary | null;
-  industries?: IndustrySummary[];
-  skills?: SkillSummary[];
-
-  // Flattened compatibility helpers
+  // Flattened helpers cho các component giao diện cũ
   companyId?: string;
   companyName?: string;
   companyLogoUrl?: string | null;
@@ -194,17 +168,14 @@ export interface JobPostingItem extends Partial<JobPostingResult> {
   wardId?: string | null;
   skillIds?: string[];
   industryIds?: string[];
-
-  // Candidate context flags (có khi gọi GetDetail)
-  hasApplied?: boolean;
-  applicationId?: string | null;
-  isFollowingCompany?: boolean;
 }
 
-// ==========================================
-// REQUEST / PAYLOAD DTOS
-// ==========================================
+// -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 
+/**
+ * Payload tạo tin tuyển dụng mới (API 4)
+ */
 export interface CreateJobPostingPayload {
   companyId: string;
   title: string;
@@ -228,6 +199,9 @@ export interface CreateJobPostingPayload {
   skillIds: string[];
 }
 
+/**
+ * Payload cập nhật tin tuyển dụng (API 7)
+ */
 export interface UpdateJobPostingPayload {
   title?: string;
   provinceId?: string;
@@ -250,13 +224,20 @@ export interface UpdateJobPostingPayload {
   skillIds?: string[];
 }
 
+/**
+ * Payload cập nhật trạng thái tin tuyển dụng (API 8)
+ */
 export interface UpdateJobPostingStatusPayload {
   status: JobPostingStatus;
 }
 
+/**
+ * Query params tìm kiếm và lọc tin tuyển dụng (API 5)
+ */
 export interface SearchJobPostingsRequest {
   keyword?: string;
   company?: string;
+  companyId?: string;
   salaryMin?: number;
   salaryMax?: number;
   provinceId?: string;
@@ -271,15 +252,14 @@ export interface SearchJobPostingsRequest {
   direction?: "asc" | "desc";
 }
 
-// ==========================================
-// STATUS CONFIGURATION
-// ==========================================
+// -------------------------------------------------------------------------
+// 6. UI STATUS BADGE CONFIGURATION
+// -------------------------------------------------------------------------
 
 export const JOB_STATUS_CONFIG: Record<
-  string,
+  JobPostingStatus | string,
   { label: string; badgeClass: string }
 > = {
-  // PascalCase chuẩn backend
   Published: {
     label: "Đang nhận hồ sơ",
     badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -297,40 +277,28 @@ export const JOB_STATUS_CONFIG: Record<
     badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
   },
 
-  // Fallback uppercase & alias tương thích
+  // Fallbacks chữ hoa tương thích code cũ
   PUBLISHED: {
     label: "Đang nhận hồ sơ",
     badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  OPEN: {
-    label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  PENDING_REVIEW: {
-    label: "Chờ duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
-  },
-  PAUSED: {
-    label: "Tạm dừng",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
   },
   CLOSED: {
     label: "Đã đóng",
     badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
   },
+  PENDING_REVIEW: {
+    label: "Chờ duyệt",
+    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+  },
   EXPIRED: {
     label: "Hết hạn",
     badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
   },
-  Draft: {
-    label: "Bản nháp",
-    badgeClass: "bg-slate-100 text-slate-500 border-slate-200",
-  },
 };
 
-// ==========================================
-// RE-EXPORTS (Tương thích ngược cho các file import application types từ job.ts)
-// ==========================================
+// -------------------------------------------------------------------------
+// 7. RE-EXPORTS (Cảnh báo: Nên import trực tiếp từ "@/types/application")
+// -------------------------------------------------------------------------
 
 export type {
   ApplicationStatus,

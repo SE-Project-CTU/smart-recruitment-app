@@ -76,7 +76,7 @@ export const JobCard = ({
             ) : (
               <>
                 <span className="text-lg font-semibold tracking-tight text-text-main">
-                  ${job.salaryMax}
+                  {job.salaryMin} - {job.salaryMax} triệu
                 </span>
                 <span className="text-xs font-semibold text-text-muted">
                   /tháng
@@ -200,4 +200,3 @@ export const JobCard = ({
 };
 
 export default JobCard;
-
