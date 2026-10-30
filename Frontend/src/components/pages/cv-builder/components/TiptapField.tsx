@@ -96,8 +96,9 @@ function FieldToolbar({
       role="toolbar"
       aria-label="Định dạng field CV"
       onMouseDown={(event) => {
-        if ((event.target as HTMLElement).tagName === "BUTTON")
+        if ((event.target as HTMLElement).closest("button")) {
           event.preventDefault();
+        }
       }}
     >
       <button
@@ -300,11 +301,38 @@ export const TiptapField: React.FC<TiptapFieldProps> = ({
   );
 
   useEffect(() => {
-    if (editor) editor.setEditable(!isReadOnly);
-  }, [editor, isReadOnly]);
+    if (!editor || editor.isDestroyed) return;
+
+    const shouldBeEditable = !isReadOnly;
+    if (editor.isEditable !== shouldBeEditable) {
+      editor.setEditable(shouldBeEditable, false);
+      editor.setOptions({
+        editorProps: {
+          attributes: {
+            class: cn(
+              "cv-tiptap-content min-h-[1em] w-full outline-none",
+              shouldBeEditable && "hover-field cursor-text",
+              multiline && "min-h-5",
+            ),
+            "aria-label": placeholder,
+            "data-placeholder": placeholder,
+          },
+          handleClick: (_view, _position, event) => {
+            if (!shouldBeEditable) return false;
+
+            const anchor = (event.target as HTMLElement).closest("a");
+            if (!anchor) return false;
+
+            event.preventDefault();
+            return true;
+          },
+        },
+      });
+    }
+  }, [editor, isReadOnly, placeholder, multiline]);
 
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed || editor.isFocused) return;
     const editorJson = JSON.stringify(
       sanitizeTiptapDocument(editor.getJSON() as CvTiptapDocument),
     );

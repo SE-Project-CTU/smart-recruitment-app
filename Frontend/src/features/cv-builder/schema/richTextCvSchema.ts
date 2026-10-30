@@ -134,7 +134,7 @@ const profileSchema = z.object({
   }),
   phone: richTextSchema({
     label: "Số điện thoại",
-    maxLength: 11,
+    maxLength: 12,
     required: true,
     phone: true,
   }),

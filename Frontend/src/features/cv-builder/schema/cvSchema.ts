@@ -45,7 +45,7 @@ export const cvProfileSchema = z.object({
   phone: z
     .string()
     .min(1, "Số điện thoại không được để trống")
-    .max(11, "Số điện thoại tối đa 11 ký tự")
+    .max(12, "Số điện thoại tối đa 12 ký tự")
     .regex(VIETNAMESE_PHONE_REGEX, "Số điện thoại Việt Nam không hợp lệ (0xxxxxxxxx hoặc +84xxxxxxxxx)"),
   dob: z.string().default(""),
   address: z.string().default(""),

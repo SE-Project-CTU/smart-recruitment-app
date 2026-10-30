@@ -59,13 +59,8 @@ const router = createBrowserRouter([
   },
 
   {
-    element: <PublicOnlyRoute />,
-    children: [
-      {
-        path: PATHS.CREATE_CV,
-        element: <CVBuilder />,
-      },
-    ]
+    path: PATHS.CREATE_CV,
+    element: <CVBuilder />,
   },
 
   //CANDIDATE ROUTES

@@ -235,9 +235,10 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         CancellationToken cancellationToken
     ) {
         var newVersionNumber = latestVersionNumber + 1;
-        var version = cv.CreateVersion(newVersionNumber, now);
         
         updateAction();
+        
+        var version = cv.CreateVersion(newVersionNumber, now);
         
         await _cvVersionRepository.Add(version);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

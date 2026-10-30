@@ -19,6 +19,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const profile = useWatch({ control, name: "content.profile" });
   const hasText = (document?: CvTiptapDocument) =>
     Boolean(document && extractTiptapPlainText(document).trim());
+  const shouldShowField = (document?: CvTiptapDocument) =>
+    !isReadOnly || hasText(document);
   const hasContactInfo = Boolean(
     hasText(profile?.phone) ||
     hasText(profile?.email) ||
@@ -48,9 +50,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         />
       </h2>
 
-      {hasContactInfo && (
+      {(!isReadOnly || hasContactInfo) && (
         <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-slate-600">
-          {hasText(profile?.phone) && (
+          {shouldShowField(profile?.phone) && (
             <div className="flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5 shrink-0 text-slate-800" />
               <TiptapField
@@ -60,7 +62,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               />
             </div>
           )}
-          {hasText(profile?.email) && (
+          {shouldShowField(profile?.email) && (
             <div className="flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5 shrink-0 text-slate-800" />
               <TiptapField
@@ -70,7 +72,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               />
             </div>
           )}
-          {hasText(profile?.website) && (
+          {shouldShowField(profile?.website) && (
             <div className="flex items-center gap-1.5">
               <Globe className="h-3.5 w-3.5 shrink-0 text-slate-800" />
               <TiptapField
@@ -80,7 +82,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               />
             </div>
           )}
-          {hasText(profile?.socialLink) && (
+          {shouldShowField(profile?.socialLink) && (
             <div className="flex items-center gap-1.5">
               <Link className="h-3.5 w-3.5 shrink-0 text-slate-800" />
               <TiptapField
@@ -90,7 +92,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               />
             </div>
           )}
-          {hasText(profile?.address) && (
+          {shouldShowField(profile?.address) && (
             <div className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-800" />
               <TiptapField
@@ -100,7 +102,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               />
             </div>
           )}
-          {hasText(profile?.dob) && (
+          {shouldShowField(profile?.dob) && (
             <div className="flex items-center gap-1.5">
               <CalendarDays className="h-3.5 w-3.5 shrink-0 text-slate-800" />
               <TiptapField
