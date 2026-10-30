@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Checkbox } from "@animate-ui/react/primitives/base-ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { CheckIcon, ChevronDown, RotateCcw } from "lucide-react";
 import { MOCK_INDUSTRY_HIERARCHY } from "@/constants/mockData";
+import { useIndustryGroupsWithIndustries } from "@/hooks/queries/useCatalog";
 
 export const SALARY_MIN_LIMIT = 0;
 export const SALARY_MAX_LIMIT = 5000;
@@ -80,7 +81,7 @@ function FilterCheckboxItem({
   isParent = false,
 }: FilterCheckboxItemProps) {
   return (
-    <label className="group flex cursor-pointer items-center gap-2 py-0.5 text-xs text-text-main select-none">
+    <label className="group flex cursor-pointer items-center gap-1.5 py-0.5 text-xs text-text-main select-none">
       <Checkbox.Root
         checked={checked}
         onCheckedChange={() => onChange()}
@@ -109,6 +110,17 @@ export function JobFilterSidebar({
   onToggleNegotiable,
   onReset,
 }: JobFilterSidebarProps) {
+  // Lấy dữ liệu 8 nhóm ngành nghề thực tế từ Backend Catalog API
+  const { data: realIndustryGroups = [] } = useIndustryGroupsWithIndustries();
+
+  const industryHierarchy = useMemo(() => {
+    if (realIndustryGroups.length === 0) return MOCK_INDUSTRY_HIERARCHY;
+    return realIndustryGroups.map((group) => ({
+      parent: group.name,
+      children: (group.items || group.industries || []).map((i) => i.name),
+    }));
+  }, [realIndustryGroups]);
+
   // Mặc định các nhóm lĩnh vực đều thu gọn (false)
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
@@ -168,7 +180,7 @@ export function JobFilterSidebar({
   };
 
   return (
-    <aside className="flex w-full scrollbar-thin flex-col gap-5 overflow-y-auto rounded-3xl border border-border bg-surface p-5">
+    <aside className="flex w-full scrollbar-thin flex-col gap-5 overflow-y-auto rounded-3xl border border-border bg-surface px-5 py-5">
       <div className="flex items-center justify-between border-b border-border pb-3.5">
         <h2 className="text-base font-bold text-text-main">Bộ lọc</h2>
         <button
@@ -185,16 +197,16 @@ export function JobFilterSidebar({
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Lĩnh vực
         </h3>
-        <div className="flex flex-col gap-2">
-          {MOCK_INDUSTRY_HIERARCHY.map((group) => {
+        <div className="flex max-h-50 flex-col gap-2 overflow-x-hidden overflow-y-scroll">
+          {industryHierarchy.map((group) => {
             const isExpanded = expandedGroups[group.parent] ?? false;
             const isParentChecked =
               filters.industries.includes(group.parent) ||
               group.children.every((c) => filters.industries.includes(c));
 
             return (
-              <div key={group.parent} className="flex flex-col gap-1">
-                <div className="flex items-center justify-between rounded-xl px-2 py-1.5">
+              <div key={group.parent} className="flex w-full flex-col gap-1">
+                <div className="flex items-center justify-between rounded-xl py-1.5">
                   <FilterCheckboxItem
                     label={group.parent}
                     isParent
@@ -213,15 +225,17 @@ export function JobFilterSidebar({
                     }
                     className="cursor-pointer p-1 text-text-muted hover:text-text-main"
                   >
-                    <ChevronDown
-                      className={`size-3.5 transition-transform duration-200 ${
-                        isExpanded ? "rotate-180" : ""
-                      }`}
-                    />
+                    {group.children.length !== 0 && (
+                      <ChevronDown
+                        className={`size-3.5 transition-transform duration-200 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      />
+                    )}
                   </button>
                 </div>
 
-                {isExpanded && (
+                {isExpanded && group.children.length !== 0 && (
                   <div className="grid grid-cols-1 gap-1.5 pt-1 pl-3">
                     {group.children.map((child) => (
                       <FilterCheckboxItem

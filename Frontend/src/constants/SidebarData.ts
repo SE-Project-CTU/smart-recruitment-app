@@ -82,11 +82,11 @@ export const recruiterSidebarData = {
       items: [],
     },
     {
-      title: "Quản lý JD",
+      title: "Quản lý việc làm",
       url: "#",
       icon: LibraryBig,
       items: [
-        { title: "Danh sách JD", url: PATHS.RECRUITER.JOBS },
+        { title: "Danh sách tin", url: PATHS.RECRUITER.JOBS },
         { title: "Tạo tin mới", url: PATHS.RECRUITER.CREATE_JOB },
       ],
     },
