@@ -7,6 +7,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, CTAMeshGradient, JobCard } from "@/components/common";
@@ -20,7 +21,15 @@ import {
 } from "@/components/LocationCombobox";
 import { JobDetailDrawer } from "@/components/job";
 import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
-import { MOCK_JOB_POSTINGS, type MockJobPosting } from "@/constants/mockData";
+import { useJobPostings, useJobPostingDetail } from "@/hooks/queries/useJob";
+import type { JobPostingSearchItem } from "@/types/job";
+import {
+  isSalaryNegotiable,
+  normalizeJobLevel,
+  normalizeJobType,
+  normalizeWorkMode,
+  toMillion,
+} from "@/utils/jobHelpers";
 import { Smarthire_icon_default } from "@/assets/images/logo";
 
 type SortKey = "AI_MATCH" | "NEWEST" | "SALARY_DESC" | "SALARY_ASC";
@@ -44,18 +53,45 @@ const INITIAL_FILTERS: JobFilterState = {
 
 export default function SearchJobPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>({
     province: null,
     ward: null,
+    provinceId: null,
+    wardId: null,
   });
   const [sortBy, setSortBy] = useState<SortKey>("AI_MATCH");
   const [filters, setFilters] = useState<JobFilterState>(INITIAL_FILTERS);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const [selectedJob, setSelectedJob] = useState<MockJobPosting | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobPostingSearchItem | null>(
+    null,
+  );
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [bookmarkedJobIds, setBookmarkedJobIds] = useState<Set<string>>(
     new Set(),
+  );
+
+  const { openApplyModal } = useApplyJobModalStore();
+
+  // Params gửi lên API tìm kiếm tin tuyển dụng từ Backend
+  const searchParams = useMemo(() => {
+    return {
+      keyword: submittedQuery.trim() || undefined,
+      provinceId: selectedLocation.provinceId || undefined,
+      wardId: selectedLocation.wardId || undefined,
+      pageSize: 100,
+    };
+  }, [submittedQuery, selectedLocation.provinceId, selectedLocation.wardId]);
+
+  // Kéo danh sách việc làm công khai từ Backend API
+  const { data: pagedData, isLoading: isLoadingJobs } =
+    useJobPostings(searchParams);
+  const jobList = pagedData?.items || [];
+
+  // Lấy chi tiết toàn văn JD khi người dùng mở Drawer
+  const { data: jobDetail } = useJobPostingDetail(
+    isDetailDrawerOpen && selectedJob ? selectedJob.id : undefined,
   );
 
   const handleToggleArrayFilter = (
@@ -78,7 +114,8 @@ export default function SearchJobPage() {
       const groupItems = [parent, ...children];
       const isAllSelected =
         prev.industries.includes(parent) ||
-        children.every((c) => prev.industries.includes(c));
+        (children.length > 0 &&
+          children.every((c) => prev.industries.includes(c)));
 
       if (isAllSelected) {
         return {
@@ -103,86 +140,127 @@ export default function SearchJobPage() {
 
   const handleResetFilters = () => {
     setSearchQuery("");
-    setSelectedLocation({ province: null, ward: null });
+    setSubmittedQuery("");
+    setSelectedLocation({
+      province: null,
+      ward: null,
+      provinceId: null,
+      wardId: null,
+    });
     setSortBy("AI_MATCH");
     setFilters(INITIAL_FILTERS);
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittedQuery(searchQuery);
+  };
+
+  // Bộ lọc đa tiêu chí (Client-side kết hợp với dữ liệu API)
   const filteredAndSortedJobs = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const localQ = searchQuery.trim().toLowerCase();
     const minSal = filters.minSalary !== "" ? Number(filters.minSalary) : null;
     const maxSal = filters.maxSalary !== "" ? Number(filters.maxSalary) : null;
 
-    const list = (MOCK_JOB_POSTINGS || []).filter((job: MockJobPosting) => {
-      if (q) {
-        const matchTitle = job.title.toLowerCase().includes(q);
-        const matchCompany = job.company.name.toLowerCase().includes(q);
-        const matchSkill = job.skills?.some((s) => s.toLowerCase().includes(q));
+    const list = jobList.filter((job: JobPostingSearchItem) => {
+      // 1. Từ khóa tìm kiếm cục bộ (nếu người dùng gõ mà chưa bấm submit)
+      if (localQ && localQ !== submittedQuery.trim().toLowerCase()) {
+        const matchTitle = job.title.toLowerCase().includes(localQ);
+        const matchCompany = job.company?.name?.toLowerCase().includes(localQ);
+        const matchSkill = job.skillNames?.some((s) =>
+          s.toLowerCase().includes(localQ),
+        );
         if (!matchTitle && !matchCompany && !matchSkill) return false;
       }
 
-      if (selectedLocation.province) {
-        if (job.location.provinceName !== selectedLocation.province) {
-          return false;
-        }
-        if (
-          selectedLocation.ward &&
-          job.location.wardName !== selectedLocation.ward
-        ) {
-          return false;
-        }
-      }
-
+      // 2. Lọc Lĩnh vực / Ngành nghề
       if (filters.industries.length > 0) {
-        const hasMatchingIndustry = job.industries?.some((ind) =>
+        const hasMatchingIndustry = job.industryNames?.some((ind) =>
           filters.industries.includes(ind),
         );
         if (!hasMatchingIndustry) return false;
       }
 
-      if (
-        filters.jobTypes.length > 0 &&
-        !filters.jobTypes.includes(job.jobType)
-      ) {
-        return false;
+      // 3. Lọc Hình thức làm việc (Full-time, Part-time, Contract...)
+      if (filters.jobTypes.length > 0) {
+        const typeNormalized = normalizeJobType(job.jobType);
+        const isMatched =
+          (typeNormalized !== null &&
+            filters.jobTypes.includes(typeNormalized)) ||
+          (Boolean(job.jobType) &&
+            filters.jobTypes.includes(String(job.jobType)));
+        if (!isMatched) return false;
       }
 
-      if (
-        filters.workModes.length > 0 &&
-        !filters.workModes.includes(job.workMode)
-      ) {
-        return false;
+      // 4. Lọc Môi trường làm việc (On-site, Hybrid, Remote)
+      if (filters.workModes.length > 0) {
+        const modeNormalized = normalizeWorkMode(job.workMode);
+        const isMatched =
+          (modeNormalized !== null &&
+            filters.workModes.includes(modeNormalized)) ||
+          (Boolean(job.workMode) &&
+            filters.workModes.includes(String(job.workMode)));
+        if (!isMatched) return false;
       }
 
-      if (
-        filters.jobLevels.length > 0 &&
-        !filters.jobLevels.includes(job.jobLevel)
-      ) {
-        return false;
+      // 5. Lọc Cấp bậc (Intern, Fresher, Junior, Middle, Senior, Lead...)
+      if (filters.jobLevels.length > 0) {
+        const levelNormalized = normalizeJobLevel(job.jobLevel);
+        const isMatched =
+          filters.jobLevels.includes(levelNormalized) ||
+          (Boolean(job.jobLevel) &&
+            filters.jobLevels.includes(String(job.jobLevel)));
+        if (!isMatched) return false;
       }
 
-      if (filters.negotiableOnly && !job.salaryNegotiable) {
-        return false;
+      // 6. Lọc Lương thỏa thuận
+      const isNegotiable = isSalaryNegotiable(
+        job.salaryMin,
+        job.salaryMax,
+        job.salaryNegotiable,
+      );
+
+      if (filters.negotiableOnly) {
+        if (!isNegotiable) return false;
       }
 
-      if (minSal !== null && !job.salaryNegotiable) {
-        if ((job.salaryMax ?? 0) < minSal) return false;
-      }
+      // 7. Lọc Khoảng lương (Quy đổi sang triệu đồng tương thích với bộ lọc)
+      if (minSal !== null || maxSal !== null) {
+        // Khi không bật "Chỉ gồm lương thỏa thuận", các công việc thuần thỏa thuận (không có thông tin số tiền) sẽ không tính vào khoảng lương cụ thể
+        if (
+          !filters.negotiableOnly &&
+          isNegotiable &&
+          job.salaryMin == null &&
+          job.salaryMax == null
+        ) {
+          return false;
+        }
 
-      if (maxSal !== null && !job.salaryNegotiable) {
-        if ((job.salaryMin ?? 0) > maxSal) return false;
+        const jobMin = toMillion(job.salaryMin);
+        const jobMax = toMillion(job.salaryMax);
+
+        if (minSal !== null) {
+          const effectiveMax = jobMax > 0 ? jobMax : jobMin;
+          if (effectiveMax > 0 && effectiveMax < minSal) return false;
+        }
+
+        if (maxSal !== null) {
+          const effectiveMin = jobMin > 0 ? jobMin : jobMax;
+          if (effectiveMin > 0 && effectiveMin > maxSal) return false;
+        }
       }
 
       return true;
     });
 
+    // Sắp xếp danh sách
     return [...list].sort((a, b) => {
       switch (sortBy) {
         case "AI_MATCH":
           return (b.aiMatchScore ?? 0) - (a.aiMatchScore ?? 0);
         case "NEWEST":
           return (
-            new Date(b.createAt).getTime() - new Date(a.createAt).getTime()
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
         case "SALARY_DESC":
           return (b.salaryMax ?? 0) - (a.salaryMax ?? 0);
@@ -192,9 +270,9 @@ export default function SearchJobPage() {
           return 0;
       }
     });
-  }, [searchQuery, selectedLocation, filters, sortBy]);
+  }, [jobList, searchQuery, submittedQuery, filters, sortBy]);
 
-  const handleSelectJob = (job: MockJobPosting) => {
+  const handleSelectJob = (job: JobPostingSearchItem) => {
     setSelectedJob(job);
     setIsDetailDrawerOpen(true);
   };
@@ -208,10 +286,9 @@ export default function SearchJobPage() {
     });
   };
 
-  const { openApplyModal } = useApplyJobModalStore();
-
   const handleApply = (jobId: string) => {
     const targetJob =
+      (jobDetail && jobDetail.id === jobId ? jobDetail : null) ||
       filteredAndSortedJobs.find((j) => j.id === jobId) ||
       (selectedJob?.id === jobId ? selectedJob : null);
     if (targetJob) {
@@ -239,7 +316,7 @@ export default function SearchJobPage() {
 
             {/* Form tìm kiếm tích hợp Địa điểm (Responsive hoàn chỉnh cho mobile và desktop) */}
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSearchSubmit}
               className="flex w-full flex-col gap-2 rounded-2xl bg-white p-2 shadow-xl sm:flex-row sm:items-center sm:gap-0 sm:rounded-full"
             >
               {/* 1. Ô nhập từ khóa tìm kiếm */}
@@ -255,7 +332,10 @@ export default function SearchJobPage() {
                 {searchQuery && (
                   <button
                     type="button"
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSubmittedQuery("");
+                    }}
                     className="cursor-pointer text-slate-400 hover:text-slate-600"
                   >
                     <X className="size-4" />
@@ -370,7 +450,7 @@ export default function SearchJobPage() {
             <p className="text-xs font-medium text-text-muted">
               Tìm thấy{" "}
               <span className="font-semibold text-text-main">
-                {filteredAndSortedJobs.length}
+                {isLoadingJobs ? "..." : filteredAndSortedJobs.length}
               </span>{" "}
               công việc
             </p>
@@ -427,7 +507,14 @@ export default function SearchJobPage() {
             </div>
           </div>
 
-          {filteredAndSortedJobs.length === 0 ? (
+          {isLoadingJobs ? (
+            <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
+              <Loader2 className="size-8 animate-spin text-primary" />
+              <p className="text-xs font-medium text-text-muted">
+                Đang tìm kiếm cơ hội việc làm phù hợp...
+              </p>
+            </div>
+          ) : filteredAndSortedJobs.length === 0 ? (
             <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
               <div className="flex size-12 items-center justify-center rounded-full bg-secondary-light text-primary">
                 <BriefcaseBusiness className="size-6" />
@@ -469,7 +556,7 @@ export default function SearchJobPage() {
       </div>
 
       <JobDetailDrawer
-        job={selectedJob}
+        job={jobDetail || selectedJob}
         open={isDetailDrawerOpen}
         onClose={() => setIsDetailDrawerOpen(false)}
         isBookmarked={

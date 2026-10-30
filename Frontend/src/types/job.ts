@@ -140,6 +140,7 @@ export interface JobPostingSearchItem {
   skillNames: string[];
   industryNames: string[];
   createdAt: string;
+  aiMatchScore?: number | null;
 }
 
 /**

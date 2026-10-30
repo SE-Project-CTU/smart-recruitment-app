@@ -5,6 +5,8 @@ import type {
   JobType,
   WorkMode,
 } from "@/types";
+import { getTimeAgo } from "./helper";
+import type { AnyJob } from "@/stores/applyJobModalStore";
 
 export interface SelectOption<T extends string = string> {
   value: T;
@@ -294,4 +296,251 @@ export function getJobStatusBadge(status?: JobPostingStatus | string): {
     default:
       return { label: "Bản nháp", variant: "neutral" };
   }
+}
+
+/**
+ * Chuyển đổi số tiền lương (VND) sang đơn vị triệu đồng dạng số
+ */
+export function toMillion(val?: number | null): number {
+  if (!val) return 0;
+  return val >= 1000 ? val / 1_000_000 : val;
+}
+
+/**
+ * Định dạng số tiền (VND hoặc triệu) thành chuỗi hiển thị số triệu (ví dụ: "10", "15.5")
+ */
+export function formatMillion(val?: number | null): string {
+  if (val == null) return "0";
+  const m = toMillion(val);
+  return Number.isInteger(m) ? m.toString() : m.toFixed(1).replace(/\.0$/, "");
+}
+
+/**
+ * Kiểm tra xem tin tuyển dụng có phải mức lương thỏa thuận hay không
+ */
+export function isSalaryNegotiable(
+  salaryMin?: number | null,
+  salaryMax?: number | null,
+  salaryNegotiable?: boolean | null,
+): boolean {
+  return Boolean(salaryNegotiable) || (salaryMin == null && salaryMax == null);
+}
+
+export interface CompactSalaryInfo {
+  text: string;
+  unit: string;
+  fullText: string;
+}
+
+/**
+ * Định dạng mức lương rút gọn theo triệu đồng (ví dụ: "15 - 20 triệu", "Từ 10 triệu", "Thỏa thuận")
+ */
+export function formatSalaryCompact(
+  min?: number | null,
+  max?: number | null,
+  negotiable?: boolean | null,
+): CompactSalaryInfo {
+  if (isSalaryNegotiable(min, max, negotiable)) {
+    return { text: "Thỏa thuận", unit: "", fullText: "Thỏa thuận" };
+  }
+
+  if (min != null && max != null) {
+    const text = `${formatMillion(min)} - ${formatMillion(max)} triệu`;
+    return { text, unit: "/tháng", fullText: `${text}/tháng` };
+  }
+  if (min != null) {
+    const text = `Từ ${formatMillion(min)} triệu`;
+    return { text, unit: "/tháng", fullText: `${text}/tháng` };
+  }
+  if (max != null) {
+    const text = `Lên đến ${formatMillion(max)} triệu`;
+    return { text, unit: "/tháng", fullText: `${text}/tháng` };
+  }
+
+  return { text: "Thỏa thuận", unit: "", fullText: "Thỏa thuận" };
+}
+
+/**
+ * Trích xuất và chuẩn hóa dữ liệu hiển thị từ mọi nguồn tin tuyển dụng (SearchItem, DetailResult, MockJob, AnyJob...)
+ */
+export function extractJobDisplayData(job: AnyJob) {
+  if (!job) {
+    return {
+      companyName: "Doanh nghiệp tuyển dụng",
+      companyLogoUrl: null as string | null,
+      isCompanyVerified: false,
+      provinceName: "Toàn quốc",
+      wardName: "",
+      detailedLocation: "",
+      displayLocation: "Toàn quốc",
+      fullAddress: "Toàn quốc",
+      rawCreatedAt: "",
+      displayTimeAgo: "Mới đăng",
+      displayCreatedAt: "Mới đăng",
+      rawDeadline: null as string | null,
+      formattedDeadline: null as string | null,
+      experienceYears: 0,
+      expYears: 0,
+      vacanciesCount: 1,
+      salaryInfo: { text: "Thỏa thuận", unit: "", fullText: "Thỏa thuận" },
+      salaryText: "Thỏa thuận",
+      isNegotiable: true,
+      jobTypeLabel: "Toàn thời gian",
+      workModeLabel: "Chưa xác định",
+      workModeText: "Chưa xác định",
+      jobLevelLabel: "Nhân viên",
+      skillList: [] as string[],
+      aiScore: null as number | null,
+      description: null as string | null,
+      requirements: null as string | null,
+      benefits: null as string | null,
+    };
+  }
+
+  const companyName =
+    job.company?.name ||
+    ("companyName" in job && typeof job.companyName === "string"
+      ? job.companyName
+      : "Doanh nghiệp tuyển dụng");
+
+  const companyLogoUrl =
+    job.company?.logoUrl ||
+    ("logoFileUrl" in (job.company || {})
+      ? (job.company as { logoFileUrl?: string | null })?.logoFileUrl
+      : null) ||
+    ("companyLogoUrl" in job && typeof job.companyLogoUrl === "string"
+      ? job.companyLogoUrl
+      : null) ||
+    null;
+
+  const isCompanyVerified = Boolean(
+    ("verificationStatus" in (job.company || {}) &&
+      (job.company as { verificationStatus?: string })?.verificationStatus ===
+        "VERIFIED") ||
+    ("isVerified" in (job.company || {}) &&
+      Boolean((job.company as { isVerified?: boolean })?.isVerified)),
+  );
+
+  const provinceName =
+    ("province" in job && job.province?.name) ||
+    ("location" in job && job.location?.provinceName) ||
+    ("provinceName" in job && typeof job.provinceName === "string"
+      ? job.provinceName
+      : "Toàn quốc");
+
+  const wardName =
+    ("ward" in job && job.ward?.name) ||
+    ("location" in job && job.location?.wardName) ||
+    "";
+
+  const detailedLocation =
+    ("detailedLocation" in job && typeof job.detailedLocation === "string"
+      ? job.detailedLocation
+      : "") ||
+    ("location" in job && job.location?.detailedLocation) ||
+    "";
+
+  const displayLocation = wardName
+    ? `${wardName}, ${provinceName}`
+    : provinceName;
+
+  const fullAddress =
+    [detailedLocation, wardName, provinceName].filter(Boolean).join(", ") ||
+    provinceName;
+
+  const rawCreatedAt =
+    ("createdAt" in job && job.createdAt) ||
+    ("createAt" in job && job.createAt) ||
+    "";
+
+  const displayTimeAgo = rawCreatedAt ? getTimeAgo(rawCreatedAt) : "Mới đăng";
+
+  const rawDeadline = "deadline" in job ? job.deadline : null;
+  const formattedDeadline = rawDeadline
+    ? new Date(rawDeadline).toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : null;
+
+  const experienceYears =
+    "experienceYears" in job && typeof job.experienceYears === "number"
+      ? job.experienceYears
+      : 0;
+
+  const vacanciesCount =
+    "vacancies" in job && typeof job.vacancies === "number" ? job.vacancies : 1;
+
+  const salaryInfo = formatSalaryCompact(
+    job.salaryMin,
+    job.salaryMax,
+    job.salaryNegotiable,
+  );
+  const salaryText = salaryInfo.text;
+  const isNegotiable = isSalaryNegotiable(
+    job.salaryMin,
+    job.salaryMax,
+    job.salaryNegotiable,
+  );
+
+  const rawSkills = "skills" in job ? job.skills : undefined;
+  const rawSkillNames = "skillNames" in job ? job.skillNames : undefined;
+
+  const skillList: string[] = Array.isArray(rawSkills)
+    ? rawSkills.map((s: string | { name: string }) =>
+        typeof s === "string" ? s : s.name,
+      )
+    : Array.isArray(rawSkillNames)
+      ? rawSkillNames
+      : [];
+
+  const aiScore =
+    "aiMatchScore" in job && typeof job.aiMatchScore === "number"
+      ? job.aiMatchScore
+      : null;
+
+  const description =
+    "description" in job && typeof job.description === "string"
+      ? job.description
+      : null;
+
+  const requirements =
+    "requirements" in job && typeof job.requirements === "string"
+      ? job.requirements
+      : null;
+
+  const benefits =
+    "benefits" in job && typeof job.benefits === "string" ? job.benefits : null;
+
+  return {
+    companyName,
+    companyLogoUrl,
+    isCompanyVerified,
+    provinceName,
+    wardName,
+    detailedLocation,
+    displayLocation,
+    fullAddress,
+    rawCreatedAt,
+    displayTimeAgo,
+    displayCreatedAt: displayTimeAgo,
+    rawDeadline,
+    formattedDeadline,
+    experienceYears,
+    expYears: experienceYears,
+    vacanciesCount,
+    salaryInfo,
+    salaryText,
+    isNegotiable,
+    jobTypeLabel: getJobTypeLabel(job.jobType),
+    workModeLabel: getWorkModeLabel(job.workMode),
+    workModeText: getWorkModeLabel(job.workMode),
+    jobLevelLabel: getJobLevelLabel(job.jobLevel),
+    skillList,
+    aiScore,
+    description,
+    requirements,
+    benefits,
+  };
 }
