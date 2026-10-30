@@ -26,16 +26,14 @@ import {
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import type {
-  JobApplicationItem,
-  JobApplicationStatus,
-  UpdateJobApplicationStatus,
-} from "@/types/job";
 import {
   APPLICATION_STATUS_CONFIG,
   ALLOWED_STATUS_TRANSITIONS,
   APPLICATION_STATUS_OPTIONS,
   resolveCandidateProfile,
+  type JobApplicationItem,
+  type JobApplicationStatus,
+  type UpdateJobApplicationStatus,
 } from "@/types/application";
 
 const columnHelper = createColumnHelper<

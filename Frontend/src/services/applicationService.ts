@@ -5,8 +5,8 @@ import type {
   ApplicationStatusHistoryItem,
   ApplyJobPayload,
   CandidateMyApplicationItem,
+  JobApplicationItem,
 } from "@/types/application";
-import type { JobApplicationItem } from "@/types/job";
 
 export interface PagedCandidateApplicationsResult {
   items: CandidateMyApplicationItem[];

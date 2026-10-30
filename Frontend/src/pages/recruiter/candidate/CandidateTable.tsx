@@ -22,14 +22,12 @@ import {
 } from "@/components/animate-ui/components/base/tooltip";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { PATHS } from "@/constants/paths";
-import type {
-  RecruiterCandidateApplicationItem,
-  UpdateJobApplicationStatus,
-} from "@/types/job";
 import {
   ALLOWED_STATUS_TRANSITIONS,
   APPLICATION_STATUS_CONFIG,
   resolveCandidateProfile,
+  type RecruiterCandidateApplicationItem,
+  type UpdateJobApplicationStatus,
 } from "@/types/application";
 
 const columnHelper = createColumnHelper<
