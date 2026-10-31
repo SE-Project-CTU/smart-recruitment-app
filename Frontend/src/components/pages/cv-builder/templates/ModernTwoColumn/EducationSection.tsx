@@ -1,103 +1,98 @@
 import React from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
 import type {
   RichTextCVEducationItem,
   RichTextCVItemSection,
 } from "@/types/cv";
-import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
-import { createEmptyTiptapDocument } from "@/features/cv-builder/utils/tiptapJson";
-import { TiptapField } from "../../components/TiptapField";
 import { CvDateRangeFields } from "../../components/CvDateRangeFields";
 import ItemActions from "../../components/ItemActions";
 import { SectionTitle } from "./SectionTitle";
+import type {
+  CvFieldRenderer,
+  SectionItemEditorActions,
+} from "../CvTemplateProps";
 
-interface Props {
+interface EducationSectionProps {
   section: RichTextCVItemSection<RichTextCVEducationItem>;
   primaryColor?: string;
   isReadOnly?: boolean;
+  renderField: CvFieldRenderer;
+  actions?: SectionItemEditorActions;
 }
 
-export const EducationSection: React.FC<Props> = ({
+export const EducationSection: React.FC<EducationSectionProps> = ({
   section,
   primaryColor,
   isReadOnly = false,
+  renderField,
+  actions,
 }) => {
-  const { control } = useFormContext<RichTextCvEditorValues>();
-  const { fields, insert, move, remove } = useFieldArray({
-    control,
-    name: "content.sections.education.items",
-    keyName: "_fieldKey",
-  });
   if (!section.visible) return null;
-  const add = (index: number) =>
-    insert(index + 1, {
-      id: `edu_${crypto.randomUUID()}`,
-      school: createEmptyTiptapDocument(),
-      title: createEmptyTiptapDocument(),
-      start: createEmptyTiptapDocument(),
-      end: createEmptyTiptapDocument(),
-      details: createEmptyTiptapDocument(),
-    });
+  const items = section.items || [];
+
   return (
     <section className="section-education group relative mb-3">
       <SectionTitle
         placeholder="HỌC VẤN"
-        formFieldName="content.sections.education.title"
+        fieldName="content.sections.education.title"
+        title={section.title}
         primaryColor={primaryColor}
         isReadOnly={isReadOnly}
+        renderField={renderField}
       />
       <div className="space-y-3">
-        {fields.map((item, index) => (
+        {items.map((item, index) => (
           <div
-            key={item._fieldKey}
+            key={item.id || index}
             className="group/item relative rounded-sm p-1 hover:bg-slate-50/60"
           >
-            {!isReadOnly && (
+            {!isReadOnly && actions && (
               <ItemActions
                 isFirst={index === 0}
-                isLast={index === fields.length - 1}
-                canDelete={fields.length > 1}
-                onMoveUp={() => move(index, index - 1)}
-                onMoveDown={() => move(index, index + 1)}
-                onAddAfter={() => add(index)}
-                onDelete={() => remove(index)}
+                isLast={index === items.length - 1}
+                canDelete={items.length > 1}
+                onMoveUp={() => actions.onMoveUp(index)}
+                onMoveDown={() => actions.onMoveDown(index)}
+                onAddAfter={() => actions.onAddAfter(index)}
+                onDelete={() => actions.onDelete(index)}
               />
             )}
-            <div className="flex items-center justify-between gap-2 font-bold text-slate-900">
-              <TiptapField
-                name={`content.sections.education.items.${index}.school`}
-                placeholder="Tên trường học"
-                isReadOnly={isReadOnly}
-                className="flex-1"
-              />
+            <div className="flex items-baseline justify-between gap-4">
+              <div className="font-bold text-slate-900">
+                {renderField({
+                  name: `content.sections.education.items.${index}.school`,
+                  document: item.school,
+                  placeholder: "Trường / Cơ sở đào tạo",
+                  isReadOnly,
+                })}
+              </div>
               <CvDateRangeFields
                 startName={`content.sections.education.items.${index}.start`}
                 endName={`content.sections.education.items.${index}.end`}
-                yearOnly
+                startDate={item.start}
+                endDate={item.end}
+                renderField={renderField}
                 isReadOnly={isReadOnly}
               />
             </div>
-            <div className="mt-0.5 font-medium text-slate-800">
-              <TiptapField
-                name={`content.sections.education.items.${index}.title`}
-                placeholder="Chuyên ngành / Bằng cấp"
-                isReadOnly={isReadOnly}
-              />
+            <div className="text-sm font-semibold text-slate-700">
+              {renderField({
+                name: `content.sections.education.items.${index}.title`,
+                document: item.title,
+                placeholder: "Ngành học / Bằng cấp",
+                isReadOnly,
+              })}
             </div>
-            <div className="mt-0.5 text-slate-600">
-              <TiptapField
-                name={`content.sections.education.items.${index}.details`}
-                placeholder="Xếp loại / Thông tin chi tiết..."
-                isReadOnly={isReadOnly}
-              />
+            <div className="mt-1 text-slate-600">
+              {renderField({
+                name: `content.sections.education.items.${index}.details`,
+                document: item.details,
+                placeholder: "Mô tả GPA, thành tích học tập...",
+                multiline: true,
+                isReadOnly,
+              })}
             </div>
           </div>
         ))}
-        {fields.length === 0 && (
-          <p className="cv-text-meta py-1 text-center text-slate-400 italic">
-            Chưa có thông tin học vấn.
-          </p>
-        )}
       </div>
     </section>
   );

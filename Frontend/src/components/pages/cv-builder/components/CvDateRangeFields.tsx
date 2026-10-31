@@ -1,11 +1,13 @@
 import React from "react";
-import type { FieldPath } from "react-hook-form";
-import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
-import { TiptapField } from "./TiptapField";
+import type { CvTiptapDocument } from "@/types/cv";
+import type { CvFieldRenderer } from "../templates/CvTemplateProps";
 
 interface CvDateRangeFieldsProps {
-  startName: FieldPath<RichTextCvEditorValues>;
-  endName: FieldPath<RichTextCvEditorValues>;
+  startName: string;
+  endName: string;
+  startDate?: CvTiptapDocument;
+  endDate?: CvTiptapDocument;
+  renderField: CvFieldRenderer;
   startPlaceholder?: string;
   endPlaceholder?: string;
   yearOnly?: boolean;
@@ -15,6 +17,9 @@ interface CvDateRangeFieldsProps {
 export const CvDateRangeFields: React.FC<CvDateRangeFieldsProps> = ({
   startName,
   endName,
+  startDate,
+  endDate,
+  renderField,
   startPlaceholder = "Bắt đầu",
   endPlaceholder = "Kết thúc",
   yearOnly = false,
@@ -24,19 +29,21 @@ export const CvDateRangeFields: React.FC<CvDateRangeFieldsProps> = ({
 
   return (
     <div className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-normal text-slate-600">
-      <TiptapField
-        name={startName}
-        placeholder={startPlaceholder}
-        isReadOnly={isReadOnly}
-        className={`${dateWidth} text-center`}
-      />
+      {renderField({
+        name: startName,
+        document: startDate,
+        placeholder: startPlaceholder,
+        isReadOnly,
+        className: `${dateWidth} text-center`,
+      })}
       <span aria-hidden="true" className="text-slate-400">–</span>
-      <TiptapField
-        name={endName}
-        placeholder={endPlaceholder}
-        isReadOnly={isReadOnly}
-        className={`${dateWidth} text-center`}
-      />
+      {renderField({
+        name: endName,
+        document: endDate,
+        placeholder: endPlaceholder,
+        isReadOnly,
+        className: `${dateWidth} text-center`,
+      })}
     </div>
   );
 };

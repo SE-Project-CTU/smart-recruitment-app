@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useReactToPrint } from "react-to-print";
@@ -10,7 +10,7 @@ import {
   Edit3,
   FileCheck,
   AlertCircle,
-  Save,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ import { buildRichTextCvInitialValues } from "@/features/cv-builder/utils/richTe
 import { extractTiptapPlainText } from "@/features/cv-builder/utils/tiptapJson";
 import CvBuilderWysiwygToolbar from "@/components/pages/cv-builder/CvBuilderWysiwygToolbar";
 import CvBuilderWorkspace from "@/components/pages/cv-builder/CvBuilderWorkspace";
+import { CvPreviewModal } from "@/components/pages/cv-builder/CvPreviewModal";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -40,6 +41,8 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   cvId,
 }) => {
   const [isLocked, setIsLocked] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<RichTextCvEditorValues | null>(null);
   const cvPrintRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -93,6 +96,11 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
       console.warn("[CVBuilder] Form validation errors:", fieldErrors);
     },
   );
+
+  const handleOpenPreview = () => {
+    setPreviewData(methods.getValues());
+    setIsPreviewOpen(true);
+  };
 
   const handleEditAgain = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -149,6 +157,17 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
           <div className="flex items-center gap-2.5">
             {!isLocked ? (
               <>
+                <button
+                  key="btn-preview-cv"
+                  type="button"
+                  onClick={handleOpenPreview}
+                  className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-xs font-medium text-text-main shadow-xs transition-all hover:border-primary/40 hover:bg-bg md:text-sm"
+                  title="Xem trước định dạng in A4"
+                >
+                  <Eye className="h-4 w-4 text-primary" />
+                  Xem trước
+                </button>
+
                 <button
                   key="btn-complete-cv"
                   type="button"
@@ -222,6 +241,16 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
           {/* ================= 3. TRANG GIẤY A4 WYSIWYG WORKSPACE ================= */}
           <CvBuilderWorkspace contentRef={cvPrintRef} isReadOnly={isLocked} />
         </form>
+
+        {/* ================= 4. MODAL XEM TRƯỚC CV ================= */}
+        {isPreviewOpen && previewData && (
+          <CvPreviewModal
+            isOpen={isPreviewOpen}
+            onClose={() => setIsPreviewOpen(false)}
+            data={previewData}
+            title={previewData.title}
+          />
+        )}
       </div>
     </FormProvider>
   );

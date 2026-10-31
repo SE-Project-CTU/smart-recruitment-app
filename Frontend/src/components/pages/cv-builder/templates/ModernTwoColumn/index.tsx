@@ -1,12 +1,12 @@
 import React from "react";
-import { useFormContext, useWatch } from "react-hook-form";
 import {
   DragDropContext,
   Droppable,
   Draggable,
   type DropResult,
 } from "@hello-pangea/dnd";
-import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
+import type { RichTextCVContentDocument } from "@/types/cv";
+import type { FixedSectionKey } from "@/features/cv-builder/types";
 import { ProfileHeader } from "./ProfileHeader";
 import { ObjectiveSection } from "./ObjectiveSection";
 import { EducationSection } from "./EducationSection";
@@ -19,31 +19,37 @@ import {
   TextSection,
 } from "./OtherSections";
 import DraggableSectionActions from "../../components/DraggableSectionActions";
-import { useCvMutations } from "@/features/cv-builder/hooks/useCvMutations";
-import type { FixedSectionKey } from "@/features/cv-builder/types";
+import { CvTiptapReadOnlyView } from "../../components/CvTiptapReadOnlyView";
 import { getCvFontFamilyCss } from "@/features/cv-builder/constants/fonts";
-import type { CvTemplateProps } from "../CvTemplateProps";
+import type { CvTemplateProps, CvFieldRenderer } from "../CvTemplateProps";
+
+const defaultReadOnlyRenderer: CvFieldRenderer = ({
+  document,
+  placeholder,
+  className,
+}) => (
+  <CvTiptapReadOnlyView
+    document={document}
+    placeholder={placeholder}
+    className={className}
+  />
+);
 
 /**
  * ModernTwoColumnTemplate:
- * Render CV chuẩn WYSIWYG trên trang giấy A4.
- * Cho phép chỉnh sửa trực tiếp các field rich text bằng Tiptap,
- * đồng thời hỗ trợ Kéo thả (Drag & Drop) để sắp xếp lại vị trí các Section.
+ * Component giao diện hiển thị CV chuẩn trang giấy A4.
+ * Nhận dữ liệu tường minh qua props và không phụ thuộc ngầm vào form context.
  */
-export const ModernTwoColumnTemplate: React.FC<
-  CvTemplateProps
-> = ({ className = "", data: externalData, isReadOnly = false }) => {
-  const formContext = useFormContext<RichTextCvEditorValues>();
-
-  const watchedData = useWatch({
-    control: formContext?.control,
-  }) as RichTextCvEditorValues | undefined;
-
-  const { reorderSections, toggleSectionVisibility } = useCvMutations();
-
-  const data = externalData || watchedData;
-
-  if (!data || !data.content) {
+export const ModernTwoColumnTemplate: React.FC<CvTemplateProps> = ({
+  className = "",
+  data,
+  renderField = defaultReadOnlyRenderer,
+  isReadOnly = false,
+  sectionEditors,
+  onReorderSections,
+  onToggleSectionVisibility,
+}) => {
+  if (!data) {
     return (
       <div className="flex h-96 items-center justify-center rounded-xl border border-dashed border-border bg-surface text-sm text-text-muted">
         Chưa có dữ liệu CV để hiển thị.
@@ -51,9 +57,22 @@ export const ModernTwoColumnTemplate: React.FC<
     );
   }
 
-  const { content } = data;
-  const { profile, sections } = content;
-  const globalStyles = content.metadata.defaultStyle;
+  // Chuẩn hóa dữ liệu content từ CvRenderData
+  const content: RichTextCVContentDocument =
+    "content" in data && data.content && typeof data.content === "object"
+      ? (data.content as RichTextCVContentDocument)
+      : (data as RichTextCVContentDocument);
+
+  if (!content || !content.profile || !content.sections) {
+    return (
+      <div className="flex h-96 items-center justify-center rounded-xl border border-dashed border-border bg-surface text-sm text-text-muted">
+        Chưa có dữ liệu CV để hiển thị.
+      </div>
+    );
+  }
+
+  const { profile, sections, metadata } = content;
+  const globalStyles = metadata?.defaultStyle;
 
   const primaryColor = globalStyles?.primaryColors?.[0] || "#0F172A";
   const fontFamily = globalStyles?.fontFamily || "inter";
@@ -72,32 +91,34 @@ export const ModernTwoColumnTemplate: React.FC<
     "additionalInfo",
   ]) as string[];
 
-  // Xử lý kéo thả reorder section
+  // Xử lý kéo thả sắp xếp lại thứ tự section
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || isReadOnly) return;
+    if (!result.destination || isReadOnly || !onReorderSections) return;
     const reordered = Array.from(sectionOrder);
     const [removed] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, removed);
-    reorderSections(reordered);
+    onReorderSections(reordered);
   };
 
   const moveSection = (index: number, direction: "up" | "down") => {
+    if (!onReorderSections) return;
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= sectionOrder.length) return;
     const reordered = Array.from(sectionOrder);
     const [removed] = reordered.splice(index, 1);
     reordered.splice(newIndex, 0, removed);
-    reorderSections(reordered);
+    onReorderSections(reordered);
   };
 
   const renderSectionContent = (key: string) => {
     switch (key) {
       case "objective":
         return (
-        <ObjectiveSection
+          <ObjectiveSection
             section={sections.objective}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
           />
         );
       case "education":
@@ -106,6 +127,8 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.education}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
+            actions={sectionEditors?.education}
           />
         );
       case "experience":
@@ -114,6 +137,8 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.experience}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
+            actions={sectionEditors?.experience}
           />
         );
       case "skills":
@@ -122,6 +147,8 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.skills}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
+            actions={sectionEditors?.skills}
           />
         );
       case "projects":
@@ -130,6 +157,8 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.projects}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
+            actions={sectionEditors?.projects}
           />
         );
       case "certifications":
@@ -138,6 +167,8 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.certifications}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
+            actions={sectionEditors?.certifications}
           />
         );
       case "awards":
@@ -146,6 +177,8 @@ export const ModernTwoColumnTemplate: React.FC<
             section={sections.awards}
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
+            actions={sectionEditors?.awards}
           />
         );
       case "interests":
@@ -156,6 +189,7 @@ export const ModernTwoColumnTemplate: React.FC<
             defaultTitle="SỞ THÍCH"
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
           />
         );
       case "additionalInfo":
@@ -166,6 +200,7 @@ export const ModernTwoColumnTemplate: React.FC<
             defaultTitle="THÔNG TIN BỔ SUNG"
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
+            renderField={renderField}
           />
         );
       default:
@@ -173,9 +208,11 @@ export const ModernTwoColumnTemplate: React.FC<
     }
   };
 
+  const canDrag = !isReadOnly && Boolean(onReorderSections);
+
   return (
     <div
-      className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
+      className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 drop-shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
       style={{
         fontFamily: getCvFontFamilyCss(fontFamily),
         lineHeight,
@@ -183,46 +220,42 @@ export const ModernTwoColumnTemplate: React.FC<
         ["--cv-line-height" as string]: lineHeight,
       }}
     >
-      {/* 1. Header: Profile Info WYSIWYG */}
+      {/* 1. Header: Thông tin cá nhân Profile */}
       {profile && (
         <ProfileHeader
+          profile={profile}
           primaryColor={primaryColor}
           isReadOnly={isReadOnly}
+          renderField={renderField}
         />
       )}
 
-      {/* 2. DragDropContext cho các Section trực tiếp trên CV */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable
-          droppableId="cv-template-sections"
-          isDropDisabled={isReadOnly}
-        >
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              {sectionOrder.map((sectionKey, index) => (
-                <Draggable
-                  key={sectionKey}
-                  draggableId={sectionKey}
-                  index={index}
-                  isDragDisabled={isReadOnly}
-                >
-                  {(dragProvided, snapshot) => (
-                    <div
-                      ref={dragProvided.innerRef}
-                      {...dragProvided.draggableProps}
-                      className={`group relative rounded-sm px-2 py-1 transition-all ${
-                        !isReadOnly ? "hover:ring-1 hover:ring-slate-300" : ""
-                      } ${
-                        snapshot.isDragging
-                          ? "z-50 bg-white opacity-95 shadow-2xl ring-1"
-                          : ""
-                      }`}
-                    >
-                      {/* Floating toolbar for draggable sections */}
-                      {!isReadOnly && (
+      {/* 2. Danh sách các Sections (Kéo thả nếu trong Builder, hoặc render phẳng nếu chỉ đọc) */}
+      {canDrag ? (
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable
+            droppableId="cv-template-sections"
+            isDropDisabled={isReadOnly}
+          >
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef}>
+                {sectionOrder.map((sectionKey, index) => (
+                  <Draggable
+                    key={sectionKey}
+                    draggableId={sectionKey}
+                    index={index}
+                    isDragDisabled={isReadOnly}
+                  >
+                    {(dragProvided, snapshot) => (
+                      <div
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        className={`group relative rounded-sm px-2 py-1 transition-all hover:ring-1 hover:ring-slate-300 ${
+                          snapshot.isDragging
+                            ? "z-50 bg-white opacity-95 shadow-2xl ring-1"
+                            : ""
+                        }`}
+                      >
                         <DraggableSectionActions
                           dragHandleProps={dragProvided.dragHandleProps}
                           isFirst={index === 0}
@@ -230,23 +263,32 @@ export const ModernTwoColumnTemplate: React.FC<
                           onMoveUp={() => moveSection(index, "up")}
                           onMoveDown={() => moveSection(index, "down")}
                           onDelete={() =>
-                            toggleSectionVisibility(
+                            onToggleSectionVisibility?.(
                               sectionKey as FixedSectionKey,
                             )
                           }
                         />
-                      )}
-
-                      {renderSectionContent(sectionKey)}
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
+                        {renderSectionContent(sectionKey)}
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      ) : (
+        <div className="space-y-1">
+          {sectionOrder.map((sectionKey) => (
+            <div key={sectionKey} className="relative rounded-sm px-2 py-1">
+              {renderSectionContent(sectionKey)}
             </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
+
+export default ModernTwoColumnTemplate;

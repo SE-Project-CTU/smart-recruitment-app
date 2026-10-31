@@ -1,83 +1,75 @@
 import React from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
 import type { RichTextCVItemSection, RichTextCVSkillItem } from "@/types/cv";
-import type { RichTextCvEditorValues } from "@/features/cv-builder/schema/richTextCvSchema";
-import { createEmptyTiptapDocument } from "@/features/cv-builder/utils/tiptapJson";
-import { TiptapField } from "../../components/TiptapField";
 import ItemActions from "../../components/ItemActions";
 import { SectionTitle } from "./SectionTitle";
+import type {
+  CvFieldRenderer,
+  SectionItemEditorActions,
+} from "../CvTemplateProps";
 
-interface Props {
+interface SkillsSectionProps {
   section: RichTextCVItemSection<RichTextCVSkillItem>;
   primaryColor?: string;
   isReadOnly?: boolean;
+  renderField: CvFieldRenderer;
+  actions?: SectionItemEditorActions;
 }
 
-export const SkillsSection: React.FC<Props> = ({
+export const SkillsSection: React.FC<SkillsSectionProps> = ({
   section,
   primaryColor,
   isReadOnly = false,
+  renderField,
+  actions,
 }) => {
-  const { control } = useFormContext<RichTextCvEditorValues>();
-  const { fields, insert, move, remove } = useFieldArray({
-    control,
-    name: "content.sections.skills.items",
-    keyName: "_fieldKey",
-  });
   if (!section.visible) return null;
-  const add = (index: number) =>
-    insert(index + 1, {
-      id: `sk_${crypto.randomUUID()}`,
-      name: createEmptyTiptapDocument(),
-      description: createEmptyTiptapDocument(),
-    });
+  const items = section.items || [];
+
   return (
     <section className="section-skills group relative">
       <SectionTitle
         placeholder="KỸ NĂNG"
-        formFieldName="content.sections.skills.title"
+        fieldName="content.sections.skills.title"
+        title={section.title}
         primaryColor={primaryColor}
         isReadOnly={isReadOnly}
+        renderField={renderField}
       />
       <div className="space-y-1">
-        {fields.map((item, index) => (
+        {items.map((item, index) => (
           <div
-            key={item._fieldKey}
+            key={item.id || index}
             className="group/item relative grid grid-cols-12 gap-1 rounded-sm p-0.5 hover:bg-slate-50/60"
           >
-            {!isReadOnly && (
+            {!isReadOnly && actions && (
               <ItemActions
                 isFirst={index === 0}
-                isLast={index === fields.length - 1}
-                canDelete={fields.length > 1}
-                onMoveUp={() => move(index, index - 1)}
-                onMoveDown={() => move(index, index + 1)}
-                onAddAfter={() => add(index)}
-                onDelete={() => remove(index)}
+                isLast={index === items.length - 1}
+                canDelete={items.length > 1}
+                onMoveUp={() => actions.onMoveUp(index)}
+                onMoveDown={() => actions.onMoveDown(index)}
+                onAddAfter={() => actions.onAddAfter(index)}
+                onDelete={() => actions.onDelete(index)}
               />
             )}
             <div className="col-span-4 font-semibold text-slate-900">
-              <TiptapField
-                name={`content.sections.skills.items.${index}.name`}
-                placeholder="Tên kỹ năng"
-                isReadOnly={isReadOnly}
-              />
+              {renderField({
+                name: `content.sections.skills.items.${index}.name`,
+                document: item.name,
+                placeholder: "Tên kỹ năng",
+                isReadOnly,
+              })}
             </div>
-            <div className="col-span-8 text-justify text-slate-700">
-              <TiptapField
-                name={`content.sections.skills.items.${index}.description`}
-                placeholder="Mô tả kỹ năng..."
-                multiline
-                isReadOnly={isReadOnly}
-              />
+            <div className="col-span-8 text-slate-700">
+              {renderField({
+                name: `content.sections.skills.items.${index}.description`,
+                document: item.description,
+                placeholder: "Chi tiết kỹ năng, công nghệ sử dụng...",
+                isReadOnly,
+              })}
             </div>
           </div>
         ))}
-        {fields.length === 0 && (
-          <p className="cv-text-meta py-1 text-center text-slate-400 italic">
-            Chưa có kỹ năng nào.
-          </p>
-        )}
       </div>
     </section>
   );
