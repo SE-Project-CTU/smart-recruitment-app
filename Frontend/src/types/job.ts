@@ -1,3 +1,8 @@
+import type {
+  ApplicationJobSummary,
+  ApplicationCvSnapshot,
+} from "./application";
+
 export type JobLevel =
   | "Staff"
   | "TeamLead"
@@ -125,16 +130,32 @@ export interface JobPostingItem {
   skillIds?: string[];
   createdAt: string;
   updatedAt?: string;
+  hasApplied?: boolean;
+  applicationId?: string | null;
+  isFollowingCompany?: boolean;
 }
 
 export interface JobPostingSearchItem {
   id: string;
-  companyId: string;
-  companyName: string;
+  companyId?: string;
+  companyName?: string;
   companyLogoUrl?: string;
+  company?: {
+    id: string;
+    name: string;
+    logoFileUrl?: string | null;
+  };
   title: string;
-  provinceId: string;
+  provinceId?: string;
+  province?: {
+    id: string;
+    name: string;
+  };
   wardId?: string | null;
+  ward?: {
+    id: string;
+    name: string;
+  } | null;
   experienceYears?: number;
   jobLevel?: JobLevel | string | null;
   workMode: WorkMode | string;
@@ -144,6 +165,8 @@ export interface JobPostingSearchItem {
   salaryNegotiable: boolean;
   deadline: string;
   status: JobPostingStatus | string;
+  skillNames?: string[];
+  industryNames?: string[];
   createdAt: string;
 }
 
@@ -201,6 +224,7 @@ export interface CandidateItem {
 export interface JobApplicationItem {
   id: string;
   jobId: string;
+  job?: ApplicationJobSummary;
   candidateId?: string;
   candidate?: CandidateItem;
   candidateName?: string;
@@ -209,6 +233,7 @@ export interface JobApplicationItem {
   candidatePhone?: string;
   cvVersionId?: string | null;
   uploadedCvUrl?: string | null;
+  cvSnapshot?: ApplicationCvSnapshot | null;
   coverLetter?: string | null;
   status: JobApplicationStatus | string;
   appliedAt: string;

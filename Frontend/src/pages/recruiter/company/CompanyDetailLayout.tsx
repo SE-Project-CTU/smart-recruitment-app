@@ -16,6 +16,7 @@ import { useCompanyDetail } from "@/hooks/queries/useCompany";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import type { CompanyItem } from "@/types/company";
 import { PATHS } from "@/constants/paths";
+import { Button } from "@/components/common";
 
 export interface CompanyOutletContext {
   company: CompanyItem;
@@ -76,14 +77,15 @@ export function CompanyDetailLayout() {
     <div className="space-y-6">
       {/* 1. Nút Back ra danh sách công ty */}
       <div>
-        <button
+        <Button
+          variant="secondary"
+          icon={ArrowLeft}
+          iconSize={15}
           onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
-          type="button"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-text-muted transition-colors hover:text-text-main"
+          className="h-8! px-3! text-xs! font-medium!"
         >
-          <ArrowLeft className="size-4" />
-          <span>Danh sách công ty</span>
-        </button>
+          Danh sách công ty
+        </Button>
       </div>
 
       {/* 2. Banner Header Công ty: Logo, Tên, MST, Status & Role */}

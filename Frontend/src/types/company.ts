@@ -155,3 +155,61 @@ export interface ReviewJoinRequestResult {
     status: string;
   } | null;
 }
+
+export interface CompanyApplicationCandidate {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  avatarUrl?: string | null;
+}
+
+export interface CompanyApplicationListItem {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  companyId: string;
+  companyName: string;
+  company?: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+  };
+  candidate: CompanyApplicationCandidate;
+  cvVersionId?: string | null;
+  uploadedCvUrl?: string | null;
+  coverLetter: string;
+  status: string;
+  appliedAt: string;
+  updatedAt: string;
+}
+
+export interface CompanyApplicationFilterParams {
+  jobId?: string;
+  status?: string;
+  search?: string;
+  sort?: string;
+  direction?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+}
+
+export interface FollowedCompanyItem {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  address?: string | null;
+  website?: string | null;
+  verificationStatus: CompanyVerificationStatus | string;
+  totalJobPostings: number;
+  followerCount: number;
+  followedAt: string;
+}
+
+export interface LeaveCompanyResult {
+  companyId: string;
+  userId: string;
+  status: string;
+  leftAt: string;
+}
+

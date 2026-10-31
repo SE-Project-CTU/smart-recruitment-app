@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Fragment } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Bell,
   ChevronDown,
@@ -13,6 +14,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SmartHire_default } from "@/assets/images/logo";
 import { useAuthStore } from "@/stores/authStore";
+import { useBreadcrumbStore } from "@/stores/breadcrumbStore";
 import { PATHS } from "@/constants/paths";
 import { getProfilePathByRole } from "@/utils/helper";
 import Button from "./Button";
@@ -26,6 +28,16 @@ import {
 } from "@/components/animate-ui/components/base/menu";
 import { useLogout } from "@/hooks/queries/useAccount";
 import { UserAvatar } from "./UserAvatar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../ui/breadcrumb";
+
+import { resolveBreadcrumbs } from "@/constants/breadcrumbs";
 
 function DashboardHeader() {
   const { user } = useAuthStore();
@@ -87,6 +99,11 @@ function DashboardHeader() {
     }
   };
 
+  const location = useLocation();
+  const customBreadcrumbs = useBreadcrumbStore((state) => state.customItems);
+  const displayBreadcrumbs =
+    customBreadcrumbs || resolveBreadcrumbs(location.pathname);
+
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-4 backdrop-blur-md md:px-6">
       <div className="flex items-center gap-3">
@@ -94,6 +111,32 @@ function DashboardHeader() {
           <img src={SmartHire_default} alt="SmartHire" className="h-8 w-auto" />
         </Link>
         <SidebarTrigger className="h-9 w-9 rounded-lg hover:bg-slate-100" />
+        <Breadcrumb className="hidden sm:block">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink render={<Link to={PATHS.HOME} />}>
+                Trang chủ
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {displayBreadcrumbs.map((item, index) => {
+              const isLast = index === displayBreadcrumbs.length - 1;
+              return (
+                <Fragment key={item.url || index}>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    {isLast || !item.url ? (
+                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink render={<Link to={item.url} />}>
+                        {item.label}
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                </Fragment>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
       <div className="flex items-center gap-4">

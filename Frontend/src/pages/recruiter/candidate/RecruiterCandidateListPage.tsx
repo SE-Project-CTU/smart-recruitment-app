@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Filter,
   MessageSquare,
+  RotateCcw,
   Search,
   UserRoundGroup,
   X,
@@ -63,8 +64,12 @@ export function RecruiterCandidateListPage() {
     return jobResponse?.items || [];
   }, [jobResponse]);
 
-  const { data: allApplications = [], isLoading: isLoadingApplications } =
-    useRecruiterAllApplications(allJobs);
+  const {
+    data: allApplications = [],
+    isLoading: isLoadingApplications,
+    isError: isApplicationsError,
+    refetch: refetchApplications,
+  } = useRecruiterAllApplications(myCompanyIdsList);
 
   const updateStatusMutation = useUpdateApplicationStatus();
 
@@ -104,7 +109,11 @@ export function RecruiterCandidateListPage() {
     const targetJobs =
       selectedCompanyId === "ALL"
         ? allJobs
-        : allJobs.filter((j) => j.companyId === selectedCompanyId);
+        : allJobs.filter(
+            (j) =>
+              (j.companyId || j.company?.id)?.toLowerCase() ===
+              selectedCompanyId.toLowerCase(),
+          );
 
     targetJobs.forEach((j) => {
       opts.push({ value: j.id, label: j.title });
@@ -115,8 +124,11 @@ export function RecruiterCandidateListPage() {
   // 4. Lọc danh sách ứng viên (useMemo)
   const filteredApplications = useMemo(() => {
     return allApplications.filter((app) => {
-      // Lọc theo công ty
-      if (selectedCompanyId !== "ALL" && app.companyId !== selectedCompanyId) {
+      // Lọc theo công ty (so sánh GUID không phân biệt hoa thường)
+      if (
+        selectedCompanyId !== "ALL" &&
+        app.companyId?.toLowerCase() !== selectedCompanyId.toLowerCase()
+      ) {
         return false;
       }
 
@@ -476,6 +488,25 @@ export function RecruiterCandidateListPage() {
       {/* 4. DataTable ứng viên */}
       {isLoading ? (
         <TableSkeleton />
+      ) : isApplicationsError ? (
+        <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-rose-200 bg-rose-50/40 p-8 text-center">
+          <AlertCircle className="size-10 text-rose-500" />
+          <h3 className="mt-3 text-sm font-semibold text-slate-800">
+            Không thể tải danh sách ứng viên
+          </h3>
+          <p className="mt-1 max-w-md text-xs text-slate-500">
+            Đã xảy ra lỗi khi tải hồ sơ ứng tuyển từ các doanh nghiệp của bạn. Vui
+            lòng kiểm tra lại kết nối mạng hoặc thử lại.
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => refetchApplications()}
+            className="mt-4 flex cursor-pointer items-center gap-1.5 text-xs font-semibold"
+          >
+            <RotateCcw className="size-3.5" />
+            Thử lại
+          </Button>
+        </div>
       ) : (
         <div className="space-y-4">
           <CandidateTable

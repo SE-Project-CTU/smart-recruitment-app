@@ -13,137 +13,46 @@ import type {
   ReviewJoinRequestPayload,
   ReviewJoinRequestResult,
   UpdateCompanyPayload,
+  CompanyApplicationFilterParams,
+  CompanyApplicationListItem,
+  FollowedCompanyItem,
+  LeaveCompanyResult,
 } from "@/types";
 import type { JobPostingItem } from "@/types/job";
-import {
-  addStoredMyCompanyId,
-  clearStoredMyCompanyCache,
-  getCurrentUserId,
-  getStoredMyCompanyIds,
-  getStoredScanTimestamp,
-  saveStoredMyCompanyIds,
-  saveStoredScanTimestamp,
-} from "./companyMembershipCache";
-
-type PublicCompanyParams = {
-  search?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-};
-
-const fetchPublicCompaniesPage = async (
-  params: Required<Pick<PublicCompanyParams, "page" | "pageSize">> &
-    Pick<PublicCompanyParams, "search" | "status">,
-) =>
-  axiosClient.get<never, ApiPagedResponse<CompanyItem>>(
-    API_ENDPOINTS.COMPANY.LIST,
-    { params },
-  );
-
-const getAllPublicCompanyIds = async (): Promise<string[]> => {
-  const pageSize = 100;
-  const firstPage = await fetchPublicCompaniesPage({ page: 1, pageSize });
-  const ids = (firstPage.data ?? []).map((company) => company.id);
-  const totalPages = Math.max(1, firstPage.meta.totalPages);
-  const pageBatchSize = 5;
-
-  for (let startPage = 2; startPage <= totalPages; startPage += pageBatchSize) {
-    const pageNumbers = Array.from(
-      { length: Math.min(pageBatchSize, totalPages - startPage + 1) },
-      (_, index) => startPage + index,
-    );
-    const pages = await Promise.all(
-      pageNumbers.map((page) => fetchPublicCompaniesPage({ page, pageSize })),
-    );
-    ids.push(...pages.flatMap((page) => page.data.map((company) => company.id)));
-  }
-
-  return ids;
-};
 
 export const companyService = {
   /**
-   * Xóa cache danh sách ID công ty đã lưu của user hiện tại
-   */
-  clearMyCompaniesCache(): void {
-    clearStoredMyCompanyCache();
-  },
-
-  /**
    * Lấy danh sách các công ty mà Recruiter hiện tại thực sự thuộc về (Active membership)
-   * Cache ID chỉ dùng làm gợi ý; membership luôn được xác thực lại từ API.
+   * Sử dụng endpoint trực tiếp /api/v1/me/companies (1 request duy nhất)
    */
-  async getMyCompanies(options?: {
-    forceRefresh?: boolean;
+  async getMyCompanies(params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
   }): Promise<CompanyItem[]> {
-    const userId = getCurrentUserId();
-    const companyIds = new Set<string>(getStoredMyCompanyIds(userId));
+    const response = await axiosClient.get<
+      never,
+      ApiPagedResponse<CompanyItem>
+    >(API_ENDPOINTS.COMPANY.MY_COMPANIES, {
+      params: {
+        search: params?.search,
+        page: params?.page ?? 1,
+        pageSize: params?.pageSize ?? 100,
+      },
+    });
 
-    const activeCompanyId =
-      typeof window !== "undefined"
-        ? localStorage.getItem("sr_active_company_id")
-        : null;
-    if (activeCompanyId) {
-      companyIds.add(activeCompanyId);
-    }
-
-    const lastScanTime = getStoredScanTimestamp(userId);
-    const isScanFresh =
-      !options?.forceRefresh &&
-      lastScanTime !== null &&
-      Date.now() - lastScanTime < 5 * 60 * 1000;
-    const shouldDiscoverCompanies = !isScanFresh;
-
-    if (shouldDiscoverCompanies) {
-      const [publicCompanyIds, acceptedInvitations] = await Promise.all([
-        getAllPublicCompanyIds(),
-        this.getMyInvitations({ status: "Accepted", pageSize: 50 }),
-      ]);
-      publicCompanyIds.forEach((id) => companyIds.add(id));
-      acceptedInvitations.items.forEach((invitation) => {
-        if (invitation.companyId) companyIds.add(invitation.companyId);
-      });
-    }
-
-    const companyIdList = Array.from(companyIds);
-    const activeCompanies = new Map<string, CompanyItem>();
-    let allDetailsLoaded = true;
-    const batchSize = 10;
-
-    for (let i = 0; i < companyIdList.length; i += batchSize) {
-      const batch = companyIdList.slice(i, i + batchSize);
-      const details = await Promise.all(
-        batch.map(async (id) => {
-          try {
-            return await this.getCompanyDetail(id);
-          } catch {
-            allDetailsLoaded = false;
-            return null;
-          }
-        }),
-      );
-
-      details.forEach((company) => {
-        if (company?.membership?.status === "Active") {
-          activeCompanies.set(company.id, company);
-        }
-      });
-    }
-
-    if (allDetailsLoaded) {
-      const activeCompanyIds = Array.from(activeCompanies.keys());
-      saveStoredMyCompanyIds(userId, activeCompanyIds);
-      if (shouldDiscoverCompanies) {
-        saveStoredScanTimestamp(userId);
+    const items = response.data || [];
+    if (items.length > 0 && typeof window !== "undefined") {
+      const activeCompanyId = localStorage.getItem("sr_active_company_id");
+      if (!activeCompanyId || !items.some((c) => c.id === activeCompanyId)) {
+        localStorage.setItem("sr_active_company_id", items[0].id);
       }
     }
-
-    return Array.from(activeCompanies.values());
+    return items;
   },
 
   /**
-   * Lấy danh sách tất cả các công ty công khai (dùng cho map dữ liệu, tránh N+1 query)
+   * Lấy danh sách tất cả các công ty công khai
    */
   async getPublicCompanies(params?: {
     search?: string;
@@ -151,10 +60,16 @@ export const companyService = {
     page?: number;
     pageSize?: number;
   }): Promise<CompanyItem[]> {
-    const response = await fetchPublicCompaniesPage({
-      page: 1,
-      pageSize: 100,
-      ...params,
+    const response = await axiosClient.get<
+      never,
+      ApiPagedResponse<CompanyItem>
+    >(API_ENDPOINTS.COMPANY.LIST, {
+      params: {
+        page: params?.page ?? 1,
+        pageSize: params?.pageSize ?? 100,
+        search: params?.search,
+        status: params?.status,
+      },
     });
     return response.data ?? [];
   },
@@ -177,9 +92,6 @@ export const companyService = {
       API_ENDPOINTS.COMPANY.CREATE,
       payload,
     );
-    if (response.data?.id) {
-      addStoredMyCompanyId(response.data.id);
-    }
     return response.data;
   },
 
@@ -272,9 +184,6 @@ export const companyService = {
       never,
       ApiResponse<AcceptInvitationResult>
     >(API_ENDPOINTS.COMPANY.ACCEPT_INVITATION(invitationId));
-    if (response.data?.membership?.companyId) {
-      addStoredMyCompanyId(response.data.membership.companyId);
-    }
     return response.data;
   },
 
@@ -344,5 +253,136 @@ export const companyService = {
       totalCount:
         (response.meta?.totalItems as number) || (response.data?.length ?? 0),
     };
+  },
+
+  /**
+   * Lấy danh sách hồ sơ ứng tuyển thuộc công ty (dành cho Recruiter thành viên công ty - API mới)
+   */
+  async getCompanyApplications(
+    companyId: string,
+    params?: CompanyApplicationFilterParams,
+  ): Promise<{ items: CompanyApplicationListItem[]; totalCount: number }> {
+    const response = await axiosClient.get<
+      never,
+      ApiPagedResponse<CompanyApplicationListItem>
+    >(API_ENDPOINTS.COMPANY.APPLICATIONS(companyId), {
+      params: {
+        page: params?.page ?? 1,
+        pageSize: params?.pageSize ?? 20,
+        jobId: params?.jobId,
+        status: params?.status,
+        search: params?.search,
+        sort: params?.sort,
+        direction: params?.direction,
+      },
+    });
+
+    const rawData = response?.data as unknown;
+    let items: CompanyApplicationListItem[] = [];
+    if (Array.isArray(rawData)) {
+      items = rawData;
+    } else if (
+      rawData &&
+      typeof rawData === "object" &&
+      "items" in rawData &&
+      Array.isArray((rawData as { items: unknown }).items)
+    ) {
+      items = (rawData as { items: CompanyApplicationListItem[] }).items;
+    } else if (
+      response &&
+      "items" in response &&
+      Array.isArray((response as unknown as { items: unknown }).items)
+    ) {
+      items = (
+        response as unknown as { items: CompanyApplicationListItem[] }
+      ).items;
+    }
+
+    const totalCount =
+      (response?.meta?.totalItems as number) || items.length;
+
+    return {
+      items,
+      totalCount,
+    };
+  },
+
+  /**
+   * Owner loại bỏ thành viên khỏi công ty
+   */
+  async removeMember(companyId: string, memberId: string): Promise<void> {
+    await axiosClient.delete<never, void>(
+      API_ENDPOINTS.COMPANY.REMOVE_MEMBER(companyId, memberId),
+    );
+  },
+
+  /**
+   * Thành viên tự rời khỏi công ty
+   */
+  async leaveCompany(companyId: string): Promise<LeaveCompanyResult> {
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<LeaveCompanyResult>
+    >(API_ENDPOINTS.COMPANY.LEAVE(companyId));
+    return response.data;
+  },
+
+  /**
+   * Lấy danh sách các công ty mà ứng viên hiện tại đã theo dõi
+   */
+  async getMyFollowedCompanies(params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<{ items: FollowedCompanyItem[]; totalCount: number }> {
+    const response = await axiosClient.get<
+      never,
+      ApiPagedResponse<FollowedCompanyItem>
+    >(API_ENDPOINTS.COMPANY.FOLLOWED_COMPANIES, {
+      params: {
+        page: params?.page ?? 1,
+        pageSize: params?.pageSize ?? 20,
+        search: params?.search,
+      },
+    });
+
+    const rawData = response?.data as unknown;
+    let items: FollowedCompanyItem[] = [];
+    if (Array.isArray(rawData)) {
+      items = rawData;
+    } else if (
+      rawData &&
+      typeof rawData === "object" &&
+      "items" in rawData &&
+      Array.isArray((rawData as { items: unknown }).items)
+    ) {
+      items = (rawData as { items: FollowedCompanyItem[] }).items;
+    }
+
+    const totalCount =
+      (response?.meta?.totalItems as number) || items.length;
+
+    return {
+      items,
+      totalCount,
+    };
+  },
+
+  /**
+   * Candidate theo dõi công ty
+   */
+  async followCompany(companyId: string): Promise<void> {
+    await axiosClient.post<never, void>(
+      API_ENDPOINTS.COMPANY.FOLLOW(companyId),
+    );
+  },
+
+  /**
+   * Candidate hủy theo dõi công ty
+   */
+  async unfollowCompany(companyId: string): Promise<void> {
+    await axiosClient.delete<never, void>(
+      API_ENDPOINTS.COMPANY.UNFOLLOW(companyId),
+    );
   },
 };

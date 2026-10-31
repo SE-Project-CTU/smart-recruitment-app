@@ -6,7 +6,6 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
-using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Application.Features.Cv.Exceptions;
@@ -85,30 +84,16 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
         
         var content = validated.ContentProvided ? validated.Content! : cv.Content;
         var layout = validated.LayoutProvided ? validated.Layout! : cv.Layout;
-        var presentation = validated.PresentationProvided
-            ? validated.Presentation!
-            : cv.Presentation;
         
         var now = DateTimeOffset.UtcNow;
         if (now <= cv.UpdatedAt) {
             now = cv.UpdatedAt.AddTicks(TimeSpan.TicksPerMicrosecond);
         }
         
-        if (content.Metadata is null || presentation.Metadata is null) {
-            var metadataErrors = new List<AppErrorDetail>();
-            if (content.Metadata is null) {
-                metadataErrors.Add(new AppErrorDetail("content.metadata", ValidationReasons.Required,
-                    "Content metadata is required."));
-            }
-            
-            if (presentation.Metadata is null) {
-                metadataErrors.Add(new AppErrorDetail("presentation.metadata", ValidationReasons.Required,
-                    "Presentation metadata is required."));
-            }
-            
+        if (content.Metadata is null) {
             throw CvExceptions.Validation(
                 "CV documents contain invalid fields.",
-                metadataErrors);
+                [new AppErrorDetail("content.metadata", ValidationReasons.Required, "Content metadata is required.")]);
         }
         
         var language = validated.LanguageProvided
@@ -121,8 +106,11 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
             Metadata = content.Metadata with { Language = language }
         };
         
-        if (validated.ContentProvided || validated.PresentationProvided) {
-            presentation = CvDocumentUpdateValidator.RemoveOrphanedItemStyles(content, presentation);
+        if (validated.ContentProvided || validated.LayoutProvided) {
+            var docErrors = CvDocumentUpdateValidator.Validate(content, layout);
+            if (docErrors.Count > 0) {
+                throw CvExceptions.Validation("CV documents contain invalid fields.", docErrors);
+            }
         }
         
         var isPublic = cv.IsPublic;
@@ -130,37 +118,24 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
             isPublic = validated.IsPublic!.Value;
         }
         
-        var currentHashes = _cvDocumentHasher.Calculate(
-            cv.Content,
-            cv.Presentation,
-            cv.Layout);
-        var proposedHashes = _cvDocumentHasher.Calculate(
-            content,
-            presentation,
-            layout);
+        var currentHashes = _cvDocumentHasher.Calculate(cv.Content, cv.Layout);
+        var proposedHashes = _cvDocumentHasher.Calculate(content, layout);
 
-        var currentContentHash = cv.ContentHash ?? currentHashes.ContentHash;
-        var currentPresentationHash = cv.PresentationHash ?? currentHashes.PresentationHash;
-        var currentLayoutHash = cv.LayoutHash ?? currentHashes.LayoutHash;
+        var currentContentHash = currentHashes.ContentHash;
+        var currentLayoutHash = currentHashes.LayoutHash;
 
         var contentComparisonRequired = validated.ContentProvided || language != cv.Language;
-        var presentationComparisonRequired =
-            validated.PresentationProvided || validated.ContentProvided;
         var layoutComparisonRequired = validated.LayoutProvided;
 
         var contentChanged = contentComparisonRequired && !string.Equals(
             proposedHashes.ContentHash,
             currentContentHash,
             StringComparison.Ordinal);
-        var presentationChanged = presentationComparisonRequired && !string.Equals(
-            proposedHashes.PresentationHash,
-            currentPresentationHash,
-            StringComparison.Ordinal);
         var layoutChanged = layoutComparisonRequired && !string.Equals(
             proposedHashes.LayoutHash,
             currentLayoutHash,
             StringComparison.Ordinal);
-        var isVersioningRequired = contentChanged || presentationChanged || layoutChanged;
+        var isVersioningRequired = contentChanged || layoutChanged;
 
         var title = validated.TitleProvided ? validated.Title! : cv.Title;
         var titleChanged = !string.Equals(title, cv.Title, StringComparison.Ordinal);
@@ -193,7 +168,6 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                         cv.UpdateDocuments(
                             content,
                             layout,
-                            presentation,
                             language,
                             latestVersionNumber,
                             now);
@@ -201,11 +175,9 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                         // Hash again because the updated documents modified version.
                         var updatedHashes = _cvDocumentHasher.Calculate(
                             cv.Content,
-                            cv.Presentation,
                             cv.Layout);
                         cv.SetDocumentHashes(
                             updatedHashes.ContentHash,
-                            updatedHashes.PresentationHash,
                             updatedHashes.LayoutHash);
                     },
                     now,
@@ -232,7 +204,6 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                         
                         cv.SetDocumentHashes(
                             proposedHashes.ContentHash,
-                            proposedHashes.PresentationHash,
                             proposedHashes.LayoutHash);
                     },
                     cancellationToken
@@ -258,46 +229,33 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
     private async Task<CvResult> HandleUpdateWithVersioning(
         Domain.Entities.Cv cv,
         int latestVersionNumber,
-        CvPreviewFileResult? previewFileResult,
+        CvPreviewFileResult? previewFileOverride,
         Action updateAction,
         DateTimeOffset now,
         CancellationToken cancellationToken
     ) {
-        return await _unitOfWork.ExecuteInTransactionAsync(
-            async (transactionToken) => {
-                updateAction();
-                
-                var documentErrors = CvDocumentUpdateValidator.Validate(
-                    cv.Content,
-                    cv.Layout,
-                    cv.Presentation);
-                if (documentErrors.Count > 0) {
-                    throw CvExceptions.Validation(
-                        "CV documents contain invalid fields.",
-                        documentErrors);
-                }
-                
-                var version = cv.CreateVersion(
-                    latestVersionNumber + 1,
-                    now
-                );
-                await _cvVersionRepository.Add(version);
-                await _unitOfWork.SaveChangesAsync(transactionToken);
-                
-                return CvResultMapper.ToResult(cv, cv.Template, previewFileResult);
-            },
-            cancellationToken);
+        var newVersionNumber = latestVersionNumber + 1;
+        
+        updateAction();
+        
+        var version = cv.CreateVersion(newVersionNumber, now);
+        
+        await _cvVersionRepository.Add(version);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        return CvResultMapper.ToResult(cv, cv.Template, previewFileOverride);
     }
     
     private Guid GetCandidateId() {
-        if (_currentUser.UserId is not Guid userId) {
-            throw CvExceptions.InvalidAccessToken("A valid access token is required.");
+        if (_currentUser.UserId is not Guid candidateId) {
+            throw CvExceptions.InvalidAccessToken(
+                "The access token does not contain a valid user id.");
         }
         
-        if (!_currentUser.Roles.Contains(RoleNames.Candidate, StringComparer.OrdinalIgnoreCase)) {
+        if (!_currentUser.Roles.Contains(RoleNames.Candidate)) {
             throw CvExceptions.CandidateRoleRequired("update");
         }
         
-        return userId;
+        return candidateId;
     }
 }

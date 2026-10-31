@@ -69,6 +69,9 @@ using (var scope = app.Services.CreateScope()) {
     var adminAccountSeeder = scope.ServiceProvider.GetRequiredService<AdminAccountSeeder>();
     await adminAccountSeeder.SeedAsync();
 
+    var cvBackfiller = scope.ServiceProvider.GetRequiredService<CvDocumentFontSizeBackfiller>();
+    await cvBackfiller.BackfillAsync();
+
     var jobScheduler = scope.ServiceProvider.GetRequiredService<IBackgroundJobScheduler>();
     jobScheduler.AddOrUpdateRecurring<ExpireOverdueJobPostingsJob, ExpireOverdueJobPostingsJobArgs>(
         "expire-overdue-job-postings",

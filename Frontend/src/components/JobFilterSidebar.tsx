@@ -44,7 +44,6 @@ const SALARY_PRESETS = [
 const JOB_TYPE_OPTIONS: FilterOption[] = [
   { label: "Full-time", value: "Full-time" },
   { label: "Part-time", value: "Part-time" },
-  { label: "Internship", value: "Internship" },
   { label: "Contract", value: "Contract" },
 ];
 
@@ -55,6 +54,7 @@ const WORK_MODE_OPTIONS: FilterOption[] = [
 ];
 
 const JOB_LEVEL_OPTIONS: FilterOption[] = [
+  { label: "Intern", value: "Intern" },
   { label: "Fresher", value: "Fresher" },
   { label: "Junior", value: "Junior" },
   { label: "Middle", value: "Middle" },

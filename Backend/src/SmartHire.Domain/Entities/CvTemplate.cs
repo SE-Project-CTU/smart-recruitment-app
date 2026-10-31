@@ -16,7 +16,6 @@ public class CvTemplate {
     // JSONB
     public CvLayoutDocument DefaultLayout { get; private set; } = new();
     public CvContentDocument DefaultContent { get; private set; } = new();
-    public CvPresentationDocument DefaultPresentation { get; private set; } = new();
     
     public CvLanguage Language { get; private set; }
     public bool IsActive { get; private set; }

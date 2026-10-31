@@ -1,4 +1,3 @@
-using SmartHire.Application.Features.Cv.Commands.CreateCv;
 using SmartHire.Application.Features.Cv.DTOs;
 using CvEntity = SmartHire.Domain.Entities.Cv;
 using CvTemplateEntity = SmartHire.Domain.Entities.CvTemplate;
@@ -35,7 +34,6 @@ public static class CvResultMapper
             cv.Title,
             cv.Content,
             cv.Layout,
-            cv.Presentation,
             cv.Language,
             cv.IsPublic,
             cv.CreatedAt,

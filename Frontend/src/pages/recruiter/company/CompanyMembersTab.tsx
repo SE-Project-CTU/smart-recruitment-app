@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   UserPlus,
@@ -10,6 +10,8 @@ import {
   Calendar,
   AlertCircle,
   ChevronDown,
+  UserMinus,
+  LogOut,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
@@ -24,7 +26,10 @@ import { getApiErrorMessage } from "@/api/errorHandler";
 import {
   useCompanyMembers,
   useTransferOwnership,
+  useRemoveCompanyMember,
+  useLeaveCompany,
 } from "@/hooks/queries/useCompany";
+import { PATHS } from "@/constants/paths";
 import { InviteMemberModal } from "./InviteMemberModal";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 import type { CompanyMember } from "@/types/company";
@@ -38,6 +43,7 @@ const ROLE_OPTIONS = [
 const columnHelper = createColumnHelper<DataTableFeatures, CompanyMember>();
 
 export function CompanyMembersTab() {
+  const navigate = useNavigate();
   const { company, isOwner, refreshCompany } =
     useOutletContext<CompanyOutletContext>();
 
@@ -50,6 +56,9 @@ export function CompanyMembersTab() {
 
   const { mutateAsync: transferOwnership, isPending: isTransferring } =
     useTransferOwnership();
+  const { mutateAsync: removeMember, isPending: isRemoving } =
+    useRemoveCompanyMember();
+  const { mutateAsync: leaveCompany, isPending: isLeaving } = useLeaveCompany();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
@@ -61,6 +70,14 @@ export function CompanyMembersTab() {
   );
   const [transferMessage, setTransferMessage] = useState<string | null>(null);
   const [transferError, setTransferError] = useState<string | null>(null);
+
+  // Remove member modal state
+  const [removeTarget, setRemoveTarget] = useState<CompanyMember | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  // Leave company modal state
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
 
   const handleTransferOwnership = async () => {
     if (!transferTarget) return;
@@ -81,6 +98,36 @@ export function CompanyMembersTab() {
     } catch (err: unknown) {
       setTransferError(
         getApiErrorMessage(err, "Chuyển quyền thất bại. Vui lòng thử lại!"),
+      );
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!removeTarget) return;
+    try {
+      setRemoveError(null);
+      await removeMember({
+        companyId: company.id,
+        memberId: removeTarget.id,
+      });
+      setRemoveTarget(null);
+      await refetchMembers();
+    } catch (err: unknown) {
+      setRemoveError(
+        getApiErrorMessage(err, "Không thể xóa thành viên. Vui lòng thử lại!"),
+      );
+    }
+  };
+
+  const handleLeaveCompany = async () => {
+    try {
+      setLeaveError(null);
+      await leaveCompany(company.id);
+      setIsLeaveModalOpen(false);
+      navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT);
+    } catch (err: unknown) {
+      setLeaveError(
+        getApiErrorMessage(err, "Không thể rời công ty. Vui lòng thử lại!"),
       );
     }
   };
@@ -175,17 +222,30 @@ export function CompanyMembersTab() {
         header: "Thao tác",
         cell: (info) => {
           const member = info.row.original;
-          // Chỉ Owner hiện tại mới có quyền chuyển giao quyền cho member khác
+          // Chỉ Owner hiện tại mới có quyền chuyển giao quyền hoặc loại bỏ member khác
           if (isOwner && member.role !== "Owner") {
             return (
-              <Button
-                variant="outline"
-                className="border-slate-200! px-2.5! py-1! text-xs! font-medium! text-slate-700! ring-slate-200! hover:border-purple-300! hover:text-purple-700! hover:ring-purple-300!"
-                icon={ArrowRightLeft}
-                onClick={() => setTransferTarget(member)}
-              >
-                Ủy quyền Owner
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="border-slate-200! px-2.5! py-1! text-xs! font-medium! text-slate-700! ring-slate-200! hover:border-purple-300! hover:text-purple-700! hover:ring-purple-300!"
+                  icon={ArrowRightLeft}
+                  onClick={() => setTransferTarget(member)}
+                >
+                  Ủy quyền Owner
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-rose-200! px-2.5! py-1! text-xs! font-medium! text-rose-600! ring-rose-200! hover:border-rose-300! hover:bg-rose-50!"
+                  icon={UserMinus}
+                  onClick={() => {
+                    setRemoveError(null);
+                    setRemoveTarget(member);
+                  }}
+                >
+                  Xóa
+                </Button>
+              </div>
             );
           }
           return <span className="text-xs text-text-muted">—</span>;
@@ -208,16 +268,30 @@ export function CompanyMembersTab() {
           </p>
         </div>
 
-        {/* Nút mời thành viên: Chỉ Owner mới có quyền mời theo tài liệu nghiệp vụ & backend */}
-        {isOwner && (
-          <Button
-            variant="primary"
-            icon={UserPlus}
-            onClick={() => setIsInviteModalOpen(true)}
-          >
-            Mời thành viên mới
-          </Button>
-        )}
+        {/* Nút hành động: Owner thì có nút Mời thành viên; Thành viên thường có nút Rời công ty */}
+        <div className="flex items-center gap-2">
+          {isOwner ? (
+            <Button
+              variant="primary"
+              icon={UserPlus}
+              onClick={() => setIsInviteModalOpen(true)}
+            >
+              Mời thành viên mới
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="border-rose-200! text-rose-600! hover:border-rose-300! hover:bg-rose-50!"
+              icon={LogOut}
+              onClick={() => {
+                setLeaveError(null);
+                setIsLeaveModalOpen(true);
+              }}
+            >
+              Rời công ty
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Toolbar & Filters */}
@@ -361,6 +435,113 @@ export function CompanyMembersTab() {
                 onClick={handleTransferOwnership}
               >
                 Đồng ý chuyển quyền
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Xác nhận Xóa thành viên khỏi công ty */}
+      {removeTarget && (
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
+            <div className="mb-3 flex items-center gap-3 text-rose-600">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-rose-50">
+                <AlertCircle className="size-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-text-main">
+                  Xác nhận xóa thành viên
+                </h3>
+                <p className="text-xs text-text-muted">
+                  Thành viên sẽ bị thu hồi quyền truy cập vào doanh nghiệp
+                </p>
+              </div>
+            </div>
+
+            {removeError && (
+              <div className="my-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                <span>{removeError}</span>
+              </div>
+            )}
+
+            <p className="my-4 text-xs leading-relaxed text-text-main">
+              Bạn có chắc chắn muốn xóa thành viên{" "}
+              <strong>{removeTarget.user.fullName}</strong> (
+              {removeTarget.user.email}) khỏi công ty{" "}
+              <strong>{company.name}</strong>? Sau khi xóa, người này sẽ không
+              còn quyền xem và quản lý tin tuyển dụng hoặc ứng viên của doanh
+              nghiệp.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+              <Button
+                variant="secondary"
+                disabled={isRemoving}
+                onClick={() => setRemoveTarget(null)}
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                variant="primary"
+                className="bg-rose-600! hover:bg-rose-700!"
+                isLoading={isRemoving}
+                onClick={handleRemoveMember}
+              >
+                Xóa thành viên
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Xác nhận Rời khỏi công ty */}
+      {isLeaveModalOpen && (
+        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
+            <div className="mb-3 flex items-center gap-3 text-rose-600">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-rose-50">
+                <AlertCircle className="size-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-text-main">
+                  Xác nhận rời khỏi doanh nghiệp
+                </h3>
+                <p className="text-xs text-text-muted">
+                  Hành động này sẽ hủy tư cách thành viên của bạn
+                </p>
+              </div>
+            </div>
+
+            {leaveError && (
+              <div className="my-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                <span>{leaveError}</span>
+              </div>
+            )}
+
+            <p className="my-4 text-xs leading-relaxed text-text-main">
+              Bạn có chắc chắn muốn rời khỏi công ty{" "}
+              <strong>{company.name}</strong>? Bạn sẽ không còn quyền quản lý
+              tin tuyển dụng cũng như hồ sơ ứng tuyển của doanh nghiệp này nữa.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+              <Button
+                variant="secondary"
+                disabled={isLeaving}
+                onClick={() => setIsLeaveModalOpen(false)}
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                variant="primary"
+                className="bg-rose-600! hover:bg-rose-700!"
+                isLoading={isLeaving}
+                onClick={handleLeaveCompany}
+              >
+                Rời công ty
               </Button>
             </div>
           </div>

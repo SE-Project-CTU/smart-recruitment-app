@@ -40,7 +40,6 @@ public sealed class GetAllCvTemplatesQueryHandler
                 template.ThumbnailFile.FileUrl,
                 template.DefaultLayout,
                 template.DefaultContent,
-                template.DefaultPresentation,
                 template.Version,
                 template.IsActive,
                 template.CreatedAt,

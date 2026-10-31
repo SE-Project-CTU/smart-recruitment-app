@@ -10,5 +10,4 @@ public sealed record ApplicationCvSnapshotResult(
     string Language,
     CvContentDocument Content,
     CvLayoutDocument Layout,
-    CvPresentationDocument Presentation,
     DateTimeOffset CreatedAt);

@@ -25,11 +25,20 @@ export function SkillSelect({
   initialSkills,
 }: SkillSelectProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Kéo danh sách kỹ năng từ DB theo search query
-  const { data: skills = [], isFetching } = useSkills(searchQuery);
+  // Debounce search query 300ms để tránh trigger API liên tục mỗi keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Kéo danh sách kỹ năng từ DB theo search query đã debounce
+  const { data: skills = [], isFetching } = useSkills(debouncedQuery);
 
   // Lưu trữ tên skill được chọn để tag không phụ thuộc vào kết quả tìm kiếm hiện tại
   const [skillCache, setSkillCache] = useState<Map<string, string>>(() => {

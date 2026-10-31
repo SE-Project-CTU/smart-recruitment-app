@@ -9,7 +9,6 @@ public sealed record CvVersionResult(
     Guid TemplateId,
     CvContentDocument Content,
     CvLayoutDocument Layout,
-    CvPresentationDocument Presentation,
     CvLanguage Language,
     int VersionNumber,
     DateTimeOffset CreatedAt);
