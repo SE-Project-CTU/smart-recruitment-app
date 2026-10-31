@@ -9,7 +9,7 @@ import {
   CvTemplatesGrid,
   CreateCvFromTemplateModal,
   PreviewTemplateModal,
-} from "./components/cv-templates";
+} from "./components/CvTemplates";
 
 export default function CandidateCvTemplatesPage() {
   const navigate = useNavigate();
@@ -78,10 +78,6 @@ export default function CandidateCvTemplatesPage() {
       <PreviewTemplateModal
         template={previewTemplate}
         onClose={() => setPreviewTemplate(null)}
-        onUseTemplate={(tpl) => {
-          setPreviewTemplate(null);
-          setSelectedTemplate(tpl);
-        }}
       />
     </div>
   );

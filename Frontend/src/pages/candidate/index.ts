@@ -6,3 +6,5 @@ export { default as CandidateCvManagementPage } from "./CandidateCvManagementPag
 export { default as CandidateApplicationStatusPage } from "./CandidateApplicationStatusPage";
 export { default as MatchedJobsPage } from "./MatchedJobsPage";
 export { default as CandidateSaveCvSuccessPage } from "./CandidateSaveCvSuccessPage";
+export { default as CandidatePreviewCvPage } from "./CandidatePreviewCvPage";
+export { default as CandidateCvBuilderPage } from "./CandidateCvBuilderPage";

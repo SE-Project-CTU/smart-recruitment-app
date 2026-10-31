@@ -17,6 +17,7 @@ export const PATHS = {
     CV_MANAGEMENT: "/candidate/cv-management",
     CV_TEMPLATES: "/candidate/cv-templates",
     EDIT_CV: "/candidate/edit-cv",
+    PREVIEW_CV: "/candidate/preview-cv",
     SAVE_CV_SUCCESS: "/candidate/save-cv-success",
     APPLICATION_STATUS: "/candidate/application-status",
     BOOKMARK_JOBS: "/candidate/bookmarks/jobs",

@@ -22,6 +22,7 @@ import CandidateCvTemplatesPage from "@/pages/candidate/CandidateCvTemplatesPage
 import CandidateApplicationStatusPage from "@/pages/candidate/CandidateApplicationStatusPage";
 import MatchedJobsPage from "@/pages/candidate/MatchedJobsPage";
 import CandidateSaveCvSuccessPage from "@/pages/candidate/CandidateSaveCvSuccessPage";
+import CandidatePreviewCvPage from "@/pages/candidate/CandidatePreviewCvPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
 import CreateJobPage from "@/pages/recruiter/CreateJobPage";
 import {
@@ -39,7 +40,7 @@ import {
   EditJobPage,
 } from "@/pages/recruiter/job";
 import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
-import CVBuilder from "@/pages/CVBuilder";
+import CandidateCvBuilderPage from "@/pages/candidate/CandidateCvBuilderPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -66,7 +67,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: PATHS.CANDIDATE.EDIT_CV,
-        element: <CVBuilder />,
+        element: <CandidateCvBuilderPage />,
       },
       {
         element: <DashboardLayout />,
@@ -102,6 +103,10 @@ const router = createBrowserRouter([
           {
             path: PATHS.CANDIDATE.SAVE_CV_SUCCESS,
             element: <CandidateSaveCvSuccessPage />,
+          },
+          {
+            path: PATHS.CANDIDATE.PREVIEW_CV,
+            element: <CandidatePreviewCvPage />,
           },
 
           {
