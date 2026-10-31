@@ -346,7 +346,7 @@ export function JobFilterSidebar({
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Loại hình công việc
         </h3>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {JOB_TYPE_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
@@ -362,7 +362,7 @@ export function JobFilterSidebar({
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Môi trường làm việc
         </h3>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {WORK_MODE_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
@@ -378,7 +378,7 @@ export function JobFilterSidebar({
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Cấp bậc
         </h3>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid max-h-12 grid-cols-2 gap-1.5 overflow-y-scroll">
           {JOB_LEVEL_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}

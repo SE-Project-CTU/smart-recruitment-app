@@ -78,6 +78,8 @@ export function ApplyJobModal({
 
   const [coverLetter, setCoverLetter] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [logoErrorJobId, setLogoErrorJobId] = useState<string | null>(null);
+  const logoError = logoErrorJobId === currentJob?.id;
 
   const handleClose = useCallback(() => {
     if (isControlled) {
@@ -228,6 +230,19 @@ export function ApplyJobModal({
   const effectiveCvMethod =
     cvList.length === 0 && !isLoadingCvs ? "upload" : cvMethod;
 
+  const companyLogoUrl =
+    currentJob.companyLogoUrl ||
+    currentJob.company?.logoUrl ||
+    ("logoFileUrl" in (currentJob.company || {})
+      ? (currentJob.company as { logoFileUrl?: string | null })?.logoFileUrl
+      : null) ||
+    null;
+
+  const companyName =
+    currentJob.companyName ||
+    currentJob.company?.name ||
+    "Doanh nghiệp tuyển dụng";
+
   const modalNode = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Lớp phủ */}
@@ -259,10 +274,11 @@ export function ApplyJobModal({
         <div className="border-b border-border p-4 pr-12 text-left sm:p-6 sm:pb-4">
           <div className="flex items-start gap-3.5">
             <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-1.5 shadow-2xs">
-              {currentJob.companyLogoUrl ? (
+              {companyLogoUrl && !logoError ? (
                 <img
-                  src={currentJob.companyLogoUrl}
-                  alt={currentJob.companyName || "Logo"}
+                  src={companyLogoUrl}
+                  alt={companyName}
+                  onError={() => setLogoErrorJobId(currentJob.id)}
                   className="size-full object-contain"
                 />
               ) : (
@@ -277,7 +293,7 @@ export function ApplyJobModal({
                 {currentJob.title}
               </h2>
               <p className="mt-0.5 truncate text-xs font-medium text-text-muted">
-                {currentJob.companyName}
+                {companyName}
               </p>
             </div>
           </div>
