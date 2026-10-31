@@ -1,6 +1,54 @@
 import { Extension } from "@tiptap/react";
+import type { Transaction } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import { Color, FontFamily, TextStyle } from "@tiptap/extension-text-style";
+
+/**
+ * Extension bổ sung thuộc tính fontSize cho document gốc (type: "doc"):
+ * - Lưu cỡ mặc định của từng field trong attrs.fontSize
+ * - Cho phép cập nhật qua lệnh setDocFontSize
+ */
+const CvDocFontSize = Extension.create({
+  name: "cvDocFontSize",
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: ["doc"],
+        attributes: {
+          fontSize: {
+            default: 13,
+            parseHTML: (element) => {
+              const val = element.getAttribute("data-font-size");
+              return val ? Number(val) : 13;
+            },
+            renderHTML: (attributes) => {
+              if (!attributes.fontSize) return {};
+              const size = Number(attributes.fontSize);
+              return {
+                "data-font-size": size,
+                style: `font-size: calc(${size}px * var(--cv-font-scale, 1))`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+
+  addCommands() {
+    return {
+      setDocFontSize:
+        (fontSize: number) =>
+        ({ tr, dispatch }: { tr: Transaction; dispatch?: (tr: Transaction) => void }) => {
+          if (dispatch) {
+            tr.setDocAttribute("fontSize", Number(fontSize));
+          }
+          return true;
+        },
+    } as Record<string, unknown>;
+  },
+});
 
 /**
  * Extension quản lý cỡ chữ (FontSize) có hỗ trợ scale động:
@@ -149,6 +197,7 @@ const CvListStyle = Extension.create({
 
 export const cvTiptapExtensions = [
   StarterKit.configure({ trailingNode: false }),
+  CvDocFontSize,
   TextStyle,
   Color,
   FontFamily,

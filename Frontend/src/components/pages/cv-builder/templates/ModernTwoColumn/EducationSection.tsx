@@ -74,7 +74,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                 isReadOnly={isReadOnly}
               />
             </div>
-            <div className="text-sm font-semibold text-slate-700">
+            <div className="font-semibold text-slate-700">
               {renderField({
                 name: `content.sections.education.items.${index}.title`,
                 document: item.title,

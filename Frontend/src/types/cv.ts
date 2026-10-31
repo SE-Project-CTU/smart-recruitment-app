@@ -101,8 +101,13 @@ export interface CvTiptapNode {
   content?: CvTiptapNode[];
 }
 
-export interface CvTiptapDocument extends CvTiptapNode {
+export interface CvDocumentAttrs extends Record<string, CvTiptapAttributeValue> {
+  fontSize: number;
+}
+
+export interface CvTiptapDocument extends Omit<CvTiptapNode, "attrs"> {
   type: "doc";
+  attrs: CvDocumentAttrs;
   content: CvTiptapNode[];
 }
 

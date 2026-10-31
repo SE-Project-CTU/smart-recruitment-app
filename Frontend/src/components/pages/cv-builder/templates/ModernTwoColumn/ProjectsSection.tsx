@@ -71,7 +71,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 isReadOnly={isReadOnly}
               />
             </div>
-            <div className="text-sm font-semibold text-slate-700">
+            <div className="font-semibold text-slate-700">
               {renderField({
                 name: `content.sections.projects.items.${index}.role`,
                 document: item.role,

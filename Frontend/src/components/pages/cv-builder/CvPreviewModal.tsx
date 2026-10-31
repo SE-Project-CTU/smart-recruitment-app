@@ -1,6 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import { useReactToPrint } from "react-to-print";
-import { Eye, Download, X } from "lucide-react";
+import React, { useEffect } from "react";
+import { Eye, X } from "lucide-react";
 import { CvPreviewWorkspace } from "./CvPreviewWorkspace";
 import type { CvRenderData } from "./templates/CvTemplateProps";
 
@@ -22,17 +21,10 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
   data,
   title,
 }) => {
-  const printRef = useRef<HTMLDivElement>(null);
-
   const displayTitle =
     title ||
     ("title" in data && typeof data.title === "string" && data.title) ||
     "Xem trước CV";
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `SmartHire_CV_${displayTitle}`,
-  });
 
   // Đóng modal khi bấm phím ESC
   useEffect(() => {
@@ -101,7 +93,6 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
         <div className="h-max bg-gray-100 p-4">
           <CvPreviewWorkspace
             data={data}
-            contentRef={printRef}
             className="bg-transparent!"
           />
         </div>

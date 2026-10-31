@@ -139,8 +139,15 @@ export const CvTiptapReadOnlyView: React.FC<CvTiptapReadOnlyViewProps> = ({
     );
   }
 
+  const docFontSize = document?.attrs?.fontSize || 13;
+
   return (
-    <div className={cn("cv-tiptap-content w-full", className)}>
+    <div
+      className={cn("cv-tiptap-content w-full", className)}
+      style={{
+        fontSize: `calc(${docFontSize}px * var(--cv-font-scale, 1))`,
+      }}
+    >
       {document.content.map(renderNode)}
     </div>
   );

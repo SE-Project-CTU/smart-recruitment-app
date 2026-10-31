@@ -74,7 +74,7 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({
                 isReadOnly={isReadOnly}
               />
             </div>
-            <div className="text-sm font-semibold text-slate-700">
+            <div className="font-semibold text-slate-700">
               {renderField({
                 name: `content.sections.experience.items.${index}.company`,
                 document: item.company,

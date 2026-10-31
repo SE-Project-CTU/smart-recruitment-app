@@ -11,15 +11,17 @@ public sealed record CvTiptapDocument : CvTiptapNode
     [JsonPropertyName("type")]
     public override string Type { get; init; } = CvTiptapNodeTypes.Doc;
 
-    public static CvTiptapDocument Empty() => new()
+    public static CvTiptapDocument Empty(double fontSize = 13) => new()
     {
         Type = CvTiptapNodeTypes.Doc,
+        Attrs = new Dictionary<string, object?> { [CvTiptapAttributeNames.FontSize] = fontSize },
         Content = [new CvTiptapNode { Type = CvTiptapNodeTypes.Paragraph }]
     };
 
-    public static CvTiptapDocument FromText(string text) => new()
+    public static CvTiptapDocument FromText(string text, double fontSize = 13) => new()
     {
         Type = CvTiptapNodeTypes.Doc,
+        Attrs = new Dictionary<string, object?> { [CvTiptapAttributeNames.FontSize] = fontSize },
         Content = [
             new CvTiptapNode
             {
@@ -130,7 +132,7 @@ public record CvTiptapNode
 
     [JsonPropertyName("attrs")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, object?>? Attrs { get; init; }
+    public Dictionary<string, object?>? Attrs { get; set; }
 
     [JsonPropertyName("marks")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -151,5 +153,5 @@ public sealed record CvTiptapMark
 
     [JsonPropertyName("attrs")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, object?>? Attrs { get; init; }
+    public Dictionary<string, object?>? Attrs { get; set; }
 }

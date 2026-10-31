@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type {
+  CvDocumentAttrs,
   CvTiptapAttributeValue,
   CvTiptapDocument,
   CvTiptapMark,
@@ -44,10 +45,20 @@ const tiptapNodeSchema: z.ZodType<CvTiptapNode> = z.lazy(() =>
   }),
 );
 
+const docAttributesSchema = z
+  .object({
+    fontSize: z
+      .number({ required_error: "Cỡ chữ không được để trống" })
+      .min(6, "Cỡ chữ tối thiểu là 6px")
+      .max(96, "Cỡ chữ tối đa là 96px"),
+  })
+  .and(attributesSchema);
+
 export const tiptapDocumentSchema: z.ZodType<CvTiptapDocument> = z.object({
   type: z.literal("doc"),
+  attrs: docAttributesSchema as unknown as z.ZodType<CvDocumentAttrs>,
   content: z.array(tiptapNodeSchema),
-});
+}) as unknown as z.ZodType<CvTiptapDocument>;
 
 export function extractTiptapText(node: CvTiptapNode): string {
   return `${node.text ?? ""}${node.content?.map(extractTiptapText).join("") ?? ""}`;

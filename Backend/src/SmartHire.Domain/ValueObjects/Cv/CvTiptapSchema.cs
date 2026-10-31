@@ -106,6 +106,11 @@ public static class CvTiptapSchema
         CvTiptapAttributeNames.FontFamily
     };
 
+    public static readonly HashSet<string> SupportedDocAttributeNames = new(StringComparer.Ordinal)
+    {
+        CvTiptapAttributeNames.FontSize
+    };
+
     public static readonly HashSet<string> SupportedParagraphAttributeNames = new(StringComparer.Ordinal)
     {
         CvTiptapAttributeNames.TextAlign

@@ -166,11 +166,36 @@ public static partial class CvDocumentUpdateValidator {
             errors.Add(Invalid(path, $"{path} root node type must be '{CvTiptapNodeTypes.Doc}'."));
             return;
         }
+
+        ValidateDocAttrs(doc.Attrs, path, errors);
         
         if (doc.Content is not null) {
             for (var i = 0; i < doc.Content.Count; i++) {
                 ValidateNodeStructure(doc.Content[i], $"{path}.content[{i}]", errors);
             }
+        }
+    }
+
+    private static void ValidateDocAttrs(
+        Dictionary<string, object?>? attrs,
+        string path,
+        ICollection<AppErrorDetail> errors) {
+        if (attrs is null || !attrs.TryGetValue(CvTiptapAttributeNames.FontSize, out var fontSizeVal) || fontSizeVal is null) {
+            errors.Add(Required($"{path}.attrs.{CvTiptapAttributeNames.FontSize}",
+                $"Root document of {path} must contain 'attrs.{CvTiptapAttributeNames.FontSize}'."));
+            return;
+        }
+
+        foreach (var (key, _) in attrs) {
+            if (!CvTiptapSchema.SupportedDocAttributeNames.Contains(key)) {
+                errors.Add(Invalid($"{path}.attrs",
+                    $"Attribute '{key}' is not supported on root document. Only '{CvTiptapAttributeNames.FontSize}' is allowed."));
+            }
+        }
+
+        if (!TryParseFontSize(fontSizeVal, out var fontSizeNum) || fontSizeNum < 6 || fontSizeNum > 96) {
+            errors.Add(Invalid($"{path}.attrs.{CvTiptapAttributeNames.FontSize}",
+                $"Document fontSize must be a positive number between 6 and 96."));
         }
     }
     
@@ -392,26 +417,7 @@ public static partial class CvDocumentUpdateValidator {
                         errors.Add(Invalid(path, "fontSize attribute cannot be empty."));
                     }
                     else {
-                        double fontSizeNum = 0;
-                        bool parsed = false;
-                        if (value is JsonElement je && je.ValueKind == JsonValueKind.Number) {
-                            parsed = je.TryGetDouble(out fontSizeNum);
-                        }
-                        else if (value is int i) {
-                            fontSizeNum = i;
-                            parsed = true;
-                        }
-                        else if (value is double d) {
-                            fontSizeNum = d;
-                            parsed = true;
-                        }
-                        else if (double.TryParse(value.ToString()?.Replace("px", "").Replace("pt", "").Trim(),
-                                     out var parsedD)) {
-                            fontSizeNum = parsedD;
-                            parsed = true;
-                        }
-                        
-                        if (!parsed || fontSizeNum < 6 || fontSizeNum > 96) {
+                        if (!TryParseFontSize(value, out var fontSizeNum) || fontSizeNum < 6 || fontSizeNum > 96) {
                             errors.Add(Invalid(path, "fontSize attribute must be a positive number between 6 and 96."));
                         }
                     }
@@ -673,6 +679,39 @@ public static partial class CvDocumentUpdateValidator {
         if (string.IsNullOrWhiteSpace(id) || !itemIds.Add(id)) {
             errors.Add(Invalid(itemPath, "Every CV item must have a unique, non-empty id."));
         }
+    }
+    
+    private static bool TryParseFontSize(object? value, out double fontSizeNum) {
+        fontSizeNum = 0;
+        if (value is null) return false;
+        if (value is JsonElement je) {
+            if (je.ValueKind == JsonValueKind.Number) {
+                return je.TryGetDouble(out fontSizeNum);
+            }
+            if (je.ValueKind == JsonValueKind.String) {
+                var str = je.GetString()?.Replace("px", "").Replace("pt", "").Trim();
+                return double.TryParse(str, out fontSizeNum);
+            }
+            return false;
+        }
+        if (value is int i) {
+            fontSizeNum = i;
+            return true;
+        }
+        if (value is long l) {
+            fontSizeNum = l;
+            return true;
+        }
+        if (value is float f) {
+            fontSizeNum = f;
+            return true;
+        }
+        if (value is double d) {
+            fontSizeNum = d;
+            return true;
+        }
+        var s = value.ToString()?.Replace("px", "").Replace("pt", "").Trim();
+        return double.TryParse(s, out fontSizeNum);
     }
     
     private static AppErrorDetail Invalid(string field, string message) =>

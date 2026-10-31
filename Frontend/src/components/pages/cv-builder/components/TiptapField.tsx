@@ -31,7 +31,7 @@ interface TiptapFieldProps {
   multiline?: boolean;
 }
 
-const FONT_SIZE_OPTIONS = [10, 11, 12, 13, 14, 16, 18, 20, 24, 28];
+const FONT_SIZE_OPTIONS = [10, 11, 12, 13, 14, 15, 16, 18, 20, 24, 28, 32];
 
 function FieldToolbar({
   editor,
@@ -45,12 +45,48 @@ function FieldToolbar({
   const active = useEditorState({
     editor,
     selector: ({ editor: current }) => {
+      const { state } = current;
+      const { from, to, empty } = state.selection;
+      const docFontSize = (state.doc.attrs?.fontSize as number) || 13;
+
       const rawFont =
         (current.getAttributes("textStyle").fontFamily as string) || "";
       const normalizedFont = rawFont.replace(/['"]/g, "").trim().toLowerCase();
-      const rawSize =
-        (current.getAttributes("textStyle").fontSize as string) || "";
-      const normalizedSize = rawSize.replace(/[^0-9.]/g, "");
+
+      let displayedSize = String(docFontSize);
+      let isMixed = false;
+
+      if (empty) {
+        // Chỉ có caret: lấy cỡ chữ của doc (hoặc inline mark nếu tại caret)
+        const activeInlineSize = current.getAttributes("textStyle").fontSize as string;
+        if (activeInlineSize) {
+          displayedSize = activeInlineSize.replace(/[^0-9.]/g, "");
+        } else {
+          displayedSize = String(docFontSize);
+        }
+      } else {
+        // Có vùng chọn: quét qua các node trong vùng chọn
+        const sizes = new Set<string>();
+        state.doc.nodesBetween(from, to, (node) => {
+          if (node.isText) {
+            const mark = node.marks.find((m) => m.type.name === "textStyle");
+            const markSize = mark?.attrs?.fontSize as string;
+            if (markSize) {
+              sizes.add(markSize.replace(/[^0-9.]/g, ""));
+            } else {
+              sizes.add(String(docFontSize));
+            }
+          }
+        });
+
+        if (sizes.size > 1) {
+          isMixed = true;
+          displayedSize = "mixed";
+        } else if (sizes.size === 1) {
+          displayedSize = Array.from(sizes)[0];
+        }
+      }
+
       return {
         bold: current.isActive("bold"),
         italic: current.isActive("italic"),
@@ -58,7 +94,9 @@ function FieldToolbar({
         bulletList: current.isActive("bulletList"),
         orderedList: current.isActive("orderedList"),
         fontFamily: normalizedFont,
-        fontSize: normalizedSize,
+        fontSize: displayedSize,
+        isMixedSize: isMixed,
+        selectionEmpty: empty,
       };
     },
   });
@@ -160,18 +198,28 @@ function FieldToolbar({
       <select
         aria-label="Cỡ chữ"
         title="Cỡ chữ"
-        className="h-7 w-16 rounded border border-slate-200 bg-white px-1 text-xs"
+        className="h-7 w-20 rounded border border-slate-200 bg-white px-1 text-xs"
         value={active?.fontSize || ""}
         onChange={(event) => {
           const selectedSize = event.target.value;
-          if (selectedSize) {
-            editor.chain().focus().setFontSize(`${selectedSize}px`).run();
+          if (!selectedSize || selectedSize === "mixed") return;
+
+          if (active?.selectionEmpty) {
+            // Khi chỉ có caret: cập nhật cỡ mặc định của field
+            (editor.commands as unknown as { setDocFontSize: (size: number) => boolean }).setDocFontSize(
+              Number(selectedSize),
+            );
           } else {
-            editor.chain().focus().unsetFontSize().run();
+            // Khi có vùng chọn: đặt inline override
+            editor.chain().focus().setFontSize(`${selectedSize}px`).run();
           }
         }}
       >
-        <option value="">Cỡ</option>
+        {active?.isMixedSize && (
+          <option value="mixed" disabled>
+            Nhiều cỡ
+          </option>
+        )}
         {FONT_SIZE_OPTIONS.map((size) => (
           <option key={size} value={String(size)}>
             {size}px
@@ -389,6 +437,8 @@ export const TiptapField: React.FC<TiptapFieldProps> = ({
     };
   }, [editor, isFocused, isReadOnly]);
 
+  const docFontSize = value?.attrs?.fontSize || 13;
+
   return (
     <div
       ref={wrapperRef}
@@ -397,6 +447,9 @@ export const TiptapField: React.FC<TiptapFieldProps> = ({
         isFocused && !isReadOnly && "z-30",
         className,
       )}
+      style={{
+        fontSize: `calc(${docFontSize}px * var(--cv-font-scale, 1))`,
+      }}
     >
       {isFocused &&
         !isReadOnly &&

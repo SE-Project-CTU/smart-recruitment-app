@@ -28,10 +28,26 @@ const paragraph = (
   ...(text ? { content: [textNode(text, options.marks)] } : {}),
 });
 
-const richText = (...blocks: TiptapNode[]) => ({
-  type: "doc" as const,
-  content: blocks.length ? blocks : [paragraph()],
-});
+const richText = (
+  first?: number | TiptapNode,
+  ...rest: TiptapNode[]
+) => {
+  let fontSize = 13;
+  const blocks: TiptapNode[] = [];
+  if (typeof first === "number") {
+    fontSize = first;
+    blocks.push(...rest);
+  } else if (first) {
+    blocks.push(first, ...rest);
+  } else {
+    blocks.push(paragraph());
+  }
+  return {
+    type: "doc" as const,
+    attrs: { fontSize },
+    content: blocks.length ? blocks : [paragraph()],
+  };
+};
 
 const bulletList = (items: string[]): TiptapNode => ({
   type: "bulletList",
@@ -42,8 +58,9 @@ const bulletList = (items: string[]): TiptapNode => ({
   })),
 });
 
-const linkedText = (text: string, href: string) =>
+const linkedText = (text: string, href: string, fontSize = 12) =>
   richText(
+    fontSize,
     {
       type: "paragraph",
       attrs: { textAlign: "center" },
