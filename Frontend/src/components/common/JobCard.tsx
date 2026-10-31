@@ -15,15 +15,15 @@ import {
   getJobTypeLabel,
   getWorkModeLabel,
 } from "@/utils/jobHelpers";
-import { useApplyJobModalStore, type AnyJob } from "@/stores/applyJobModalStore";
+import {
+  useApplyJobModalStore,
+  type AnyJob,
+} from "@/stores/applyJobModalStore";
 import type { JobPostingItem, JobPostingSearchItem } from "@/types/job";
 import type { MockJobPosting } from "@/constants/mockData";
 
 export type JobCardItem =
-  | JobPostingItem
-  | JobPostingSearchItem
-  | MockJobPosting
-  | AnyJob;
+  JobPostingItem | JobPostingSearchItem | MockJobPosting | AnyJob;
 
 export interface JobCardProps<T extends JobCardItem = JobCardItem> {
   job: T;
@@ -81,7 +81,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex min-h-80.5 max-w-90 min-w-90 cursor-pointer flex-col justify-between rounded-2xl border p-6 shadow-xs transition-all duration-300 ${
+      className={`group relative flex min-h-80.5 max-w-120 min-w-90 cursor-pointer flex-col justify-between rounded-2xl border p-6 shadow-xs transition-all duration-300 ${
         isSelected
           ? "border-primary bg-secondary-light/20 shadow-md ring-2 ring-primary/20"
           : "border-border bg-surface hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200"

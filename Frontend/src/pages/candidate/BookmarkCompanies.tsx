@@ -6,6 +6,7 @@ import {
   useUnfollowCompany,
 } from "@/hooks/queries/useCompany";
 import type { CompanyItem, CompanyVerificationStatus } from "@/types/company";
+import { EmptyStreet } from "@/assets/images/decoration";
 
 export default function BookmarkCompanies() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,7 +62,8 @@ export default function BookmarkCompanies() {
           </h1>
         </div>
         <p className="text-xs text-text-muted">
-          Danh sách các doanh nghiệp bạn đang theo dõi để nhận thông báo việc làm mới
+          Danh sách các doanh nghiệp bạn đang theo dõi để nhận thông báo việc
+          làm mới
         </p>
       </div>
 
@@ -92,7 +94,9 @@ export default function BookmarkCompanies() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="mt-3 text-xs text-text-muted">Đang tải danh sách công ty đã theo dõi...</p>
+          <p className="mt-3 text-xs text-text-muted">
+            Đang tải danh sách công ty đã theo dõi...
+          </p>
         </div>
       ) : followedCompanies.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -127,14 +131,18 @@ export default function BookmarkCompanies() {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-primary/8">
-            <Building2 className="size-7 text-primary/50" />
-          </div>
+          <img
+            src={EmptyStreet}
+            loading="lazy"
+            className="h-80 w-auto md:h-120"
+          />
+
           <p className="text-sm font-medium text-text-main">
             Chưa có công ty nào được theo dõi
           </p>
           <p className="mt-1.5 max-w-xs text-xs text-text-muted">
-            Khám phá các doanh nghiệp tuyển dụng và nhấn Theo dõi để cập nhật tin mới nhất.
+            Khám phá các doanh nghiệp tuyển dụng và nhấn Theo dõi để cập nhật
+            tin mới nhất.
           </p>
         </div>
       )}
