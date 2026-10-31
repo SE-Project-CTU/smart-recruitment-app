@@ -1,4 +1,4 @@
-import { Clock, Download, Edit3, Trash } from "lucide-react";
+﻿import { Clock, Download, Edit3, Trash } from "lucide-react";
 import Button from "./Button";
 import { getTimeAgo } from "@/utils/helper";
 import type { CVItem } from "@/types/cv";
@@ -9,6 +9,7 @@ import { Globe, Lock } from "lucide";
 interface CVCardProps {
   cv: CVItem;
   onEdit?: (cv: CVItem) => void;
+  onRename?: (cv: CVItem) => void;
   onDownload?: (cv: CVItem) => void;
   onDelete?: (cv: CVItem) => void;
   onTogglePublic?: (cv: CVItem, nextIsPublic: boolean) => void;
@@ -18,6 +19,7 @@ interface CVCardProps {
 export function CVCard({
   cv,
   onEdit,
+  onRename,
   onDownload,
   onDelete,
   onTogglePublic,
@@ -29,9 +31,9 @@ export function CVCard({
     <div className="group flex flex-col justify-between rounded-2xl border border-border bg-white shadow-2xs transition-all duration-300 hover:border-secondary hover:shadow-md">
       {/* Khung ảnh thumbnail */}
       <div className="group/image relative flex aspect-3/4 w-full flex-col justify-between overflow-hidden rounded-t-2xl">
-        {cv.thumbnailUrl ? (
+        {cv.previewFile?.url ? (
           <img
-            src={cv.thumbnailUrl}
+            src={cv.previewFile.url}
             alt={cv.title}
             className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
           />
@@ -93,12 +95,24 @@ export function CVCard({
 
       {/* Thông tin tiêu đề & thời gian cập nhật */}
       <div className="flex flex-col gap-1.5 p-4 pb-2">
-        <h3
-          title={cv.title}
-          className="line-clamp-1 text-base font-bold text-slate-800"
-        >
-          {cv.title}
-        </h3>
+        <div className="flex items-center justify-between gap-1.5">
+          <h3
+            title={cv.title}
+            className="line-clamp-1 text-base font-bold text-slate-800"
+          >
+            {cv.title}
+          </h3>
+          {onRename && (
+            <button
+              type="button"
+              onClick={() => onRename(cv)}
+              title="Đổi tên CV"
+              className="cursor-pointer rounded-md p-1 text-text-muted transition-colors hover:bg-bg hover:text-text-main"
+            >
+              <Edit3 className="size-3.5" />
+            </button>
+          )}
+        </div>
 
         <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
           <span className="truncate">{templateName}</span>

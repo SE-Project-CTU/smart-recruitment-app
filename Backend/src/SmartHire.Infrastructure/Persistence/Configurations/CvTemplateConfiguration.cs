@@ -34,9 +34,6 @@ public class CvTemplateConfiguration : IEntityTypeConfiguration<CvTemplate> {
         builder.Property(x => x.DefaultContent)
             .HasJsonbDocumentConversion();
         
-        builder.Property(x => x.DefaultPresentation)
-            .HasJsonbDocumentConversion();
-        
         builder.Property(x => x.Language)
             .HasCvLanguageCodeConversion();
         

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+﻿import { useRef, useState } from "react";
 import {
   ArrowRight,
   Briefcase,
@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import { Smarthire_icon_default } from "@/assets/images/logo";
 import { Button, CTAMeshGradient, JobCard } from "@/components/common";
-import { MOCK_CVS, MOCK_JOB_POSTINGS } from "@/constants/mockData";
+import { MOCK_JOB_POSTINGS } from "@/constants/mockData";
+import { useMyCvs } from "@/hooks/queries/useCv";
 import {
   Toggle,
   ToggleGroup,
@@ -20,6 +21,8 @@ import { CandidateCVSection } from "@/components/CandidateCVSection";
 const level = ["Intern", "Fresher", "Junior", "Middle", "Senior", "Executive"];
 
 function CandidateDashboard() {
+  const { data: cvData, isLoading: isLoadingCvs } = useMyCvs({ pageSize: 4 });
+  const cvList = cvData?.items ?? [];
   const [searchKeyword, setSearchKeyword] = useState("");
   const [category, setCategory] = useState("cntt");
   const [location, setLocation] = useState("hanoi");
@@ -241,7 +244,7 @@ function CandidateDashboard() {
       </div>
 
       {/* danh sach cv */}
-      <CandidateCVSection cvList={MOCK_CVS} />
+      <CandidateCVSection cvList={cvList} isLoading={isLoadingCvs} />
     </div>
   );
 }

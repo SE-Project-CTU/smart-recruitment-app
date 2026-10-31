@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { FilePlus2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button, CVCard } from "@/components/common";
@@ -18,6 +18,7 @@ import {
 
 interface CandidateCVSectionProps {
   cvList?: CVItem[];
+  isLoading?: boolean;
   onEdit?: (cv: CVItem) => void;
   onDownload?: (cv: CVItem) => void;
   onDelete?: (cv: CVItem) => void;
@@ -25,6 +26,7 @@ interface CandidateCVSectionProps {
 
 export function CandidateCVSection({
   cvList = [],
+  isLoading = false,
   onEdit,
   onDownload,
   onDelete,
@@ -63,20 +65,29 @@ export function CandidateCVSection({
           variant="primary"
           icon={Plus}
           iconSize={16}
-          onClick={() => navigate(PATHS.CREATE_CV)}
+          onClick={() => navigate(PATHS.CANDIDATE.CV_TEMPLATES)}
           className="w-full px-4! py-2.5! text-xs! sm:w-auto"
         >
           Tạo CV mới chuẩn ATS
         </Button>
       </div>
 
-      {cvList.length > 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="aspect-3/4 animate-pulse rounded-2xl border border-border bg-surface/50"
+            />
+          ))}
+        </div>
+      ) : cvList.length > 0 ? (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           {cvList.map((cv) => (
             <CVCard
               key={cv.id}
               cv={cv}
-              onEdit={onEdit}
+              onEdit={onEdit || ((item) => navigate(`${PATHS.EDIT_CV}?id=${item.id}`))}
               onDownload={onDownload}
               onDelete={(item) => setCvToDelete(item)}
             />
@@ -97,7 +108,7 @@ export function CandidateCVSection({
               variant="secondary"
               icon={Plus}
               iconSize={14}
-              onClick={() => navigate(PATHS.CREATE_CV)}
+              onClick={() => navigate(PATHS.CANDIDATE.CV_TEMPLATES)}
               className="rounded-xl! px-5! py-2.5! text-xs!"
             >
               Tạo CV mới

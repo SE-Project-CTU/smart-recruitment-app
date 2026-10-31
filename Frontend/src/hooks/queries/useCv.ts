@@ -3,11 +3,12 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { cvService } from "@/services/cvService";
+import { cvService, type PagedCvResult } from "@/services/cvService";
 import { useAuthStore } from "@/stores/authStore";
 import { toast } from "@/hooks/use-toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import type {
+  CVItem,
   CreateCvPayload,
   CvFilterParams,
   UpdateCvPayload,
@@ -28,7 +29,7 @@ export const useMyCvs = (params?: CvFilterParams) => {
 };
 
 /**
- * Hook Query: Xem chi tiết một CV
+ * Hook Query: Xem chi tiết một CV (trả về full content & layout)
  */
 export const useCvDetail = (cvId?: string) => {
   return useQuery({
@@ -36,6 +37,33 @@ export const useCvDetail = (cvId?: string) => {
     queryFn: () => cvService.getCvDetail(cvId!),
     enabled: Boolean(cvId),
     staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Lấy danh sách các phiên bản của CV
+ */
+export const useCvVersions = (
+  cvId?: string,
+  params?: { page?: number; pageSize?: number },
+) => {
+  return useQuery({
+    queryKey: ["cvs", "versions", cvId, params],
+    queryFn: () => cvService.getCvVersions(cvId!, params),
+    enabled: Boolean(cvId),
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Lấy chi tiết một phiên bản lịch sử của CV
+ */
+export const useCvVersionDetail = (cvId?: string, versionId?: string) => {
+  return useQuery({
+    queryKey: ["cvs", "versions", cvId, versionId],
+    queryFn: () => cvService.getCvVersionDetail(cvId!, versionId!),
+    enabled: Boolean(cvId && versionId),
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -55,7 +83,7 @@ export const useCvTemplates = (params?: {
 };
 
 /**
- * Hook Query: Chi tiết một Mẫu CV
+ * Hook Query: Chi tiết một Mẫu CV (bao gồm defaultContent và defaultLayout)
  */
 export const useCvTemplateDetail = (templateId?: string) => {
   return useQuery({
@@ -74,7 +102,11 @@ export const useCreateCv = () => {
 
   return useMutation({
     mutationFn: (payload: CreateCvPayload) => cvService.createCv(payload),
-    onSuccess: () => {
+    onSuccess: (newCv) => {
+      // Nạp trước dữ liệu CV mới tạo vào cache chi tiết của TanStack Query
+      if (newCv?.id) {
+        queryClient.setQueryData(["cvs", "detail", newCv.id], newCv);
+      }
       queryClient.invalidateQueries({ queryKey: ["cvs", "my"] });
       toast.success({ description: "Tạo hồ sơ CV thành công" });
     },
@@ -86,7 +118,7 @@ export const useCreateCv = () => {
 };
 
 /**
- * Hook Mutation: Cập nhật CV (sửa tiêu đề, bật/tắt isPublic)
+ * Hook Mutation: Cập nhật CV (sửa tiêu đề, bật/tắt isPublic, cập nhật nội dung)
  */
 export const useUpdateCv = () => {
   const queryClient = useQueryClient();
@@ -99,7 +131,11 @@ export const useUpdateCv = () => {
       id: string;
       payload: UpdateCvPayload;
     }) => cvService.updateCv(id, payload),
-    onSuccess: (_, variables) => {
+    onSuccess: (updatedCv, variables) => {
+      // Cập nhật lại cache chi tiết nếu Backend trả về dữ liệu mới
+      if (updatedCv?.id) {
+        queryClient.setQueryData(["cvs", "detail", variables.id], updatedCv);
+      }
       queryClient.invalidateQueries({ queryKey: ["cvs", "my"] });
       queryClient.invalidateQueries({
         queryKey: ["cvs", "detail", variables.id],
@@ -132,15 +168,18 @@ export const useToggleCvPublic = () => {
       const previousData = queryClient.getQueriesData({ queryKey: ["cvs", "my"] });
 
       // Cập nhật lạc quan trực tiếp trên Cache của React Query
-      queryClient.setQueriesData({ queryKey: ["cvs", "my"] }, (old: any) => {
-        if (!old?.items) return old;
-        return {
-          ...old,
-          items: old.items.map((item: any) =>
-            item.id === id ? { ...item, isPublic } : item,
-          ),
-        };
-      });
+      queryClient.setQueriesData<PagedCvResult>(
+        { queryKey: ["cvs", "my"] },
+        (old) => {
+          if (!old?.items) return old;
+          return {
+            ...old,
+            items: old.items.map((item: CVItem) =>
+              item.id === id ? { ...item, isPublic } : item,
+            ),
+          };
+        },
+      );
 
       return { previousData };
     },
@@ -161,17 +200,20 @@ export const useToggleCvPublic = () => {
 
     onSuccess: (updatedCv, variables) => {
       // Cập nhật trạng thái chuẩn xác từ server vào Cache mà KHÔNG làm giật giao diện
-      queryClient.setQueriesData({ queryKey: ["cvs", "my"] }, (old: any) => {
-        if (!old?.items) return old;
-        return {
-          ...old,
-          items: old.items.map((item: any) =>
-            item.id === variables.id
-              ? { ...item, isPublic: updatedCv.isPublic ?? variables.isPublic }
-              : item,
-          ),
-        };
-      });
+      queryClient.setQueriesData<PagedCvResult>(
+        { queryKey: ["cvs", "my"] },
+        (old) => {
+          if (!old?.items) return old;
+          return {
+            ...old,
+            items: old.items.map((item: CVItem) =>
+              item.id === variables.id
+                ? { ...item, isPublic: updatedCv.isPublic ?? variables.isPublic }
+                : item,
+            ),
+          };
+        },
+      );
 
       toast.success({
         description: variables.isPublic

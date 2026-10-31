@@ -94,18 +94,14 @@ public static class CvValidator {
             "Language must be either 'vi' or 'en'.");
     }
     
-    public static CvValidationIssue? ValidateLanguage(CvLanguage language) =>
+    public static CvLanguage ValidateLanguage(CvLanguage language) =>
         Enum.IsDefined(language)
-            ? null
-            : new CvValidationIssue(
-                "language",
-                CvValidationFailure.InvalidFormat,
-                "CV language is invalid.");
+            ? language
+            : throw new ArgumentException("CV language is invalid.", nameof(language));
     
     public static IReadOnlyList<CvValidationIssue> ValidateDocuments(
         CvContentDocument? content,
-        CvLayoutDocument? layout,
-        CvPresentationDocument? presentation) {
+        CvLayoutDocument? layout) {
         var issues = new List<CvValidationIssue>();
         
         if (content is null) {
@@ -120,13 +116,6 @@ public static class CvValidator {
                 "layout",
                 CvValidationFailure.Required,
                 "CV layout is required."));
-        }
-        
-        if (presentation is null) {
-            issues.Add(new CvValidationIssue(
-                "presentation",
-                CvValidationFailure.Required,
-                "CV presentation is required."));
         }
         
         return issues;

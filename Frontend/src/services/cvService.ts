@@ -1,12 +1,15 @@
-import axiosClient from "@/api/axios";
+﻿import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type { ApiResponse } from "@/types";
 import type {
   CVItem,
+  CVTemplateDetail,
   CVTemplateItem,
+  CVVersionDetail,
   CVVersionItem,
   CreateCvPayload,
   CvFilterParams,
+  RichTextCVDetail,
   UpdateCvPayload,
 } from "@/types/cv";
 
@@ -19,6 +22,13 @@ export interface PagedCvResult {
 
 export interface PagedCvTemplateResult {
   items: CVTemplateItem[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+}
+
+export interface PagedCvVersionResult {
+  items: CVVersionItem[];
   page: number;
   pageSize: number;
   totalItems: number;
@@ -52,35 +62,41 @@ export const cvService = {
   },
 
   /**
-   * Lấy chi tiết một CV theo ID
+   * Lấy chi tiết một CV theo ID (trả về đầy đủ content & layout)
    */
-  async getCvDetail(id: string): Promise<CVItem> {
-    const response = await axiosClient.get<never, ApiResponse<CVItem>>(
-      API_ENDPOINTS.CV.DETAIL(id),
-    );
+  async getCvDetail(id: string): Promise<RichTextCVDetail> {
+    const response = await axiosClient.get<
+      never,
+      ApiResponse<RichTextCVDetail>
+    >(API_ENDPOINTS.CV.DETAIL(id));
     return response.data;
   },
 
   /**
    * Tạo một hồ sơ CV mới từ Template
    */
-  async createCv(payload: CreateCvPayload): Promise<CVItem> {
-    const response = await axiosClient.post<never, ApiResponse<CVItem>>(
-      API_ENDPOINTS.CV.CREATE,
-      payload,
-    );
-    return response.data;
+  async createCv(payload: CreateCvPayload): Promise<RichTextCVDetail> {
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<RichTextCVDetail> | RichTextCVDetail
+    >(API_ENDPOINTS.CV.CREATE, payload);
+    const data = (response as ApiResponse<RichTextCVDetail>)?.data ?? response;
+    return data as RichTextCVDetail;
   },
 
   /**
-   * Cập nhật thông tin / trạng thái CV (vd: bật/tắt isPublic, đổi tiêu đề)
+   * Cập nhật thông tin / trạng thái / nội dung CV
    */
-  async updateCv(id: string, payload: UpdateCvPayload): Promise<CVItem> {
-    const response = await axiosClient.patch<never, ApiResponse<CVItem>>(
-      API_ENDPOINTS.CV.UPDATE(id),
-      payload,
-    );
-    return response.data;
+  async updateCv(
+    id: string,
+    payload: UpdateCvPayload,
+  ): Promise<RichTextCVDetail> {
+    const response = await axiosClient.patch<
+      never,
+      ApiResponse<RichTextCVDetail> | RichTextCVDetail
+    >(API_ENDPOINTS.CV.UPDATE(id), payload);
+    const data = (response as ApiResponse<RichTextCVDetail>)?.data ?? response;
+    return data as RichTextCVDetail;
   },
 
   /**
@@ -91,14 +107,43 @@ export const cvService = {
   },
 
   /**
-   * Lấy các phiên bản của CV
+   * Lấy danh sách phiên bản của CV (có phân trang)
    */
-  async getCvVersions(id: string): Promise<CVVersionItem[]> {
+  async getCvVersions(
+    id: string,
+    params?: { page?: number; pageSize?: number },
+  ): Promise<PagedCvVersionResult> {
     const response = await axiosClient.get<
       never,
       ApiResponse<CVVersionItem[]>
-    >(API_ENDPOINTS.CV.VERSIONS(id));
-    return response.data || [];
+    >(API_ENDPOINTS.CV.VERSIONS(id), {
+      params: {
+        page: params?.page ?? 1,
+        pageSize: params?.pageSize ?? 20,
+      },
+    });
+
+    return {
+      items: response.data || [],
+      page: (response.meta?.page as number) ?? 1,
+      pageSize: (response.meta?.pageSize as number) ?? 20,
+      totalItems:
+        (response.meta?.totalItems as number) ?? response.data?.length ?? 0,
+    };
+  },
+
+  /**
+   * Lấy chi tiết một phiên bản lịch sử cụ thể của CV
+   */
+  async getCvVersionDetail(
+    cvId: string,
+    versionId: string,
+  ): Promise<CVVersionDetail> {
+    const response = await axiosClient.get<
+      never,
+      ApiResponse<CVVersionDetail>
+    >(API_ENDPOINTS.CV.VERSION_DETAIL(cvId, versionId));
+    return response.data;
   },
 
   /**
@@ -130,12 +175,12 @@ export const cvService = {
   },
 
   /**
-   * Lấy chi tiết một Mẫu CV
+   * Lấy chi tiết một Mẫu CV (kèm defaultContent và defaultLayout)
    */
-  async getCvTemplateDetail(id: string): Promise<CVTemplateItem> {
+  async getCvTemplateDetail(id: string): Promise<CVTemplateDetail> {
     const response = await axiosClient.get<
       never,
-      ApiResponse<CVTemplateItem>
+      ApiResponse<CVTemplateDetail>
     >(API_ENDPOINTS.CV.TEMPLATE_DETAIL(id));
     return response.data;
   },

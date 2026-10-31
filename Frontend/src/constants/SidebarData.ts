@@ -1,4 +1,4 @@
-import {
+﻿import {
   BookBookmark,
   Bookmark,
   BuildingComplex,
@@ -8,6 +8,7 @@ import {
   FileText,
   Home,
   LayoutList,
+  LayoutTemplate,
   LibraryBig,
   ListCheck,
   Search,
@@ -37,12 +38,14 @@ export const candidateSidebarData = {
       title: "Việc làm phù hợp",
       url: PATHS.CANDIDATE.MATCHED_JOBS,
       icon: LayoutList,
+  LayoutTemplate,
       items: [],
     },
   ],
   //hồ sơ của tui
   myProfile: [
     { title: "Quản lý CV", url: PATHS.CANDIDATE.CV_MANAGEMENT, icon: FileText },
+    { title: "Mẫu CV", url: PATHS.CANDIDATE.CV_TEMPLATES, icon: LayoutTemplate },
     {
       title: "Trạng thái hồ sơ",
       url: PATHS.CANDIDATE.APPLICATION_STATUS,

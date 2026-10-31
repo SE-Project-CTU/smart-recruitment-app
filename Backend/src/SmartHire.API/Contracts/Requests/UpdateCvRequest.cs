@@ -11,7 +11,6 @@ public sealed class UpdateCvRequest {
     private string? _title;
     private CvContentDocument? _content;
     private CvLayoutDocument? _layout;
-    private CvPresentationDocument? _presentation;
     private string? _language;
     private bool? _isPublic;
     private Guid? _previewFileId;
@@ -47,16 +46,6 @@ public sealed class UpdateCvRequest {
     }
     
     [JsonIgnore] public bool LayoutProvided { get; private set; }
-    
-    public CvPresentationDocument? Presentation {
-        get => _presentation;
-        init {
-            _presentation = value;
-            PresentationProvided = true;
-        }
-    }
-    
-    [JsonIgnore] public bool PresentationProvided { get; private set; }
     
     [RegularExpression(RequestValidationPatterns.CvLanguage,
         ErrorMessage = "Language must be either 'vi' or 'en'.")]

@@ -1,4 +1,4 @@
-export const API_ERROR_MESSAGES: Record<string, string> = {
+﻿export const API_ERROR_MESSAGES: Record<string, string> = {
   CORRELATION_ID_REQUIRED: "Thiếu mã định danh yêu cầu. Vui lòng thử lại.",
   CORRELATION_ID_INVALID:
     "Mã định danh yêu cầu không hợp lệ. Vui lòng thử lại.",
@@ -62,11 +62,14 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   INVALID_JOB_POSTING_SEARCH: "Tiêu chí tìm kiếm tin tuyển dụng không hợp lệ.",
   // CV Error Codes
   CV_CANDIDATE_ROLE_REQUIRED: "Chỉ ứng viên mới có quyền quản lý hồ sơ CV.",
+  CV_NOT_FOUND: "Không tìm thấy hồ sơ CV.",
   CV_CV_NOT_FOUND: "Không tìm thấy hồ sơ CV.",
   CV_NOT_OWNED: "Bạn không có quyền truy cập hồ sơ CV này.",
   CV_VERSION_NOT_FOUND: "Không tìm thấy phiên bản CV yêu cầu.",
   CV_UPDATE_CONFLICT: "Hồ sơ CV đã được cập nhật bởi một phiên làm việc khác.",
   CV_PREVIEW_FILE_ALREADY_IN_USE: "File xem trước đang được sử dụng bởi một CV khác.",
+  CV_TEMPLATE_NOT_FOUND: "Không tìm thấy mẫu CV.",
+  CV_TEMPLATE_INACTIVE: "Mẫu CV này hiện đã tạm ngưng hỗ trợ.",
   // Application Error Codes
   INVALID_APPLICATION: "Thông tin hồ sơ ứng tuyển không hợp lệ. Vui lòng kiểm tra lại.",
   JOB_NOT_ACCEPTING_APPLICATIONS: "Tin tuyển dụng này hiện đã dừng tiếp nhận hồ sơ ứng tuyển.",

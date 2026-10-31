@@ -17,6 +17,8 @@ const STATIC_BREADCRUMBS: Record<string, BreadcrumbConfigItem[]> = {
   [PATHS.CANDIDATE.SEARCH_JOBS]: [{ label: "Tìm việc làm" }],
   [PATHS.CANDIDATE.MATCHED_JOBS]: [{ label: "Việc làm phù hợp" }],
   [PATHS.CANDIDATE.CV_MANAGEMENT]: [{ label: "Quản lý CV" }],
+  [PATHS.CANDIDATE.CV_TEMPLATES]: [{ label: "Mẫu CV tuyển dụng" }],
+  [PATHS.CANDIDATE.EDIT_CV]: [{ label: "Chỉnh sửa CV" }],
   [PATHS.CANDIDATE.APPLICATION_STATUS]: [{ label: "Trạng thái hồ sơ" }],
   [PATHS.CANDIDATE.BOOKMARK_JOBS]: [
     { label: "Mục đã lưu" },
@@ -53,9 +55,6 @@ const STATIC_BREADCRUMBS: Record<string, BreadcrumbConfigItem[]> = {
     { label: "Kiểm duyệt" },
     { label: "Duyệt tin tuyển dụng" },
   ],
-
-  // Other
-  [PATHS.CREATE_CV]: [{ label: "Tạo CV" }],
 };
 
 const DYNAMIC_RULES: RouteBreadcrumbRule[] = [

@@ -19,9 +19,6 @@ public class CvVersionConfiguration : IEntityTypeConfiguration<CvVersion> {
         builder.Property(x => x.Layout)
             .HasJsonbDocumentConversion();
         
-        builder.Property(x => x.Presentation)
-            .HasJsonbDocumentConversion();
-        
         builder.Property(x => x.Language)
             .HasCvLanguageCodeConversion();
         

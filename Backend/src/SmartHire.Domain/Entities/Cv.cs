@@ -16,9 +16,7 @@ public class Cv {
     public string Title { get; private set; } = string.Empty;
     public CvContentDocument Content { get; private set; } = new();
     public CvLayoutDocument Layout { get; private set; } = new();
-    public CvPresentationDocument Presentation { get; private set; } = new();
     public string? ContentHash { get; private set; }
-    public string? PresentationHash { get; private set; }
     public string? LayoutHash { get; private set; }
     
     public CvLanguage Language { get; private set; }
@@ -42,29 +40,21 @@ public class Cv {
         string title,
         CvContentDocument content,
         CvLayoutDocument layout,
-        CvPresentationDocument presentation,
         CvLanguage language,
         DateTimeOffset now) {
         ThrowIfInvalid(CvValidator.ValidateCandidateId(candidateId));
         ThrowIfInvalid(CvValidator.ValidateTemplateId(templateId));
         ThrowIfInvalid(CvValidator.ValidateTitle(title));
-        ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout, presentation));
-        ThrowIfInvalid(CvValidator.ValidateLanguage(language));
+        ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout));
+        CvValidator.ValidateLanguage(language);
         
         ArgumentNullException.ThrowIfNull(content.Metadata);
-        ArgumentNullException.ThrowIfNull(presentation.Metadata);
         ArgumentException.ThrowIfNullOrWhiteSpace(templateCode);
         
         content = content with {
             Metadata = content.Metadata with {
                 TemplateCode = templateCode,
                 Language = language,
-                UpdatedAt = now
-            }
-        };
-        presentation = presentation with {
-            Metadata = presentation.Metadata with {
-                TemplateCode = templateCode,
                 UpdatedAt = now
             }
         };
@@ -75,7 +65,6 @@ public class Cv {
             Title = CvValidator.NormalizeTitle(title),
             Content = content,
             Layout = layout,
-            Presentation = presentation,
             Language = language,
             IsPublic = false,
             CreatedAt = now,
@@ -114,15 +103,13 @@ public class Cv {
     public void UpdateDocuments(
         CvContentDocument content,
         CvLayoutDocument layout,
-        CvPresentationDocument presentation,
         CvLanguage language,
         int latestVersionNumber,
         DateTimeOffset now
     ) {
-        ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout, presentation));
-        ThrowIfInvalid(CvValidator.ValidateLanguage(language));
+        ThrowIfInvalid(CvValidator.ValidateDocuments(content, layout));
+        CvValidator.ValidateLanguage(language);
         ArgumentNullException.ThrowIfNull(content.Metadata);
-        ArgumentNullException.ThrowIfNull(presentation.Metadata);
         
         var formattedVersionNumber = latestVersionNumber.ToString("F1");
         
@@ -134,12 +121,6 @@ public class Cv {
             }
         };
         Layout = layout;
-        Presentation = presentation with {
-            Metadata = presentation.Metadata with {
-                Version = formattedVersionNumber,
-                UpdatedAt = now
-            }
-        };
         
         Language = language;
         UpdatedAt = now;
@@ -147,14 +128,11 @@ public class Cv {
 
     public void SetDocumentHashes(
         string contentHash,
-        string presentationHash,
         string layoutHash) {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentHash);
-        ArgumentException.ThrowIfNullOrWhiteSpace(presentationHash);
         ArgumentException.ThrowIfNullOrWhiteSpace(layoutHash);
 
         ContentHash = contentHash;
-        PresentationHash = presentationHash;
         LayoutHash = layoutHash;
     }
     

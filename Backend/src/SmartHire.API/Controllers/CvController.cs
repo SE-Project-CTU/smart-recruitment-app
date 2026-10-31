@@ -124,8 +124,6 @@ public sealed class CvController : ControllerBase {
             request.Content,
             request.LayoutProvided,
             request.Layout,
-            request.PresentationProvided,
-            request.Presentation,
             request.LanguageProvided,
             request.Language,
             request.IsPublic,
@@ -148,5 +146,4 @@ public sealed class CvController : ControllerBase {
         await _sender.Send(new DeleteCvCommand(id), cancellationToken);
         return NoContent();
     }
-
 }

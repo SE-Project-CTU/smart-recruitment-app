@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/* hover:outline-2 hover:outline-dashed focus-visible:outline-2 outline-slate-400 */
+
+.hover-field {
+  @apply rounded-sm py-0.5 px-1 outline-2 outline-white;
+}
+
+.hover-field:hover {
+  @apply outline-dashed outline-slate-400;
+}
+
+.hover-field:focus-visible {
+  @apply outline-slate-400 outline-solid;
+}
+
+/* Keep list markers inside the editable field's outline. */
+.cv-tiptap-content ul,
+.cv-tiptap-content ol {
+  margin-block: 0;
+  padding-inline-start: 1rem;
+  list-style-position: outside;
+}
+
+.cv-tiptap-content ul:not([style*="list-style-type"]) {
+  list-style-type: disc;
+}
+
+.cv-tiptap-content ol:not([style*="list-style-type"]) {
+  list-style-type: decimal;
+}
+
+.cv-tiptap-content li {
+  margin: 0;
+  padding: 0;
+}
+
+.cv-tiptap-content li > p {
+  margin: 0;
+}
+
+.cv-tiptap-content:has(> p:only-child > br.ProseMirror-trailingBreak)::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   CV Scalable Typography & Consistent Line Height
+   ========================================================================== */
+.cv-page-container {
+  --cv-font-scale: 1;
+  --cv-line-height: 1.5;
+  font-size: calc(12px * var(--cv-font-scale, 1));
+  line-height: var(--cv-line-height, 1.5);
+}
+
+/* Đảm bảo toàn bộ nội dung, tiêu đề, đoạn văn và danh sách kế thừa lineHeight nhất quán */
+.cv-page-container p,
+.cv-page-container h1,
+.cv-page-container h2,
+.cv-page-container h3,
+.cv-page-container h4,
+.cv-page-container li,
+.cv-page-container span,
+.cv-page-container .cv-tiptap-content {
+  line-height: inherit;
+}
+
+/* Các cấp độ cỡ chữ có thể scale */
+.cv-text-title {
+  font-size: calc(24px * var(--cv-font-scale, 1));
+}
+
+.cv-text-subtitle {
+  font-size: calc(14px * var(--cv-font-scale, 1));
+}
+
+.cv-text-section-header {
+  font-size: calc(12px * var(--cv-font-scale, 1));
+}
+
+.cv-text-body {
+  font-size: calc(12px * var(--cv-font-scale, 1));
+}
+
+.cv-text-meta {
+  font-size: calc(11px * var(--cv-font-scale, 1));
+}

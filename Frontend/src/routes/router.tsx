@@ -1,5 +1,5 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
-import BaseLayout from "@/layouts/BaseLayout";
+﻿import { createBrowserRouter, Navigate } from "react-router-dom";
+import BaseLayout from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/common/Page";
 import {
@@ -10,14 +10,15 @@ import {
   UserProfile,
   BadRequestPage,
 } from "@/pages";
-import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
-import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
+import { ProtectedRoute } from "./ProtectedRoute";
 import { PATHS } from "@/constants/paths";
 import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
 import CandidateCvManagementPage from "@/pages/candidate/CandidateCvManagementPage";
+import CandidateCvTemplatesPage from "@/pages/candidate/CandidateCvTemplatesPage";
 import CandidateApplicationStatusPage from "@/pages/candidate/CandidateApplicationStatusPage";
 import MatchedJobsPage from "@/pages/candidate/MatchedJobsPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
@@ -37,6 +38,7 @@ import {
   EditJobPage,
 } from "@/pages/recruiter/job";
 import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
+import CVBuilder from "@/pages/CVBuilder";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -61,6 +63,10 @@ const router = createBrowserRouter([
   {
     element: <ProtectedRoute allowRoles={["candidate"]} />,
     children: [
+      {
+        path: PATHS.CANDIDATE.EDIT_CV,
+        element: <CVBuilder />,
+      },
       {
         element: <DashboardLayout />,
         children: [
@@ -88,6 +94,11 @@ const router = createBrowserRouter([
             path: PATHS.CANDIDATE.CV_MANAGEMENT,
             element: <CandidateCvManagementPage />,
           },
+          {
+            path: PATHS.CANDIDATE.CV_TEMPLATES,
+            element: <CandidateCvTemplatesPage />,
+          },
+
           {
             path: PATHS.CANDIDATE.APPLICATION_STATUS,
             element: <CandidateApplicationStatusPage />,
@@ -237,15 +248,15 @@ const router = createBrowserRouter([
     ],
   },
 
-  {
-    element: <ProtectedRoute />,
-    children: [
-      {
-        path: PATHS.CREATE_CV,
-        element: <Page title="Trình tạo CV (Full Screen)" />,
-      },
-    ],
-  },
+  // {
+  //   element: <ProtectedRoute />,
+  //   children: [
+  //     {
+  //       path: PATHS.CREATE_CV,
+  //       element: <CVBuilder />,
+  //     },
+  //   ],
+  // },
 
   {
     path: PATHS.FORBIDDEN,

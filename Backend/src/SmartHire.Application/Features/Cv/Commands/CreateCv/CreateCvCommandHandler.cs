@@ -1,4 +1,4 @@
-﻿using System.Transactions;
+using System.Transactions;
 using MediatR;
 using SmartHire.Application.Features.Cv.Mapping;
 using SmartHire.Application.Abstractions.Persistence;
@@ -82,18 +82,15 @@ public sealed class CreateCvCommandHandler : IRequestHandler<CreateCvCommand, Cv
                     validatedRequest.Title!,
                     cvTemplate.DefaultContent,
                     cvTemplate.DefaultLayout,
-                    cvTemplate.DefaultPresentation,
                     language,
                     now
                 );
 
                 var hashes = _cvDocumentHasher.Calculate(
                     newCv.Content,
-                    newCv.Presentation,
                     newCv.Layout);
                 newCv.SetDocumentHashes(
                     hashes.ContentHash,
-                    hashes.PresentationHash,
                     hashes.LayoutHash);
                 
                 await _cvRepository.Add(newCv);
