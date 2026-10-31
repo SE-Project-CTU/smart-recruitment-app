@@ -77,12 +77,16 @@ public class Cv {
     }
     
     public CvVersion CreateVersion(int versionNumber, DateTimeOffset now) {
+        return CreateVersion(versionNumber, PreviewFileId, now);
+    }
+
+    public CvVersion CreateVersion(int versionNumber, Guid? previewFileId, DateTimeOffset now) {
         if (Versions.Any(version => version.VersionNumber == versionNumber)) {
             throw new InvalidOperationException(
                 $"CV version {versionNumber} has already been created.");
         }
         
-        var version = CvVersion.CreateSnapshot(this, versionNumber, now);
+        var version = CvVersion.CreateSnapshot(this, versionNumber, previewFileId, now);
         Versions.Add(version);
         return version;
     }

@@ -18,4 +18,9 @@ public interface ICvVersionRepository {
         Guid versionId,
         CancellationToken cancellationToken);
     Task<bool> IsOwnedByCandidateAsync(Guid versionId, Guid candidateId, CancellationToken cancellationToken);
+    Task<List<CvVersion>> GetOrphanedArchivedVersionsAsync(
+        DateTimeOffset archivedBefore,
+        int batchSize,
+        CancellationToken cancellationToken);
+    void Delete(CvVersion version);
 }

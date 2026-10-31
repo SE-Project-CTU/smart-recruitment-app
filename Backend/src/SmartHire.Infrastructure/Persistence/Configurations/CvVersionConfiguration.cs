@@ -21,6 +21,8 @@ public class CvVersionConfiguration : IEntityTypeConfiguration<CvVersion> {
         
         builder.Property(x => x.Language)
             .HasCvLanguageCodeConversion();
+
+        builder.Property(x => x.PreviewFileId);
         
         builder.HasOne(x => x.Cv)
             .WithMany(x => x.Versions)
@@ -31,10 +33,16 @@ public class CvVersionConfiguration : IEntityTypeConfiguration<CvVersion> {
             .WithMany(x => x.CvVersions)
             .HasForeignKey(x => x.TemplateId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.PreviewFile)
+            .WithMany()
+            .HasForeignKey(x => x.PreviewFileId)
+            .OnDelete(DeleteBehavior.Restrict);
         
         builder.HasIndex(x => new { x.CvId, x.VersionNumber })
             .IsUnique();
         
         builder.HasIndex(x => x.TemplateId);
+        builder.HasIndex(x => x.PreviewFileId);
     }
 }

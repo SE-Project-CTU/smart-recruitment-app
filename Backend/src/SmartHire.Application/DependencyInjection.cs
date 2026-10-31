@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Features.Auth.RegisterAccount;
+using SmartHire.Application.Features.Cv.Jobs.CleanupOrphanedArchivedCvVersions;
 using SmartHire.Application.Features.Media.Jobs.DeleteMediaFile;
 using SmartHire.Application.Features.Notifications.Jobs.DispatchNotificationBatch;
 using SmartHire.Application.Features.JobPostings.Jobs.ExpireOverdueJobPostings;
@@ -21,6 +22,7 @@ public static class DependencyInjection {
         services.AddBackgroundJob<DeleteMediaFileJob, DeleteMediaFileJobArgs>();
         services.AddBackgroundJob<DispatchNotificationBatchJob, DispatchNotificationBatchJobArgs>();
         services.AddBackgroundJob<ExpireOverdueJobPostingsJob, ExpireOverdueJobPostingsJobArgs>();
+        services.AddBackgroundJob<CleanupOrphanedArchivedCvVersionsJob, CleanupOrphanedArchivedCvVersionsJobArgs>();
         
         return services;
     }
