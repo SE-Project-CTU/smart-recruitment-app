@@ -19,6 +19,10 @@ const STATIC_BREADCRUMBS: Record<string, BreadcrumbConfigItem[]> = {
   [PATHS.CANDIDATE.CV_MANAGEMENT]: [{ label: "Quản lý CV" }],
   [PATHS.CANDIDATE.CV_TEMPLATES]: [{ label: "Mẫu CV tuyển dụng" }],
   [PATHS.CANDIDATE.EDIT_CV]: [{ label: "Chỉnh sửa CV" }],
+  [PATHS.CANDIDATE.SAVE_CV_SUCCESS]: [
+    { label: "Quản lý CV", url: PATHS.CANDIDATE.CV_MANAGEMENT },
+    { label: "Lưu CV thành công" },
+  ],
   [PATHS.CANDIDATE.APPLICATION_STATUS]: [{ label: "Trạng thái hồ sơ" }],
   [PATHS.CANDIDATE.BOOKMARK_JOBS]: [
     { label: "Mục đã lưu" },

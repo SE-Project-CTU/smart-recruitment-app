@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import BaseLayout from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/common/Page";
@@ -21,6 +21,7 @@ import CandidateCvManagementPage from "@/pages/candidate/CandidateCvManagementPa
 import CandidateCvTemplatesPage from "@/pages/candidate/CandidateCvTemplatesPage";
 import CandidateApplicationStatusPage from "@/pages/candidate/CandidateApplicationStatusPage";
 import MatchedJobsPage from "@/pages/candidate/MatchedJobsPage";
+import CandidateSaveCvSuccessPage from "@/pages/candidate/CandidateSaveCvSuccessPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
 import CreateJobPage from "@/pages/recruiter/CreateJobPage";
 import {
@@ -97,6 +98,10 @@ const router = createBrowserRouter([
           {
             path: PATHS.CANDIDATE.CV_TEMPLATES,
             element: <CandidateCvTemplatesPage />,
+          },
+          {
+            path: PATHS.CANDIDATE.SAVE_CV_SUCCESS,
+            element: <CandidateSaveCvSuccessPage />,
           },
 
           {

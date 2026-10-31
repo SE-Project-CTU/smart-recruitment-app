@@ -86,11 +86,11 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
               isPublic: data.isPublic,
             },
           });
+          navigate(`${PATHS.CANDIDATE.SAVE_CV_SUCCESS}?id=${cvId}`);
         } catch {
           return;
         }
       }
-      setIsLocked(true);
     },
     (fieldErrors) => {
       console.warn("[CVBuilder] Form validation errors:", fieldErrors);

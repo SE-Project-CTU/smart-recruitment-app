@@ -42,6 +42,22 @@ function FieldToolbar({
   toolbarRef: React.RefObject<HTMLDivElement | null>;
   position: { top: number; left: number };
 }) {
+  const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
+
+  useEffect(() => {
+    if (!editor) return;
+    const updateSelection = () => {
+      const { selection } = editor.state;
+      if (!selection.empty) {
+        savedSelectionRef.current = { from: selection.from, to: selection.to };
+      }
+    };
+    editor.on("selectionUpdate", updateSelection);
+    return () => {
+      editor.off("selectionUpdate", updateSelection);
+    };
+  }, [editor]);
+
   const active = useEditorState({
     editor,
     selector: ({ editor: current }) => {
@@ -204,13 +220,23 @@ function FieldToolbar({
           const selectedSize = event.target.value;
           if (!selectedSize || selectedSize === "mixed") return;
 
-          if (active?.selectionEmpty) {
+          const savedSel = savedSelectionRef.current;
+          if (savedSel && savedSel.from !== savedSel.to) {
+            // Khôi phục vùng chọn trước khi blur và áp dụng inline override
+            editor
+              .chain()
+              .focus()
+              .setTextSelection(savedSel)
+              .setFontSize(`${selectedSize}px`)
+              .run();
+            savedSelectionRef.current = null;
+          } else if (active?.selectionEmpty) {
             // Khi chỉ có caret: cập nhật cỡ mặc định của field
             (editor.commands as unknown as { setDocFontSize: (size: number) => boolean }).setDocFontSize(
               Number(selectedSize),
             );
           } else {
-            // Khi có vùng chọn: đặt inline override
+            // Khi có vùng chọn hiện hành: đặt inline override
             editor.chain().focus().setFontSize(`${selectedSize}px`).run();
           }
         }}
