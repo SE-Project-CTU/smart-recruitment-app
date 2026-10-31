@@ -7,7 +7,6 @@ import {
   ArrowUpDown,
   ChevronDown,
   ArrowRight,
-  Loader2,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, CTAMeshGradient, JobCard } from "@/components/common";
@@ -31,6 +30,7 @@ import {
   toMillion,
 } from "@/utils/jobHelpers";
 import { Smarthire_icon_default } from "@/assets/images/logo";
+import JobCardSkeleton from "@/components/common/JobCardSkeleton";
 
 type SortKey = "AI_MATCH" | "NEWEST" | "SALARY_DESC" | "SALARY_ASC";
 
@@ -87,7 +87,10 @@ export default function SearchJobPage() {
   // Kéo danh sách việc làm công khai từ Backend API
   const { data: pagedData, isLoading: isLoadingJobs } =
     useJobPostings(searchParams);
-  const jobList = pagedData?.items || [];
+
+  const jobList = useMemo(() => {
+    return pagedData?.items || [];
+  }, [pagedData?.items]);
 
   // Lấy chi tiết toàn văn JD khi người dùng mở Drawer
   const { data: jobDetail } = useJobPostingDetail(
@@ -508,11 +511,10 @@ export default function SearchJobPage() {
           </div>
 
           {isLoadingJobs ? (
-            <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
-              <Loader2 className="size-8 animate-spin text-primary" />
-              <p className="text-xs font-medium text-text-muted">
-                Đang tìm kiếm cơ hội việc làm phù hợp...
-              </p>
+            <div className="flex flex-wrap justify-items-center gap-5">
+              {[1, 2, 3, 4].map((index) => (
+                <JobCardSkeleton key={index} />
+              ))}
             </div>
           ) : filteredAndSortedJobs.length === 0 ? (
             <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
