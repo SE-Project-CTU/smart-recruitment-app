@@ -183,15 +183,6 @@ public sealed class UpdateCvCommandHandler : IRequestHandler<UpdateCvCommand, Cv
                     now,
                     cancellationToken);
 
-                // Enqueue background job to delete old preview file only on update with versioning
-                if (validated.PreviewFileIdProvided &&
-                    oldPreviewFileId.HasValue &&
-                    oldPreviewFileId.Value != validated.PreviewFileId) {
-                    _backgroundJobScheduler.Enqueue<DeleteMediaFileJob, DeleteMediaFileJobArgs>(
-                        new DeleteMediaFileJobArgs(oldPreviewFileId.Value)
-                    );
-                }
-
                 return result;
             }
             else {

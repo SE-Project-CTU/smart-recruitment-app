@@ -18,6 +18,9 @@ public class CvVersion {
     public CvLanguage Language { get; private set; }
     public int VersionNumber { get; private set; }
     
+    public Guid? PreviewFileId { get; private set; }
+    public MediaFile? PreviewFile { get; private set; }
+    
     public DateTimeOffset CreatedAt { get; private set; }
     
     public CvEmbedding? Embedding { get; private set; }
@@ -29,6 +32,7 @@ public class CvVersion {
     internal static CvVersion CreateSnapshot(
         Cv cv,
         int versionNumber,
+        Guid? previewFileId,
         DateTimeOffset now
     ) {
         ArgumentNullException.ThrowIfNull(cv);
@@ -52,6 +56,7 @@ public class CvVersion {
             Layout = CopyLayout(cv.Layout),
             Language = cv.Language,
             VersionNumber = versionNumber,
+            PreviewFileId = previewFileId,
             CreatedAt = now
         };
     }
