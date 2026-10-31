@@ -2,7 +2,6 @@ import { Extension } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Color, FontFamily, TextStyle } from "@tiptap/extension-text-style";
 
-
 /**
  * Extension quản lý cỡ chữ (FontSize) có hỗ trợ scale động:
  * - Lưu cỡ gốc trong JSON (ví dụ "14px")
@@ -28,7 +27,9 @@ const CvFontSize = Extension.create({
             parseHTML: (element) => {
               const inline = element.style.fontSize;
               if (!inline) return null;
-              const match = inline.match(/calc\(\s*([0-9.]+(?:px|pt|em|rem)?)/i);
+              const match = inline.match(
+                /calc\(\s*([0-9.]+(?:px|pt|em|rem)?)/i,
+              );
               return match ? match[1] : inline;
             },
             renderHTML: (attributes) => {

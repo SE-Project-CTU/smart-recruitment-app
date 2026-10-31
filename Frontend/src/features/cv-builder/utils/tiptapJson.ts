@@ -1,4 +1,9 @@
-import type { CvTiptapDocument, CvTiptapMark, CvTiptapNode } from "@/types/cv";
+﻿import type {
+  CvTiptapAttributeValue,
+  CvTiptapDocument,
+  CvTiptapMark,
+  CvTiptapNode,
+} from "@/types/cv";
 
 export function createEmptyTiptapDocument(): CvTiptapDocument {
   return {
@@ -43,14 +48,24 @@ function removeNullAttributes<T extends { attrs?: Record<string, unknown> }>(
   );
 
   if (Object.keys(attrs).length === 0) {
-    const { attrs: _attrs, ...withoutAttrs } = value;
-    return withoutAttrs as T;
+    const withoutAttrs = { ...value };
+    delete withoutAttrs.attrs;
+    return withoutAttrs;
   }
 
   return { ...value, attrs };
 }
 
 function sanitizeMark(mark: CvTiptapMark): CvTiptapMark {
+  if (mark.type === "link" && mark.attrs) {
+    const { href, target } = mark.attrs;
+    const sanitizedAttrs: Record<string, CvTiptapAttributeValue> = { href };
+    if (target) sanitizedAttrs.target = target;
+    return {
+      type: "link",
+      attrs: sanitizedAttrs,
+    };
+  }
   return removeNullAttributes(mark);
 }
 

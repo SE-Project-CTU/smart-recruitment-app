@@ -69,27 +69,6 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
       `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
   });
 
-  // Lưu bản nháp lên server mà không khóa chế độ chỉnh sửa
-  const handleSaveDraft = async () => {
-    if (!cvId) return;
-    const values = methods.getValues();
-    try {
-      await updateCv({
-        id: cvId,
-        payload: {
-          title: values.title?.trim() || initialData.title,
-          content: values.content as unknown as RichTextCVContentDocument,
-          layout: values.layout as unknown as CVLayoutDocument,
-          language: values.language,
-          isPublic: values.isPublic,
-        },
-      });
-    } catch {
-      // Lỗi đã được toast trong hook useUpdateCv
-    }
-  };
-
-  // Xác nhận hoàn tất: vừa validate qua Zod, vừa lưu data lên server, vừa chuyển sang preview
   const handleCompleteCv = handleSubmit(
     async (data) => {
       if (cvId) {
@@ -170,19 +149,6 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
           <div className="flex items-center gap-2.5">
             {!isLocked ? (
               <>
-                {cvId && (
-                  <button
-                    key="btn-save-draft"
-                    type="button"
-                    onClick={handleSaveDraft}
-                    disabled={isUpdatingCv}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-text-main transition-all hover:bg-bg disabled:opacity-50"
-                  >
-                    <Save className="h-3.5 w-3.5 text-primary" />
-                    {isUpdatingCv ? "Đang lưu..." : "Lưu thay đổi"}
-                  </button>
-                )}
-
                 <button
                   key="btn-complete-cv"
                   type="button"
@@ -191,7 +157,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
                   className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-medium text-surface shadow-md transition-all hover:bg-primary-dark disabled:opacity-50 md:text-sm"
                 >
                   <CheckCircle2 className="h-4 w-4 text-secondary" />
-                  {isUpdatingCv ? "Đang xử lý..." : "Kiểm tra & Hoàn tất CV"}
+                  {isUpdatingCv ? "Đang xử lý..." : "Lưu thay đổi"}
                 </button>
               </>
             ) : (
