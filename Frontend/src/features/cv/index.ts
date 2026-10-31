@@ -28,6 +28,9 @@ export {
   CVBuilderFormContainer,
 } from "./builder/components/CVBuilderFormContainer";
 export {
+  CvTitleInput,
+} from "./builder/components/CvTitleInput";
+export {
   default as CvBuilderWorkspace,
 } from "./builder/components/CvBuilderWorkspace";
 export {
@@ -80,6 +83,9 @@ export {
 // ==========================================
 // 4. Utilities
 // ==========================================
+export {
+  captureCvPreviewFile,
+} from "./utils/captureCvPreview";
 export {
   buildRichTextCvInitialValues,
 } from "./builder/utils/richTextInitialValues";

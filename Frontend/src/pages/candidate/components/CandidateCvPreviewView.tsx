@@ -144,7 +144,7 @@ export const CandidateCvPreviewView: React.FC<CandidateCvPreviewViewProps> = ({
               <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
                 <span className="flex items-center gap-1">
                   <FileText className="size-3.5" />
-                  Mẫu: {cvData.template?.name || "Modern Two Column"}
+                  {cvData.template?.name || "Modern Two Column"}
                 </span>
                 {cvData.updatedAt && (
                   <span className="flex items-center gap-1">

@@ -283,7 +283,7 @@ export const ModernTwoColumnTemplate: React.FC<CvTemplateProps> = ({
           </Droppable>
         </DragDropContext>
       ) : (
-        <div className="space-y-1">
+        <div className="">
           {sectionOrder.map((sectionKey) => (
             <div key={sectionKey} className="relative rounded-sm px-2 py-1">
               {renderSectionContent(sectionKey)}

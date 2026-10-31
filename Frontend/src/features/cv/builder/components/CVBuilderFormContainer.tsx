@@ -11,8 +11,12 @@ import {
   FileCheck,
   AlertCircle,
   Eye,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/toast";
+import { mediaService } from "@/services/mediaService";
+import { captureCvPreviewFile } from "../../utils/captureCvPreview";
 
 import {
   richTextCvEditorSchema,
@@ -23,6 +27,7 @@ import { extractTiptapPlainText } from "../utils/tiptapJson";
 import CvBuilderWysiwygToolbar from "./CvBuilderWysiwygToolbar";
 import CvBuilderWorkspace from "./CvBuilderWorkspace";
 import { CvPreviewModal } from "./CvPreviewModal";
+import { CvTitleInput } from "./CvTitleInput";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -40,7 +45,15 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   initialData,
   cvId,
 }) => {
+  const [currentCvTitle, setCurrentCvTitle] = useState(initialData.title);
+  const [prevInitialTitle, setPrevInitialTitle] = useState(initialData.title);
+  if (prevInitialTitle !== initialData.title) {
+    setPrevInitialTitle(initialData.title);
+    setCurrentCvTitle(initialData.title);
+  }
+
   const [isLocked, setIsLocked] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<RichTextCvEditorValues | null>(null);
   const cvPrintRef = useRef<HTMLDivElement>(null);
@@ -60,42 +73,107 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   });
 
   const {
-    register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty, isSubmitting },
   } = methods;
+
+  const handleTitleSaved = (newTitle: string) => {
+    setCurrentCvTitle(newTitle);
+    methods.setValue("title", newTitle, { shouldDirty: false, shouldValidate: true });
+  };
+
+  const isBusy = isUpdatingCv || isSaving || isSubmitting;
+  const canSave = isDirty && !isBusy;
 
   const handleDownloadPdf = useReactToPrint({
     contentRef: cvPrintRef,
     documentTitle:
+      currentCvTitle ||
       methods.getValues("title") ||
       `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
   });
 
-  const handleCompleteCv = handleSubmit(
-    async (data) => {
-      if (cvId) {
+  const handleCompleteCv = () => {
+    void handleSubmit(
+      async (data) => {
+        if (!cvId) return;
+
+        setIsSaving(true);
         try {
+          const printElement = cvPrintRef.current;
+          if (!printElement) {
+            throw new Error("Không tìm thấy khung hiển thị CV để tạo ảnh xem trước.");
+          }
+
+          // 1. Chụp ảnh CV thành File PNG
+          let previewImageFile: File;
+          try {
+            previewImageFile = await captureCvPreviewFile(printElement, cvId);
+          } catch (captureErr) {
+            console.error("[CVBuilder] Lỗi chụp ảnh CV:", captureErr);
+            throw new Error("Không thể tạo ảnh xem trước của CV. Vui lòng thử lại!", {
+              cause: captureErr,
+            });
+          }
+
+          // 2. Tải ảnh lên qua Media API
+          let uploadedFileId: string;
+          try {
+            const uploadRes = await mediaService.uploadImage(previewImageFile);
+            if (!uploadRes?.data?.id) {
+              throw new Error("Tải lên ảnh xem trước thất bại.");
+            }
+            uploadedFileId = uploadRes.data.id;
+          } catch (uploadErr) {
+            console.error("[CVBuilder] Lỗi upload ảnh CV:", uploadErr);
+            throw new Error(
+              "Tải lên ảnh xem trước thất bại. Vui lòng kiểm tra kết nối mạng và thử lại!",
+              { cause: uploadErr },
+            );
+          }
+
+          // 3. Cập nhật CV với previewFileId
           await updateCv({
             id: cvId,
             payload: {
-              title: data.title?.trim() || initialData.title,
+              title: currentCvTitle.trim() || data.title?.trim() || initialData.title,
               content: data.content as unknown as RichTextCVContentDocument,
               layout: data.layout as unknown as CVLayoutDocument,
               language: data.language,
               isPublic: data.isPublic,
+              previewFileId: uploadedFileId,
             },
           });
+
+          // 4. Đồng bộ lại form để isDirty trở về false
+          reset(data);
+
+          // 5. Điều hướng tới trang lưu thành công
           navigate(`${PATHS.CANDIDATE.SAVE_CV_SUCCESS}?id=${cvId}`);
-        } catch {
-          return;
+        } catch (err: unknown) {
+          console.error("[CVBuilder] Lỗi quá trình lưu CV:", err);
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Lưu CV thất bại. Vui lòng thử lại sau!";
+          toast.add({
+            type: "error",
+            description: message,
+          });
+        } finally {
+          setIsSaving(false);
         }
-      }
-    },
-    (fieldErrors) => {
-      console.warn("[CVBuilder] Form validation errors:", fieldErrors);
-    },
-  );
+      },
+      (fieldErrors) => {
+        console.warn("[CVBuilder] Form validation errors:", fieldErrors);
+        toast.add({
+          type: "error",
+          description: "Vui lòng kiểm tra lại các trường thông tin bắt buộc trước khi lưu.",
+        });
+      },
+    )();
+  };
 
   const handleOpenPreview = () => {
     setPreviewData(methods.getValues());
@@ -125,32 +203,12 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             </button>
 
             <div className="flex flex-col">
-              <div className="group flex items-center gap-1.5">
-                <input
-                  {...register("title")}
-                  disabled={isLocked}
-                  title="Nhấp để đổi tên CV"
-                  placeholder="Nhập tiêu đề CV..."
-                  className={cn(
-                    "h-8 w-max min-w-[300px] md:min-w-[440px] rounded-md px-2 text-base font-semibold text-text-main transition-all",
-                    "border border-transparent hover:border-border hover:bg-bg",
-                    "focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary focus:outline-none",
-                    errors.title &&
-                      "border-status-error focus:border-status-error focus:ring-status-error",
-                    isLocked &&
-                      "cursor-default bg-transparent hover:border-transparent hover:bg-transparent",
-                  )}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      e.currentTarget.blur();
-                    }
-                  }}
-                />
-                {!isLocked && (
-                  <Edit3 className="pointer-events-none h-3.5 w-3.5 text-text-muted opacity-0 transition-opacity group-hover:opacity-100" />
-                )}
-              </div>
+              <CvTitleInput
+                cvId={cvId}
+                initialTitle={currentCvTitle}
+                isLocked={isLocked}
+                onTitleSaved={handleTitleSaved}
+              />
             </div>
           </div>
 
@@ -172,11 +230,21 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
                   key="btn-complete-cv"
                   type="button"
                   onClick={handleCompleteCv}
-                  disabled={isUpdatingCv}
-                  className="flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-medium text-surface shadow-md transition-all hover:bg-primary-dark disabled:opacity-50 md:text-sm"
+                  disabled={!canSave}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium text-surface shadow-md transition-all md:text-sm",
+                    canSave
+                      ? "cursor-pointer bg-primary hover:bg-primary-dark"
+                      : "cursor-not-allowed bg-primary/50 opacity-60 shadow-none",
+                  )}
+                  title={!isDirty ? "Chưa có thay đổi nào để lưu" : "Lưu thay đổi và cập nhật ảnh xem trước"}
                 >
-                  <CheckCircle2 className="h-4 w-4 text-secondary" />
-                  {isUpdatingCv ? "Đang xử lý..." : "Lưu thay đổi"}
+                  {isBusy ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-secondary" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-secondary" />
+                  )}
+                  {isBusy ? "Đang xử lý..." : "Lưu thay đổi"}
                 </button>
               </>
             ) : (
