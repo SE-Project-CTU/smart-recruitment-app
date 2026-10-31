@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import {
   Search,
   X,
-  BriefcaseBusiness,
   SlidersHorizontal,
   ArrowUpDown,
   ChevronDown,
@@ -31,6 +30,7 @@ import {
 } from "@/utils/jobHelpers";
 import { Smarthire_icon_default } from "@/assets/images/logo";
 import JobCardSkeleton from "@/components/common/JobCardSkeleton";
+import { EmptyState } from "@/assets/images/decoration";
 
 type SortKey = "AI_MATCH" | "NEWEST" | "SALARY_DESC" | "SALARY_ASC";
 
@@ -517,10 +517,13 @@ export default function SearchJobPage() {
               ))}
             </div>
           ) : filteredAndSortedJobs.length === 0 ? (
-            <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
-              <div className="flex size-12 items-center justify-center rounded-full bg-secondary-light text-primary">
-                <BriefcaseBusiness className="size-6" />
-              </div>
+            <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl p-8 text-center">
+              <img
+                src={EmptyState}
+                alt="Không tìm thấy"
+                loading="lazy"
+                className="h-100 w-auto"
+              />
               <div className="flex flex-col gap-1">
                 <h3 className="text-base font-semibold text-text-main">
                   Không tìm thấy công việc phù hợp
