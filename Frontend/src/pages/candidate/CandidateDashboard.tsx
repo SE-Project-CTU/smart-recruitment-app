@@ -28,7 +28,10 @@ function CandidateDashboard() {
   const { data: jobPostingsData, isLoading: isLoadingJobs } = useJobPostings({
     pageSize: 20,
   });
-  const jobList = jobPostingsData?.items ?? [];
+
+  const jobList = useMemo(() => {
+    return jobPostingsData?.items ?? [];
+  }, [jobPostingsData?.items]);
 
   // 3. Dữ liệu Hồ sơ đã nộp từ Backend API
   const { data: appData, isLoading: isLoadingApps } = useMyApplications({
