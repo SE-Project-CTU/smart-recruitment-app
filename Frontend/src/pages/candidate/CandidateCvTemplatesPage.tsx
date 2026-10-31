@@ -27,10 +27,8 @@ export default function CandidateCvTemplatesPage() {
   // State modals
   const [selectedTemplate, setSelectedTemplate] =
     useState<CVTemplateItemData | null>(null);
-  const [previewItem, setPreviewItem] = useState<{
-    title: string;
-    imageUrl?: string;
-  } | null>(null);
+  const [previewTemplate, setPreviewTemplate] =
+    useState<CVTemplateItemData | null>(null);
 
   // Danh sách template map theo giao diện CVTemplateItemData
   const templateList: CVTemplateItemData[] = useMemo(() => {
@@ -66,12 +64,7 @@ export default function CandidateCvTemplatesPage() {
         searchKeyword={searchKeyword}
         onClearSearch={() => setSearchKeyword("")}
         onUseTemplate={setSelectedTemplate}
-        onPreview={(item) =>
-          setPreviewItem({
-            title: item.name,
-            imageUrl: item.thumbnailUrl,
-          })
-        }
+        onPreview={setPreviewTemplate}
       />
 
       {/* Modal: Khởi tạo CV mới từ Mẫu */}
@@ -81,10 +74,14 @@ export default function CandidateCvTemplatesPage() {
         onSuccess={handleCreateSuccess}
       />
 
-      {/* Modal: Xem trước Mẫu CV */}
+      {/* Modal: Xem trước Mẫu CV (fetch detail và hiển thị qua component tương ứng) */}
       <PreviewTemplateModal
-        previewItem={previewItem}
-        onClose={() => setPreviewItem(null)}
+        template={previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+        onUseTemplate={(tpl) => {
+          setPreviewTemplate(null);
+          setSelectedTemplate(tpl);
+        }}
       />
     </div>
   );

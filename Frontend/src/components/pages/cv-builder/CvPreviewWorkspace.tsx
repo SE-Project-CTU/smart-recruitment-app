@@ -32,10 +32,16 @@ export function CvPreviewWorkspace({
   const content: RichTextCVContentDocument =
     "content" in data && data.content && typeof data.content === "object"
       ? (data.content as RichTextCVContentDocument)
-      : (data as RichTextCVContentDocument);
+      : "defaultContent" in data &&
+          data.defaultContent &&
+          typeof data.defaultContent === "object"
+        ? (data.defaultContent as RichTextCVContentDocument)
+        : (data as RichTextCVContentDocument);
 
   const templateCode =
-    content?.metadata?.templateCode || "modern_two_column";
+    content?.metadata?.templateCode ||
+    ("code" in data && typeof data.code === "string" ? data.code : undefined) ||
+    "modern_two_column";
   const Template =
     TEMPLATE_REGISTRY[templateCode as CvTemplateCode] ??
     TEMPLATE_REGISTRY.modern_two_column;

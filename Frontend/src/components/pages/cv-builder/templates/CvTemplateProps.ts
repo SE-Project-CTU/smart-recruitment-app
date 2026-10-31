@@ -4,6 +4,8 @@ import type {
   CvTiptapDocument,
   RichTextCVContentDocument,
   RichTextCVDetail,
+  CVTemplateDetail,
+  CVLayoutDocument,
 } from "@/types/cv";
 import type { FixedSectionKey } from "@/features/cv-builder/types";
 
@@ -11,7 +13,8 @@ export type CvRenderData =
   | RichTextCvEditorValues
   | RichTextCVContentDocument
   | RichTextCVDetail
-  | { content: RichTextCVContentDocument };
+  | CVTemplateDetail
+  | { content: RichTextCVContentDocument; layout?: CVLayoutDocument };
 
 export interface CvFieldRenderProps {
   name: string;

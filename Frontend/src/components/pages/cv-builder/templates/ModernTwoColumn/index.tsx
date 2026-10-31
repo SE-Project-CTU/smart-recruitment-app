@@ -61,7 +61,11 @@ export const ModernTwoColumnTemplate: React.FC<CvTemplateProps> = ({
   const content: RichTextCVContentDocument =
     "content" in data && data.content && typeof data.content === "object"
       ? (data.content as RichTextCVContentDocument)
-      : (data as RichTextCVContentDocument);
+      : "defaultContent" in data &&
+          data.defaultContent &&
+          typeof data.defaultContent === "object"
+        ? (data.defaultContent as RichTextCVContentDocument)
+        : (data as RichTextCVContentDocument);
 
   if (!content || !content.profile || !content.sections) {
     return (

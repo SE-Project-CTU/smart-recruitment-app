@@ -2,11 +2,9 @@ import React, { useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import {
-  CheckCircle2,
   Edit3,
   Download,
   FolderKanban,
-  ArrowLeft,
   AlertCircle,
   FileText,
   Calendar,
