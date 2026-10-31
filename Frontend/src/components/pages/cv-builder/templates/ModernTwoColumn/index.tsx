@@ -216,7 +216,7 @@ export const ModernTwoColumnTemplate: React.FC<CvTemplateProps> = ({
 
   return (
     <div
-      className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 drop-shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
+      className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white p-4 text-slate-900 shadow-xl print:m-0 print:p-4 print:shadow-none ${className}`}
       style={{
         fontFamily: getCvFontFamilyCss(fontFamily),
         lineHeight,
@@ -254,9 +254,9 @@ export const ModernTwoColumnTemplate: React.FC<CvTemplateProps> = ({
                       <div
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
-                        className={`group relative rounded-sm px-2 py-1 transition-all hover:ring-1 hover:ring-slate-300 ${
+                        className={`group relative rounded-sm px-2 py-1 transition-colors hover:ring-1 hover:ring-slate-300 ${
                           snapshot.isDragging
-                            ? "z-50 bg-white opacity-95 shadow-2xl ring-1"
+                            ? "z-50 !transition-none bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
                             : ""
                         }`}
                       >
