@@ -22,6 +22,7 @@ import {
   adminSidebarData,
 } from "@/constants/SidebarData";
 import { useAuthStore } from "@/stores/authStore";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 interface NavItem {
   title: string;
@@ -235,8 +236,12 @@ export function DashboardSidebar() {
         ))}
       </SidebarContent>
 
-      {/* Footer */}
-      {footerItems.length > 0 && (
+      {/* Footer: Phân hệ Recruiter hiển thị WorkspaceSwitcher, các phân hệ khác hiển thị footer items */}
+      {role === "recruiter" ? (
+        <SidebarFooter className="border-t border-border/40 p-2">
+          <WorkspaceSwitcher />
+        </SidebarFooter>
+      ) : footerItems.length > 0 ? (
         <SidebarFooter className="border-t border-border/30 p-2">
           <SidebarMenu className="gap-1">
             {footerItems.map((item) => {
@@ -267,7 +272,7 @@ export function DashboardSidebar() {
             })}
           </SidebarMenu>
         </SidebarFooter>
-      )}
+      ) : null}
     </Sidebar>
   );
 }

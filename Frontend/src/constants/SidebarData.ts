@@ -2,7 +2,6 @@
   BookBookmark,
   Bookmark,
   BuildingComplex,
-  ChevronsUp,
   CircleQuestionMark,
   FileChartLine,
   FileText,
@@ -123,11 +122,8 @@ export const recruiterSidebarData = {
     },
   ],
 
-  //footer
-  footer: [
-    { title: "Nâng cấp gói", url: "#", icon: ChevronsUp },
-    { title: "Trợ giúp", url: "#", icon: CircleQuestionMark },
-  ],
+  //footer (Được thay thế bằng WorkspaceSwitcher riêng cho phân hệ Recruiter)
+  footer: [],
 };
 
 export const adminSidebarData = {

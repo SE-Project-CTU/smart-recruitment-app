@@ -26,7 +26,7 @@ import CandidatePreviewCvPage from "@/pages/candidate/CandidatePreviewCvPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
 import CreateJobPage from "@/pages/recruiter/CreateJobPage";
 import {
-  CompanyListPage,
+  CompanyManagementIndex,
   CompanyDetailLayout,
   CompanyOverviewTab,
   CompanyMembersTab,
@@ -179,7 +179,7 @@ const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: <CompanyListPage />,
+                element: <CompanyManagementIndex />,
               },
               {
                 path: ":companyId",

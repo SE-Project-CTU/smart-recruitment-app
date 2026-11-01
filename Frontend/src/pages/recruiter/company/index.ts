@@ -1,3 +1,4 @@
+export * from "./CompanyManagementIndex";
 export * from "./CompanyListPage";
 export * from "./CompanyDetailLayout";
 export * from "./CompanyOverviewTab";
