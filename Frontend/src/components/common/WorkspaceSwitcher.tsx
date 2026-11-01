@@ -92,7 +92,7 @@ export function WorkspaceSwitcher() {
   // Helper hiển thị vai trò ngắn gọn
   const getRoleLabel = (company: CompanyItem) => {
     if (company.membership?.role === "Owner") return "Chủ sở hữu";
-    return "Thành viên HR";
+    return "Thành viên";
   };
 
   if (isLoading && !currentCompany) {
@@ -189,11 +189,11 @@ export function WorkspaceSwitcher() {
           sideOffset={8}
           className="w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-surface p-1.5 shadow-lg"
         >
-          <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-semibold text-text-muted uppercase">
-            Doanh nghiệp của bạn ({companies.length})
-          </DropdownMenuLabel>
-
           <DropdownMenuGroup>
+            <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-semibold text-text-muted uppercase">
+              Chuyển đổi doanh nghiệp ({companies.length})
+            </DropdownMenuLabel>
+
             {companies.map((comp) => {
               const isSelected = comp.id === currentCompany?.id;
               return (
@@ -202,8 +202,8 @@ export function WorkspaceSwitcher() {
                   onClick={() => handleSelectCompany(comp)}
                   className={`flex cursor-pointer items-center justify-between rounded-lg px-2 py-2 text-xs transition-colors ${
                     isSelected
-                      ? "bg-primary/10 font-semibold text-primary"
-                      : "text-text-main hover:bg-slate-50"
+                      ? "bg-secondary-light font-semibold text-primary"
+                      : "text-text-main hover:bg-bg-white-blue!"
                   }`}
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
@@ -238,7 +238,7 @@ export function WorkspaceSwitcher() {
 
           <DropdownMenuItem
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-primary hover:bg-primary/5"
+            className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-primary hover:bg-bg-white-blue!"
           >
             <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary">
               <Plus className="size-3.5" />

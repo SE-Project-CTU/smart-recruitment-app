@@ -22,6 +22,8 @@ import {
   adminSidebarData,
 } from "@/constants/SidebarData";
 import { useAuthStore } from "@/stores/authStore";
+import { useCompanyStore } from "@/stores/companyStore";
+import { PATHS } from "@/constants/paths";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 interface NavItem {
@@ -43,6 +45,7 @@ interface NavGroup {
 export function DashboardSidebar() {
   const location = useLocation();
   const { user } = useAuthStore();
+  const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
@@ -125,12 +128,100 @@ export function DashboardSidebar() {
   const { groups, footerItems } = getRoleMenuGroups();
 
   const isItemActive = (item: NavItem) => {
-    if (item.url && item.url !== "#") {
-      if (location.pathname === item.url) return true;
-      if (item.url !== "/" && location.pathname.startsWith(item.url))
+    if (!item.url || item.url === "#") return false;
+    const currentPath = location.pathname.toLowerCase();
+    const targetUrl = item.url.toLowerCase();
+
+    // 1. Khớp chính xác
+    if (currentPath === targetUrl) return true;
+
+    // 2. Khớp tiền tố (prefix) khi không có mục con nào khác khớp chính xác hơn
+    if (targetUrl !== "/") {
+      if (currentPath.startsWith(targetUrl + "/")) {
+        const allItems = groups.flatMap((g) => [
+          ...g.items.map((i) => i.url),
+          ...(g.items.flatMap((i) => i.items?.map((sub) => sub.url) || [])),
+        ]);
+        const hasMoreSpecificMatch = allItems.some((url) => {
+          if (!url || url === "#" || url.toLowerCase() === targetUrl) return false;
+          const uLower = url.toLowerCase();
+          return (
+            currentPath === uLower ||
+            (uLower.length > targetUrl.length &&
+              currentPath.startsWith(uLower + "/"))
+          );
+        });
+        if (hasMoreSpecificMatch) return false;
         return true;
+      }
     }
-    return Boolean(item.isActive && location.pathname === item.url);
+
+    return Boolean(item.isActive && currentPath === targetUrl);
+  };
+
+  /**
+   * Kiểm tra xem một SubItem có đang active hay không, hỗ trợ cả URL chính xác, prefix route, và dynamic route (:companyId)
+   */
+  const isSubItemActive = (subUrl: string, siblingUrls?: string[]) => {
+    if (!subUrl || subUrl === "#") return false;
+    const currentPath = location.pathname.toLowerCase();
+    const targetUrl = subUrl.toLowerCase();
+
+    // 1. Khớp chính xác
+    if (currentPath === targetUrl) return true;
+
+    // 2. Dynamic pattern (ví dụ :companyId)
+    if (targetUrl.includes(":")) {
+      const regexPattern =
+        "^" + targetUrl.replace(/:[^/]+/g, "[^/]+") + "(?:/.*)?$";
+      if (new RegExp(regexPattern).test(currentPath)) return true;
+    }
+
+    // 3. Khớp tiền tố (prefix) theo phân hệ khi không có sibling nào khớp tốt hơn
+    if (targetUrl !== "/" && targetUrl !== "#") {
+      if (currentPath.startsWith(targetUrl + "/")) {
+        if (siblingUrls) {
+          const hasBetterSibling = siblingUrls.some((otherUrl) => {
+            if (
+              !otherUrl ||
+              otherUrl === "#" ||
+              otherUrl.toLowerCase() === targetUrl
+            ) {
+              return false;
+            }
+            const otherLower = otherUrl.toLowerCase();
+            return (
+              currentPath === otherLower ||
+              (otherLower.length > targetUrl.length &&
+                currentPath.startsWith(otherLower + "/"))
+            );
+          });
+          if (hasBetterSibling) return false;
+        }
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Chuyển đổi dynamic url (như :companyId) thành ID của active company nếu có
+   */
+  const resolveSubItemUrl = (subUrl: string) => {
+    if (subUrl.includes(":companyId")) {
+      return activeCompanyId
+        ? subUrl.replace(":companyId", activeCompanyId)
+        : PATHS.RECRUITER.COMPANY_MANAGEMENT;
+    }
+    // Nếu là URL quản lý công ty và có activeCompanyId, trỏ thẳng vào overview của công ty đó
+    if (subUrl === PATHS.RECRUITER.COMPANY_MANAGEMENT && activeCompanyId) {
+      return PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
+        ":companyId",
+        activeCompanyId,
+      );
+    }
+    return subUrl;
   };
 
   return (
@@ -147,11 +238,18 @@ export function DashboardSidebar() {
             <SidebarGroupContent>
               <SidebarMenu className="gap-1">
                 {group.items.map((item) => {
-                  const active = isItemActive(item);
                   const hasSubItems = Boolean(
                     item.items && item.items.length > 0,
                   );
-                  const isSubOpen = Boolean(openSubMenus[item.title]);
+                  const siblingUrls = item.items?.map((sub) => sub.url) || [];
+                  const isAnySubActive = Boolean(
+                    item.items?.some((sub) => isSubItemActive(sub.url, siblingUrls)),
+                  );
+                  const active = isItemActive(item) || isAnySubActive;
+                  const isSubOpen =
+                    openSubMenus[item.title] !== undefined
+                      ? openSubMenus[item.title]
+                      : isAnySubActive;
 
                   if (hasSubItems) {
                     return (
@@ -159,11 +257,21 @@ export function DashboardSidebar() {
                         <SidebarMenuButton
                           onClick={() => toggleSubMenu(item.title)}
                           tooltip={item.title}
-                          className="flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-primary!"
+                          className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-5 text-sm font-medium transition-colors ${
+                            isAnySubActive
+                              ? "font-semibold text-primary"
+                              : "text-slate-600 hover:bg-slate-100 hover:text-primary!"
+                          }`}
                         >
                           <div className="flex items-center gap-3">
                             {item.icon && (
-                              <item.icon className="size-5 shrink-0" />
+                              <item.icon
+                                className={`size-5 shrink-0 ${
+                                  isAnySubActive
+                                    ? "text-primary"
+                                    : "text-slate-500"
+                                }`}
+                              />
                             )}
                             <span className="truncate">{item.title}</span>
                           </div>
@@ -182,12 +290,15 @@ export function DashboardSidebar() {
                         {isSubOpen && !isCollapsed && (
                           <SidebarMenuSub className="my-1 ml-4 border-l border-slate-200 pl-2">
                             {item.items?.map((subItem) => {
-                              const subActive =
-                                location.pathname === subItem.url;
+                              const subActive = isSubItemActive(
+                                subItem.url,
+                                siblingUrls,
+                              );
+                              const targetUrl = resolveSubItemUrl(subItem.url);
                               return (
                                 <SidebarMenuSubItem key={subItem.title}>
                                   <SidebarMenuSubButton
-                                    render={<Link to={subItem.url} />}
+                                    render={<Link to={targetUrl} />}
                                     isActive={subActive}
                                     className={`rounded-lg px-2 py-1.5 text-xs transition-colors ${
                                       subActive

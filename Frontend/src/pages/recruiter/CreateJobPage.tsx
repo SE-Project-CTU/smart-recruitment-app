@@ -4,7 +4,6 @@ import dayjs from "dayjs";
 import {
   AlertCircle,
   ArrowLeft,
-  Building2,
   Clock,
   DollarSign,
   GraduationCap,
@@ -35,6 +34,7 @@ import type {
   JobType,
   WorkMode,
 } from "@/types";
+import { EmptyStreet } from "@/assets/images/decoration";
 
 interface JobFormState {
   companyId: string;
@@ -203,7 +203,8 @@ export default function CreateJobPage() {
           errors.salaryMax = "Mức lương tối đa không hợp lệ.";
         }
         if (formData.salaryMin && formData.salaryMax && min > max) {
-          errors.salaryMax = "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
+          errors.salaryMax =
+            "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
         }
       }
     }
@@ -288,7 +289,8 @@ export default function CreateJobPage() {
                 Tạo tin tuyển dụng
               </h1>
               <p className="text-xs text-text-muted">
-                Hoàn thiện thông tin vị trí để kết nối nhanh chóng với ứng viên tiềm năng.
+                Hoàn thiện thông tin vị trí để kết nối nhanh chóng với ứng viên
+                tiềm năng.
               </p>
             </div>
           </div>
@@ -304,15 +306,14 @@ export default function CreateJobPage() {
           Không tải được thông tin doanh nghiệp. Vui lòng thử tải lại trang.
         </div>
       ) : companies.length === 0 ? (
-        <section className="space-y-4 rounded-3xl border border-border bg-surface p-8 text-center">
-          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Building2 className="size-7" />
-          </div>
+        <section className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
+          <img src={EmptyStreet} alt="Empty" className="h-80 w-auto md:h-100" />
           <h2 className="text-base font-semibold text-text-main">
             Chưa có doanh nghiệp để đăng tin
           </h2>
           <p className="text-xs text-text-muted">
-            Bạn cần thuộc về ít nhất một doanh nghiệp đã được xác thực để bắt đầu tạo JD tuyển dụng.
+            Bạn cần thuộc về ít nhất một doanh nghiệp đã được xác thực để bắt
+            đầu tạo JD tuyển dụng.
           </p>
           <Button
             variant="primary"
@@ -418,7 +419,8 @@ export default function CreateJobPage() {
                         htmlFor="vacancies"
                         className="mb-1.5 block text-xs font-semibold text-text-main"
                       >
-                        Số lượng tuyển <span className="text-status-error">*</span>
+                        Số lượng tuyển{" "}
+                        <span className="text-status-error">*</span>
                       </label>
                       <input
                         id="vacancies"
@@ -615,14 +617,16 @@ export default function CreateJobPage() {
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700">
                       <Clock className="size-3" />
-                      <span>{selectedCompany?.verificationStatus || "Chờ duyệt"}</span>
+                      <span>
+                        {selectedCompany?.verificationStatus || "Chờ duyệt"}
+                      </span>
                     </span>
                   )}
                 </div>
 
                 {/* 1. Thẻ Doanh nghiệp cố định theo Workspace */}
                 {selectedCompany && (
-                  <div className="rounded-2xl border border-border/80 bg-slate-50/70 p-4">
+                  <div className="">
                     <div className="flex items-start gap-3">
                       <CompanyLogo
                         logoUrl={selectedCompany.logoUrl}
@@ -641,10 +645,6 @@ export default function CreateJobPage() {
                         </p>
                       </div>
                     </div>
-
-                    <p className="mt-3 border-t border-border/60 pt-2.5 text-[10px] text-text-muted">
-                      💡 Tin này sẽ được đăng đại diện cho doanh nghiệp đang kích hoạt. Để đăng cho doanh nghiệp khác, hãy đổi Workspace tại menu bên trái.
-                    </p>
                   </div>
                 )}
 
@@ -655,7 +655,10 @@ export default function CreateJobPage() {
                       ⚠️ Doanh nghiệp chưa được xác thực
                     </p>
                     <p className="mt-1 text-[11px] leading-relaxed text-amber-700">
-                      Hồ sơ doanh nghiệp đang ở trạng thái <strong>{selectedCompany?.verificationStatus}</strong>. Quản trị viên cần duyệt hồ sơ trước khi bạn có thể đăng tin tuyển dụng.
+                      Hồ sơ doanh nghiệp đang ở trạng thái{" "}
+                      <strong>{selectedCompany?.verificationStatus}</strong>.
+                      Quản trị viên cần duyệt hồ sơ trước khi bạn có thể đăng
+                      tin tuyển dụng.
                     </p>
                   </div>
                 )}
