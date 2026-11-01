@@ -10,6 +10,7 @@ import { extractTiptapPlainText } from "../../builder/utils/tiptapJson";
 import type { CvFieldRenderer } from "../types";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { mediaService } from "@/services/mediaService";
+import { useDeleteMedia } from "@/hooks/queries/useMedia";
 import { toast } from "@/components/ui/toast";
 import { useFormContext } from "react-hook-form";
 import type { RichTextCvEditorValues } from "../../builder/schema/richTextCvSchema";
@@ -29,6 +30,18 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const lastUploadedFileIdRef = useRef<string | null>(null);
+
+  const { mutateAsync: deleteMedia } = useDeleteMedia();
+
+  const safeDeleteMedia = async (fileId: string | null) => {
+    if (!fileId) return;
+    try {
+      await deleteMedia(fileId);
+    } catch (err) {
+      console.warn("Không thể xóa file media đã loại bỏ:", err);
+    }
+  };
   
   // Lấy hàm setValue từ react-hook-form nếu đang trong form context
   const formContext = useFormContext<RichTextCvEditorValues>();
@@ -66,9 +79,19 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
     try {
       setIsUploading(true);
       const res = await mediaService.uploadImage(file);
-      const url = res.data.fileUrl;
+      const newUrl = res.data.fileUrl;
+      const newFileId = res.data.id;
+
+      // Nếu trước đó đã tải lên một ảnh trong phiên này (case đổi ảnh mới) -> xóa file ảnh cũ trên server
+      if (lastUploadedFileIdRef.current) {
+        await safeDeleteMedia(lastUploadedFileIdRef.current);
+      }
+
+      // Lưu trực tiếp fileId mới trả về từ response
+      lastUploadedFileIdRef.current = newFileId;
+
       if (formContext) {
-        formContext.setValue("content.profile.avatarUrl", url, {
+        formContext.setValue("content.profile.avatarUrl", newUrl, {
           shouldDirty: true,
           shouldValidate: true,
         });
@@ -90,15 +113,27 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
     }
   };
 
-  const handleRemoveAvatar = (e: React.MouseEvent) => {
+  const handleRemoveAvatar = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isReadOnly) return;
+
+    // Case xóa ảnh profile: Gọi deleteMedia với fileId đã upload
+    if (lastUploadedFileIdRef.current) {
+      await safeDeleteMedia(lastUploadedFileIdRef.current);
+      lastUploadedFileIdRef.current = null;
+    }
+
     if (formContext) {
       formContext.setValue("content.profile.avatarUrl", "", {
         shouldDirty: true,
         shouldValidate: true,
       });
     }
+
+    toast.add({
+      type: "success",
+      description: "Đã xóa ảnh đại diện CV.",
+    });
   };
 
   const avatarSrc = profile?.avatarUrl;
