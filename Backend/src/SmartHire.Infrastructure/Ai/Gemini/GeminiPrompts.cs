@@ -43,12 +43,13 @@ internal static class GeminiPrompts {
             5. DẤU CÂU & CHÍNH TẢ:
                - Viết câu ngắn gọn (1-2 câu súc tích), dấu câu chuẩn xác, ngắt nhịp nhịp nhàng, không viết câu ghép dài lê thê.
 
-            6. QUY TẮC XỬ LÝ NGÔN NGỮ ĐA CHIỀU (LANGUAGE RESOLUTION):
-               - ƯU TIÊN 1 (TUYỆT ĐỐI): Nếu trong nội dung người dùng có yêu cầu rõ ràng về ngôn ngữ (như "nói bằng tiếng Anh đi", "viết bằng tiếng Anh", "write in English", "nói bằng tiếng Việt đi", "dịch sang tiếng Việt"), HÃY TUÂN THỦ TUYỆT ĐỐI ngôn ngữ người dùng yêu cầu, bất kể thiết lập khác.
-               - ƯU TIÊN 2 (ĐỒNG BỘ VỚI CV TIẾNG ANH): Khi Ngôn ngữ mục tiêu là Tiếng Anh (English) HOẶC ngữ cảnh CV đính kèm là Tiếng Anh:
-                 + Dù người dùng nhập nội dung thô bằng Tiếng Việt, hãy CHUYỂN NGỮ VÀ NÂNG CẤP toàn bộ 'enhancedContent' sang TIẾNG ANH CHUẨN MỰC GOOGLE XYZ (Accomplished [X], as measured by [Y], by doing [Z]) để người dùng có thể áp dụng trực tiếp vào CV Tiếng Anh mà không bị trộn lẫn ngôn ngữ.
-               - ƯU TIÊN 3: Khi Ngôn ngữ mục tiêu là Tiếng Việt: Trả về nội dung tối ưu bằng Tiếng Việt.
-               - Khi Ngôn ngữ là 'auto' (Tự động): Tự động nhận diện theo ngôn ngữ CV đính kèm hoặc nội dung người dùng nhập.
+            6. QUY TẮC BẮT BUỘC VỀ NGÔN NGỮ ĐẦU RA (LANGUAGE RESOLUTION):
+               - QUY TẮC TỐI CAO: BẮT BUỘC 100% giữ nguyên ngôn ngữ của NỘI DUNG GỐC CẦN TỐI ƯU.
+                 + Nếu nội dung người dùng gửi vào là TIẾNG VIỆT -> BẮT BUỘC PHẢI VIẾT LẠI HOÀN TOÀN BẰNG TIẾNG VIỆT! TUYỆT ĐỐI CẤM TỰ Ý DỊCH SANG TIẾNG ANH (kể cả khi tên vị trí tuyển dụng hoặc JD viết bằng tiếng Anh).
+                 + Nếu nội dung người dùng gửi vào là TIẾNG ANH -> Viết lại bằng TIẾNG ANH.
+                 + CHỈ ĐƯỢC PHÉP chuyển sang tiếng Anh khi trong nội dung người dùng CÓ YÊU CẦU RÕ RÀNG như: "viết bằng tiếng Anh", "dịch sang tiếng Anh", "write in English", "translate to English".
+               - Khi Ngôn ngữ mục tiêu chỉ định 'vi': Bắt buộc 100% Tiếng Việt.
+               - Khi Ngôn ngữ mục tiêu chỉ định 'en': Bắt buộc 100% Tiếng Anh.
 
             THÔNG TIN ĐẦU VÀO:
             - Vị trí mục tiêu: {{targetTitle}}
@@ -87,10 +88,12 @@ internal static class GeminiPrompts {
                - Bám sát yêu cầu công nghệ và chuyên môn của vị trí '{{targetTitle}}' và JD. Không lan man sang công nghệ không liên quan.
             3. Áp dụng chuẩn Google XYZ: Đạt được [X], đo lường bằng [Y], thông qua giải pháp [Z]. Bắt đầu bằng Action Verbs chuẩn mực (Phát triển, Thiết kế, Tối ưu hóa, Chuẩn hóa, Triển khai, Đảm bảo...).
             4. Viết 1-2 câu súc tích, mạch lạc, dấu câu chuẩn xác đúng chính tả, ngắt nhịp tự nhiên.
-            5. QUY TẮC NGÔN NGỮ (LANGUAGE RESOLUTION):
-               - ƯU TIÊN 1 (TUYỆT ĐỐI): Nếu người dùng có yêu cầu rõ ràng trong nội dung (ví dụ: "nói bằng tiếng Anh đi", "write in English", "nói bằng tiếng Việt đi", "dịch sang tiếng Việt"), HÃY XUẤT RA THEO ĐÚNG NGÔN NGỮ ĐƯỢC YÊU CẦU.
-               - ƯU TIÊN 2 (ĐỒNG BỘ VỚI CV TIẾNG ANH): Nếu Ngôn ngữ mục tiêu là Tiếng Anh HOẶC hồ sơ CV đính kèm là Tiếng Anh, dù nội dung nhập vào là Tiếng Việt, BẮT BUỘC PHẢI CHUYỂN NGỮ VÀ NÂNG CẤP THẲNG SANG TIẾNG ANH 100% theo chuẩn Google XYZ (Accomplished [X], as measured by [Y], by doing [Z]). CẤM TUYỆT ĐỐI xuất câu Tiếng Việt khi mục tiêu là Tiếng Anh.
-               - ƯU TIÊN 3: Mặc định theo ngôn ngữ {{(request.Language == "en" ? "Tiếng Anh (English)" : (request.Language == "vi" ? "Tiếng Việt" : "Tự động theo ngữ cảnh CV"))}}.
+            5. QUY TẮC BẮT BUỘC VỀ NGÔN NGỮ ĐẦU RA (LANGUAGE RESOLUTION):
+               - QUY TẮC TỐI CAO: BẮT BUỘC 100% xuất ra bằng ĐÚNG NGÔN NGỮ của 'Nội dung cần tối ưu'.
+                 + Nếu nội dung cần tối ưu là TIẾNG VIỆT -> BẮT BUỘC 100% viết lại bằng TIẾNG VIỆT! TUYỆT ĐỐI CẤM TỰ Ý XUẤT TIẾNG ANH (dù tên vị trí tuyển dụng có tiếng Anh như .NET, React, Backend).
+                 + Nếu nội dung cần tối ưu là TIẾNG ANH -> Viết lại bằng TIẾNG ANH.
+                 + CHỈ ĐƯỢC PHÉP xuất Tiếng Anh khi người dùng CÓ LỆNH RÕ RÀNG như: "viết bằng tiếng Anh", "dịch sang tiếng Anh", "write in English", "translate to English".
+               - Ngôn ngữ dự kiến: {{(request.Language == "vi" ? "Tiếng Việt (Bắt buộc)" : (request.Language == "en" ? "Tiếng Anh (Bắt buộc)" : "Theo ngôn ngữ của nội dung cần tối ưu"))}}.
             6. CHỈ TRẢ VỀ TRỰC TIẾP ĐOẠN VĂN / CÁC BULLET POINTS ĐÃ VIẾT LẠI (HOÀN TOÀN BẰNG NGÔN NGỮ ĐÃ ĐƯỢC XÁC ĐỊNH Ở MỤC 5). Không thêm lời chào, không giải thích, không dùng markdown code block:
 
             {{(string.IsNullOrWhiteSpace(request.JobContext) ? "" : $"Yêu cầu công việc (JD):\n\"\"\"{request.JobContext}\"\"\"\n")}}
