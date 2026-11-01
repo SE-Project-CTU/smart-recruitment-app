@@ -29,6 +29,27 @@ export const useJobPostings = (params?: SearchJobPostingsRequest) => {
 };
 
 /**
+ * Hook Query: Danh sách tin tuyển dụng của một công ty theo ID (API 15) - Chuẩn Workspace
+ */
+export const useCompanyJobPostings = (
+  companyId?: string | null,
+  params?: {
+    status?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
+  return useQuery({
+    queryKey: ["job-postings", "company", companyId, params],
+    queryFn: () => companyService.getCompanyJobPostings(companyId!, params),
+    enabled: Boolean(companyId) && (options?.enabled ?? true),
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
  * Hook Query: Danh sách tin tuyển dụng cho Recruiter từ các công ty của họ (API 15)
  * Hỗ trợ truyền danh sách ID công ty để lấy dữ liệu đồng thời (Promise.all)
  */
@@ -146,7 +167,7 @@ export const useUpdateJobPostingStatus = () => {
       queryClient.invalidateQueries({
         queryKey: ["job-postings", "detail", variables.jobId],
       });
-      // Invalidate toàn bộ query liên quan đến job-postings (recruiter-list, list,...)
+      // Invalidate toàn bộ query liên quan đến job-postings (recruiter-list, company, list,...)
       queryClient.invalidateQueries({ queryKey: ["job-postings"] });
       queryClient.invalidateQueries({
         queryKey: ["recruiter", "all-applications"],
@@ -178,12 +199,16 @@ export const useJobApplications = (
 };
 
 /**
- * Hook Query: Lấy toàn bộ hồ sơ ứng tuyển thuộc quyền quản lý của Recruiter (sử dụng API gom theo công ty mới)
+ * Hook Query: Lấy toàn bộ hồ sơ ứng tuyển thuộc quyền quản lý của Recruiter theo công ty active (hoặc danh sách công ty)
  */
 export const useRecruiterAllApplications = (
-  jobsOrCompanyIds: (JobPostingResult | JobPostingItem)[] | string[],
+  jobsOrCompanyIds: (JobPostingResult | JobPostingItem)[] | string[] | string | null | undefined,
 ) => {
   const companyIds = useMemo(() => {
+    if (!jobsOrCompanyIds) return [];
+    if (typeof jobsOrCompanyIds === "string") {
+      return [jobsOrCompanyIds];
+    }
     if (jobsOrCompanyIds.length === 0) return [];
     if (typeof jobsOrCompanyIds[0] === "string") {
       return Array.from(new Set(jobsOrCompanyIds as string[]));

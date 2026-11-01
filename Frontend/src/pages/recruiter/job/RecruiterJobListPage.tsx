@@ -10,15 +10,15 @@ import {
   LibraryBig,
   Plus,
   Search,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, TableSkeleton } from "@/components/common";
 import { PATHS } from "@/constants/paths";
 import { useProvinces } from "@/hooks/queries/useCatalog";
-import { useMyCompanies } from "@/hooks/queries/useCompany";
 import {
-  useRecruiterJobPostings,
+  useCompanyJobPostings,
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
 import { useCompanyStore } from "@/stores";
@@ -42,37 +42,36 @@ const WORK_MODE_FILTER_OPTIONS = [
 
 export function RecruiterJobListPage() {
   const navigate = useNavigate();
-  const { activeCompanyId, setActiveCompanyId } = useCompanyStore();
 
-  // 1. Data queries: Lấy công ty của recruiter trước, sau đó lấy toàn bộ tin của các công ty đó
-  const { data: myCompanies = [], isLoading: isLoadingCompanies } =
-    useMyCompanies();
-  const myCompanyIdsList = useMemo(
-    () => myCompanies.map((c) => c.id),
-    [myCompanies],
-  );
+  // 1. Lấy ngữ cảnh Workspace (Doanh nghiệp đang chọn) qua atomic selectors
+  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
+  const activeCompany = useCompanyStore((s) => s.activeCompany);
+
+  // 2. Data queries: Lấy trực tiếp tin tuyển dụng của công ty active (API 15 chuẩn Workspace)
   const { data: jobResponse, isLoading: isLoadingJobs } =
-    useRecruiterJobPostings(myCompanyIdsList);
+    useCompanyJobPostings(activeCompanyId);
   const { data: provinces = [] } = useProvinces();
   const updateStatusMutation = useUpdateJobPostingStatus();
 
-  const isLoading = isLoadingJobs || isLoadingCompanies;
-
-  // 2. Local filter & pagination state
+  // 3. Local filter & pagination state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [workModeFilter, setWorkModeFilter] = useState("ALL");
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(() => {
-    return activeCompanyId || "ALL";
-  });
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
-  // 3. Modal confirmation state
+  // Điều chỉnh state khi chuyển đổi Workspace công ty (tránh cascading render effect)
+  const [prevCompanyId, setPrevCompanyId] = useState(activeCompanyId);
+  if (prevCompanyId !== activeCompanyId) {
+    setPrevCompanyId(activeCompanyId);
+    setCurrentPage(1);
+  }
+
+  // 4. Modal confirmation state
   const [jobToClose, setJobToClose] = useState<JobPostingItem | null>(null);
   const [isClosingSuccess, setIsClosingSuccess] = useState(false);
 
-  // 4. Mappings for province and company logos
+  // 5. Mappings for province and company logos
   const provinceMap = useMemo(() => {
     const map = new Map<string, string>();
     provinces.forEach((p) => map.set(p.id, p.name));
@@ -81,32 +80,20 @@ export function RecruiterJobListPage() {
 
   const companyLogoMap = useMemo(() => {
     const map = new Map<string, string | null>();
-    myCompanies.forEach((c) => map.set(c.id, c.logoUrl));
+    if (activeCompanyId && activeCompany?.logoUrl) {
+      map.set(activeCompanyId, activeCompany.logoUrl);
+    }
     return map;
-  }, [myCompanies]);
+  }, [activeCompanyId, activeCompany]);
 
-  const companyFilterOptions = useMemo(() => {
-    const opts = [{ value: "ALL", label: "Tất cả công ty của tôi" }];
-    myCompanies.forEach((c) => {
-      opts.push({ value: c.id, label: c.name });
-    });
-    return opts;
-  }, [myCompanies]);
-
-  // Lấy toàn bộ JD mà recruiter này có quyền quản lý từ các công ty của mình
+  // Danh sách JD của công ty active
   const allJobs: JobPostingItem[] = useMemo(() => {
     return jobResponse?.items || [];
   }, [jobResponse]);
 
-  // 6. Filter jobs (Purely derived in useMemo)
+  // 6. Filter jobs (Purely derived in useMemo, bám sát các filter cục bộ)
   const filteredJobs = useMemo(() => {
     return allJobs.filter((job) => {
-      // Company filter
-      if (selectedCompanyId !== "ALL") {
-        const companyId = job.companyId || job.company?.id;
-        if (companyId !== selectedCompanyId) return false;
-      }
-
       // Status filter
       if (statusFilter !== "ALL") {
         const s = (job.status || "").toUpperCase();
@@ -146,9 +133,9 @@ export function RecruiterJobListPage() {
 
       return true;
     });
-  }, [allJobs, selectedCompanyId, statusFilter, workModeFilter, searchQuery]);
+  }, [allJobs, statusFilter, workModeFilter, searchQuery]);
 
-  // 7. Paginated jobs (Purely derived in useMemo)
+  // 7. Paginated jobs
   const totalItems = filteredJobs.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const paginatedJobs = useMemo(() => {
@@ -196,6 +183,32 @@ export function RecruiterJobListPage() {
     }
   };
 
+  // Trường hợp Recruiter chưa chọn công ty hoặc chưa có công ty nào
+  if (!activeCompanyId && !isLoadingJobs) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-white px-6 py-16 text-center">
+        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Building2 className="size-7" />
+        </div>
+        <h2 className="text-lg font-bold text-text-main">
+          Chưa chọn doanh nghiệp làm việc
+        </h2>
+        <p className="mt-1.5 max-w-md text-xs text-text-muted">
+          Vui lòng chọn doanh nghiệp tại thanh menu bên trái hoặc tạo hồ sơ
+          doanh nghiệp mới để bắt đầu quản lý tin tuyển dụng.
+        </p>
+        <Button
+          variant="primary"
+          icon={Plus}
+          onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
+          className="mt-6 text-xs font-semibold"
+        >
+          Tạo doanh nghiệp mới
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-full space-y-6">
       {/* 1. Header & Actions */}
@@ -209,10 +222,25 @@ export function RecruiterJobListPage() {
               Danh sách tin tuyển dụng
             </h1>
           </div>
-          <p className="mt-1 text-xs text-text-muted sm:text-sm">
-            Quản lý toàn bộ danh sách JD của công ty, theo dõi hồ sơ ứng tuyển
-            và trạng thái tin
-          </p>
+          {activeCompany ? (
+            <div className="mt-1 flex items-center gap-2 text-xs text-text-muted">
+              <span>Đang quản lý tin của:</span>
+              <span className="inline-flex items-center gap-1.5 font-bold text-text-main">
+                {activeCompany.name}
+              </span>
+              {activeCompany.verificationStatus === "Verified" && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                  <ShieldCheck className="size-3.5" />
+                  Đã xác thực
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-text-muted sm:text-sm">
+              Quản lý toàn bộ danh sách JD của công ty, theo dõi hồ sơ ứng tuyển
+              và trạng thái tin
+            </p>
+          )}
         </div>
 
         <Button
@@ -261,11 +289,11 @@ export function RecruiterJobListPage() {
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Tìm kiếm theo tiêu đề JD hoặc tên công ty..."
+            placeholder="Tìm kiếm theo tiêu đề JD tuyển dụng..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset page on user typing
+              setCurrentPage(1);
             }}
             className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
           />
@@ -283,63 +311,8 @@ export function RecruiterJobListPage() {
           )}
         </div>
 
-        {/* Dropdown Filters */}
+        {/* Dropdown Filters: Trạng thái & Hình thức */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Company Filter (Dọn đường cho HR switch công ty) */}
-          {myCompanies.length > 1 && (
-            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-              <Building2 className="size-3.5 text-slate-400" />
-              <span className="text-xs text-slate-500">Công ty:</span>
-              <Select.Root
-                items={companyFilterOptions}
-                value={selectedCompanyId}
-                onValueChange={(val) => {
-                  const nextVal = val || "ALL";
-                  setSelectedCompanyId(nextVal);
-                  setActiveCompanyId(nextVal === "ALL" ? null : nextVal);
-                  setCurrentPage(1);
-                }}
-              >
-                <Select.Trigger
-                  aria-label="Lọc theo công ty"
-                  className="flex max-w-44 cursor-pointer items-center gap-1 truncate text-xs font-semibold text-slate-800 focus:outline-none"
-                >
-                  <Select.Value />
-                  <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
-                    <ChevronDown className="size-3.5" />
-                  </Select.Icon>
-                </Select.Trigger>
-
-                <Select.Portal>
-                  <Select.Positioner
-                    alignItemWithTrigger={false}
-                    sideOffset={4}
-                  >
-                    <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
-                      <Select.List>
-                        {companyFilterOptions.map((opt) => (
-                          <Select.Item
-                            key={opt.value}
-                            value={opt.value}
-                            className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
-                          >
-                            <Select.ItemText>{opt.label}</Select.ItemText>
-                            <Select.ItemIndicator
-                              animation="pop"
-                              className="ml-2 text-xs text-primary"
-                            >
-                              ✓
-                            </Select.ItemIndicator>
-                          </Select.Item>
-                        ))}
-                      </Select.List>
-                    </Select.Popup>
-                  </Select.Positioner>
-                </Select.Portal>
-              </Select.Root>
-            </div>
-          )}
-
           {/* Status Filter */}
           <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
             <Filter className="size-3.5 text-slate-400" />
@@ -438,7 +411,7 @@ export function RecruiterJobListPage() {
       </div>
 
       {/* 4. Data Table */}
-      {isLoading ? (
+      {isLoadingJobs ? (
         <TableSkeleton />
       ) : (
         <JobPostingsTable
@@ -449,14 +422,9 @@ export function RecruiterJobListPage() {
           onEditJob={handleEditJob}
           onViewDetail={handleViewDetail}
           emptyMessage={
-            myCompanies.length === 0
-              ? "Bạn chưa tham gia công ty nào. Vui lòng tạo hồ sơ công ty hoặc chấp nhận lời mời để quản lý tin tuyển dụng."
-              : searchQuery ||
-                  statusFilter !== "ALL" ||
-                  workModeFilter !== "ALL" ||
-                  selectedCompanyId !== "ALL"
-                ? "Không tìm thấy tin tuyển dụng nào phù hợp với bộ lọc."
-                : "Công ty của bạn chưa có tin tuyển dụng nào. Hãy bắt đầu bằng cách bấm 'Tạo tin mới'!"
+            searchQuery || statusFilter !== "ALL" || workModeFilter !== "ALL"
+              ? "Không tìm thấy tin tuyển dụng nào phù hợp với bộ lọc."
+              : `Doanh nghiệp "${activeCompany?.name || ""}" chưa có tin tuyển dụng nào. Hãy bắt đầu bằng cách bấm 'Tạo tin mới'!`
           }
         />
       )}
@@ -583,3 +551,4 @@ export function RecruiterJobListPage() {
     </div>
   );
 }
+export default RecruiterJobListPage;

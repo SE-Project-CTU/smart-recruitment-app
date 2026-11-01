@@ -25,6 +25,7 @@ import CandidateSaveCvSuccessPage from "@/pages/candidate/CandidateSaveCvSuccess
 import CandidatePreviewCvPage from "@/pages/candidate/CandidatePreviewCvPage";
 import CompanyManagement from "@/pages/recruiter/CompanyManagement";
 import CreateJobPage from "@/pages/recruiter/CreateJobPage";
+import RecruiterDashboard from "@/pages/recruiter/RecruiterDashboard";
 import {
   CompanyManagementIndex,
   CompanyDetailLayout,
@@ -171,7 +172,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.RECRUITER.DASHBOARD,
-            element: <Page title="Recruiter Dashboard Overview" />,
+            element: <RecruiterDashboard />,
           },
           {
             path: PATHS.RECRUITER.COMPANY_MANAGEMENT,
