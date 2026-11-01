@@ -1,3 +1,4 @@
+import { getLoremAvt } from "@/utils/helper";
 import { useState, useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
@@ -14,7 +15,6 @@ import {
   ChevronRight,
   Clock,
   Briefcase,
-  Building2,
   Calendar,
   FileQuestion,
 } from "lucide-react";
@@ -129,17 +129,20 @@ export default function CandidateApplicationStatusPage() {
             const app = row.original;
             return (
               <div className="flex max-w-72 min-w-48 items-center gap-3">
-                {app.companyLogoUrl ? (
-                  <img
-                    src={app.companyLogoUrl}
-                    alt={app.companyName || "Logo"}
-                    className="size-10 shrink-0 rounded-xl border border-border object-cover"
-                  />
-                ) : (
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-slate-100 text-xs font-bold text-slate-500">
-                    {(app.companyName || "DN").slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <img
+                  src={app.companyLogoUrl || getLoremAvt(app.companyName)}
+                  alt={app.companyName || "Logo"}
+                  loading="lazy"
+                  onError={(event) => {
+                    const fallback = getLoremAvt(app.companyName);
+                    const img = event.currentTarget;
+                    if (img.src !== new URL(fallback, img.baseURI).href) {
+                      img.onerror = null;
+                      img.src = fallback;
+                    }
+                  }}
+                  className="size-10 shrink-0 rounded-xl border border-border object-cover"
+                />
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <Tooltip>
                     <TooltipTrigger
@@ -523,17 +526,25 @@ export default function CandidateApplicationStatusPage() {
             <div className="space-y-4 pt-2">
               {/* Job summary card */}
               <div className="flex items-start gap-3 rounded-2xl border border-border bg-slate-50/70 p-3.5">
-                {selectedApplication.companyLogoUrl ? (
-                  <img
-                    src={selectedApplication.companyLogoUrl}
-                    alt={selectedApplication.companyName || "Logo"}
-                    className="size-11 shrink-0 rounded-xl border border-border object-cover"
-                  />
-                ) : (
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-xs font-bold text-slate-600">
-                    <Building2 className="size-5 text-slate-400" />
-                  </div>
-                )}
+                <img
+                  src={
+                    selectedApplication.companyLogoUrl ||
+                    getLoremAvt(selectedApplication.companyName)
+                  }
+                  alt={selectedApplication.companyName || "Logo"}
+                  loading="lazy"
+                  onError={(event) => {
+                    const fallback = getLoremAvt(
+                      selectedApplication.companyName,
+                    );
+                    const img = event.currentTarget;
+                    if (img.src !== new URL(fallback, img.baseURI).href) {
+                      img.onerror = null;
+                      img.src = fallback;
+                    }
+                  }}
+                  className="size-11 shrink-0 rounded-xl border border-border object-cover"
+                />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <h4 className="truncate text-sm font-bold text-slate-900">
                     {selectedApplication.jobTitle}

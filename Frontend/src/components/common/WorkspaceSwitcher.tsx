@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  Building2,
   Check,
   ChevronsUpDown,
   Plus,
   ShieldCheck,
 } from "lucide-react";
+import { getLoremAvt } from "@/utils/helper";
 import { useSidebar } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -147,18 +147,24 @@ export function WorkspaceSwitcher() {
           {/* Logo & Info */}
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface shadow-xs">
-              {currentCompany?.logoUrl ? (
-                <img
-                  src={currentCompany.logoUrl}
-                  alt={currentCompany.name}
-                  className="size-full object-contain p-0.5"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              ) : (
-                <Building2 className="size-4.5 text-primary" />
-              )}
+              <img
+                src={
+                  currentCompany?.logoUrl ||
+                  getLoremAvt(currentCompany?.name || "Doanh nghiệp")
+                }
+                alt={currentCompany?.name || "Doanh nghiệp"}
+                className="size-full object-contain p-0.5"
+                onError={(e) => {
+                  const fallback = getLoremAvt(
+                    currentCompany?.name || "Doanh nghiệp",
+                  );
+                  const img = e.currentTarget;
+                  if (img.src !== new URL(fallback, img.baseURI).href) {
+                    img.onerror = null;
+                    img.src = fallback;
+                  }
+                }}
+              />
             </div>
 
             {!isCollapsed && (
@@ -208,15 +214,19 @@ export function WorkspaceSwitcher() {
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
                     <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
-                      {comp.logoUrl ? (
-                        <img
-                          src={comp.logoUrl}
-                          alt={comp.name}
-                          className="size-full object-contain p-0.5"
-                        />
-                      ) : (
-                        <Building2 className="size-3.5 text-slate-500" />
-                      )}
+                      <img
+                        src={comp.logoUrl || getLoremAvt(comp.name)}
+                        alt={comp.name}
+                        className="size-full object-contain p-0.5"
+                        onError={(e) => {
+                          const fallback = getLoremAvt(comp.name);
+                          const img = e.currentTarget;
+                          if (img.src !== new URL(fallback, img.baseURI).href) {
+                            img.onerror = null;
+                            img.src = fallback;
+                          }
+                        }}
+                      />
                     </div>
                     <div className="flex min-w-0 flex-col">
                       <span className="truncate text-xs">{comp.name}</span>

@@ -5,7 +5,6 @@ import {
   Briefcase,
   GraduationCap,
   Users,
-  Building2,
   CheckCircle2,
   Bookmark,
   BookmarkCheck,
@@ -24,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
 import { Button } from "@/components/common";
+import { getLoremAvt } from "@/utils/helper";
 import { extractJobDisplayData } from "@/utils/jobHelpers";
 import { toast } from "@/hooks/use-toast";
 import { PATHS } from "@/constants/paths";
@@ -144,19 +144,20 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3.5">
               <div className="flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2 shadow-2xs">
-                {data.companyLogoUrl ? (
-                  <img
-                    src={data.companyLogoUrl}
-                    alt={data.companyName}
-                    className="size-full object-contain"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display =
-                        "none";
-                    }}
-                  />
-                ) : (
-                  <Building2 className="size-6 text-primary" />
-                )}
+                <img
+                  src={data.companyLogoUrl || getLoremAvt(data.companyName)}
+                  alt={data.companyName}
+                  className="size-full object-contain"
+                  loading="lazy"
+                  onError={(event) => {
+                    const fallback = getLoremAvt(data.companyName);
+                    const img = event.currentTarget;
+                    if (img.src !== new URL(fallback, img.baseURI).href) {
+                      img.onerror = null;
+                      img.src = fallback;
+                    }
+                  }}
+                />
               </div>
 
               <div className="min-w-0 flex-1">

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
-  Building2,
   Eye,
   FileCheck,
   FileText,
@@ -22,6 +21,7 @@ import {
   AttachmentTitle,
 } from "@/components/ui/attachment";
 import { Button, UserAvatar } from "@/components/common";
+import { getLoremAvt } from "@/utils/helper";
 import { useAuthStore } from "@/stores/authStore";
 import { useMyCvs } from "@/hooks/queries/useCv";
 import { useApplyJob } from "@/hooks/queries/useApplication";
@@ -78,8 +78,6 @@ export function ApplyJobModal({
 
   const [coverLetter, setCoverLetter] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [logoErrorJobId, setLogoErrorJobId] = useState<string | null>(null);
-  const logoError = logoErrorJobId === currentJob?.id;
 
   const handleClose = useCallback(() => {
     if (isControlled) {
@@ -274,16 +272,20 @@ export function ApplyJobModal({
         <div className="border-b border-border p-4 pr-12 text-left sm:p-6 sm:pb-4">
           <div className="flex items-start gap-3.5">
             <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-1.5 shadow-2xs">
-              {companyLogoUrl && !logoError ? (
-                <img
-                  src={companyLogoUrl}
-                  alt={companyName}
-                  onError={() => setLogoErrorJobId(currentJob.id)}
-                  className="size-full object-contain"
-                />
-              ) : (
-                <Building2 className="size-6 text-primary" />
-              )}
+              <img
+                src={companyLogoUrl || getLoremAvt(companyName)}
+                alt={companyName}
+                loading="lazy"
+                onError={(event) => {
+                  const fallback = getLoremAvt(companyName);
+                  const img = event.currentTarget;
+                  if (img.src !== new URL(fallback, img.baseURI).href) {
+                    img.onerror = null;
+                    img.src = fallback;
+                  }
+                }}
+                className="size-full object-contain"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <h2

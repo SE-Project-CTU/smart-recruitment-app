@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   ArrowUpDown,
-  Building2,
   ChevronDown,
   ExternalLink,
   Eye,
@@ -11,6 +10,7 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+import { getLoremAvt } from "@/utils/helper";
 import dayjs from "dayjs";
 import type { MockApplication } from "@/constants/mockData";
 import {
@@ -159,23 +159,22 @@ function CompanyLogoCell({
   logoUrl: string | null;
   name: string;
 }) {
-  const [hasError, setHasError] = useState(false);
-
-  if (logoUrl && !hasError) {
-    return (
-      <img
-        src={logoUrl}
-        alt={name}
-        onError={() => setHasError(true)}
-        className="size-10 shrink-0 rounded-xl border border-slate-100 object-cover"
-      />
-    );
-  }
+  const fallbackSrc = getLoremAvt(name);
 
   return (
-    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-primary">
-      <Building2 className="size-5" />
-    </div>
+    <img
+      src={logoUrl || fallbackSrc}
+      alt={name}
+      loading="lazy"
+      onError={(event) => {
+        const img = event.currentTarget;
+        if (img.src !== new URL(fallbackSrc, img.baseURI).href) {
+          img.onerror = null;
+          img.src = fallbackSrc;
+        }
+      }}
+      className="size-10 shrink-0 rounded-xl border border-slate-100 object-cover"
+    />
   );
 }
 
