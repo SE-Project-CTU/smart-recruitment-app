@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { SeniorHarvardTemplate } from "./SeniorHarvard";
+import { SidebarClassicTemplate } from "./SidebarClassic";
 import type { CvTemplateProps } from "./types";
 import type { CvTemplateCode } from "@/types/cv";
 import {
@@ -30,6 +31,7 @@ export const TEMPLATE_REGISTRY: Record<
   ComponentType<CvTemplateProps>
 > = {
   senior_harvard: SeniorHarvardTemplate,
+  sidebar_classic: SidebarClassicTemplate,
 };
 
 export function getCvTemplateComponent(

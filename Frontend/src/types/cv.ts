@@ -118,7 +118,7 @@ export interface CvDefaultStyle {
   lineHeight: number;
 }
 
-export type CvTemplateCode = "senior_harvard";
+export type CvTemplateCode = "senior_harvard" | "sidebar_classic";
 
 export interface CvTiptapDocumentMetadata {
   version: string;

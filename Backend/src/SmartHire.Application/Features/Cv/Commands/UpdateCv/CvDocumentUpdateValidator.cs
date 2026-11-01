@@ -12,10 +12,12 @@ public static partial class CvDocumentUpdateValidator {
         "objective", "experience", "education", "skills", "projects",
         "certifications", "awards", "interests", "additionalInfo"
     };
-
-    private static readonly Dictionary<string, HashSet<string>> SupportedTemplateAreas = new(StringComparer.OrdinalIgnoreCase) {
-        ["senior_harvard"] = new(StringComparer.Ordinal) { "main" }
-    };
+    
+    private static readonly Dictionary<string, HashSet<string>> SupportedTemplateAreas =
+        new(StringComparer.OrdinalIgnoreCase) {
+            ["senior_harvard"] = new(StringComparer.Ordinal) { "main" },
+            ["sidebar_classic"] = new(StringComparer.Ordinal) { "main", "sidebar" }
+        };
     
     [GeneratedRegex(RequestValidationPatterns.VietnamesePhone)]
     private static partial Regex PhoneRegex();
@@ -131,13 +133,13 @@ public static partial class CvDocumentUpdateValidator {
                 HashSet<string>? allowedAreas = null;
                 var hasTemplate = !string.IsNullOrWhiteSpace(content.Metadata?.TemplateCode) &&
                                   SupportedTemplateAreas.TryGetValue(content.Metadata.TemplateCode, out allowedAreas);
-
+                
                 foreach (var area in layout.Areas) {
                     if (area is null || string.IsNullOrWhiteSpace(area.Id) || !areaIds.Add(area.Id)) {
                         errors.Add(Invalid("layout.areas", "Area ids must be present and unique."));
                         continue;
                     }
-
+                    
                     if (hasTemplate && allowedAreas is not null && !allowedAreas.Contains(area.Id)) {
                         errors.Add(Invalid("layout.areas",
                             $"Area '{area.Id}' is not supported by template '{content.Metadata!.TemplateCode}'. Supported areas: {string.Join(", ", allowedAreas)}."));
@@ -148,7 +150,7 @@ public static partial class CvDocumentUpdateValidator {
                             "Each area must contain a section list."));
                         continue;
                     }
-
+                    
                     var seenInArea = new HashSet<string>(StringComparer.Ordinal);
                     foreach (var section in area.Sections) {
                         if (string.IsNullOrWhiteSpace(section) || !KnownSections.Contains(section)) {
@@ -165,13 +167,13 @@ public static partial class CvDocumentUpdateValidator {
                         }
                     }
                 }
-
+                
                 if (placedSections.Count != KnownSections.Count) {
                     var missingSections = KnownSections.Where(s => !placedSections.Contains(s));
                     errors.Add(Invalid("layout.areas",
                         $"Layout must contain all supported CV sections. Missing sections: {string.Join(", ", missingSections)}."));
                 }
-
+                
                 if (hasTemplate && allowedAreas is not null) {
                     var missingAreas = allowedAreas.Where(a => !areaIds.Contains(a)).ToList();
                     if (missingAreas.Count > 0) {
@@ -196,7 +198,7 @@ public static partial class CvDocumentUpdateValidator {
             errors.Add(Invalid(path, $"{path} root node type must be '{CvTiptapNodeTypes.Doc}'."));
             return;
         }
-
+        
         ValidateDocAttrs(doc.Attrs, path, errors);
         
         if (doc.Content is not null) {
@@ -205,24 +207,25 @@ public static partial class CvDocumentUpdateValidator {
             }
         }
     }
-
+    
     private static void ValidateDocAttrs(
         Dictionary<string, object?>? attrs,
         string path,
         ICollection<AppErrorDetail> errors) {
-        if (attrs is null || !attrs.TryGetValue(CvTiptapAttributeNames.FontSize, out var fontSizeVal) || fontSizeVal is null) {
+        if (attrs is null || !attrs.TryGetValue(CvTiptapAttributeNames.FontSize, out var fontSizeVal) ||
+            fontSizeVal is null) {
             errors.Add(Required($"{path}.attrs.{CvTiptapAttributeNames.FontSize}",
                 $"Root document of {path} must contain 'attrs.{CvTiptapAttributeNames.FontSize}'."));
             return;
         }
-
+        
         foreach (var (key, _) in attrs) {
             if (!CvTiptapSchema.SupportedDocAttributeNames.Contains(key)) {
                 errors.Add(Invalid($"{path}.attrs",
                     $"Attribute '{key}' is not supported on root document. Only '{CvTiptapAttributeNames.FontSize}' is allowed."));
             }
         }
-
+        
         if (!TryParseFontSize(fontSizeVal, out var fontSizeNum) || fontSizeNum < 6 || fontSizeNum > 96) {
             errors.Add(Invalid($"{path}.attrs.{CvTiptapAttributeNames.FontSize}",
                 $"Document fontSize must be a positive number between 6 and 96."));
@@ -718,28 +721,35 @@ public static partial class CvDocumentUpdateValidator {
             if (je.ValueKind == JsonValueKind.Number) {
                 return je.TryGetDouble(out fontSizeNum);
             }
+            
             if (je.ValueKind == JsonValueKind.String) {
                 var str = je.GetString()?.Replace("px", "").Replace("pt", "").Trim();
                 return double.TryParse(str, out fontSizeNum);
             }
+            
             return false;
         }
+        
         if (value is int i) {
             fontSizeNum = i;
             return true;
         }
+        
         if (value is long l) {
             fontSizeNum = l;
             return true;
         }
+        
         if (value is float f) {
             fontSizeNum = f;
             return true;
         }
+        
         if (value is double d) {
             fontSizeNum = d;
             return true;
         }
+        
         var s = value.ToString()?.Replace("px", "").Replace("pt", "").Trim();
         return double.TryParse(s, out fontSizeNum);
     }

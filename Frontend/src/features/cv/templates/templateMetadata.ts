@@ -23,6 +23,30 @@ export const CV_TEMPLATE_METADATA: Record<CvTemplateCode, CvTemplateMetadata> = 
       ],
     },
   },
+  sidebar_classic: {
+    code: "sidebar_classic",
+    name: "Sidebar Classic",
+    supportedAreaIds: ["sidebar", "main"] as const,
+    defaultLayout: {
+      version: "1.0",
+      areas: [
+        {
+          id: "sidebar",
+          sections: ["education", "skills", "additionalInfo", "interests"],
+        },
+        {
+          id: "main",
+          sections: [
+            "objective",
+            "experience",
+            "projects",
+            "certifications",
+            "awards",
+          ],
+        },
+      ],
+    },
+  },
 };
 
 export const DEFAULT_TEMPLATE_CODE: CvTemplateCode = "senior_harvard";
