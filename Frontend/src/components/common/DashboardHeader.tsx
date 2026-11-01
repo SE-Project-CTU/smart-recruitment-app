@@ -75,7 +75,7 @@ function DashboardHeader() {
         return (
           <Button
             icon={PlusCircle}
-            onClick={() => navigate(PATHS.RECRUITER.DASHBOARD)}
+            onClick={() => navigate(PATHS.RECRUITER.CREATE_JOB)}
             className="hidden! text-xs! md:flex!"
           >
             Đăng tin tuyển dụng

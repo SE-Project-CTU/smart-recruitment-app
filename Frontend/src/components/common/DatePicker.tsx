@@ -2,14 +2,10 @@ import * as React from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import dayjs from "dayjs";
 import { vi } from "date-fns/locale/vi";
+import { Popover } from "@animate-ui/react/primitives/base-ui/popover";
 
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 export interface DatePickerProps {
   value?: string | Date | null;
@@ -76,8 +72,8 @@ export function DatePicker({
   );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
         id={id}
         type="button"
         disabled={disabled}
@@ -96,25 +92,28 @@ export function DatePicker({
           {displayText || placeholder}
         </span>
         <CalendarIcon className="size-4 shrink-0 text-text-muted transition-colors group-hover:text-primary" />
-      </PopoverTrigger>
+      </Popover.Trigger>
 
-      <PopoverContent
-        align="start"
-        sideOffset={6}
-        className="w-auto p-0 border border-border bg-surface shadow-xl rounded-2xl overflow-hidden"
-      >
-        <Calendar
-          mode="single"
-          selected={parsedDate}
-          onSelect={handleSelect}
-          disabled={disabledMatcher}
-          locale={vi}
-          className="p-3"
-        />
-      </PopoverContent>
-    </Popover>
+      <Popover.Portal>
+        <Popover.Positioner
+          align="start"
+          sideOffset={6}
+          className="isolate z-50"
+        >
+          <Popover.Popup className="w-auto overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-xl">
+            <Calendar
+              mode="single"
+              selected={parsedDate}
+              onSelect={handleSelect}
+              disabled={disabledMatcher}
+              locale={vi}
+              className="p-3"
+            />
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
 export default DatePicker;
-

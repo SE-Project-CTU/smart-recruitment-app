@@ -147,7 +147,7 @@ export default function RecruiterDashboard() {
             Xin chào, {user?.fullName || "Nhà tuyển dụng"}! 👋
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Tổng quan hoạt động tuyển dụng và kết nối ứng viên trong doanh nghiệp của bạn.
+            Theo dõi tiến độ tuyển dụng, hồ sơ ứng tuyển mới và kết nối với ứng viên tiềm năng.
           </p>
         </div>
 
@@ -159,6 +159,7 @@ export default function RecruiterDashboard() {
               icon={Building2}
               onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
               className="h-8! px-3! text-xs! font-semibold!"
+              aria-label="Xem hồ sơ doanh nghiệp"
             >
               Hồ sơ công ty
             </Button>
@@ -173,6 +174,7 @@ export default function RecruiterDashboard() {
                   : undefined
               }
               className="h-8! px-3.5! text-xs! font-semibold! shadow-sm"
+              aria-label="Đăng tin tuyển dụng mới"
             >
               Đăng tin tuyển dụng
             </Button>
@@ -190,7 +192,7 @@ export default function RecruiterDashboard() {
             Chưa có không gian làm việc doanh nghiệp
           </h2>
           <p className="mt-2 max-w-md text-sm text-slate-500">
-            Bạn cần tạo hồ sơ doanh nghiệp hoặc được thêm vào một doanh nghiệp để bắt đầu
+            Tạo hồ sơ doanh nghiệp mới hoặc tham gia doanh nghiệp để bắt đầu
             đăng tin tuyển dụng và quản lý hồ sơ ứng viên.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -199,15 +201,17 @@ export default function RecruiterDashboard() {
               icon={Plus}
               onClick={() => setIsCreateModalOpen(true)}
               className="font-semibold shadow-sm"
+              aria-label="Tạo hồ sơ doanh nghiệp mới"
             >
-              Tạo hồ sơ doanh nghiệp ngay
+              Tạo hồ sơ doanh nghiệp
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate(PATHS.RECRUITER.COMPANY_INVITATION)}
               className="font-semibold"
+              aria-label="Kiểm tra các lời mời tham gia doanh nghiệp"
             >
-              Xem lời mời tham gia
+              Kiểm tra lời mời tham gia
             </Button>
           </div>
         </div>
@@ -240,13 +244,13 @@ export default function RecruiterDashboard() {
                   {isPending && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
                       <Clock className="size-3.5 text-amber-600" />
-                      Chờ Admin duyệt
+                      Chờ kiểm duyệt
                     </span>
                   )}
                   {isRejected && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
                       <AlertCircle className="size-3.5 text-rose-600" />
-                      Từ chối
+                      Chưa được phê duyệt
                     </span>
                   )}
                 </div>
@@ -291,9 +295,9 @@ export default function RecruiterDashboard() {
             <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200/80 bg-amber-50/70 p-3 text-xs text-amber-800">
               <Clock className="mt-0.5 size-4 shrink-0 text-amber-600" />
               <span>
-                Hồ sơ doanh nghiệp đang được Admin xét duyệt. Bạn có thể thiết lập thông tin
-                thành viên, tuy nhiên việc <strong>đăng tin tuyển dụng mới</strong> sẽ tạm
-                thời khóa cho đến khi được duyệt thành công.
+                Hồ sơ doanh nghiệp đang trong quá trình kiểm duyệt. Bạn vẫn có thể thiết lập thông tin
+                và quản lý thành viên; tính năng <strong>đăng tin tuyển dụng</strong> sẽ được mở khóa
+                ngay sau khi hồ sơ được duyệt.
               </span>
             </div>
           )}
@@ -321,9 +325,9 @@ export default function RecruiterDashboard() {
                 {isLoadingData ? "..." : activeJobs.length}
               </div>
               <p className="mt-1 flex items-center justify-between text-xs text-slate-500">
-                <span>Tổng số: {allJobs.length} tin</span>
-                <span className="flex items-center text-blue-600 group-hover:translate-x-0.5 transition-transform">
-                  Quản lý <ChevronRight className="size-3" />
+                <span>{allJobs.length} tin tổng cộng</span>
+                <span className="flex items-center text-blue-600 group-hover:translate-x-0.5 transition-transform font-medium">
+                  Quản lý tin <ChevronRight className="size-3" />
                 </span>
               </p>
             </div>
@@ -347,9 +351,9 @@ export default function RecruiterDashboard() {
                 {isLoadingData ? "..." : newApplications.length}
               </div>
               <p className="mt-1 flex items-center justify-between text-xs text-slate-500">
-                <span>Chờ xem xét & đánh giá</span>
-                <span className="flex items-center text-amber-600 group-hover:translate-x-0.5 transition-transform">
-                  Sàng lọc <ChevronRight className="size-3" />
+                <span>Cần xem xét và đánh giá</span>
+                <span className="flex items-center text-amber-600 group-hover:translate-x-0.5 transition-transform font-medium">
+                  Xem hồ sơ <ChevronRight className="size-3" />
                 </span>
               </p>
             </div>
@@ -362,7 +366,7 @@ export default function RecruiterDashboard() {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold tracking-wider uppercase text-slate-500">
-                Đang xử lý / Phỏng vấn
+                Đang trong quy trình
               </span>
               <div className="flex size-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
                 <UserCheck className="size-5" />
@@ -373,9 +377,9 @@ export default function RecruiterDashboard() {
                 {isLoadingData ? "..." : inReviewApplications.length}
               </div>
               <p className="mt-1 flex items-center justify-between text-xs text-slate-500">
-                <span>Tổng ứng viên: {allApplications.length}</span>
-                <span className="flex items-center text-purple-600 group-hover:translate-x-0.5 transition-transform">
-                  Theo dõi <ChevronRight className="size-3" />
+                <span>{allApplications.length} hồ sơ tổng cộng</span>
+                <span className="flex items-center text-purple-600 group-hover:translate-x-0.5 transition-transform font-medium">
+                  Theo dõi quy trình <ChevronRight className="size-3" />
                 </span>
               </p>
             </div>
@@ -406,9 +410,9 @@ export default function RecruiterDashboard() {
                 {isLoadingData ? "..." : totalMembers}
               </div>
               <p className="mt-1 flex items-center justify-between text-xs text-slate-500">
-                <span>Thành viên trong công ty</span>
-                <span className="flex items-center text-emerald-600 group-hover:translate-x-0.5 transition-transform">
-                  Chi tiết <ChevronRight className="size-3" />
+                <span>Thành viên trong doanh nghiệp</span>
+                <span className="flex items-center text-emerald-600 group-hover:translate-x-0.5 transition-transform font-medium">
+                  Xem thành viên <ChevronRight className="size-3" />
                 </span>
               </p>
             </div>
@@ -428,10 +432,10 @@ export default function RecruiterDashboard() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    Tin tuyển dụng mới nhất
+                    Tin tuyển dụng gần đây
                   </h3>
                   <p className="text-xs text-slate-500">
-                    5 vị trí việc làm gần đây của {activeCompany.name}
+                    5 vị trí việc làm cập nhật gần nhất của {activeCompany.name}
                   </p>
                 </div>
               </div>
@@ -439,6 +443,7 @@ export default function RecruiterDashboard() {
                 type="button"
                 onClick={() => navigate(PATHS.RECRUITER.JOBS)}
                 className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary-dark"
+                aria-label={`Xem tất cả ${allJobs.length} tin tuyển dụng`}
               >
                 <span>Xem tất cả ({allJobs.length})</span>
                 <ArrowRight className="size-3.5" />
@@ -457,14 +462,14 @@ export default function RecruiterDashboard() {
                 </div>
               ) : recentJobs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
                     <Briefcase className="size-6" />
                   </div>
                   <p className="mt-3 text-sm font-semibold text-slate-700">
                     Chưa có tin tuyển dụng nào
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Hãy tạo tin tuyển dụng đầu tiên để tiếp cận các ứng viên tài năng.
+                  <p className="mt-1 text-xs text-slate-500">
+                    Đăng tin tuyển dụng đầu tiên để tiếp cận và thu hút các ứng viên tiềm năng.
                   </p>
                   {isVerified && (
                     <Button
@@ -472,8 +477,9 @@ export default function RecruiterDashboard() {
                       icon={Plus}
                       onClick={() => navigate(PATHS.RECRUITER.CREATE_JOB)}
                       className="mt-4 h-8! px-3! text-xs! font-semibold!"
+                      aria-label="Tạo tin tuyển dụng mới"
                     >
-                      Đăng tin ngay
+                      Tạo tin tuyển dụng
                     </Button>
                   )}
                 </div>
@@ -508,13 +514,13 @@ export default function RecruiterDashboard() {
                             </span>
                             {/* Status tag */}
                             {isPublished && (
-                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                <CheckCircle2 className="size-2.5" /> Tuyển
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                                <CheckCircle2 className="size-3" /> Đang tuyển
                               </span>
                             )}
                             {isClosed && (
-                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                                <XCircle className="size-2.5" /> Đã đóng
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                                <XCircle className="size-3" /> Đã đóng
                               </span>
                             )}
                           </div>
@@ -529,11 +535,11 @@ export default function RecruiterDashboard() {
                             </span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
-                              <Calendar className="size-3 text-slate-400" />
-                              Hạn:{" "}
+                              <Calendar className="size-3 text-slate-500" />
+                              Hạn nộp:{" "}
                               {job.deadline
                                 ? dayjs(job.deadline).format("DD/MM/YYYY")
-                                : "Vô thời hạn"}
+                                : "Không giới hạn"}
                             </span>
                           </div>
                         </div>
@@ -577,15 +583,16 @@ export default function RecruiterDashboard() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    Ứng viên mới nộp
+                    Hồ sơ ứng tuyển gần đây
                   </h3>
-                  <p className="text-xs text-slate-500">Hồ sơ chờ xem xét</p>
+                  <p className="text-xs text-slate-500">5 hồ sơ nộp gần nhất</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => navigate(PATHS.RECRUITER.CANDIDATES)}
                 className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary-dark"
+                aria-label={`Xem tất cả ${allApplications.length} hồ sơ ứng tuyển`}
               >
                 <span>Xem tất cả ({allApplications.length})</span>
                 <ArrowRight className="size-3.5" />
@@ -604,14 +611,14 @@ export default function RecruiterDashboard() {
                 </div>
               ) : recentApplications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
                     <UserCheck className="size-6" />
                   </div>
                   <p className="mt-3 text-sm font-semibold text-slate-700">
-                    Chưa có hồ sơ ứng tuyển
+                    Chưa có hồ sơ ứng tuyển nào
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Khi ứng viên nộp hồ sơ vào tin đăng, danh sách sẽ hiển thị tại đây.
+                  <p className="mt-1 text-xs text-slate-500">
+                    Khi có ứng viên nộp hồ sơ vào các vị trí tuyển dụng, thông tin sẽ được cập nhật tại đây.
                   </p>
                 </div>
               ) : (
@@ -653,7 +660,7 @@ export default function RecruiterDashboard() {
                             <p className="truncate text-[11px] text-slate-500">
                               {app.jobTitle || app.job?.title || "Ứng tuyển vị trí"}
                             </p>
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-[11px] text-slate-500">
                               {dayjs(app.appliedAt).format("DD/MM/YYYY HH:mm")}
                             </span>
                           </div>
@@ -661,7 +668,7 @@ export default function RecruiterDashboard() {
 
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border ${statusConfig.badgeClass}`}
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold border ${statusConfig.badgeClass}`}
                           >
                             {statusConfig.label}
                           </span>
@@ -684,12 +691,11 @@ export default function RecruiterDashboard() {
               <div className="flex items-center gap-2">
                 <Sparkles className="size-4 text-amber-400" />
                 <h3 className="text-base font-bold">
-                  Tuyển dụng thông minh cùng trợ lý AI SmartRecruitment
+                  Tuyển dụng thông minh cùng trợ lý AI SmartHire
                 </h3>
               </div>
               <p className="mt-1 text-xs text-slate-300">
-                Sử dụng tính năng phân tích và chấm điểm hồ sơ tự động để tìm kiếm ứng viên
-                phù hợp nhất với tiêu chí của doanh nghiệp.
+                Tận dụng AI để tự động phân tích CV, so khớp năng lực và gợi ý các ứng viên phù hợp nhất với tiêu chí tuyển dụng.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -697,6 +703,7 @@ export default function RecruiterDashboard() {
                 variant="primary"
                 onClick={() => navigate(PATHS.RECRUITER.CANDIDATES)}
                 className="h-9! px-4! text-xs! font-semibold!"
+                aria-label="Khám phá kho ứng viên với trợ lý AI"
               >
                 Khám phá kho ứng viên
               </Button>
