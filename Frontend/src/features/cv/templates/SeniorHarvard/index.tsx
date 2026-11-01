@@ -21,8 +21,7 @@ import DraggableSectionActions from "../../builder/components/DraggableSectionAc
 import { CvTiptapReadOnlyView } from "../../builder/components/CvTiptapReadOnlyView";
 import { DEFAULT_CV_FONT_ID, getCvFontFamilyCss } from "../../constants/fonts";
 import type { CvTemplateProps, CvFieldRenderer } from "../types";
-import { TEMPLATE_DEFINITIONS } from "../registry";
-import type { CVSectionKey } from "@/types";
+import { getCvTemplateMetadata } from "../templateMetadata";
 
 const THIS_TEMPLATE_CODE = "senior_harvard";
 const THIS_MAIN_AREA_ID = "main";
@@ -91,7 +90,8 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
     );
   }
 
-  const supportedAreaIds = TEMPLATE_DEFINITIONS[THIS_TEMPLATE_CODE].supportedAreaIds;
+  const supportedAreaIds =
+    getCvTemplateMetadata(THIS_TEMPLATE_CODE).supportedAreaIds;
   const unknownAreas = layout.areas.filter(
     (area) => !supportedAreaIds.includes(area.id),
   );
@@ -148,7 +148,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
     }
   };
 
-  const renderSectionContent = (key: CVSectionKey) => {
+  const renderSectionContent = (key: FixedSectionKey | string) => {
     switch (key) {
       case "objective":
         return (
@@ -308,7 +308,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                             )
                           }
                         />
-                        {renderSectionContent(sectionKey as CVSectionKey)}
+                        {renderSectionContent(sectionKey)}
                       </div>
                     )}
                   </Draggable>
@@ -322,7 +322,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
         <div className="space-y-2">
           {visibleSections.map((sectionKey) => (
             <div key={sectionKey} className="relative rounded-sm px-2 py-1">
-              {renderSectionContent(sectionKey as CVSectionKey)}
+              {renderSectionContent(sectionKey)}
             </div>
           ))}
         </div>

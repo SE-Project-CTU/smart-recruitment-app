@@ -1,6 +1,7 @@
 export type {
   CvEditorValues,
-  FixedSectionKey,
 } from "../builder/schema/cvSchema";
 
-export { FIXED_SECTION_KEYS } from "../builder/schema/cvSchema";
+export type { FixedSectionKey } from "../constants/sections";
+export { FIXED_SECTION_KEYS } from "../constants/sections";
+

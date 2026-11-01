@@ -107,17 +107,6 @@ export const MOCK_CV_DETAIL_TIPTAP = {
       ),
     },
     sections: {
-      order: [
-        "objective",
-        "experience",
-        "education",
-        "skills",
-        "projects",
-        "certifications",
-        "awards",
-        "interests",
-        "additionalInfo",
-      ],
       objective: {
         title: richText(paragraph("Objective", { marks: [{ type: "bold" }] })),
         visible: true,

@@ -1,57 +1,29 @@
-import type { RichTextCVDetail, CVLayoutDocument } from "@/types/cv";
-import {
-  FIXED_SECTION_KEYS,
-  type RichTextCvEditorValues,
-} from "../schema/richTextCvSchema";
+import type { RichTextCVDetail, CVLayoutDocument, CvTemplateCode } from "@/types/cv";
+import { getCvTemplateMetadata } from "../../templates/templateMetadata";
+import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import { normalizeCvContentFontSizes } from "./tiptapJson";
 
 /**
- * Đảm bảo layout luôn đầy đủ, hợp lệ và chứa đủ tất cả các fixed sections
+ * Đảm bảo layout luôn tồn tại cấu trúc cơ bản hợp lệ theo template code.
+ * Nếu chưa có layout, tạo layout mặc định từ defaultLayout của template tương ứng.
+ * Nếu layout đã có, giữ nguyên trạng để quy trình validation kiểm tra tính toàn vẹn,
+ * tuyệt đối không tự ý nhét section thiếu vào 'main' để tránh làm sai lệch layout nhiều area.
  */
 export function ensureValidLayout(
   layout?: CVLayoutDocument,
-  fallbackOrder?: string[],
+  templateCode?: CvTemplateCode | string,
 ): CVLayoutDocument {
-  const defaultOrder = (
-    fallbackOrder?.length ? fallbackOrder : FIXED_SECTION_KEYS
-  ) as string[];
-
   if (!layout || !layout.areas || layout.areas.length === 0) {
-    return {
-      version: layout?.version || "1.0",
-      areas: [
-        {
-          id: "main",
-          sections: [...defaultOrder],
-        },
-      ],
-    };
-  }
-
-  const resultAreas = layout.areas.map((area) => ({
-    ...area,
-    sections: [...(area.sections || [])],
-  }));
-
-  const placedSections = new Set<string>();
-  resultAreas.forEach((area) => {
-    area.sections.forEach((s) => placedSections.add(s));
-  });
-
-  const missingSections = FIXED_SECTION_KEYS.filter(
-    (key) => !placedSections.has(key),
-  );
-
-  if (missingSections.length > 0) {
-    const targetArea = resultAreas.find((a) => a.id === "main");
-    if (targetArea) {
-      targetArea.sections.push(...missingSections);
-    }
+    const templateMeta = getCvTemplateMetadata(templateCode);
+    return structuredClone(templateMeta.defaultLayout);
   }
 
   return {
     version: layout.version || "1.0",
-    areas: resultAreas,
+    areas: layout.areas.map((area) => ({
+      ...area,
+      sections: [...(area.sections || [])],
+    })),
   };
 }
 
@@ -61,8 +33,8 @@ export function buildRichTextCvInitialValues(
   const content = structuredClone(detail.content);
   normalizeCvContentFontSizes(content);
 
-  const rawOrder = (content.sections as { order?: string[] })?.order;
-  const layout = ensureValidLayout(detail.layout, rawOrder);
+  const templateCode = detail.content?.metadata?.templateCode;
+  const layout = ensureValidLayout(detail.layout, templateCode);
 
   return {
     templateId: detail.templateId,

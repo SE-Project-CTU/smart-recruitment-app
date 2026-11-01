@@ -75,9 +75,11 @@ export {
 export {
   cvEditorSchema,
   type CvEditorValues,
-  type FixedSectionKey,
-  FIXED_SECTION_KEYS,
 } from "./builder/schema/cvSchema";
+export {
+  FIXED_SECTION_KEYS,
+  type FixedSectionKey,
+} from "./constants/sections";
 
 // ==========================================
 // 4. Utilities

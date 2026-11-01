@@ -198,7 +198,6 @@ export interface RichTextCVAwardItem {
 }
 
 export interface RichTextCVSections {
-  order: CVSectionKey[];
   objective: RichTextCVTextSection;
   experience: RichTextCVItemSection<RichTextCVExperienceItem>;
   education: RichTextCVItemSection<RichTextCVEducationItem>;

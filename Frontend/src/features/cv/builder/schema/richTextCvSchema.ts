@@ -1,4 +1,9 @@
 import { z } from "zod";
+import { getCvTemplateMetadata } from "../../templates/templateMetadata";
+import {
+  FIXED_SECTION_KEYS,
+  type FixedSectionKey,
+} from "../../constants/sections";
 import type {
   CvDocumentAttrs,
   CvTiptapAttributeValue,
@@ -7,19 +12,7 @@ import type {
   CvTiptapNode,
 } from "@/types/cv";
 
-export const FIXED_SECTION_KEYS = [
-  "objective",
-  "experience",
-  "education",
-  "skills",
-  "projects",
-  "certifications",
-  "awards",
-  "interests",
-  "additionalInfo",
-] as const;
-
-export type FixedSectionKey = (typeof FIXED_SECTION_KEYS)[number];
+export { FIXED_SECTION_KEYS, type FixedSectionKey };
 
 const attributeValueSchema: z.ZodType<CvTiptapAttributeValue> = z.union([
   z.string(),
@@ -225,7 +218,6 @@ const awardItemSchema = z.object({
 });
 
 const sectionsSchema = z.object({
-  order: z.array(z.string()).optional(),
   objective: textSectionSchema,
   experience: itemSectionSchema(experienceItemSchema),
   education: itemSectionSchema(educationItemSchema),
@@ -327,25 +319,32 @@ export const richTextCvEditorSchema = z
       });
     }
 
-    // Kiểm tra area IDs: template Senior Harvard chỉ hỗ trợ duy nhất area 'main'
-    const allowedAreas = ["main"];
+    // Kiểm tra area IDs theo quy tắc được template hỗ trợ (không hard-code)
+    const templateCode = data.content?.metadata?.templateCode;
+    const templateMeta = getCvTemplateMetadata(templateCode);
+    const allowedAreas = templateMeta.supportedAreaIds;
+    const presentAreaIds = new Set<string>();
 
     data.layout.areas.forEach((area, index) => {
+      presentAreaIds.add(area.id);
       if (!allowedAreas.includes(area.id)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["layout", "areas", index, "id"],
-          message: `Area ID '${area.id}' không hợp lệ. Template Senior Harvard chỉ hỗ trợ duy nhất vùng 'main'`,
+          message: `Area ID '${area.id}' không hợp lệ cho template '${templateMeta.name}'. Các area được hỗ trợ: ${allowedAreas.join(", ")}`,
         });
       }
     });
 
-    if (!data.layout.areas.some((a) => a.id === "main")) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["layout", "areas"],
-        message: "Layout bắt buộc phải có area với id là 'main'",
-      });
+    // Kiểm tra thiếu area bắt buộc của template
+    for (const requiredArea of allowedAreas) {
+      if (!presentAreaIds.has(requiredArea)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["layout", "areas"],
+          message: `Layout thiếu area '${requiredArea}' bắt buộc của template '${templateMeta.name}'`,
+        });
+      }
     }
   });
 

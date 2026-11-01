@@ -61,8 +61,8 @@ export default function CvBuilderWorkspace({
   }, [formData?.layout, templateCode]);
 
   const normalizedLayout = useMemo(() => {
-    return ensureValidLayout(formData?.layout);
-  }, [formData?.layout]);
+    return ensureValidLayout(formData?.layout, templateCode);
+  }, [formData?.layout, templateCode]);
 
   return (
     <main

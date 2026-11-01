@@ -29,7 +29,6 @@ public sealed record CvProfile {
 }
 
 public sealed record CvSections {
-    public List<string>? Order { get; init; } = [];
     public CvTextSection Objective { get; init; } = new();
     public CvItemSection<CvExperienceItem> Experience { get; init; } = new();
     public CvItemSection<CvEducationItem> Education { get; init; } = new();

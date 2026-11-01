@@ -99,10 +99,6 @@ public static partial class CvDocumentUpdateValidator {
         }
         else {
             var sections = content.Sections;
-            if (sections.Order is not null && sections.Order.Any(section => !KnownSections.Contains(section))) {
-                errors.Add(Invalid("content.sections.order",
-                    "Order contains unsupported CV sections."));
-            }
             
             ValidateTextSection(sections.Objective, "content.sections.objective", errors, isContentRequired: true);
             ValidateTextSection(sections.Interests, "content.sections.interests", errors, isContentRequired: false);
@@ -174,6 +170,14 @@ public static partial class CvDocumentUpdateValidator {
                     var missingSections = KnownSections.Where(s => !placedSections.Contains(s));
                     errors.Add(Invalid("layout.areas",
                         $"Layout must contain all supported CV sections. Missing sections: {string.Join(", ", missingSections)}."));
+                }
+
+                if (hasTemplate && allowedAreas is not null) {
+                    var missingAreas = allowedAreas.Where(a => !areaIds.Contains(a)).ToList();
+                    if (missingAreas.Count > 0) {
+                        errors.Add(Invalid("layout.areas",
+                            $"Layout is missing required areas: {string.Join(", ", missingAreas)} for template '{content.Metadata!.TemplateCode}'."));
+                    }
                 }
             }
         }
