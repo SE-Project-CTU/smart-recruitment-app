@@ -453,7 +453,10 @@ export function CompanyMembersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa thành viên</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa thành viên {removeTarget?.user.fullName} ({removeTarget?.user.email}) khỏi công ty {company.name}? Người này sẽ không còn quyền xem và quản lý tin tuyển dụng hoặc ứng viên của doanh nghiệp.
+              Bạn có chắc chắn muốn xóa thành viên {removeTarget?.user.fullName}{" "}
+              ({removeTarget?.user.email}) khỏi công ty {company.name}? Người
+              này sẽ không còn quyền xem và quản lý tin tuyển dụng hoặc ứng viên
+              của doanh nghiệp.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -498,7 +501,9 @@ export function CompanyMembersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận rời khỏi doanh nghiệp</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn rời khỏi công ty {company.name}? Bạn sẽ không còn quyền quản lý tin tuyển dụng cũng như hồ sơ ứng tuyển của doanh nghiệp này nữa.
+              Bạn có chắc chắn muốn rời khỏi công ty {company.name}? Bạn sẽ
+              không còn quyền quản lý tin tuyển dụng cũng như hồ sơ ứng tuyển
+              của doanh nghiệp này nữa.
             </AlertDialogDescription>
           </AlertDialogHeader>
 

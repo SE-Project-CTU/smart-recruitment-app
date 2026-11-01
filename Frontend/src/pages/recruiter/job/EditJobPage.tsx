@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { BadgeSelector, Button } from "@/components/common";
+import { BadgeSelector, Button, DatePicker } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
@@ -626,14 +626,21 @@ function EditJobForm({
                 <span>Hạn nhận hồ sơ</span>
                 <span className="text-status-error">*</span>
               </label>
-              <input
+              <DatePicker
                 id="deadline"
                 name="deadline"
-                type="date"
-                min={dayjs().format("YYYY-MM-DD")}
+                minDate={dayjs().format("YYYY-MM-DD")}
                 value={formData.deadline}
-                onChange={handleTextChange}
-                className={inputClassName}
+                onChange={(val) => {
+                  updateForm("deadline", val);
+                  setFieldErrors((current) => {
+                    const next = { ...current };
+                    delete next.deadline;
+                    return next;
+                  });
+                }}
+                error={Boolean(fieldErrors.deadline)}
+                placeholder="Chọn hạn nhận hồ sơ"
               />
               <FieldError message={fieldErrors.deadline} />
             </div>

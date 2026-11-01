@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import {
   AlertCircle,
-  Check,
   ChevronDown,
   ChevronRight,
   Search,
@@ -336,9 +335,6 @@ export function IndustrySelect({
                                       : "border-border bg-bg font-normal text-text-main hover:border-border hover:bg-surface",
                                   )}
                                 >
-                                  {isSelected && (
-                                    <Check className="size-3 shrink-0" />
-                                  )}
                                   <span>{ind.name}</span>
                                 </button>
                               );

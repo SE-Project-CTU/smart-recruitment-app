@@ -16,6 +16,7 @@ import { JOB_LEVEL_OPTIONS, normalizeJobLevel } from "@/utils/jobHelpers";
 import { PATHS } from "@/constants/paths";
 import { JobDetailDrawer } from "@/components/job";
 import type { JobPostingSearchItem } from "@/types/job";
+import JobCardSkeleton from "@/components/common/JobCardSkeleton";
 
 function CandidateDashboard() {
   const navigate = useNavigate();
@@ -125,10 +126,7 @@ function CandidateDashboard() {
           {isLoadingJobs ? (
             <div className="flex gap-2">
               {[1, 2, 3].map((n) => (
-                <div
-                  key={n}
-                  className="h-80.5 w-90 shrink-0 animate-pulse rounded-2xl border border-border bg-slate-100"
-                />
+                <JobCardSkeleton key={n} />
               ))}
             </div>
           ) : filteredJobs.length > 0 ? (
@@ -138,6 +136,7 @@ function CandidateDashboard() {
                   job={item}
                   isSelected={selectedJob?.id === item.id && isDrawerOpen}
                   onSelect={() => handleOpenJobDetail(item)}
+                  className="min-w-90!"
                 />
               </div>
             ))

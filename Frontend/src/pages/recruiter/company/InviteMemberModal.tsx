@@ -1,16 +1,15 @@
 import { useState } from "react";
-import {
-  UserPlus,
-  X,
-  Send,
-  AlertCircle,
-  Info,
-  Mail,
-  ChevronDown,
-} from "lucide-react";
+import { AlertCircle, Info, Mail, ChevronDown } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import Button from "@/components/common/Button";
 import { toast } from "@/components/ui/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { useInviteMember } from "@/hooks/queries/useCompany";
 import { cn } from "@/lib/utils";
@@ -44,8 +43,6 @@ export function InviteMemberModal({
   const [error, setError] = useState<string | null>(null);
 
   const { mutateAsync: inviteMember, isPending } = useInviteMember();
-
-  if (!isOpen) return null;
 
   const handleClose = () => {
     if (isPending) return;
@@ -111,33 +108,16 @@ export function InviteMemberModal({
   };
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-      <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <UserPlus className="size-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-text-main">
-                Mời nhân sự tuyển dụng
-              </h2>
-              <p className="max-w-60 truncate text-xs text-text-muted">
-                {companyName}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleClose}
-            type="button"
-            disabled={isPending}
-            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-50"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Mời nhân sự tuyển dụng</DialogTitle>
+          <DialogDescription>
+            Gửi lời mời tham gia quản lý tuyển dụng tại {companyName}.
+          </DialogDescription>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-text-main">
               Email Nhà tuyển dụng (Recruiter){" "}
@@ -158,13 +138,12 @@ export function InviteMemberModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg py-2.5 pr-3.5 pl-10 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   error
-                    ? "focus:ring-stusborder-status-error/20 border-rose-400 focus:border-status-error"
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
                 autoFocus
               />
             </div>
-            {/* Chừa sẵn khoảng trống bên dưới input để giao diện không bị giật */}
             <div className="mt-1.5 min-h-5 text-[11px] leading-tight">
               {error ? (
                 <p className="animate-in fade-in flex items-center gap-1.5 font-medium text-status-error duration-150">
@@ -176,8 +155,7 @@ export function InviteMemberModal({
                   <Info className="size-3.5 shrink-0 text-sky-600" />
                   <span>
                     Hệ thống sẽ gửi thông báo và lời mời đến tài khoản này.
-                    Người nhận cần có tài khoản vai trò{" "}
-                    <strong>Nhà tuyển dụng (Recruiter)</strong>.
+                    Người nhận cần có tài khoản vai trò Nhà tuyển dụng.
                   </span>
                 </p>
               )}
@@ -199,15 +177,24 @@ export function InviteMemberModal({
                 aria-label="Thời hạn hiệu lực của lời mời"
                 className="group flex w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-bg px-3.5 py-2.5 text-sm text-text-main focus:border-primary focus:outline-none"
               >
-                <Select.Value />
+                <Select.Value>
+                  {(val) =>
+                    EXPIRE_DAYS_OPTIONS.find((opt) => opt.value === val)
+                      ?.label || "Chọn thời hạn"
+                  }
+                </Select.Value>
                 <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                   <ChevronDown className="size-4" />
                 </Select.Icon>
               </Select.Trigger>
 
               <Select.Portal>
-                <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
-                  <Select.Popup className="z-50 w-(--anchor-width) min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
+                <Select.Positioner
+                  className="isolate z-70"
+                  alignItemWithTrigger={false}
+                  sideOffset={4}
+                >
+                  <Select.Popup className="w-(--anchor-width) min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
                     <Select.List>
                       {EXPIRE_DAYS_OPTIONS.map((opt) => (
                         <Select.Item
@@ -229,7 +216,6 @@ export function InviteMemberModal({
                 </Select.Positioner>
               </Select.Portal>
             </Select.Root>
-            {/* Chừa sẵn khoảng trống tương đương */}
             <div className="mt-1.5 min-h-5" aria-hidden="true" />
           </div>
 
@@ -241,17 +227,12 @@ export function InviteMemberModal({
             >
               Hủy
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              icon={Send}
-              isLoading={isPending}
-            >
+            <Button type="submit" variant="primary" isLoading={isPending}>
               Gửi lời mời
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

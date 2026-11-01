@@ -21,6 +21,7 @@ import {
 } from "@/stores/applyJobModalStore";
 import type { JobPostingItem, JobPostingSearchItem } from "@/types/job";
 import type { MockJobPosting } from "@/constants/mockData";
+import { cn } from "@/lib/utils";
 
 export type JobCardItem =
   JobPostingItem | JobPostingSearchItem | MockJobPosting | AnyJob;
@@ -28,6 +29,7 @@ export type JobCardItem =
 export interface JobCardProps<T extends JobCardItem = JobCardItem> {
   job: T;
   isSelected?: boolean;
+  className?: string;
   onSelect?: (job: T) => void;
   onApply?: (job: T) => void;
   isBookmarked?: boolean;
@@ -39,6 +41,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   isSelected = false,
   onSelect,
   onApply,
+  className,
   isBookmarked: externalIsBookmarked,
   onToggleBookmark,
 }: JobCardProps<T>) {
@@ -81,11 +84,14 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative flex min-h-80.5 max-w-120 min-w-90 cursor-pointer flex-col justify-between rounded-2xl border p-6 shadow-xs transition-all duration-300 ${
+
+      className={cn(
+        className,
+        "group relative flex min-h-80.5 max-w-120 cursor-pointer flex-col justify-between rounded-2xl border p-6 shadow-xs transition-all duration-300",
         isSelected
           ? "border-primary bg-secondary-light/20 shadow-md ring-2 ring-primary/20"
-          : "border-border bg-surface hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200"
-      }`}
+          : "border-border bg-surface hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200",
+      )}
     >
       <div>
         <div className="flex items-start justify-between gap-2">

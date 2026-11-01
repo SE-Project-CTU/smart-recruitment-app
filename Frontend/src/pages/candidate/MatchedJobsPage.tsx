@@ -176,18 +176,63 @@ export default function MatchedJobsPage() {
                 <CheckCircle className="size-3.5 shrink-0 text-emerald-600" />
                 <span>Đang đối sánh theo hồ sơ:</span>
                 {cvList.length > 1 ? (
-                  <select
+                  <Select.Root
+                    items={cvList.map((cv) => ({
+                      value: cv.id,
+                      label: `${cv.title}${cv.isPublic ? " (Mặc định)" : ""}`,
+                    }))}
                     value={activeCv.id}
-                    onChange={(e) => setSelectedCvId(e.target.value)}
-                    aria-label="Chọn hồ sơ CV đối sánh"
-                    className="cursor-pointer rounded-full border border-border bg-white px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:border-primary focus:border-primary focus:outline-none"
+                    onValueChange={(val) => {
+                      if (val) setSelectedCvId(val);
+                    }}
                   >
-                    {cvList.map((cv) => (
-                      <option key={cv.id} value={cv.id}>
-                        {cv.title} {cv.isPublic ? "(Mặc định)" : ""}
-                      </option>
-                    ))}
-                  </select>
+                    <Select.Trigger
+                      aria-label="Chọn hồ sơ CV đối sánh"
+                      className="group flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-white px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:border-primary focus:border-primary focus:outline-none"
+                    >
+                      <Select.Value>
+                        {(val) => {
+                          const target = cvList.find((c) => c.id === val);
+                          return target
+                            ? `${target.title}${target.isPublic ? " (Mặc định)" : ""}`
+                            : "Chọn hồ sơ";
+                        }}
+                      </Select.Value>
+                      <Select.Icon className="text-primary/70 transition-transform duration-200 group-data-popup-open:rotate-180">
+                        <ChevronDown className="size-3" />
+                      </Select.Icon>
+                    </Select.Trigger>
+
+                    <Select.Portal>
+                      <Select.Positioner
+                        alignItemWithTrigger={false}
+                        sideOffset={4}
+                        className="isolate z-50"
+                      >
+                        <Select.Popup className="min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                          <Select.List>
+                            {cvList.map((cv) => (
+                              <Select.Item
+                                key={cv.id}
+                                value={cv.id}
+                                className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                              >
+                                <Select.ItemText>
+                                  {cv.title} {cv.isPublic ? "(Mặc định)" : ""}
+                                </Select.ItemText>
+                                <Select.ItemIndicator
+                                  animation="pop"
+                                  className="ml-2 text-xs text-primary"
+                                >
+                                  ✓
+                                </Select.ItemIndicator>
+                              </Select.Item>
+                            ))}
+                          </Select.List>
+                        </Select.Popup>
+                      </Select.Positioner>
+                    </Select.Portal>
+                  </Select.Root>
                 ) : (
                   <strong className="font-semibold text-text-main">
                     {activeCv.title}

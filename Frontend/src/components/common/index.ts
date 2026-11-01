@@ -42,3 +42,6 @@ export { default as UserAvatar } from "./UserAvatar";
 
 export * from "./LoadingScreen";
 export { default as LoadingScreen } from "./LoadingScreen";
+
+export * from "./DatePicker";
+export { default as DatePicker } from "./DatePicker";
