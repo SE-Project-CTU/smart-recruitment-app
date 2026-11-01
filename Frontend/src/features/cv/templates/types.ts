@@ -1,20 +1,10 @@
 import type { ReactNode } from "react";
-import type { RichTextCvEditorValues } from "../builder/schema/richTextCvSchema";
 import type {
   CvTiptapDocument,
   RichTextCVContentDocument,
-  RichTextCVDetail,
-  CVTemplateDetail,
   CVLayoutDocument,
 } from "@/types/cv";
 import type { FixedSectionKey } from "../types";
-
-export type CvRenderData =
-  | RichTextCvEditorValues
-  | RichTextCVContentDocument
-  | RichTextCVDetail
-  | CVTemplateDetail
-  | { content: RichTextCVContentDocument; layout?: CVLayoutDocument };
 
 export interface CvFieldRenderProps {
   name: string;
@@ -43,12 +33,25 @@ export interface CvSectionEditorsMap {
   awards?: SectionItemEditorActions;
 }
 
+/**
+ * Props chuẩn hóa truyền vào từng Template CV:
+ * layout và content được cung cấp tường minh làm nguồn dữ liệu duy nhất.
+ */
 export interface CvTemplateProps {
-  data: CvRenderData;
+  content: RichTextCVContentDocument;
+  layout: CVLayoutDocument;
   renderField?: CvFieldRenderer;
   isReadOnly?: boolean;
   className?: string;
   sectionEditors?: CvSectionEditorsMap;
+  onReorderAreaSections?: (areaId: string, newSections: string[]) => void;
+  onMoveSectionToArea?: (sectionKey: string, targetAreaId: string) => void;
+  onMoveSectionBetweenAreas?: (
+    sourceAreaId: string,
+    destAreaId: string,
+    sourceIndex: number,
+    destIndex: number,
+  ) => void;
   onReorderSections?: (newOrder: string[]) => void;
   onToggleSectionVisibility?: (key: FixedSectionKey) => void;
 }

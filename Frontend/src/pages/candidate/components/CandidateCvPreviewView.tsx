@@ -210,7 +210,8 @@ export const CandidateCvPreviewView: React.FC<CandidateCvPreviewViewProps> = ({
 
         <div className="bg-slate-100 p-4 md:p-8">
           <CvPreviewWorkspace
-            data={cvData}
+            content={cvData.content}
+            layout={cvData.layout}
             contentRef={printRef}
             className="bg-transparent! p-0!"
           />

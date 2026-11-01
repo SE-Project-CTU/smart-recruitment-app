@@ -225,13 +225,7 @@ const awardItemSchema = z.object({
 });
 
 const sectionsSchema = z.object({
-  order: z.array(z.enum(FIXED_SECTION_KEYS)).refine((order) => {
-    const unique = new Set(order);
-    return (
-      unique.size === FIXED_SECTION_KEYS.length &&
-      FIXED_SECTION_KEYS.every((key) => unique.has(key))
-    );
-  }, "Thứ tự phải chứa đủ 9 section, không trùng lặp"),
+  order: z.array(z.string()).optional(),
   objective: textSectionSchema,
   experience: itemSectionSchema(experienceItemSchema),
   education: itemSectionSchema(educationItemSchema),
@@ -252,27 +246,50 @@ const contentSchema = z.object({
 const layoutSchema = z
   .object({
     version: z.string().min(1),
-    areas: z.array(
-      z.object({
-        id: z.string().min(1),
-        sections: z.array(z.enum(FIXED_SECTION_KEYS)),
-      }),
-    ),
+    areas: z
+      .array(
+        z.object({
+          id: z.string().min(1, "Area ID không được để trống"),
+          sections: z.array(z.enum(FIXED_SECTION_KEYS)),
+        }),
+      )
+      .min(1, "Layout phải chứa ít nhất 1 area"),
   })
   .superRefine((layout, context) => {
-    const seen = new Set<string>();
+    const areaIds = new Set<string>();
+    const seenSections = new Set<string>();
+
     layout.areas.forEach((area, areaIndex) => {
+      if (areaIds.has(area.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["areas", areaIndex, "id"],
+          message: `Area ID '${area.id}' bị trùng lặp`,
+        });
+      }
+      areaIds.add(area.id);
+
       area.sections.forEach((sectionKey, sectionIndex) => {
-        if (seen.has(sectionKey)) {
+        if (seenSections.has(sectionKey)) {
           context.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["areas", areaIndex, "sections", sectionIndex],
-            message: "Một section không được xuất hiện ở nhiều area",
+            message: `Section '${sectionKey}' không được xuất hiện ở nhiều area`,
           });
         }
-        seen.add(sectionKey);
+        seenSections.add(sectionKey);
       });
     });
+
+    for (const key of FIXED_SECTION_KEYS) {
+      if (!seenSections.has(key)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["areas"],
+          message: `Section '${key}' phải được gán vào một area trong layout`,
+        });
+      }
+    }
   });
 
 export const richTextCvEditorSchema = z
@@ -307,6 +324,27 @@ export const richTextCvEditorSchema = z
         } else {
           ids.set(item.id, `${sectionKey}[${index}]`);
         }
+      });
+    }
+
+    // Kiểm tra area IDs: template Senior Harvard chỉ hỗ trợ duy nhất area 'main'
+    const allowedAreas = ["main"];
+
+    data.layout.areas.forEach((area, index) => {
+      if (!allowedAreas.includes(area.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["layout", "areas", index, "id"],
+          message: `Area ID '${area.id}' không hợp lệ. Template Senior Harvard chỉ hỗ trợ duy nhất vùng 'main'`,
+        });
+      }
+    });
+
+    if (!data.layout.areas.some((a) => a.id === "main")) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["layout", "areas"],
+        message: "Layout bắt buộc phải có area với id là 'main'",
       });
     }
   });

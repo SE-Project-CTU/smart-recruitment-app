@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { Eye, X } from "lucide-react";
 import { CvPreviewWorkspace } from "../../templates/CvPreviewWorkspace";
-import type { CvRenderData } from "../../templates/types";
+import type { RichTextCVContentDocument, CVLayoutDocument } from "@/types/cv";
 
 interface CvPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: CvRenderData;
+  content: RichTextCVContentDocument;
+  layout: CVLayoutDocument;
   title?: string;
 }
 
@@ -18,14 +19,10 @@ interface CvPreviewModalProps {
 export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
   isOpen,
   onClose,
-  data,
-  title,
+  content,
+  layout,
+  title = "Xem trước CV",
 }) => {
-  const displayTitle =
-    title ||
-    ("title" in data && typeof data.title === "string" && data.title) ||
-    "Xem trước CV";
-
   // Đóng modal khi bấm phím ESC
   useEffect(() => {
     if (!isOpen) return;
@@ -73,7 +70,7 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
           id="preview-modal-title"
           className="line-clamp-1 flex-2 text-center text-lg font-semibold text-text-main"
         >
-          {displayTitle}
+          {title}
         </h2>
         <div className="flex flex-1 items-center justify-end">
           <button
@@ -92,7 +89,8 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
       <div className="flex flex-1 justify-center overflow-y-auto p-2 md:p-4">
         <div className="h-max bg-gray-100 p-4">
           <CvPreviewWorkspace
-            data={data}
+            content={content}
+            layout={layout}
             className="bg-transparent!"
           />
         </div>

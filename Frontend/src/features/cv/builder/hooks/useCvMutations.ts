@@ -1,48 +1,47 @@
 import { useFormContext } from "react-hook-form";
-import type { CvEditorValues } from "../schema/cvSchema";
+import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import type { FixedSectionKey } from "../../types";
 
 /**
  * Hook quản lý các thao tác mutation nghiệp vụ trên CV:
- * - Đổi thứ tự sections (order)
+ * - Đổi thứ tự sections theo layout.areas
  * - Đổi visibility của section
  * - Phân bố sections vào areas
  * - Dọn dẹp dynamic style keys khi xóa item
  */
 export function useCvMutations() {
-  const { getValues, setValue } = useFormContext<CvEditorValues>();
+  const { getValues, setValue } = useFormContext<RichTextCvEditorValues>();
 
   /**
-   * Xóa toàn bộ dynamic style key liên quan đến itemId vừa bị xóa
+   * Thay đổi thứ tự sections trong 1 area cụ thể của layout
    */
-  const cleanupItemStyles = (itemId: string) => {
-    const currentFields = getValues("presentation.styles.fields") || {};
-    const updatedFields = { ...currentFields };
-    let hasChanged = false;
-
-    for (const key of Object.keys(updatedFields)) {
-      if (key.startsWith(`${itemId}.`)) {
-        delete updatedFields[key];
-        hasChanged = true;
+  const reorderAreaSections = (
+    areaId: string,
+    newSections: (FixedSectionKey | string)[],
+  ) => {
+    const areas = getValues("layout.areas") || [];
+    const typedSections = newSections as FixedSectionKey[];
+    const updatedAreas = areas.map((area) => {
+      if (area.id === areaId) {
+        return {
+          ...area,
+          sections: typedSections,
+        };
       }
-    }
+      return area;
+    });
 
-    if (hasChanged) {
-      setValue("presentation.styles.fields", updatedFields, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }
-  };
-
-  /**
-   * Thay đổi thứ tự sections
-   */
-  const reorderSections = (newOrder: string[]) => {
-    setValue("content.sections.order", newOrder, {
+    setValue("layout.areas", updatedAreas, {
       shouldDirty: true,
       shouldValidate: true,
     });
+  };
+
+  /**
+   * Thay đổi thứ tự sections legacy (cho main area)
+   */
+  const reorderSections = (newOrder: (FixedSectionKey | string)[]) => {
+    reorderAreaSections("main", newOrder);
   };
 
   /**
@@ -60,14 +59,15 @@ export function useCvMutations() {
    * Di chuyển 1 section sang 1 layout area khác
    */
   const moveSectionToArea = (sectionKey: string, targetAreaId: string) => {
+    const typedKey = sectionKey as FixedSectionKey;
     const areas = getValues("layout.areas") || [];
     const updatedAreas = areas.map((area) => {
       // Bỏ section khỏi các area khác
-      const filtered = area.sections.filter((s) => s !== sectionKey);
+      const filtered = area.sections.filter((s) => s !== typedKey);
       if (area.id === targetAreaId) {
         return {
           ...area,
-          sections: [...filtered, sectionKey],
+          sections: [...filtered, typedKey],
         };
       }
       return {
@@ -82,10 +82,58 @@ export function useCvMutations() {
     });
   };
 
+  /**
+   * Di chuyển 1 section giữa 2 areas tại index cụ thể
+   */
+  const moveSectionBetweenAreas = (
+    sourceAreaId: string,
+    destAreaId: string,
+    sourceIndex: number,
+    destIndex: number,
+  ) => {
+    const areas = getValues("layout.areas") || [];
+    const sourceArea = areas.find((a) => a.id === sourceAreaId);
+    const destArea = areas.find((a) => a.id === destAreaId);
+    if (!sourceArea || !destArea) return;
+
+    if (sourceAreaId === destAreaId) {
+      const newSections = Array.from(sourceArea.sections);
+      const [removed] = newSections.splice(sourceIndex, 1);
+      if (removed) {
+        newSections.splice(destIndex, 0, removed);
+        reorderAreaSections(sourceAreaId, newSections);
+      }
+      return;
+    }
+
+    const sourceSections = Array.from(sourceArea.sections);
+    const [moved] = sourceSections.splice(sourceIndex, 1);
+    if (!moved) return;
+
+    const destSections = Array.from(destArea.sections);
+    destSections.splice(destIndex, 0, moved);
+
+    const updatedAreas = areas.map((area) => {
+      if (area.id === sourceAreaId) {
+        return { ...area, sections: sourceSections as FixedSectionKey[] };
+      }
+      if (area.id === destAreaId) {
+        return { ...area, sections: destSections as FixedSectionKey[] };
+      }
+      return area;
+    });
+
+    setValue("layout.areas", updatedAreas, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
   return {
-    cleanupItemStyles,
+    reorderAreaSections,
     reorderSections,
     toggleSectionVisibility,
     moveSectionToArea,
+    moveSectionBetweenAreas,
   };
 }

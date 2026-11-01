@@ -12,6 +12,10 @@ public static partial class CvDocumentUpdateValidator {
         "objective", "experience", "education", "skills", "projects",
         "certifications", "awards", "interests", "additionalInfo"
     };
+
+    private static readonly Dictionary<string, HashSet<string>> SupportedTemplateAreas = new(StringComparer.OrdinalIgnoreCase) {
+        ["senior_harvard"] = new(StringComparer.Ordinal) { "main" }
+    };
     
     [GeneratedRegex(RequestValidationPatterns.VietnamesePhone)]
     private static partial Regex PhoneRegex();
@@ -38,6 +42,10 @@ public static partial class CvDocumentUpdateValidator {
                 !Enum.IsDefined(content.Metadata.Language)) {
                 errors.Add(Invalid("content.metadata",
                     "Metadata must contain a version, template code, and supported language."));
+            }
+            else if (!SupportedTemplateAreas.ContainsKey(content.Metadata.TemplateCode)) {
+                errors.Add(Invalid("content.metadata.templateCode",
+                    $"Template '{content.Metadata.TemplateCode}' is not supported. Supported templates: {string.Join(", ", SupportedTemplateAreas.Keys)}."));
             }
             
             if (content.Metadata.DefaultStyle is null) {
@@ -91,11 +99,9 @@ public static partial class CvDocumentUpdateValidator {
         }
         else {
             var sections = content.Sections;
-            if (sections.Order is null ||
-                sections.Order.Count != KnownSections.Count ||
-                sections.Order.Any(section => !KnownSections.Contains(section))) {
+            if (sections.Order is not null && sections.Order.Any(section => !KnownSections.Contains(section))) {
                 errors.Add(Invalid("content.sections.order",
-                    "Order must contain each supported CV section exactly once."));
+                    "Order contains unsupported CV sections."));
             }
             
             ValidateTextSection(sections.Objective, "content.sections.objective", errors, isContentRequired: true);
@@ -126,10 +132,19 @@ public static partial class CvDocumentUpdateValidator {
             else {
                 var areaIds = new HashSet<string>(StringComparer.Ordinal);
                 var placedSections = new HashSet<string>(StringComparer.Ordinal);
+                HashSet<string>? allowedAreas = null;
+                var hasTemplate = !string.IsNullOrWhiteSpace(content.Metadata?.TemplateCode) &&
+                                  SupportedTemplateAreas.TryGetValue(content.Metadata.TemplateCode, out allowedAreas);
+
                 foreach (var area in layout.Areas) {
                     if (area is null || string.IsNullOrWhiteSpace(area.Id) || !areaIds.Add(area.Id)) {
                         errors.Add(Invalid("layout.areas", "Area ids must be present and unique."));
                         continue;
+                    }
+
+                    if (hasTemplate && allowedAreas is not null && !allowedAreas.Contains(area.Id)) {
+                        errors.Add(Invalid("layout.areas",
+                            $"Area '{area.Id}' is not supported by template '{content.Metadata!.TemplateCode}'. Supported areas: {string.Join(", ", allowedAreas)}."));
                     }
                     
                     if (area.Sections is null) {
@@ -137,17 +152,28 @@ public static partial class CvDocumentUpdateValidator {
                             "Each area must contain a section list."));
                         continue;
                     }
-                    
+
+                    var seenInArea = new HashSet<string>(StringComparer.Ordinal);
                     foreach (var section in area.Sections) {
-                        if (!KnownSections.Contains(section)) {
+                        if (string.IsNullOrWhiteSpace(section) || !KnownSections.Contains(section)) {
                             errors.Add(Invalid($"layout.areas.{area.Id}.sections",
                                 $"'{section}' is not a supported CV section."));
+                        }
+                        else if (!seenInArea.Add(section)) {
+                            errors.Add(Invalid($"layout.areas.{area.Id}.sections",
+                                $"Section '{section}' is duplicated in area '{area.Id}'."));
                         }
                         else if (!placedSections.Add(section)) {
                             errors.Add(Invalid($"layout.areas.{area.Id}.sections",
                                 $"Section '{section}' can be assigned to only one area."));
                         }
                     }
+                }
+
+                if (placedSections.Count != KnownSections.Count) {
+                    var missingSections = KnownSections.Where(s => !placedSections.Contains(s));
+                    errors.Add(Invalid("layout.areas",
+                        $"Layout must contain all supported CV sections. Missing sections: {string.Join(", ", missingSections)}."));
                 }
             }
         }

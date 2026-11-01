@@ -118,7 +118,7 @@ export interface CvDefaultStyle {
   lineHeight: number;
 }
 
-export type CvTemplateCode = "modern_two_column";
+export type CvTemplateCode = "senior_harvard";
 
 export interface CvTiptapDocumentMetadata {
   version: string;

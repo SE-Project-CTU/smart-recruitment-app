@@ -315,7 +315,8 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
           <CvPreviewModal
             isOpen={isPreviewOpen}
             onClose={() => setIsPreviewOpen(false)}
-            data={previewData}
+            content={previewData.content as unknown as RichTextCVContentDocument}
+            layout={previewData.layout}
             title={previewData.title}
           />
         )}

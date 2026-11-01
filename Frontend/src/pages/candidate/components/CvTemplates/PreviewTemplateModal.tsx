@@ -11,7 +11,6 @@ import { useCvTemplateDetail } from "@/hooks/queries/useCv";
 import {
   CvPreviewWorkspace,
   normalizeCvContentFontSizes,
-  type CvRenderData,
 } from "@/features/cv";
 import type { CVTemplateItemData } from "@/components/common/CVTemplateCard";
 
@@ -53,19 +52,12 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
     refetch,
   } = useCvTemplateDetail(templateId);
 
-  // Chuẩn hóa dữ liệu render từ defaultContent của template
-  const renderData: CvRenderData | null = useMemo(() => {
-    if (!templateDetail) return null;
-
-    const content = templateDetail.defaultContent;
-    if (content) {
-      normalizeCvContentFontSizes(content);
-    }
-
-    return {
-      content,
-      layout: templateDetail.defaultLayout,
-    };
+  // Chuẩn hóa dữ liệu content từ defaultContent của template
+  const templateContent = useMemo(() => {
+    if (!templateDetail?.defaultContent) return null;
+    const content = structuredClone(templateDetail.defaultContent);
+    normalizeCvContentFontSizes(content);
+    return content;
   }, [templateDetail]);
 
   return (
@@ -139,13 +131,17 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
             </div>
           )}
 
-          {!isLoading && !isError && renderData && (
+          {!isLoading && !isError && templateContent && templateDetail?.defaultLayout && (
             <div className="h-max">
-              <CvPreviewWorkspace data={renderData} className="bg-transparent! p-0!" />
+              <CvPreviewWorkspace
+                content={templateContent}
+                layout={templateDetail.defaultLayout}
+                className="bg-transparent! p-0!"
+              />
             </div>
           )}
 
-          {!isLoading && !isError && !renderData && (
+          {!isLoading && !isError && (!templateContent || !templateDetail?.defaultLayout) && (
             <div className="my-auto flex flex-col items-center justify-center text-center text-sm text-text-muted">
               <Eye className="size-8 text-text-muted/60" />
               <p className="mt-2">Không tìm thấy nội dung mẫu giao diện này.</p>

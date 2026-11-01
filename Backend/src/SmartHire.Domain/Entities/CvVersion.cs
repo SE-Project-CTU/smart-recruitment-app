@@ -77,7 +77,7 @@ public class CvVersion {
             SocialLink = CvTiptapDocument.DeepClone(source.Profile.SocialLink)
         },
         Sections = source.Sections with {
-            Order = [.. source.Sections.Order],
+            Order = source.Sections.Order is not null ? [.. source.Sections.Order] : null,
             Objective = source.Sections.Objective with {
                 Title = CvTiptapDocument.DeepClone(source.Sections.Objective.Title),
                 Content = CvTiptapDocument.DeepClone(source.Sections.Objective.Content)

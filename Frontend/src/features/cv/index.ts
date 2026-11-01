@@ -6,15 +6,14 @@ export {
   type CvPreviewWorkspaceProps,
 } from "./templates/CvPreviewWorkspace";
 export {
-  ModernTwoColumnTemplate,
-} from "./templates/ModernTwoColumn";
+  SeniorHarvardTemplate,
+} from "./templates/SeniorHarvard";
 export {
   TEMPLATE_REGISTRY,
   getCvTemplateComponent,
 } from "./templates/registry";
 export type {
   CvTemplateProps,
-  CvRenderData,
   CvFieldRenderer,
   CvFieldRenderProps,
   SectionItemEditorActions,
