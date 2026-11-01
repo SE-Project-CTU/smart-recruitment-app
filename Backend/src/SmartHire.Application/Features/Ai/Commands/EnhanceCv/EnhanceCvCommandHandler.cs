@@ -35,10 +35,15 @@ public sealed class EnhanceCvCommandHandler : IRequestHandler<EnhanceCvCommand, 
     public async Task<EnhanceCvResult> Handle(EnhanceCvCommand request, CancellationToken cancellationToken) {
         EnhanceCvCommandValidator.Validate(request);
 
-        // 1. Calculate Cache Key
-        var cacheKey = BuildCacheKey(request);
+        var aiRequest = await CvEnhanceContextResolver.ResolveAsync(
+            request,
+            _cvVersionRepository,
+            _jobPostingRepository,
+            cancellationToken
+        );
 
-        // 2. Try read from Redis cache
+        var cacheKey = BuildCacheKey(request, aiRequest.Language);
+
         try {
             var cachedJson = await _cache.GetStringAsync(cacheKey, cancellationToken);
             if (!string.IsNullOrWhiteSpace(cachedJson)) {
@@ -48,36 +53,24 @@ public sealed class EnhanceCvCommandHandler : IRequestHandler<EnhanceCvCommand, 
                 }
             }
         } catch {
-            // Graceful fallback if Redis is temporarily unreachable
         }
 
-        // 3. Resolve context (CV, JobPosting, Content)
-        var aiRequest = await CvEnhanceContextResolver.ResolveAsync(
-            request,
-            _cvVersionRepository,
-            _jobPostingRepository,
-            cancellationToken
-        );
-
-        // 4. Call Gemini AI with Google XYZ enhancement
         var result = await _geminiAiService.EnhanceCvAsync(aiRequest, cancellationToken);
         var mappedResult = AiResultMapper.ToEnhanceCvResult(result);
 
-        // 5. Save to Redis with 24 hours expiration
         try {
             var serialized = JsonSerializer.Serialize(mappedResult, JsonOptions);
             await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
             }, cancellationToken);
         } catch {
-            // Non-blocking cache write failure
         }
 
         return mappedResult;
     }
 
-    private static string BuildCacheKey(EnhanceCvCommand request) {
-        var rawKey = $"{request.CvVersionId?.ToString() ?? request.CvId?.ToString() ?? request.Content?.Trim()}|{request.TargetJobId?.ToString() ?? request.TargetJobTitle?.Trim()}|{request.SectionType?.Trim()}|{request.Language?.Trim() ?? "vi"}";
+    private static string BuildCacheKey(EnhanceCvCommand request, string resolvedLanguage) {
+        var rawKey = $"{request.CvVersionId?.ToString() ?? request.CvId?.ToString() ?? request.Content?.Trim()}|{request.TargetJobId?.ToString() ?? request.TargetJobTitle?.Trim()}|{request.SectionType?.Trim()}|{resolvedLanguage}";
         using var sha = SHA256.Create();
         var bytes = Encoding.UTF8.GetBytes(rawKey);
         var hash = sha.ComputeHash(bytes);

@@ -46,7 +46,7 @@ public sealed class AiController : ControllerBase {
     }
 
     /// <summary>
-    /// API 1: Trợ lý viết CV - Gợi ý từ ngữ & Tối ưu hóa nội dung chuẩn Google XYZ (Chỉ dành cho Candidate)
+    /// Trợ lý viết CV - Gợi ý từ ngữ & Tối ưu hóa nội dung chuẩn Google XYZ
     /// </summary>
     [Authorize(Roles = RoleNames.Candidate)]
     [HttpPost("cv/enhance")]
@@ -58,7 +58,7 @@ public sealed class AiController : ControllerBase {
     }
 
     /// <summary>
-    /// API 1 Extension: Trợ lý viết CV - Real-time Streaming qua SSE theo chuẩn Google XYZ (Chỉ dành cho Candidate)
+    /// Trợ lý viết CV - Real-time Streaming qua SSE theo chuẩn Google XYZ
     /// </summary>
     [Authorize(Roles = RoleNames.Candidate)]
     [HttpPost("cv/enhance/stream")]
@@ -77,6 +77,7 @@ public sealed class AiController : ControllerBase {
         Response.Headers["Content-Type"] = "text/event-stream";
         Response.Headers["Cache-Control"] = "no-cache";
         Response.Headers["Connection"] = "keep-alive";
+        Response.Headers["X-Accel-Buffering"] = "no";
 
         await foreach (var token in _geminiAiService.StreamEnhanceCvAsync(request, cancellationToken)) {
             await Response.WriteAsync($"data: {token}\n\n", cancellationToken);
@@ -88,7 +89,7 @@ public sealed class AiController : ControllerBase {
     }
 
     /// <summary>
-    /// API 2: Phân tích & Chấm điểm độ phù hợp giữa CV và JD (Candidate & Recruiter)
+    /// Phân tích & Chấm điểm độ phù hợp giữa CV và JD
     /// </summary>
     [Authorize]
     [HttpPost("match-analysis")]
@@ -100,7 +101,7 @@ public sealed class AiController : ControllerBase {
     }
 
     /// <summary>
-    /// API 3: Xem kết quả phân tích AI của đơn ứng tuyển
+    /// Xem kết quả phân tích AI của đơn ứng tuyển
     /// </summary>
     [Authorize]
     [HttpGet("applications/{applicationId:guid}/match-result")]
@@ -112,7 +113,7 @@ public sealed class AiController : ControllerBase {
     }
 
     /// <summary>
-    /// API 4: Danh sách việc làm gợi ý thông minh cho Ứng viên
+    /// Danh sách việc làm gợi ý thông minh cho Ứng viên
     /// </summary>
     [Authorize(Roles = RoleNames.Candidate)]
     [HttpGet("recommendations")]
@@ -131,7 +132,7 @@ public sealed class AiController : ControllerBase {
     }
 
     /// <summary>
-    /// API 5: Yêu cầu làm mới gợi ý việc làm (Hangfire Background Processing)
+    /// Yêu cầu làm mới gợi ý việc làm (Hangfire Background)
     /// </summary>
     [Authorize(Roles = RoleNames.Candidate)]
     [HttpPost("recommendations/refresh")]
@@ -140,10 +141,6 @@ public sealed class AiController : ControllerBase {
         var result = await _sender.Send(new RefreshRecommendationsCommand(), cancellationToken);
         return Accepted(_responseFactory.Success(result));
     }
-
-    // =========================================================================
-    // NHÓM API QUẢN LÝ PHIÊN TRÒ CHUYỆN AI (CONVERSATIONS & MESSAGES) - CHỈ CANDIDATE
-    // =========================================================================
 
     /// <summary>
     /// Lấy danh sách các cuộc trò chuyện (Phân nhóm Pinned và Recent, hỗ trợ tìm kiếm)

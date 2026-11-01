@@ -4,17 +4,41 @@ using SmartHire.Application.Features.Ai.Exceptions;
 namespace SmartHire.Application.Features.Ai.Commands.EnhanceCv;
 
 public static class EnhanceCvCommandValidator {
-    private static readonly HashSet<string> AllowedSectionTypes = new(StringComparer.OrdinalIgnoreCase) {
-        "WORK_EXPERIENCE",
-        "PROJECT",
-        "OBJECTIVE",
+    public static readonly HashSet<string> CanonicalSectionTypes = new(StringComparer.OrdinalIgnoreCase) {
+        "EXPERIENCE",
+        "PROJECTS",
         "SKILLS",
-        "SUMMARY"
+        "EDUCATION",
+        "OBJECTIVE",
+        "CERTIFICATIONS",
+        "AWARDS"
     };
+
+    public static string? NormalizeSectionType(string? raw) {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        var s = raw.Trim().ToUpperInvariant();
+        return s switch {
+            "WORK_EXPERIENCE" => "EXPERIENCE",
+            "EXPERIENCE" => "EXPERIENCE",
+            "PROJECT" => "PROJECTS",
+            "PROJECTS" => "PROJECTS",
+            "SKILL" => "SKILLS",
+            "SKILLS" => "SKILLS",
+            "EDUCATION" => "EDUCATION",
+            "OBJECTIVE" => "OBJECTIVE",
+            "SUMMARY" => "OBJECTIVE",
+            "CERTIFICATION" => "CERTIFICATIONS",
+            "CERTIFICATIONS" => "CERTIFICATIONS",
+            "AWARD" => "AWARDS",
+            "AWARDS" => "AWARDS",
+            _ => s
+        };
+    }
 
     private static readonly HashSet<string> AllowedLanguages = new(StringComparer.OrdinalIgnoreCase) {
         "vi",
-        "en"
+        "en",
+        "auto"
     };
 
     public static void Validate(EnhanceCvCommand command) {
@@ -42,8 +66,11 @@ public static class EnhanceCvCommandValidator {
             details.Add(new AppErrorDetail("targetJobTitle", "MAX_LENGTH", "Tiêu đề vị trí mục tiêu không được vượt quá 150 ký tự."));
         }
 
-        if (!string.IsNullOrWhiteSpace(command.SectionType) && !AllowedSectionTypes.Contains(command.SectionType.Trim())) {
-            details.Add(new AppErrorDetail("sectionType", "INVALID_VALUE", "Loại mục phải là WORK_EXPERIENCE, PROJECT, OBJECTIVE, SKILLS hoặc SUMMARY nếu được chỉ định."));
+        if (!string.IsNullOrWhiteSpace(command.SectionType)) {
+            var normalized = NormalizeSectionType(command.SectionType);
+            if (!CanonicalSectionTypes.Contains(normalized!)) {
+                details.Add(new AppErrorDetail("sectionType", "INVALID_VALUE", "Loại mục không hợp lệ. Chuẩn AI hỗ trợ các mục: EXPERIENCE, PROJECTS, SKILLS, EDUCATION, OBJECTIVE, CERTIFICATIONS, AWARDS."));
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(command.Language) && !AllowedLanguages.Contains(command.Language.Trim())) {

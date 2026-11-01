@@ -3,6 +3,7 @@ using MediatR;
 using SmartHire.Application.Abstractions.Ai;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Features.Ai.Commands.EnhanceCv;
 using SmartHire.Application.Features.Ai.DTOs;
 using SmartHire.Application.Features.Ai.Exceptions;
 using SmartHire.Domain.Entities;
@@ -12,7 +13,7 @@ namespace SmartHire.Application.Features.Ai.Commands.SendMessage;
 public sealed record SendMessageCommand(
     Guid ConversationId,
     string Content,
-    string? SectionType = "WORK_EXPERIENCE",
+    string? SectionType = "EXPERIENCE",
     string? TargetJobTitle = null,
     string? Language = "vi"
 ) : IRequest<AiMessageDto>;
@@ -53,13 +54,13 @@ public sealed class SendMessageCommandHandler : IRequestHandler<SendMessageComma
             throw AiExceptions.Forbidden("Bạn không có quyền gửi tin nhắn trong cuộc trò chuyện này.");
         }
 
-        // 1. Lưu tin nhắn của User
+        // Lưu tin nhắn của User
         var userMessage = AiMessage.CreateUserMessage(conversation.Id, request.Content.Trim());
         await _conversationRepository.AddMessageAsync(userMessage, cancellationToken);
         conversation.Touch();
 
-        // 2. Gọi Gemini để sinh câu trả lời
-        var sectionType = string.IsNullOrWhiteSpace(request.SectionType) ? "WORK_EXPERIENCE" : request.SectionType.Trim();
+        // Gọi Gemini để sinh câu trả lời
+        var sectionType = EnhanceCvCommandValidator.NormalizeSectionType(request.SectionType) ?? "EXPERIENCE";
         var enhanceResult = await _geminiAiService.EnhanceCvAsync(
             new CvEnhanceRequest(
                 Content: request.Content.Trim(),
@@ -70,7 +71,7 @@ public sealed class SendMessageCommandHandler : IRequestHandler<SendMessageComma
             cancellationToken
         );
 
-        // 3. Đổi tên cuộc trò chuyện tự động theo nội dung câu hỏi đầu tiên (theo chuẩn Antigravity / Claude / Gemini)
+        // Đổi tên cuộc trò chuyện tự động theo nội dung câu hỏi đầu tiên (theo chuẩn Antigravity / Claude / Gemini)
         if (conversation.Title == "Tối ưu CV" || conversation.Title.StartsWith("Tối ưu CV #") || conversation.Title == "Cuộc trò chuyện mới" || conversation.Title.StartsWith("Cuộc trò chuyện mới #")) {
             var smartTitle = GenerateSmartTitle(request.Content.Trim(), sectionType, request.TargetJobTitle, enhanceResult.SuggestedKeywords, enhanceResult.ConversationTitle);
             conversation.UpdateTitle(smartTitle);
@@ -108,7 +109,7 @@ public sealed class SendMessageCommandHandler : IRequestHandler<SendMessageComma
         IReadOnlyList<string>? keywords,
         string? aiGeneratedTitle) {
 
-        // 1. Ưu tiên tiêu đề do AI tự động tổng hợp theo ngữ cảnh hội thoại (phong cách Antigravity / Claude / Gemini)
+        // Ưu tiên tiêu đề do AI tự động tổng hợp theo ngữ cảnh hội thoại (phong cách Antigravity / Claude / Gemini)
         if (!string.IsNullOrWhiteSpace(aiGeneratedTitle)) {
             var cleanAiTitle = aiGeneratedTitle.Trim().Trim('"', '\'', '`', '.');
             if (cleanAiTitle.Length >= 4 && cleanAiTitle.Length <= 55) {
@@ -116,7 +117,7 @@ public sealed class SendMessageCommandHandler : IRequestHandler<SendMessageComma
             }
         }
 
-        // 2. Nếu có TargetJobTitle và từ khóa kỹ năng cốt lõi
+        // Nếu có TargetJobTitle và từ khóa kỹ năng cốt lõi
         if (!string.IsNullOrWhiteSpace(targetJobTitle) && keywords != null && keywords.Count > 0) {
             return $"Tối ưu {targetJobTitle.Trim()} ({keywords[0]})";
         }
@@ -132,7 +133,7 @@ public sealed class SendMessageCommandHandler : IRequestHandler<SendMessageComma
             return $"Tối ưu {targetJobTitle.Trim()}";
         }
 
-        // 3. Tự động rút gọn câu hỏi của người dùng một cách tự nhiên (Antigravity style)
+        // Tự động rút gọn câu hỏi của người dùng một cách tự nhiên
         var words = prompt
             .Replace("\r", " ")
             .Replace("\n", " ")

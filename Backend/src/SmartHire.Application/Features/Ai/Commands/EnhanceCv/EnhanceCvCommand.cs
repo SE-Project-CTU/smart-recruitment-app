@@ -11,5 +11,5 @@ public sealed record EnhanceCvCommand(
     Guid? TargetJobId = null,
     string? TargetJobTitle = null,
     string? TargetJobDescription = null,
-    string? Language = "vi"
+    string? Language = null
 ) : IRequest<EnhanceCvResult>;

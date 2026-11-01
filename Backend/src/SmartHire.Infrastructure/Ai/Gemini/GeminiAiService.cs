@@ -33,7 +33,7 @@ public sealed class GeminiAiService : IGeminiAiService {
 
     private static string NormalizeModelName(string? model) {
         if (string.IsNullOrWhiteSpace(model)) return "gemini-3.5-flash-lite";
-        return model.Trim().Replace(".", "-");
+        return model.Trim();
     }
 
     private static bool IsQuotaExceeded(HttpStatusCode statusCode, string? responseBody) {
@@ -75,7 +75,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 },
                 generationConfig = new {
                     response_mime_type = "application/json",
-                    temperature = 0.4
+                    temperature = 0.2
                 }
             };
 
@@ -126,7 +126,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 EnhancedContent: parsed?.EnhancedContent ?? originalText,
                 SuggestedKeywords: (IReadOnlyList<string>?)parsed?.SuggestedKeywords ?? Array.Empty<string>(),
                 Improvements: (IReadOnlyList<string>?)parsed?.Improvements ?? Array.Empty<string>(),
-                DetectedSection: parsed?.DetectedSection ?? request.SectionType ?? "WORK_EXPERIENCE",
+                DetectedSection: parsed?.DetectedSection ?? request.SectionType ?? "EXPERIENCE",
                 ConversationTitle: parsed?.ConversationTitle
             );
         } catch (AppException) {
@@ -156,6 +156,9 @@ public sealed class GeminiAiService : IGeminiAiService {
                 new {
                     parts = new[] { new { text = prompt } }
                 }
+            },
+            generationConfig = new {
+                temperature = 0.2
             }
         };
 

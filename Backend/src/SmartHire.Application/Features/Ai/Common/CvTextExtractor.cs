@@ -1,5 +1,6 @@
 using System.Text;
 using SmartHire.Domain.Entities;
+using SmartHire.Domain.ValueObjects.Cv;
 
 namespace SmartHire.Application.Features.Ai.Common;
 
@@ -8,16 +9,22 @@ public static class CvTextExtractor {
         var content = cvVersion.Content;
         var sb = new StringBuilder();
 
-        if (!string.IsNullOrWhiteSpace(content.Profile.Title)) {
-            sb.AppendLine($"Vị trí/Chức danh: {content.Profile.Title}");
+        var profileTitle = CvTiptapDocument.ExtractPlainText(content.Profile.Title);
+        if (!string.IsNullOrWhiteSpace(profileTitle)) {
+            sb.AppendLine($"Vị trí/Chức danh: {profileTitle}");
         }
 
-        if (!string.IsNullOrWhiteSpace(content.Sections.Objective?.Content)) {
-            sb.AppendLine($"Mục tiêu nghề nghiệp: {content.Sections.Objective.Content}");
+        var objective = CvTiptapDocument.ExtractPlainText(content.Sections.Objective?.Content);
+        if (!string.IsNullOrWhiteSpace(objective)) {
+            sb.AppendLine($"Mục tiêu nghề nghiệp: {objective}");
         }
 
         if (content.Sections.Skills?.Items?.Count > 0) {
             var skills = content.Sections.Skills.Items
+                .Select(s => new {
+                    Name = CvTiptapDocument.ExtractPlainText(s.Name),
+                    Description = CvTiptapDocument.ExtractPlainText(s.Description)
+                })
                 .Where(s => !string.IsNullOrWhiteSpace(s.Name))
                 .Select(s => string.IsNullOrWhiteSpace(s.Description) ? s.Name : $"{s.Name} ({s.Description})");
             sb.AppendLine($"Kỹ năng: {string.Join(", ", skills)}");
@@ -26,28 +33,40 @@ public static class CvTextExtractor {
         if (content.Sections.Experience?.Items?.Count > 0) {
             sb.AppendLine("Kinh nghiệm làm việc:");
             foreach (var exp in content.Sections.Experience.Items) {
-                sb.AppendLine($"- {exp.Position} tại {exp.Company}: {exp.Description}");
+                var position = CvTiptapDocument.ExtractPlainText(exp.Position);
+                var company = CvTiptapDocument.ExtractPlainText(exp.Company);
+                var desc = CvTiptapDocument.ExtractPlainText(exp.Description);
+                sb.AppendLine($"- {position} tại {company}: {desc}");
             }
         }
 
         if (content.Sections.Projects?.Items?.Count > 0) {
             sb.AppendLine("Dự án:");
             foreach (var proj in content.Sections.Projects.Items) {
-                sb.AppendLine($"- {proj.ProjectName} ({proj.Role}): {proj.Description}");
+                var name = CvTiptapDocument.ExtractPlainText(proj.ProjectName);
+                var role = CvTiptapDocument.ExtractPlainText(proj.Role);
+                var desc = CvTiptapDocument.ExtractPlainText(proj.Description);
+                sb.AppendLine($"- {name} ({role}): {desc}");
             }
         }
 
         if (content.Sections.Education?.Items?.Count > 0) {
             sb.AppendLine("Học vấn:");
             foreach (var edu in content.Sections.Education.Items) {
-                sb.AppendLine($"- {edu.Title} tại {edu.School}: {edu.Details}");
+                var title = CvTiptapDocument.ExtractPlainText(edu.Title);
+                var school = CvTiptapDocument.ExtractPlainText(edu.School);
+                var details = CvTiptapDocument.ExtractPlainText(edu.Details);
+                sb.AppendLine($"- {title} tại {school}: {details}");
             }
         }
 
         if (content.Sections.Certifications?.Items?.Count > 0) {
             sb.AppendLine("Chứng chỉ:");
             foreach (var cert in content.Sections.Certifications.Items) {
-                sb.AppendLine($"- {cert.Name}");
+                var name = CvTiptapDocument.ExtractPlainText(cert.Name);
+                if (!string.IsNullOrWhiteSpace(name)) {
+                    sb.AppendLine($"- {name}");
+                }
             }
         }
 
