@@ -1,24 +1,26 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   ArrowUpDown,
+  Building2,
+  ChevronDown,
+  ExternalLink,
   Eye,
   FileText,
   Filter,
   MapPin,
   Sparkles,
-  ExternalLink,
-  ChevronDown,
 } from "lucide-react";
 import dayjs from "dayjs";
+import type { MockApplication } from "@/constants/mockData";
 import {
-  MOCK_APPLICATIONS,
-  type ApplicationStatus,
-  type MockApplication,
-} from "@/constants/mockData";
+  APPLICATION_STATUS_CONFIG,
+  type CandidateMyApplicationItem,
+} from "@/types/application";
 import {
   Button,
   DataTable,
+  TableSkeleton,
   type DataTableFeatures,
 } from "@/components/common";
 import {
@@ -27,91 +29,199 @@ import {
   TooltipTrigger,
 } from "./animate-ui/components/base/tooltip";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
+import { formatSalaryCompact, getWorkModeLabel } from "@/utils/jobHelpers";
 
-const columnHelper = createColumnHelper<DataTableFeatures, MockApplication>();
+export type ApplicationTrackingItem =
+  | CandidateMyApplicationItem
+  | MockApplication;
 
-const STATUS_OPTIONS = [
-  { value: "ALL", label: `Tất cả` },
-  { value: "APPLIED", label: "Đã nộp" },
-  { value: "REVIEWING", label: "Đang xem xét" },
-  { value: "INTERVIEW", label: "Phỏng vấn" },
-  { value: "OFFERED", label: "Mời nhận việc" },
-  { value: "ACCEPTED", label: "Đã trúng tuyển" },
-  { value: "REJECTED", label: "Từ chối" },
+const columnHelper =
+  createColumnHelper<DataTableFeatures, ApplicationTrackingItem>();
+
+const STATUS_FILTER_OPTIONS = [
+  { value: "ALL", label: "Tất cả trạng thái" },
+  { value: "Submitted", label: "Đã nộp" },
+  { value: "Reviewing", label: "Đang xem xét" },
+  { value: "Shortlisted", label: "Đã chọn lọc" },
+  { value: "Interviewing", label: "Phỏng vấn" },
+  { value: "Offered", label: "Mời nhận việc" },
+  { value: "Hired", label: "Đã tuyển dụng" },
+  { value: "Rejected", label: "Từ chối" },
 ];
 
-const STATUS_CONFIG: Record<
-  ApplicationStatus,
-  { label: string; badgeClass: string }
-> = {
-  APPLIED: {
-    label: "Đã nộp",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-  },
-  REVIEWING: {
-    label: "Đang xem xét",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
-  },
-  INTERVIEW: {
-    label: "Phỏng vấn",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  OFFERED: {
-    label: "Mời nhận việc",
-    badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
-  },
-  ACCEPTED: {
-    label: "Đã trúng tuyển",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  REJECTED: {
-    label: "Từ chối",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
-  },
-};
+function getStatusBadge(status?: string) {
+  if (!status) {
+    return {
+      label: "Chưa xác định",
+      badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    };
+  }
 
-interface ApplicationTrackingTableProps {
-  data?: MockApplication[];
-  onViewDetail?: (application: MockApplication) => void;
+  if (APPLICATION_STATUS_CONFIG[status]) {
+    return APPLICATION_STATUS_CONFIG[status];
+  }
+
+  // Tìm kiếm case-insensitive
+  const foundKey = Object.keys(APPLICATION_STATUS_CONFIG).find(
+    (k) => k.toLowerCase() === status.toLowerCase(),
+  );
+  if (foundKey) {
+    return APPLICATION_STATUS_CONFIG[foundKey];
+  }
+
+  return {
+    label: status,
+    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+  };
+}
+
+function extractAppRow(app: ApplicationTrackingItem) {
+  const isCandidateItem = "jobTitle" in app;
+  const job = "job" in app ? app.job : undefined;
+
+  const title =
+    (isCandidateItem
+      ? (app as CandidateMyApplicationItem).jobTitle
+      : undefined) ||
+    job?.title ||
+    "Vị trí tuyển dụng";
+
+  const companyName =
+    (isCandidateItem
+      ? (app as CandidateMyApplicationItem).companyName
+      : undefined) ||
+    job?.company?.name ||
+    "Doanh nghiệp";
+
+  const companyLogo =
+    (isCandidateItem
+      ? (app as CandidateMyApplicationItem).companyLogoUrl
+      : undefined) ||
+    job?.company?.logoUrl ||
+    ("logoFileUrl" in (job?.company || {})
+      ? (job?.company as { logoFileUrl?: string | null })?.logoFileUrl
+      : null) ||
+    null;
+
+  const workMode = job?.workMode
+    ? getWorkModeLabel(job.workMode)
+    : "Onsite";
+
+  const location =
+    (isCandidateItem
+      ? (app as CandidateMyApplicationItem).locationName
+      : undefined) ||
+    ("province" in (job || {})
+      ? (job as unknown as { province?: { name?: string } }).province?.name
+      : undefined) ||
+    ("location" in (job || {})
+      ? (job as unknown as { location?: { provinceName?: string } })?.location
+          ?.provinceName
+      : "") ||
+    "Toàn quốc";
+
+  let salaryText =
+    (isCandidateItem
+      ? (app as CandidateMyApplicationItem).salaryRange
+      : undefined) || "";
+
+  if (!salaryText && job) {
+    salaryText = formatSalaryCompact(
+      job.salaryMin,
+      job.salaryMax,
+      job.salaryNegotiable,
+    ).text;
+  }
+  if (!salaryText) salaryText = "Thỏa thuận";
+
+  const aiScore =
+    job &&
+    "aiMatchScore" in job &&
+    typeof (job as { aiMatchScore?: unknown }).aiMatchScore === "number"
+      ? (job as { aiMatchScore: number }).aiMatchScore
+      : null;
+
+  return {
+    title,
+    companyName,
+    companyLogo,
+    workMode,
+    location,
+    salaryText,
+    aiScore,
+  };
+}
+
+function CompanyLogoCell({
+  logoUrl,
+  name,
+}: {
+  logoUrl: string | null;
+  name: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+
+  if (logoUrl && !hasError) {
+    return (
+      <img
+        src={logoUrl}
+        alt={name}
+        onError={() => setHasError(true)}
+        className="size-10 shrink-0 rounded-xl border border-slate-100 object-cover"
+      />
+    );
+  }
+
+  return (
+    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 text-primary">
+      <Building2 className="size-5" />
+    </div>
+  );
+}
+
+export interface ApplicationTrackingTableProps {
+  data?: ApplicationTrackingItem[];
+  isLoading?: boolean;
+  onViewDetail?: (application: ApplicationTrackingItem) => void;
 }
 
 export function ApplicationTrackingTable({
-  data = MOCK_APPLICATIONS,
+  data = [],
+  isLoading = false,
   onViewDetail,
 }: ApplicationTrackingTableProps) {
   const columns = useMemo(
     () =>
       columnHelper.columns([
-        columnHelper.accessor((row) => row.job.title, {
+        columnHelper.display({
           id: "jobInfo",
           header: "Vị trí",
           cell: ({ row }) => {
-            const { job } = row.original;
+            const app = row.original;
+            const { title, companyName, companyLogo, workMode, location } =
+              extractAppRow(app);
+
             return (
               <div className="flex max-w-72 min-w-48 items-center gap-3">
-                <img
-                  src={job.company.logoUrl}
-                  alt={job.company.name}
-                  className="size-10 shrink-0 rounded-xl border border-slate-100 object-cover"
-                />
+                <CompanyLogoCell logoUrl={companyLogo} name={companyName} />
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <Tooltip>
                     <TooltipTrigger
                       render={
                         <span className="truncate text-sm font-bold text-slate-800">
-                          {job.title}
+                          {title}
                         </span>
                       }
                     />
-                    <TooltipPanel>{job.title}</TooltipPanel>
+                    <TooltipPanel>{title}</TooltipPanel>
                   </Tooltip>
                   <span className="truncate text-xs text-slate-500">
-                    {job.company.name}
+                    {companyName}
                   </span>
                   {/* Trên mobile: Hiển thị gộp luôn Hình thức & Tỉnh thành nhỏ ở dưới */}
                   <span className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400 md:hidden">
                     <MapPin className="size-3" />
-                    {job.workMode} • {job.location.provinceName}
+                    {workMode} • {location}
                   </span>
                 </div>
               </div>
@@ -124,13 +234,13 @@ export function ApplicationTrackingTable({
           header: "Địa điểm & Hình thức",
           meta: { className: "hidden md:table-cell" },
           cell: ({ row }) => {
-            const { workMode, location } = row.original.job;
+            const { workMode, location } = extractAppRow(row.original);
             return (
               <div className="flex flex-col gap-1 text-xs">
                 <span className="w-fit rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
                   {workMode}
                 </span>
-                <span className="text-slate-500">{location.provinceName}</span>
+                <span className="text-slate-500">{location}</span>
               </div>
             );
           },
@@ -141,14 +251,11 @@ export function ApplicationTrackingTable({
           header: "Mức lương",
           meta: { className: "hidden lg:table-cell" },
           cell: ({ row }) => {
-            const { salaryMin, salaryMax, salaryNegotiable } = row.original.job;
+            const { salaryText } = extractAppRow(row.original);
             return (
               <div className="flex flex-col text-xs">
                 <span className="font-semibold text-slate-800">
-                  {salaryNegotiable
-                    ? "Thỏa thuận"
-                    : "$" +
-                      `${salaryMin.toLocaleString()} - ${salaryMax.toLocaleString()}`}
+                  {salaryText}
                 </span>
               </div>
             );
@@ -160,14 +267,15 @@ export function ApplicationTrackingTable({
           header: "Độ phù hợp",
           meta: { className: "hidden xl:table-cell" },
           cell: ({ row }) => {
-            const score = row.original.job.aiMatchScore;
-            if (!score)
+            const { aiScore } = extractAppRow(row.original);
+            if (!aiScore) {
               return <span className="text-xs text-slate-400">—</span>;
+            }
 
             return (
               <div className="flex w-fit flex-col gap-1">
                 <span className="text-left! text-xs font-bold text-primary">
-                  {score}%
+                  {aiScore}%
                 </span>
               </div>
             );
@@ -182,7 +290,6 @@ export function ApplicationTrackingTable({
             const app = row.original;
             return (
               <div className="flex items-center gap-1.5">
-                {/* Nút xem nhanh CV */}
                 {app.uploadedCvUrl ? (
                   <a
                     href={app.uploadedCvUrl}
@@ -197,7 +304,11 @@ export function ApplicationTrackingTable({
                   </a>
                 ) : (
                   <span
-                    title={`Phiên bản CV hệ thống: ${app.cvVersionId}`}
+                    title={
+                      app.cvVersionId
+                        ? `Phiên bản CV hệ thống: ${app.cvVersionId}`
+                        : "Hồ sơ ứng tuyển trực tuyến"
+                    }
                     className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary"
                   >
                     <Sparkles className="size-3.5" />
@@ -227,7 +338,7 @@ export function ApplicationTrackingTable({
             return (
               <div className="flex flex-col text-xs">
                 <span className="font-medium text-slate-700">
-                  {dayjs(iso).format("DD/MM/YYYY")}
+                  {iso ? dayjs(iso).format("DD/MM/YYYY") : "—"}
                 </span>
               </div>
             );
@@ -236,10 +347,15 @@ export function ApplicationTrackingTable({
 
         columnHelper.accessor("status", {
           header: "Trạng thái",
-          filterFn: "includesString",
+          filterFn: (row, columnId, filterValue) => {
+            if (!filterValue || filterValue === "ALL") return true;
+            const rowStatus = String(row.getValue(columnId) || "").toLowerCase();
+            const target = String(filterValue).toLowerCase();
+            return rowStatus === target;
+          },
           cell: ({ row }) => {
             const status = row.original.status;
-            const cfg = STATUS_CONFIG[status];
+            const cfg = getStatusBadge(status);
             return (
               <span
                 className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
@@ -264,13 +380,9 @@ export function ApplicationTrackingTable({
                         variant="secondary"
                         icon={Eye}
                         iconSize={16}
-                        onClick={() =>
-                          onViewDetail
-                            ? onViewDetail(app)
-                            : console.log("Xem chi tiết application:", app.id)
-                        }
+                        onClick={() => onViewDetail?.(app)}
                         className="p-1! text-xs! ring-0!"
-                      ></Button>
+                      />
                     }
                   />
                   <TooltipPanel>Xem chi tiết</TooltipPanel>
@@ -283,72 +395,81 @@ export function ApplicationTrackingTable({
     [onViewDetail],
   );
 
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <TableSkeleton />
+      </div>
+    );
+  }
+
   return (
-    <>
-      <DataTable
-        columns={columns}
-        data={data}
-        initialSorting={[{ id: "appliedAt", desc: true }]}
-        toolbar={(table) => {
-          const currentStatus =
-            (table.getColumn("status")?.getFilterValue() as string) ?? "ALL";
+    <DataTable
+      columns={columns}
+      data={data}
+      initialSorting={[{ id: "appliedAt", desc: true }]}
+      emptyMessage="Bạn chưa nộp đơn ứng tuyển nào. Hãy khám phá các cơ hội việc làm mới!"
+      toolbar={(table) => {
+        const currentStatus =
+          (table.getColumn("status")?.getFilterValue() as string) ?? "ALL";
 
-          return (
-            <div className="flex w-full items-center justify-end">
-              <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-                <Filter className="size-3.5 text-slate-400" />
-                <span className="text-xs text-slate-500">Trạng thái:</span>
+        return (
+          <div className="flex w-full items-center justify-end">
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
+              <Filter className="size-3.5 text-slate-400" />
+              <span className="text-xs text-slate-500">Trạng thái:</span>
 
-                <Select.Root
-                  items={STATUS_OPTIONS}
-                  value={currentStatus}
-                  onValueChange={(val) => {
-                    const nextValue = val === "ALL" ? undefined : val;
-                    table.getColumn("status")?.setFilterValue(nextValue);
-                  }}
+              <Select.Root
+                items={STATUS_FILTER_OPTIONS}
+                value={currentStatus}
+                onValueChange={(val) => {
+                  const nextValue = val === "ALL" ? undefined : val;
+                  table.getColumn("status")?.setFilterValue(nextValue);
+                }}
+              >
+                <Select.Trigger
+                  aria-label="Lọc theo trạng thái"
+                  className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-slate-800 focus:outline-none"
                 >
-                  <Select.Trigger
-                    aria-label="Lọc theo trạng thái"
-                    className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-slate-800 focus:outline-none"
-                  >
-                    <Select.Value />
-                    <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
-                      <ChevronDown className="size-3.5" />
-                    </Select.Icon>
-                  </Select.Trigger>
+                  <Select.Value />
+                  <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                    <ChevronDown className="size-3.5" />
+                  </Select.Icon>
+                </Select.Trigger>
 
-                  <Select.Portal>
-                    <Select.Positioner
-                      alignItemWithTrigger={false}
-                      sideOffset={4}
-                    >
-                      <Select.Popup className="z-50 min-w-36 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
-                        <Select.List>
-                          {STATUS_OPTIONS.map((status) => (
-                            <Select.Item
-                              key={status.value}
-                              value={status.value}
-                              className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-highlighted:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                <Select.Portal>
+                  <Select.Positioner
+                    alignItemWithTrigger={false}
+                    sideOffset={4}
+                  >
+                    <Select.Popup className="z-50 min-w-36 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                      <Select.List>
+                        {STATUS_FILTER_OPTIONS.map((status) => (
+                          <Select.Item
+                            key={status.value}
+                            value={status.value}
+                            className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-highlighted:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                          >
+                            <Select.ItemText>{status.label}</Select.ItemText>
+                            <Select.ItemIndicator
+                              animation="pop"
+                              className="ml-2 text-xs text-primary"
                             >
-                              <Select.ItemText>{status.label}</Select.ItemText>
-                              <Select.ItemIndicator
-                                animation="pop"
-                                className="ml-2 text-xs text-primary"
-                              >
-                                ✓
-                              </Select.ItemIndicator>
-                            </Select.Item>
-                          ))}
-                        </Select.List>
-                      </Select.Popup>
-                    </Select.Positioner>
-                  </Select.Portal>
-                </Select.Root>
-              </div>
+                              ✓
+                            </Select.ItemIndicator>
+                          </Select.Item>
+                        ))}
+                      </Select.List>
+                    </Select.Popup>
+                  </Select.Positioner>
+                </Select.Portal>
+              </Select.Root>
             </div>
-          );
-        }}
-      />
-    </>
+          </div>
+        );
+      }}
+    />
   );
 }
+
+export default ApplicationTrackingTable;
