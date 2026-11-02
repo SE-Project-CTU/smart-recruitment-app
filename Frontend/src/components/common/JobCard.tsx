@@ -34,6 +34,8 @@ export interface JobCardProps<T extends JobCardItem = JobCardItem> {
   onApply?: (job: T) => void;
   isBookmarked?: boolean;
   onToggleBookmark?: (jobId: string) => void;
+  role?: "candidate" | "recruiter";
+  companyLogoUrl?: string | null;
 }
 
 export function JobCard<T extends JobCardItem = JobCardItem>({
@@ -44,6 +46,8 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   className,
   isBookmarked: externalIsBookmarked,
   onToggleBookmark,
+  role = "candidate",
+  companyLogoUrl: customCompanyLogoUrl,
 }: JobCardProps<T>) {
   const { openApplyModal } = useApplyJobModalStore();
   const [internalMarked, setInternalMarked] = useState(false);
@@ -152,7 +156,15 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
             </p>
           </div>
 
-          <CompanyLogo logoUrl={companyLogoUrl} name={companyName} size="md" />
+          <CompanyLogo
+            logoUrl={
+              customCompanyLogoUrl !== undefined
+                ? customCompanyLogoUrl
+                : companyLogoUrl
+            }
+            name={companyName}
+            size="md"
+          />
         </div>
 
         <div className="mt-4 flex flex-col gap-1.5 text-xs font-medium text-text-muted">
@@ -186,33 +198,48 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
         </div>
       </div>
 
-      <div className="mt-6 flex items-center gap-2.5">
-        <Button
-          className="flex-1 justify-center py-2.5! text-xs!"
-          onClick={handleApplyClick}
-        >
-          Ứng tuyển ngay
-        </Button>
+      {role === "recruiter" ? (
+        <div className="mt-6 flex items-center gap-2">
+          <Button
+            variant="secondary"
+            className="justify-center py-2! text-xs! font-semibold!"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect?.(job);
+            }}
+          >
+            Quản lý tin tuyển dụng
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-6 flex items-center gap-2.5">
+          <Button
+            className="flex-1 justify-center py-2.5! text-xs!"
+            onClick={handleApplyClick}
+          >
+            Ứng tuyển ngay
+          </Button>
 
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="secondary"
-                className="p-2.5!"
-                aria-label="Lưu công việc"
-                onClick={handleBookmarkClick}
-              >
-                <MorphIcon
-                  className="size-4"
-                  icon={isMarked ? BookmarkCheck : Bookmark}
-                />
-              </Button>
-            }
-          />
-          <TooltipPanel>{isMarked ? "Bỏ lưu" : "Lưu tin"}</TooltipPanel>
-        </Tooltip>
-      </div>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="secondary"
+                  className="p-2.5!"
+                  aria-label="Lưu công việc"
+                  onClick={handleBookmarkClick}
+                >
+                  <MorphIcon
+                    className="size-4"
+                    icon={isMarked ? BookmarkCheck : Bookmark}
+                  />
+                </Button>
+              }
+            />
+            <TooltipPanel>{isMarked ? "Bỏ lưu" : "Lưu tin"}</TooltipPanel>
+          </Tooltip>
+        </div>
+      )}
     </div>
   );
 }
