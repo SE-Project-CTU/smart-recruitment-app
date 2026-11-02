@@ -32,7 +32,7 @@ export const EducationSection = React.memo<EducationSectionProps>(({
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
-      <div className="space-y-4 px-1">
+      <div className="space-y-4">
         {items.map((item, index) => (
           <div
             key={item.id || index}

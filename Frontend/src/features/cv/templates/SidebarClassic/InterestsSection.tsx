@@ -28,7 +28,7 @@ export const InterestsSection = React.memo<InterestsSectionProps>(({
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
-      <div className="text-xs text-slate-800 leading-relaxed min-h-4 px-1">
+      <div className="text-xs text-slate-800 leading-relaxed min-h-4">
         {renderField({
           name: "content.sections.interests.content",
           document: section.content,

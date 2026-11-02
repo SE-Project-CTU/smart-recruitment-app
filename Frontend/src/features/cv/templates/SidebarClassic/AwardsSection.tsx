@@ -35,7 +35,7 @@ export const AwardsSection = React.memo<AwardsSectionProps>(({
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
-      <div className="space-y-3 px-1">
+      <div className="space-y-3">
         {items.map((item, index) => (
           <div
             key={item.id || index}

@@ -28,7 +28,7 @@ export const ObjectiveSection = React.memo<ObjectiveSectionProps>(({
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
-      <div className="text-xs text-slate-800 leading-relaxed min-h-4 px-1">
+      <div className="text-xs text-slate-800 leading-relaxed min-h-4">
         {renderField({
           name: "content.sections.objective.content",
           document: section.content,
