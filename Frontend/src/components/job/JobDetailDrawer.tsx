@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MapPin,
   Briefcase,
   GraduationCap,
   Users,
-  Sparkles,
   Building2,
   CheckCircle2,
+  Bookmark,
+  BookmarkCheck,
+  Share2,
+  Zap,
 } from "lucide-react";
 import {
   Sheet,
@@ -19,7 +23,12 @@ import {
   TooltipPanel,
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
+import { Button } from "@/components/common";
 import { getTimeAgo } from "@/utils/helper";
+import { toast } from "@/hooks/use-toast";
+import { PATHS } from "@/constants/paths";
+import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
+import { useMyApplications } from "@/hooks/queries/useApplication";
 import type { MockJobPosting } from "@/constants/mockData";
 
 export interface JobDetailDrawerProps {
@@ -31,8 +40,30 @@ export interface JobDetailDrawerProps {
   onApply?: (jobId: string) => void;
 }
 
-export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
+export function JobDetailDrawer({
+  job,
+  open,
+  onClose,
+  isBookmarked: externalIsBookmarked,
+  onToggleBookmark,
+  onApply,
+}: JobDetailDrawerProps) {
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
+  const [internalBookmarked, setInternalBookmarked] = useState(false);
+  const { openApplyModal } = useApplyJobModalStore();
+
+  // Kiểm tra xem candidate đã ứng tuyển job này chưa
+  const { data: myAppsData } = useMyApplications({ pageSize: 50 });
+  const myApplications = myAppsData?.items ?? [];
+  const isAlreadyApplied = Boolean(
+    job && myApplications.some((app) => app.jobId === job.id),
+  );
+
+  const isMarked =
+    externalIsBookmarked !== undefined
+      ? externalIsBookmarked
+      : internalBookmarked;
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -51,13 +82,43 @@ export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
       })
     : null;
 
+  const handleApplyClick = () => {
+    if (onApply) {
+      onApply(job.id);
+    } else {
+      openApplyModal(job);
+    }
+  };
+
+  const handleBookmarkClick = () => {
+    if (onToggleBookmark) {
+      onToggleBookmark(job.id);
+    } else {
+      setInternalBookmarked(!internalBookmarked);
+    }
+    toast.success({
+      description: isMarked
+        ? "Đã bỏ lưu tin tuyển dụng."
+        : "Đã lưu tin tuyển dụng vào danh sách quan tâm.",
+    });
+  };
+
+  const handleShareClick = () => {
+    try {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng." });
+    } catch {
+      toast.warning({ description: "Không thể sao chép liên kết." });
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side={isMobile ? "bottom" : "right"}
         className={
           isMobile
-            ? "flex h-[90vh] max-h-[92vh] w-full flex-col gap-0 rounded-t-3xl border-t border-border bg-surface p-0 shadow-2xl backdrop-blur-none"
+            ? "flex h-[90vh] max-h-[92vh] w-full flex-col gap-0 rounded-t-2xl border-t border-border bg-surface p-0 shadow-2xl backdrop-blur-none"
             : "flex w-full min-w-120 flex-col gap-0 overflow-hidden p-0 pt-10 backdrop-blur-none sm:max-w-lg"
         }
       >
@@ -70,7 +131,7 @@ export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
         <SheetHeader className="shrink-0 border-b border-border p-5 pb-4 text-left">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3.5">
-              <div className="flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-white p-2 shadow-xs">
+              <div className="flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2 shadow-2xs">
                 {job.company.logoUrl ? (
                   <img
                     src={job.company.logoUrl}
@@ -106,7 +167,7 @@ export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
                 <TooltipTrigger
                   render={
                     <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
-                      <Sparkles className="size-3" />
+                      <Zap className="size-3" />
                       <span>{job.aiMatchScore}%</span>
                     </div>
                   }
@@ -148,7 +209,7 @@ export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
           </div>
         </SheetHeader>
 
-        <div className="flex-1 space-y-6 overflow-y-auto p-5 pb-8">
+        <div className="flex-1 space-y-6 overflow-y-auto p-5 pb-6">
           <div className="grid grid-cols-2 gap-2.5">
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
               <div className="text-primary">
@@ -268,7 +329,58 @@ export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
             </div>
           </section>
         </div>
+
+        {/* STICKY ACTION FOOTER */}
+        <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            {isAlreadyApplied ? (
+              <Button
+                variant="outline"
+                className="flex-1 justify-center rounded-xl border-emerald-200 bg-emerald-50/50 py-2.5 text-xs font-semibold text-emerald-700"
+                onClick={() => {
+                  onClose();
+                  navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
+                }}
+              >
+                <CheckCircle2 className="mr-1 size-4 text-emerald-600" />
+                <span>Đã nộp hồ sơ • Xem tiến trình</span>
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                className="flex-1 justify-center rounded-xl py-2.5 text-xs font-semibold"
+                onClick={handleApplyClick}
+              >
+                <span>Ứng tuyển ngay</span>
+              </Button>
+            )}
+
+            <Button
+              variant="secondary"
+              className="size-10 rounded-xl p-0"
+              aria-label={isMarked ? "Bỏ lưu tin" : "Lưu tin tuyển dụng"}
+              onClick={handleBookmarkClick}
+            >
+              {isMarked ? (
+                <BookmarkCheck className="size-4.5 text-primary" />
+              ) : (
+                <Bookmark className="size-4.5 text-text-muted" />
+              )}
+            </Button>
+
+            <Button
+              variant="secondary"
+              className="size-10 rounded-xl p-0"
+              aria-label="Chia sẻ"
+              onClick={handleShareClick}
+            >
+              <Share2 className="size-4 text-text-muted" />
+            </Button>
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
 }
+
+export default JobDetailDrawer;

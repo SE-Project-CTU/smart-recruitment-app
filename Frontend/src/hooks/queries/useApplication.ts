@@ -85,7 +85,7 @@ export const useApplyJob = () => {
         err,
         "Nộp hồ sơ ứng tuyển thất bại",
       );
-      toast.warning({ description: message });
+      toast.error({ description: message });
     },
   });
 };

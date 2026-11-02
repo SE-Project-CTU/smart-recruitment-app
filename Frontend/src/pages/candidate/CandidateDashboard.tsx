@@ -93,7 +93,7 @@ function CandidateDashboard() {
               </div>
             ))
           ) : (
-            <div className="flex min-h-80.5 w-full max-w-85 min-w-70 flex-col items-center justify-between rounded-3xl border-2 border-dashed border-border bg-white/60 p-6 text-center">
+            <div className="flex min-h-80.5 w-full max-w-85 min-w-70 flex-col items-center justify-between rounded-2xl border-2 border-dashed border-border bg-white/60 p-6 text-center">
               <PackageOpen
                 className="mt-4 animate-bounce"
                 size={32}
