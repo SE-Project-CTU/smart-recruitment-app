@@ -16,6 +16,7 @@ import {
   AlertCircle,
   ShieldCheck,
   Clock,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
@@ -28,6 +29,10 @@ import {
 import { cn } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import Grainient from "@/components/external/Grainient";
+import {
+  EChartsPieChart,
+  type ChartConfig,
+} from "@/components/evilcharts/charts/echarts-pie-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
 import { CandidateTable } from "./candidate/CandidateTable";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
@@ -69,6 +74,51 @@ interface PendingStatusChange {
   fromStatus: string;
   toStatus: UpdateJobApplicationStatus;
 }
+
+const statusChartConfig: ChartConfig = {
+  submitted: {
+    label: "Mới nộp",
+    colors: {
+      light: ["#3b82f6"],
+      dark: ["#60a5fa"],
+    },
+  },
+  reviewing: {
+    label: "Đang xem xét",
+    colors: {
+      light: ["#8b5cf6"],
+      dark: ["#a78bfa"],
+    },
+  },
+  interviewing: {
+    label: "Phỏng vấn",
+    colors: {
+      light: ["#f59e0b"],
+      dark: ["#fbbf24"],
+    },
+  },
+  offered: {
+    label: "Đề nghị việc",
+    colors: {
+      light: ["#06b6d4"],
+      dark: ["#22d3ee"],
+    },
+  },
+  hired: {
+    label: "Đã tuyển dụng",
+    colors: {
+      light: ["#10b981"],
+      dark: ["#34d399"],
+    },
+  },
+  rejected: {
+    label: "Từ chối",
+    colors: {
+      light: ["#94a3b8"],
+      dark: ["#cbd5e1"],
+    },
+  },
+};
 
 export default function RecruiterDashboard() {
   const navigate = useNavigate();
@@ -191,6 +241,46 @@ export default function RecruiterDashboard() {
       const s = (a.status || "").toUpperCase();
       return s === "HIRED" || s === "ACCEPTED";
     });
+  }, [allApplications]);
+
+  // Dữ liệu phân bổ trạng thái hồ sơ cho Donut Chart
+  const applicationStatusData = useMemo(() => {
+    let submitted = 0;
+    let reviewing = 0;
+    let interviewing = 0;
+    let offered = 0;
+    let hired = 0;
+    let rejected = 0;
+
+    for (const app of allApplications) {
+      const s = (app.status || "").toUpperCase();
+      if (s === "SUBMITTED" || s === "RECEIVED") {
+        submitted++;
+      } else if (s === "REVIEWING" || s === "SHORTLISTED" || s === "APPROVED") {
+        reviewing++;
+      } else if (s === "INTERVIEW" || s === "INTERVIEWING") {
+        interviewing++;
+      } else if (s === "OFFERED") {
+        offered++;
+      } else if (s === "HIRED" || s === "ACCEPTED") {
+        hired++;
+      } else if (s === "REJECTED" || s === "WITHDRAWN") {
+        rejected++;
+      } else {
+        submitted++;
+      }
+    }
+
+    const items = [
+      { status: "submitted", count: submitted },
+      { status: "reviewing", count: reviewing },
+      { status: "interviewing", count: interviewing },
+      { status: "offered", count: offered },
+      { status: "hired", count: hired },
+      { status: "rejected", count: rejected },
+    ];
+
+    return items.filter((item) => item.count > 0);
   }, [allApplications]);
 
   // 4 tin tuyển dụng gần đây nhất để render JobCard
@@ -694,74 +784,54 @@ export default function RecruiterDashboard() {
                   Phân bổ theo giai đoạn tuyển dụng
                 </p>
               </div>
-              <span className="self-start rounded-full border border-border bg-bg px-2.5 py-1 text-xs font-semibold text-text-muted sm:self-auto">
-                {allApplications.length} hồ sơ
-              </span>
             </div>
 
-            {/* Vùng chừa sẵn chỗ trống để nhét Donut Chart vào sau */}
-            <div className="relative mt-4 flex min-h-64 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-bg/40 p-6">
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative flex size-32 items-center justify-center">
-                  <svg
-                    className="size-full -rotate-90 transform"
-                    viewBox="0 0 36 36"
-                  >
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="14"
-                      fill="none"
-                      stroke="#e2e8f0"
-                      strokeWidth="4"
-                    />
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="14"
-                      fill="none"
-                      stroke="var(--color-primary, #1b3b6f)"
-                      strokeWidth="4"
-                      strokeDasharray="60 40"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute text-center">
-                    <span className="text-lg font-bold text-text-main">
+            {/* Biểu đồ Donut Phân bổ Trạng thái (EvilCharts) */}
+            {allApplications.length === 0 && !isLoadingApplications ? (
+              <div className="flex min-h-64 flex-1 flex-col items-center justify-center p-8 text-center">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <PieChartIcon className="size-6" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-text-main">
+                  Chưa có hồ sơ ứng tuyển
+                </p>
+                <p className="mt-1 max-w-xs text-xs text-text-muted">
+                  Biểu đồ phân bổ trạng thái sẽ tự động xuất hiện khi có ứng
+                  viên nộp hồ sơ vào doanh nghiệp.
+                </p>
+              </div>
+            ) : (
+              <div className="relative mt-2 flex min-h-64 flex-1 items-center justify-center">
+                <EChartsPieChart
+                  data={applicationStatusData}
+                  dataKey="count"
+                  nameKey="status"
+                  config={statusChartConfig}
+                  className="h-64 w-full"
+                  isLoading={isLoadingApplications}
+                >
+                  <EChartsPieChart.Legend isClickable verticalAlign="bottom" />
+                  <EChartsPieChart.Tooltip />
+                  <EChartsPieChart.Pie
+                    isClickable
+                    innerRadius={60}
+                    paddingAngle={-25}
+                    cornerRadius={99}
+                  />
+                </EChartsPieChart>
+
+                {!isLoadingApplications && allApplications.length > 0 && (
+                  <div className="pointer-events-none absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                    <span className="text-2xl font-bold tracking-tight text-text-main">
                       {allApplications.length}
                     </span>
-                    <span className="block text-[10px] text-text-muted">
+                    <span className="block text-[10px] font-semibold text-text-muted uppercase">
                       Tổng đơn
                     </span>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-text-muted">
-                  <div className="flex items-center gap-1.5">
-                    <span className="size-2 rounded-full bg-primary" />
-                    <span>Mới nộp ({newApplications.length})</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="size-2 rounded-full bg-sky-400" />
-                    <span>Phỏng vấn ({interviewingApplications.length})</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="size-2 rounded-full bg-emerald-500" />
-                    <span>Đã tuyển ({hiredApplications.length})</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="size-2 rounded-full bg-slate-300" />
-                    <span>Trạng thái khác</span>
-                  </div>
-                </div>
+                )}
               </div>
-
-              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-surface/50 backdrop-blur-[1px]">
-                <span className="rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-semibold text-text-muted shadow-xs">
-                  Vị trí Biểu đồ Phân bổ Trạng thái (Donut Chart)
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
