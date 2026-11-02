@@ -163,7 +163,9 @@ export default function RecruiterDashboard() {
     isError: isErrorCompanies,
     refetch: refetchCompanies,
   } = useMyCompanies();
-  const companies = companiesData || [];
+  const companies = useMemo(() => {
+    return companiesData || [];
+  }, [companiesData]);
 
   const {
     data: jobResponse,

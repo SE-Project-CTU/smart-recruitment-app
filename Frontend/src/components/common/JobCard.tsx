@@ -201,7 +201,6 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
       {role === "recruiter" ? (
         <div className="mt-6 flex items-center gap-2">
           <Button
-            variant="secondary"
             className="justify-center py-2! text-xs! font-semibold!"
             onClick={(e) => {
               e.stopPropagation();
