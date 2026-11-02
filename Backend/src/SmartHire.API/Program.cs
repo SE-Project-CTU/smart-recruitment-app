@@ -6,6 +6,7 @@ using SmartHire.Infrastructure.Persistence;
 using SmartHire.Infrastructure.Seeding;
 using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Features.JobPostings.Jobs.ExpireOverdueJobPostings;
+using SmartHire.Application.Features.Cv.Jobs.CleanupOrphanedArchivedCvVersions;
 using NLog.Web;
 using DotNetEnv;
 using SmartHire.Api;
@@ -19,11 +20,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
-// Đăng ký Infrastructure (EF Core, pgvector)
+// ÄÄƒng kĂ½ Infrastructure (EF Core, pgvector)
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHangfireBackgroundJobs(builder.Configuration);
 
-// Cấu hình Logging
+// Cáº¥u hĂ¬nh Logging
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 
@@ -37,7 +38,7 @@ builder.Services.AddOpenApi(options => {
             Name = "X-Correlation-ID",
             In = Microsoft.OpenApi.ParameterLocation.Header,
             Required = true,
-            Description = "Correlation ID (UUID format, ví dụ: 550e8400-e29b-41d4-a716-446655440000)"
+            Description = "Correlation ID (UUID format, vĂ­ dá»¥: 550e8400-e29b-41d4-a716-446655440000)"
         });
         return Task.CompletedTask;
     });
@@ -76,6 +77,15 @@ using (var scope = app.Services.CreateScope()) {
     jobScheduler.AddOrUpdateRecurring<ExpireOverdueJobPostingsJob, ExpireOverdueJobPostingsJobArgs>(
         "expire-overdue-job-postings",
         new ExpireOverdueJobPostingsJobArgs(),
+        new RecurringSchedule(
+            RecurringScheduleKind.Daily,
+            TimeOfDay: new TimeOnly(0, 5),
+            TimeZoneId: "Asia/Ho_Chi_Minh")
+    );
+
+    jobScheduler.AddOrUpdateRecurring<CleanupOrphanedArchivedCvVersionsJob, CleanupOrphanedArchivedCvVersionsJobArgs>(
+        "cleanup-orphaned-archived-cv-versions",
+        new CleanupOrphanedArchivedCvVersionsJobArgs(RetentionDays: 0),
         new RecurringSchedule(
             RecurringScheduleKind.Daily,
             TimeOfDay: new TimeOnly(0, 5),

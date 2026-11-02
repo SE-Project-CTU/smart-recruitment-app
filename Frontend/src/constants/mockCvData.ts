@@ -75,14 +75,14 @@ export const MOCK_CV_DETAIL_TIPTAP = {
   templateId: "6a6c7345-ec6f-4b09-bf05-2a4a4a2e5a80",
   template: {
     id: "6a6c7345-ec6f-4b09-bf05-2a4a4a2e5a80",
-    code: "modern_two_column",
-    name: "Modern Two Column",
+    code: "senior_harvard",
+    name: "Senior Harvard",
   },
   title: "Fullstack Developer - Phan Quoc Binh",
   content: {
     metadata: {
       version: "6.0",
-      templateCode: "modern_two_column",
+      templateCode: "senior_harvard",
       language: "en",
       updatedAt: "2026-10-28T00:00:00.000000+00:00",
       defaultStyle: {
@@ -107,17 +107,6 @@ export const MOCK_CV_DETAIL_TIPTAP = {
       ),
     },
     sections: {
-      order: [
-        "objective",
-        "experience",
-        "education",
-        "skills",
-        "projects",
-        "certifications",
-        "awards",
-        "interests",
-        "additionalInfo",
-      ],
       objective: {
         title: richText(paragraph("Objective", { marks: [{ type: "bold" }] })),
         visible: true,
@@ -299,7 +288,7 @@ export const MOCK_CV_DETAIL_TIPTAP = {
     areas: [
       {
         id: "main",
-        sections: ["objective", "experience", "education", "skills", "projects"],
+        sections: ["objective", "experience", "education", "skills", "projects", "certifications", "awards", "interests", "additionalInfo"],
       },
     ],
   },
