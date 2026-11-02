@@ -43,6 +43,7 @@ public class CvVersionConfiguration : IEntityTypeConfiguration<CvVersion> {
             .IsUnique();
         
         builder.HasIndex(x => x.TemplateId);
-        builder.HasIndex(x => x.PreviewFileId);
+        builder.HasIndex(x => x.PreviewFileId)
+            .IsUnique();
     }
 }

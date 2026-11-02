@@ -77,6 +77,14 @@ public sealed class CvVersionRepository : ICvVersionRepository {
                 cancellationToken);
     }
 
+    public Task<bool> IsPreviewFileInUseAsync(
+        Guid previewFileId,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .AnyAsync(version => version.PreviewFileId == previewFileId, cancellationToken);
+    }
+
     public Task<List<CvVersion>> GetOrphanedArchivedVersionsAsync(
         DateTimeOffset archivedBefore,
         int batchSize,

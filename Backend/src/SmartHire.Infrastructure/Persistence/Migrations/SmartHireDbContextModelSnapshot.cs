@@ -613,6 +613,7 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasName("pk_cv_versions");
 
                     b.HasIndex("PreviewFileId")
+                        .IsUnique()
                         .HasDatabaseName("ix_cv_versions_preview_file_id");
 
                     b.HasIndex("TemplateId")
