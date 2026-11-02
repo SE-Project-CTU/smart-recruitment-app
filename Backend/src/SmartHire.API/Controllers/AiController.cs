@@ -10,6 +10,7 @@ using SmartHire.Application.Features.Ai.Commands.CreateConversation;
 using SmartHire.Application.Features.Ai.Commands.DeleteAllConversations;
 using SmartHire.Application.Features.Ai.Commands.DeleteConversation;
 using SmartHire.Application.Features.Ai.Commands.EnhanceCv;
+using SmartHire.Application.Features.Ai.Commands.EnhanceCvBatch;
 using SmartHire.Application.Features.Ai.Commands.MatchAnalysis;
 using SmartHire.Application.Features.Ai.Commands.RefreshRecommendations;
 using SmartHire.Application.Features.Ai.Commands.SendMessage;
@@ -52,6 +53,18 @@ public sealed class AiController : ControllerBase {
     [HttpPost("cv/enhance")]
     public async Task<IActionResult> EnhanceCv(
         [FromBody] EnhanceCvCommand command,
+        CancellationToken cancellationToken) {
+        var result = await _sender.Send(command, cancellationToken);
+        return Ok(_responseFactory.Success(result));
+    }
+
+    /// <summary>
+    /// Trợ lý viết CV - Tối ưu hóa đồng thời toàn bộ các mục CV (Batching trong 1 request duy nhất)
+    /// </summary>
+    [Authorize(Roles = RoleNames.Candidate)]
+    [HttpPost("cv/enhance/batch")]
+    public async Task<IActionResult> EnhanceCvBatch(
+        [FromBody] EnhanceCvBatchCommand command,
         CancellationToken cancellationToken) {
         var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));

@@ -75,7 +75,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 },
                 generationConfig = new {
                     response_mime_type = "application/json",
-                    temperature = 0.2
+                    temperature = 0.3
                 }
             };
 
@@ -137,6 +137,98 @@ public sealed class GeminiAiService : IGeminiAiService {
         }
     }
 
+    public async Task<CvBatchEnhanceResult> EnhanceCvBatchAsync(
+        CvBatchEnhanceRequest request,
+        CancellationToken cancellationToken = default) {
+        if (string.IsNullOrWhiteSpace(_options.ApiKey)) {
+            _logger.LogWarning("Gemini API Key is not configured. Returning fallback batch enhancement.");
+            return GeminiPrompts.CreateFallbackBatchEnhancement(request);
+        }
+
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds));
+
+        try {
+            var model = NormalizeModelName(_options.Model);
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_options.ApiKey}";
+
+            var systemPrompt = GeminiPrompts.BuildCvBatchEnhancePrompt(request);
+
+            var payload = new {
+                contents = new[] {
+                    new {
+                        role = "user",
+                        parts = new[] {
+                            new { text = systemPrompt }
+                        }
+                    }
+                },
+                generationConfig = new {
+                    response_mime_type = "application/json",
+                    temperature = 0.3
+                }
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(url, payload, JsonOptions, cts.Token);
+            if (!response.IsSuccessStatusCode) {
+                var errorText = await response.Content.ReadAsStringAsync(cts.Token);
+
+                if (IsQuotaExceeded(response.StatusCode, errorText)) {
+                    _logger.LogWarning("Gemini API Quota Exceeded (429) during Batch Enhance: {Error}", errorText);
+                    throw AiExceptions.AiQuotaExceeded(ExtractQuotaErrorMessage(errorText));
+                }
+
+                if (response.StatusCode == HttpStatusCode.NotFound &&
+                    (errorText.Contains("no longer available", StringComparison.OrdinalIgnoreCase) || errorText.Contains("NOT_FOUND", StringComparison.OrdinalIgnoreCase))) {
+                    var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:generateContent?key={_options.ApiKey}";
+                    response = await _httpClient.PostAsJsonAsync(fallbackUrl, payload, JsonOptions, cts.Token);
+
+                    if (!response.IsSuccessStatusCode) {
+                        return GeminiPrompts.CreateFallbackBatchEnhancement(request);
+                    }
+                } else {
+                    return GeminiPrompts.CreateFallbackBatchEnhancement(request);
+                }
+            }
+
+            var resultNode = await response.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>(JsonOptions, cts.Token);
+            var candidateText = resultNode?.Candidates?[0]?.Content?.Parts?[0]?.Text;
+
+            if (string.IsNullOrWhiteSpace(candidateText)) {
+                return GeminiPrompts.CreateFallbackBatchEnhancement(request);
+            }
+
+            var parsed = JsonSerializer.Deserialize<CvBatchEnhanceJsonResult>(candidateText, JsonOptions);
+            var parsedSections = parsed?.Sections ?? new List<CvBatchSectionItemJson>();
+
+            var results = new List<CvSectionEnhancedResult>();
+            foreach (var reqSec in request.Sections) {
+                var matched = parsedSections.FirstOrDefault(s =>
+                    string.Equals(s.SectionType, reqSec.SectionType, StringComparison.OrdinalIgnoreCase));
+
+                var enhancedContent = matched?.EnhancedContent?.Trim();
+                if (string.IsNullOrWhiteSpace(enhancedContent)) {
+                    enhancedContent = reqSec.Content;
+                }
+
+                results.Add(new CvSectionEnhancedResult(
+                    SectionType: reqSec.SectionType,
+                    OriginalContent: reqSec.Content,
+                    EnhancedContent: enhancedContent,
+                    SuggestedKeywords: (IReadOnlyList<string>?)matched?.SuggestedKeywords ?? new[] { reqSec.SectionType },
+                    Improvements: (IReadOnlyList<string>?)matched?.Improvements ?? new[] { "Chuẩn Google XYZ & Few-Shot Mẫu Vàng" }
+                ));
+            }
+
+            return new CvBatchEnhanceResult(results);
+        } catch (AppException) {
+            throw;
+        } catch (Exception ex) {
+            _logger.LogWarning(ex, "Gemini Batch Enhance API failed. Falling back to template enhancement.");
+            return GeminiPrompts.CreateFallbackBatchEnhancement(request);
+        }
+    }
+
     public async IAsyncEnumerable<string> StreamEnhanceCvAsync(
         CvEnhanceRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken = default) {
@@ -158,7 +250,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 }
             },
             generationConfig = new {
-                temperature = 0.2
+                temperature = 0.3
             }
         };
 
@@ -320,7 +412,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 },
                 generationConfig = new {
                     response_mime_type = "application/json",
-                    temperature = 0.2
+                    temperature = 0.3
                 }
             };
 

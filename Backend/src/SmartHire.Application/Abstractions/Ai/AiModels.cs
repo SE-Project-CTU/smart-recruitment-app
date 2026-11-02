@@ -18,6 +18,31 @@ public sealed record CvEnhanceResult(
     string? ConversationTitle = null
 );
 
+public sealed record CvSectionBatchItem(
+    string SectionType,
+    string Content
+);
+
+public sealed record CvBatchEnhanceRequest(
+    IReadOnlyList<CvSectionBatchItem> Sections,
+    string? TargetJobTitle = null,
+    string? CvContext = null,
+    string? JobContext = null,
+    string Language = "vi"
+);
+
+public sealed record CvBatchEnhanceResult(
+    IReadOnlyList<CvSectionEnhancedResult> Sections
+);
+
+public sealed record CvSectionEnhancedResult(
+    string SectionType,
+    string OriginalContent,
+    string EnhancedContent,
+    IReadOnlyList<string> SuggestedKeywords,
+    IReadOnlyList<string> Improvements
+);
+
 public sealed record MatchAnalysisResult(
     decimal Score,
     string Summary,

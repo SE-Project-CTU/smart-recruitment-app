@@ -37,7 +37,7 @@ public static class CvEnhanceContextResolver {
                 if (string.IsNullOrWhiteSpace(targetJobTitle)) {
                     targetJobTitle = job.Title;
                 }
-                var extractedJob = JobTextExtractor.ExtractText(job);
+                var extractedJob = JobTextExtractor.DistillText(job);
                 jobContext = string.IsNullOrWhiteSpace(jobContext)
                     ? extractedJob
                     : $"{extractedJob}\n{jobContext}";

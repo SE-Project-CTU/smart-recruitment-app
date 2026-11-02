@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace SmartHire.Infrastructure.Ai;
 
 internal sealed class GeminiGenerateContentResponse {
@@ -30,6 +28,17 @@ internal sealed class CvEnhanceJsonResult {
     public string? DetectedSection { get; set; }
     public string? ConversationTitle { get; set; }
     public string? OriginalContent { get; set; }
+    public string? EnhancedContent { get; set; }
+    public List<string>? SuggestedKeywords { get; set; }
+    public List<string>? Improvements { get; set; }
+}
+
+internal sealed class CvBatchEnhanceJsonResult {
+    public List<CvBatchSectionItemJson>? Sections { get; set; }
+}
+
+internal sealed class CvBatchSectionItemJson {
+    public string? SectionType { get; set; }
     public string? EnhancedContent { get; set; }
     public List<string>? SuggestedKeywords { get; set; }
     public List<string>? Improvements { get; set; }

@@ -16,6 +16,18 @@ public static class AiResultMapper {
         );
     }
 
+    public static EnhanceCvBatchResult ToEnhanceCvBatchResult(CvBatchEnhanceResult source) {
+        return new EnhanceCvBatchResult(
+            source.Sections.Select(s => new EnhanceCvBatchItemResult(
+                SectionType: s.SectionType,
+                OriginalContent: s.OriginalContent,
+                EnhancedContent: s.EnhancedContent,
+                SuggestedKeywords: s.SuggestedKeywords,
+                Improvements: s.Improvements
+            )).ToList()
+        );
+    }
+
     public static MatchAnalysisResultDto ToMatchAnalysisResultDto(MatchAnalysisResult source) {
         return new MatchAnalysisResultDto(
             Score: source.Score,

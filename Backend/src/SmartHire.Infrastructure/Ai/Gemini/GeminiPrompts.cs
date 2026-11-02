@@ -1,103 +1,118 @@
+using System.Text.Json;
 using SmartHire.Application.Abstractions.Ai;
 
 namespace SmartHire.Infrastructure.Ai;
 
 internal static class GeminiPrompts {
-    public static string BuildCvEnhancePrompt(CvEnhanceRequest request) {
-        var sectionHint = string.IsNullOrWhiteSpace(request.SectionType)
-            ? "Tự động phân tích nội dung để xác định mục phù hợp nhất (EXPERIENCE, PROJECTS, SKILLS, EDUCATION, OBJECTIVE, CERTIFICATIONS, AWARDS)."
-            : $"Mục được chỉ định: '{request.SectionType}'.";
+    private const string GoldStandardFewShotExamples = """
+        [VÍ DỤ MẪU VÀNG CHUẨN MỰC - FEW-SHOT GOLD STANDARDS]
+        - MỤC TIÊU NGHỀ NGHIỆP (OBJECTIVE):
+          + Gốc: "Lập trình viên 2 năm kinh nghiệm ReactJS, muốn ứng tuyển Senior Fullstack để học thêm backend .NET."
+          + Chuẩn vàng XYZ: "Định hướng phát triển thành Senior Fullstack Engineer bằng việc phát huy 2 năm kinh nghiệm xây dựng giao diện web ReactJS, kết hợp nghiên cứu chuyên sâu kiến trúc backend C# .NET và microservices nhằm đảm bảo tính ổn định và mở rộng của hệ thống."
 
-        var targetTitle = request.TargetJobTitle ?? "Không chỉ định cụ thể (Tự phân tích theo chuyên môn và mô tả công việc)";
+        - KINH NGHIỆM LÀM VIỆC (EXPERIENCE):
+          + Gốc: "Cắt giao diện theo Figma bằng HTML, CSS, ReactJS, kết nối API và sửa lỗi theo yêu cầu."
+          + Chuẩn vàng XYZ: "Phát triển các module giao diện người dùng bằng ReactJS và Redux Toolkit tuân thủ đặc tả Figma, tối ưu hóa luồng gọi RESTful API nhằm hạn chế số lần re-render và chủ động phối hợp cùng nhóm kiểm thử để duy trì chất lượng mã nguồn ổn định."
+
+        - DỰ ÁN TIÊU BIỂU (PROJECTS):
+          + Gốc: "Làm website thương mại điện tử có giỏ hàng, thanh toán và quản lý đơn hàng."
+          + Chuẩn vàng XYZ: "Xây dựng hệ thống thương mại điện tử tích hợp cổng thanh toán trực tuyến, chuẩn hóa schema cơ sở dữ liệu PostgreSQL và triển khai container hóa với Docker nhằm bảo đảm tính toàn vẹn và bảo mật dữ liệu giao dịch."
+
+        - GIẢI THƯỞNG & THÀNH TÍCH (AWARDS):
+          + Gốc: "Đạt giải Nhất cuộc thi Sáng tạo công nghệ sinh viên 2024."
+          + Chuẩn vàng XYZ: "Đạt Giải Nhất cuộc thi Sáng tạo Công nghệ Sinh viên 2024 nhờ đề tài ứng dụng AI tự động hóa quy trình, vượt qua hơn 150 đội thi tranh tài cấp toàn quốc."
+        """;
+
+    public static string BuildCvEnhancePrompt(CvEnhanceRequest request) {
+        var targetTitle = request.TargetJobTitle ?? "Vị trí chuyên môn mục tiêu";
 
         return $$"""
-            Bạn là chuyên gia tư vấn tuyển dụng cao cấp và tối ưu CV chuyên nghiệp.
-            Nhiệm vụ: Viết lại nội dung CV của ứng viên theo chuẩn mực Google XYZ, phù hợp chính xác với vị trí mục tiêu '{{targetTitle}}'.
+            Bạn là chuyên gia tư vấn tuyển dụng cấp cao.
+            Nhiệm vụ: Viết lại nội dung CV của ứng viên theo chuẩn Google XYZ hướng đến vị trí '{{targetTitle}}'.
 
-            QUY TẮC CỐT LÕI BẮT BUỘC:
-            1. TIẾT CHẾ SỐ LIỆU TUYỆT ĐỐI (CẤM TỰ BỊA ĐẶT SỐ LIỆU HOẶC % ẢO):
-               - NGUYÊN TẮC BẤT DI BẤT DỊCH: CHỈ giữ lại và làm nổi bật con số, tỷ lệ % NẾU người dùng đã tự cung cấp trong nội dung gốc.
-               - CẤM TUYỆT ĐỐI: Không tự ý chèn ký tự '%' hoặc bịa đặt bất kỳ con số cụ thể nào (như '30%', '25%', '50%', 'độ trễ 200ms', '99.9%') nếu trong nội dung gốc KHÔNG CÓ con số đó. Nếu vi phạm bịa số %, kết quả bị coi là vi phạm nghiêm trọng tính trung thực của CV.
-               - KHI NỘI DUNG GỐC KHÔNG CÓ SỐ LIỆU: Thành phần đo lường [Y] BẮT BUỘC phải đo lường bằng GIÁ TRỊ THỰC TẾ & TÍNH CHẤT ĐỊNH TÍNH CHÂN THỰC:
-                 + Đảm bảo tính sẵn sàng, độ tin cậy và sự thông suốt trong vận hành dịch vụ.
-                 + Bảo đảm tính toàn vẹn và độ chính xác của cơ sở dữ liệu.
-                 + Chuẩn hóa và tối ưu hóa thời gian xử lý truy vấn, hạn chế lỗi phát sinh trong luồng nghiệp vụ.
-                 + Tuân thủ kiến trúc chuẩn mực (Clean Architecture, Microservices patterns), tiêu chuẩn mã nguồn sạch và bảo mật API.
-                 + Đảm bảo tiến độ bàn giao tính năng và đáp ứng chính xác đặc tả yêu cầu nghiệp vụ.
+            {{GoldStandardFewShotExamples}}
 
-            2. TIẾT CHẾ PHONG VĂN & ĐỐI CHIẾU SÁT VỚI TARGET JOB '{{targetTitle}}':
-               - Giọng văn khiêm tốn, khách quan, súc tích, gãy gọn; tuyệt đối tránh đao to búa lớn, không dùng tính từ hoa mỹ, không phóng đại quy mô vượt quá ngữ cảnh.
-               - Bám sát yêu cầu chuyên môn, công nghệ chủ chốt của vị trí '{{targetTitle}}' (dựa theo JD nếu có). Không chèn các công nghệ hay thuật ngữ lạc đề ngoài phạm vi chuyên môn của vị trí này.
-               - Cân nhắc cấp bậc (Junior / Mid / Senior): Với Senior, nhấn mạnh năng lực thiết kế giải pháp kỹ thuật, tính tin cậy của hệ thống, chuẩn hóa quy trình và tính tái sử dụng; không thổi phồng thành các thành tích siêu thực.
-
-            3. VÍ DỤ ĐỐI CHIẾU TIÊU BIỂU (KHI NỘI DUNG GỐC KHÔNG CÓ SỐ):
-               - ĐẦU VÀO GỐC: "Tôi có 3 năm lập trình backend C# .NET và cơ sở dữ liệu PostgreSQL. Thiết kế tối ưu hệ thống microservices và tích hợp vector embedding tìm kiếm."
-               - SAI (Bịa số ảo): "...giảm 30% độ trễ truy vấn và tăng 25% độ ổn định..." -> LỖI NGHIÊM TRỌNG vì tự bịa 30% và 25%.
-               - ĐÚNG (Tiết chế, đo lường định tính chuẩn mực, bám sát Senior Backend): "Thiết kế và phát triển các dịch vụ backend RESTful API bằng C# .NET kết hợp cơ sở dữ liệu PostgreSQL, đảm bảo tính sẵn sàng cao và khả năng mở rộng của kiến trúc microservices, thông qua việc chuẩn hóa schema cơ sở dữ liệu, tối ưu hóa câu lệnh truy vấn và tích hợp vector embedding phục vụ tính năng tìm kiếm ngữ nghĩa."
-
-            4. CẤU TRÚC GOOGLE XYZ TINH TẾ:
-               - Accomplished [X], as measured by [Y], by doing [Z] (Đạt được [X], đo lường bằng [Y], thông qua giải pháp [Z]).
-               - Bắt đầu bằng Động từ hành động (Action Verbs) vừa vặn: Phát triển, Thiết kế, Tối ưu hóa, Chuẩn hóa, Triển khai, Cải tiến, Đảm bảo, Tích hợp.
-               - Tránh các từ yếu: làm việc, hỗ trợ, tham gia, viết code, sửa bug, chịu trách nhiệm.
-
-            5. DẤU CÂU & CHÍNH TẢ:
-               - Viết câu ngắn gọn (1-2 câu súc tích), dấu câu chuẩn xác, ngắt nhịp nhịp nhàng, không viết câu ghép dài lê thê.
-
-            6. QUY TẮC BẮT BUỘC VỀ NGÔN NGỮ ĐẦU RA (LANGUAGE RESOLUTION):
-               - QUY TẮC TỐI CAO: BẮT BUỘC 100% giữ nguyên ngôn ngữ của NỘI DUNG GỐC CẦN TỐI ƯU.
-                 + Nếu nội dung người dùng gửi vào là TIẾNG VIỆT -> BẮT BUỘC PHẢI VIẾT LẠI HOÀN TOÀN BẰNG TIẾNG VIỆT! TUYỆT ĐỐI CẤM TỰ Ý DỊCH SANG TIẾNG ANH (kể cả khi tên vị trí tuyển dụng hoặc JD viết bằng tiếng Anh).
-                 + Nếu nội dung người dùng gửi vào là TIẾNG ANH -> Viết lại bằng TIẾNG ANH.
-                 + CHỈ ĐƯỢC PHÉP chuyển sang tiếng Anh khi trong nội dung người dùng CÓ YÊU CẦU RÕ RÀNG như: "viết bằng tiếng Anh", "dịch sang tiếng Anh", "write in English", "translate to English".
-               - Khi Ngôn ngữ mục tiêu chỉ định 'vi': Bắt buộc 100% Tiếng Việt.
-               - Khi Ngôn ngữ mục tiêu chỉ định 'en': Bắt buộc 100% Tiếng Anh.
+            NGUYÊN TẮC CỐT LÕI (SLIM & SHARP):
+            1. Bắt đầu bằng Động từ hành động thực chiến (Phát triển, Thiết kế, Tối ưu hóa, Chuẩn hóa, Triển khai, Tích hợp).
+            2. Tuyệt đối không tự bịa số % hoặc số liệu cụ thể nếu nội dung gốc không có. Thay vào đó, đo lường bằng giá trị thực tế: tính sẵn sàng cao, bảo đảm dữ liệu toàn vẹn, tối ưu hóa thời gian phản hồi, tuân thủ kiến trúc chuẩn.
+            3. Câu văn gãy gọn (1-2 câu), giọng văn khiêm tốn, trung thực, chuyên nghiệp, không dùng từ sáo rỗng (như "đóng vai trò then chốt", "hiệu năng vượt trội").
+            4. BẮT BUỘC 100% giữ nguyên ngôn ngữ gốc của nội dung người dùng (Nếu gốc là Tiếng Việt -> Xuất 100% Tiếng Việt, cấm tự ý dịch tiếng Anh).
 
             THÔNG TIN ĐẦU VÀO:
             - Vị trí mục tiêu: {{targetTitle}}
-            {{(string.IsNullOrWhiteSpace(request.JobContext) ? "" : $"- Mô tả công việc mục tiêu (JD):\n\"\"\"{request.JobContext}\"\"\"\n")}}
-            {{(string.IsNullOrWhiteSpace(request.CvContext) ? "" : $"- Ngữ cảnh CV ứng viên:\n\"\"\"{request.CvContext}\"\"\"\n")}}
-            {{(string.IsNullOrWhiteSpace(request.Content) ? "" : $"- Nội dung người dùng gửi cần tối ưu:\n\"\"\"{request.Content}\"\"\"\n")}}
-            - Ngôn ngữ đầu ra dự kiến: {{(request.Language == "en" ? "Tiếng Anh (English)" : (request.Language == "vi" ? "Tiếng Việt" : "Tự động phân giải (Ưu tiên Tiếng Anh nếu CV tiếng Anh, hoặc theo lệnh của người dùng)"))}}
+            {{(string.IsNullOrWhiteSpace(request.JobContext) ? "" : $"- Yêu cầu cốt lõi (JD chắt lọc):\n{request.JobContext}\n")}}
+            - Nội dung cần viết lại:
+            "{{request.Content}}"
 
-            BẮT BUỘC TRẢ VỀ ĐÚNG ĐỊNH DẠNG JSON TINH GỌN SAU (không thêm markdown ngoài khối json, trả lời ngắn gọn để tối ưu tốc độ):
+            TRẢ VỀ ĐÚNG ĐỊNH DẠNG JSON (không kèm markdown bên ngoài):
             {
-              "detectedSection": "EXPERIENCE | PROJECTS | SKILLS | EDUCATION | OBJECTIVE | CERTIFICATIONS | AWARDS",
-              "enhancedContent": "nội dung đã viết lại chuẩn mực, chân thực, tiết chế số liệu theo Google XYZ",
+              "detectedSection": "{{request.SectionType ?? "EXPERIENCE"}}",
+              "enhancedContent": "Nội dung đã viết lại chuẩn xác theo mẫu vàng",
               "suggestedKeywords": ["từ khóa 1", "từ khóa 2"],
               "improvements": [
                 "Chuẩn Google XYZ: Accomplished [X], measured by [Y], by doing [Z]",
-                "Động từ hành động & bám sát Target Job"
+                "Động từ hành động thực chiến & bám sát Target Job"
+              ]
+            }
+            """;
+    }
+
+    public static string BuildCvBatchEnhancePrompt(CvBatchEnhanceRequest request) {
+        var targetTitle = request.TargetJobTitle ?? "Vị trí chuyên môn mục tiêu";
+        var sectionsJson = JsonSerializer.Serialize(request.Sections.Select(s => new {
+            sectionType = s.SectionType,
+            content = s.Content
+        }));
+
+        return $$"""
+            Bạn là chuyên gia tư vấn tuyển dụng cấp cao.
+            Nhiệm vụ: Tối ưu hóa đồng thời TẤT CẢ các mục CV dưới đây theo chuẩn Google XYZ hướng đến vị trí '{{targetTitle}}' trong duy nhất một lần xử lý.
+
+            {{GoldStandardFewShotExamples}}
+
+            NGUYÊN TẮC CỐT LÕI:
+            1. Tối ưu từng mục tương ứng theo cấu trúc Google XYZ: Action Verb + Kỹ thuật/Nhiệm vụ cụ thể + Ý nghĩa định tính/định lượng chân thực.
+            2. Không tự bịa đặt số % nếu nội dung gốc không có số.
+            3. Giữ nguyên 100% ngôn ngữ gốc của từng mục (Tiếng Việt -> Xuất Tiếng Việt).
+            4. Viết súc tích, mạch lạc (1-2 câu mỗi mục), tránh từ hoa mỹ.
+
+            NGỮ CẢNH VỊ TRÍ:
+            - Vị trí: {{targetTitle}}
+            {{(string.IsNullOrWhiteSpace(request.JobContext) ? "" : $"- Yêu cầu tuyển dụng (Chắt lọc):\n{request.JobContext}\n")}}
+
+            DANH SÁCH MỤC CV CẦN TỐI ƯU (JSON):
+            {{sectionsJson}}
+
+            BẮT BUỘC TRẢ VỀ DUY NHẤT ĐỊNH DẠNG JSON SAU (không có văn bản thừa):
+            {
+              "sections": [
+                {
+                  "sectionType": "TÊN_MỤC",
+                  "enhancedContent": "Nội dung viết lại chuẩn mực",
+                  "suggestedKeywords": ["từ khóa chính"],
+                  "improvements": ["Điểm cải thiện Google XYZ"]
+                }
               ]
             }
             """;
     }
 
     public static string BuildCvEnhanceStreamPrompt(CvEnhanceRequest request) {
-        var targetTitle = request.TargetJobTitle ?? "Vị trí chuyên môn phù hợp";
+        var targetTitle = request.TargetJobTitle ?? "Vị trí chuyên môn mục tiêu";
 
         return $$"""
             Bạn là chuyên gia tư vấn tối ưu CV chuyên nghiệp.
-            Nhiệm vụ: Viết lại nội dung CV của ứng viên theo chuẩn mực Google XYZ hướng đến vị trí '{{targetTitle}}'.
+            Nhiệm vụ: Viết lại nội dung CV của ứng viên theo chuẩn Google XYZ hướng đến vị trí '{{targetTitle}}'.
 
-            NGUYÊN TẮC BẮT BUỘC:
-            1. TIẾT CHẾ SỐ LIỆU TUYỆT ĐỐI (CẤM TỰ BỊA ĐẶT SỐ LIỆU HOẶC % ẢO):
-               - NGUYÊN TẮC BẤT DI BẤT DỊCH: CHỈ giữ lại số liệu/tỷ lệ % NẾU người dùng tự cung cấp trong nội dung gốc.
-               - CẤM TUYỆT ĐỐI: Không tự ý dùng ký tự '%' hoặc bịa số liệu đo lường cụ thể (như 30%, 25%, 50%, 200ms) nếu người dùng không cung cấp số liệu trong văn bản gốc.
-               - Đo lường thành phần [Y] bằng các tiêu chí giá trị thực tế và định tính chân thực: tính sẵn sàng cao, sự thông suốt và độ tin cậy của dịch vụ, dữ liệu toàn vẹn, tối ưu hóa thời gian xử lý truy vấn, hạn chế lỗi phát sinh, tuân thủ chuẩn thiết kế và hoàn thành đúng tiến độ.
-            2. VỪA VẶN VỚI VỊ TRÍ MỤC TIÊU '{{targetTitle}}':
-               - Tiết chế giọng văn khiêm tốn, tự nhiên, đúng cấp bậc thực tế, không đao to búa lớn, không thổi phồng quy mô.
-               - Bám sát yêu cầu công nghệ và chuyên môn của vị trí '{{targetTitle}}' và JD. Không lan man sang công nghệ không liên quan.
-            3. Áp dụng chuẩn Google XYZ: Đạt được [X], đo lường bằng [Y], thông qua giải pháp [Z]. Bắt đầu bằng Action Verbs chuẩn mực (Phát triển, Thiết kế, Tối ưu hóa, Chuẩn hóa, Triển khai, Đảm bảo...).
-            4. Viết 1-2 câu súc tích, mạch lạc, dấu câu chuẩn xác đúng chính tả, ngắt nhịp tự nhiên.
-            5. QUY TẮC BẮT BUỘC VỀ NGÔN NGỮ ĐẦU RA (LANGUAGE RESOLUTION):
-               - QUY TẮC TỐI CAO: BẮT BUỘC 100% xuất ra bằng ĐÚNG NGÔN NGỮ của 'Nội dung cần tối ưu'.
-                 + Nếu nội dung cần tối ưu là TIẾNG VIỆT -> BẮT BUỘC 100% viết lại bằng TIẾNG VIỆT! TUYỆT ĐỐI CẤM TỰ Ý XUẤT TIẾNG ANH (dù tên vị trí tuyển dụng có tiếng Anh như .NET, React, Backend).
-                 + Nếu nội dung cần tối ưu là TIẾNG ANH -> Viết lại bằng TIẾNG ANH.
-                 + CHỈ ĐƯỢC PHÉP xuất Tiếng Anh khi người dùng CÓ LỆNH RÕ RÀNG như: "viết bằng tiếng Anh", "dịch sang tiếng Anh", "write in English", "translate to English".
-               - Ngôn ngữ dự kiến: {{(request.Language == "vi" ? "Tiếng Việt (Bắt buộc)" : (request.Language == "en" ? "Tiếng Anh (Bắt buộc)" : "Theo ngôn ngữ của nội dung cần tối ưu"))}}.
-            6. CHỈ TRẢ VỀ TRỰC TIẾP ĐOẠN VĂN / CÁC BULLET POINTS ĐÃ VIẾT LẠI (HOÀN TOÀN BẰNG NGÔN NGỮ ĐÃ ĐƯỢC XÁC ĐỊNH Ở MỤC 5). Không thêm lời chào, không giải thích, không dùng markdown code block:
+            {{GoldStandardFewShotExamples}}
 
-            {{(string.IsNullOrWhiteSpace(request.JobContext) ? "" : $"Yêu cầu công việc (JD):\n\"\"\"{request.JobContext}\"\"\"\n")}}
-            {{(string.IsNullOrWhiteSpace(request.CvContext) ? "" : $"Hồ sơ CV của ứng viên:\n\"\"\"{request.CvContext}\"\"\"\n")}}
+            NGUYÊN TẮC:
+            1. Bắt đầu bằng Action Verb (Phát triển, Thiết kế, Tối ưu hóa, Chuẩn hóa, Triển khai, Đảm bảo...).
+            2. Không bịa đặt số % nếu gốc không có. Đo lường bằng tính sẵn sàng, toàn vẹn dữ liệu, hiệu năng truy vấn.
+            3. Viết 1-2 câu gãy gọn, đúng chính tả, giọng văn khiêm tốn thực chiến.
+            4. BẮT BUỘC 100% giữ nguyên ngôn ngữ gốc (Gốc Tiếng Việt -> Xuất Tiếng Việt).
+            5. CHỈ TRẢ VỀ DUY NHẤT NỘI DUNG ĐÃ VIẾT LẠI (Không lời chào, không giải thích):
+
             Nội dung cần tối ưu:
             "{{request.Content ?? request.CvContext}}"
             """;
@@ -120,6 +135,18 @@ internal static class GeminiPrompts {
             DetectedSection: request.SectionType ?? "EXPERIENCE",
             ConversationTitle: isEn ? "CV Optimization" : "Tối ưu CV"
         );
+    }
+
+    public static CvBatchEnhanceResult CreateFallbackBatchEnhancement(CvBatchEnhanceRequest request) {
+        var results = request.Sections.Select(s => new CvSectionEnhancedResult(
+            SectionType: s.SectionType,
+            OriginalContent: s.Content,
+            EnhancedContent: s.Content,
+            SuggestedKeywords: new[] { s.SectionType },
+            Improvements: new[] { "Bảo toàn nội dung gốc do dịch vụ AI đang bận." }
+        )).ToList();
+
+        return new CvBatchEnhanceResult(results);
     }
 
     public static string BuildMatchAnalysisPrompt(string cvText, string jobText, decimal score) {
