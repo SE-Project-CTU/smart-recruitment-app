@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import type { CvTiptapDocument } from "@/types/cv";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import { cvTiptapExtensions } from "../editor/cvTiptapExtensions";
-import { CV_FONT_OPTIONS } from "../../constants/fonts";
+import { CV_FONT_OPTIONS, DEFAULT_CV_FONT_ID } from "../../constants/fonts";
 import {
   createEmptyTiptapDocument,
   sanitizeTiptapDocument,
@@ -43,6 +43,9 @@ function FieldToolbar({
   position: { top: number; left: number };
 }) {
   const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
+  const { watch } = useFormContext<RichTextCvEditorValues>();
+  const defaultCvFont =
+    watch("content.metadata.defaultStyle.fontFamily") || DEFAULT_CV_FONT_ID;
 
   useEffect(() => {
     if (!editor) return;
@@ -67,7 +70,14 @@ function FieldToolbar({
 
       const rawFont =
         (current.getAttributes("textStyle").fontFamily as string) || "";
-      const normalizedFont = rawFont.replace(/['"]/g, "").trim().toLowerCase();
+      const cleanedFont = rawFont.replace(/['"]/g, "").trim().toLowerCase();
+      const matchedOption = CV_FONT_OPTIONS.find(
+        (f) =>
+          f.id === cleanedFont ||
+          cleanedFont.startsWith(f.id) ||
+          cleanedFont.includes(f.name.toLowerCase()),
+      );
+      const normalizedFont = matchedOption?.id || cleanedFont;
 
       let displayedSize = String(docFontSize);
       let isMixed = false;
@@ -194,17 +204,14 @@ function FieldToolbar({
         aria-label="Font chữ"
         title="Font chữ"
         className="h-7 max-w-28 rounded border border-slate-200 bg-white px-1 text-xs"
-        value={active?.fontFamily || ""}
+        value={active?.fontFamily || defaultCvFont}
         onChange={(event) => {
           const selectedFont = event.target.value;
           if (selectedFont) {
             editor.chain().focus().setFontFamily(selectedFont).run();
-          } else {
-            editor.chain().focus().unsetFontFamily().run();
           }
         }}
       >
-        <option value="">Mặc định</option>
         {CV_FONT_OPTIONS.map((font) => (
           <option key={font.id} value={font.id}>
             {font.name}
