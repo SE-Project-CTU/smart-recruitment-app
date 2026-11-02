@@ -516,11 +516,14 @@ function gradientFillTexture(
   height: number,
   reverse: boolean,
 ): HTMLCanvasElement | null {
-  if (typeof document === "undefined" || width < 1 || height < 1) return null;
+  if (typeof document === "undefined") return null;
+
+  const w = Math.max(Math.ceil(width), 600);
+  const h = Math.max(Math.ceil(height), 260);
 
   const canvas = document.createElement("canvas");
-  canvas.width = Math.ceil(width);
-  canvas.height = Math.ceil(height);
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
@@ -530,8 +533,9 @@ function gradientFillTexture(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const fade = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  fade.addColorStop(0, `rgba(0, 0, 0, ${reverse ? 0 : 0.1})`);
-  fade.addColorStop(1, `rgba(0, 0, 0, ${reverse ? 0.1 : 0})`);
+  fade.addColorStop(0, `rgba(0, 0, 0, ${reverse ? 0.03 : 0.45})`);
+  fade.addColorStop(0.65, `rgba(0, 0, 0, ${reverse ? 0.22 : 0.16})`);
+  fade.addColorStop(1, `rgba(0, 0, 0, ${reverse ? 0.45 : 0.02})`);
   ctx.globalCompositeOperation = "destination-in";
   ctx.fillStyle = fade;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -615,10 +619,20 @@ function fillPaint(
       if (multi) {
         const texture = gradientFillTexture(slots, size.width, size.height, reverse);
         if (texture) return { image: texture, repeat: "no-repeat" };
+        return new echarts.graphic.LinearGradient(
+          0,
+          0,
+          1,
+          0,
+          slots.map((color, i) => ({
+            offset: i / (slots.length - 1),
+            color: withAlpha(color, 0.4),
+          })),
+        );
       }
       return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-        { offset: 0, color: withAlpha(base, reverse ? 0 : 0.1) },
-        { offset: 1, color: withAlpha(base, reverse ? 0.1 : 0) },
+        { offset: 0, color: withAlpha(base, reverse ? 0.02 : 0.45) },
+        { offset: 1, color: withAlpha(base, reverse ? 0.45 : 0.02) },
       ]);
     }
     case "solid": {
@@ -631,11 +645,11 @@ function fillPaint(
           0,
           slots.map((color, i) => ({
             offset: i / (slots.length - 1),
-            color: withAlpha(color, 0.1),
+            color: withAlpha(color, 0.35),
           })),
         );
       }
-      return withAlpha(base, 0.1);
+      return withAlpha(base, 0.35);
     }
     case "dotted":
     case "lines":
@@ -646,7 +660,7 @@ function fillPaint(
       return patternFill(variant, base) ?? withAlpha(base, 0.1);
     }
     default:
-      return withAlpha(base, 0.1);
+      return withAlpha(base, 0.35);
   }
 }
 
@@ -667,7 +681,7 @@ function curveConfig(curveType: CurveType): { smooth: boolean; step: "middle" | 
 // ─────────────────────────────────────────────────────────────────────────────
 
 function getOpacity(selected: string | null, key: string) {
-  if (selected === null || selected === key) return { fill: 0.8, stroke: 1, dot: 1 };
+  if (selected === null || selected === key) return { fill: 0.95, stroke: 1, dot: 1 };
   return { fill: 0.1, stroke: 0.3, dot: 0.3 };
 }
 

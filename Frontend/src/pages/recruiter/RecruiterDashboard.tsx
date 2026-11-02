@@ -8,8 +8,6 @@ import {
   ArrowRight,
   Plus,
   ChevronRight,
-  ChevronDown,
-  Check,
   ExternalLink,
   RotateCcw,
   Building2,
@@ -33,6 +31,7 @@ import {
   EChartsPieChart,
   type ChartConfig,
 } from "@/components/evilcharts/charts/echarts-pie-chart";
+import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
 import { CandidateTable } from "./candidate/CandidateTable";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
@@ -51,14 +50,7 @@ import {
   type UpdateJobApplicationStatus,
 } from "@/types/application";
 import type { CompanyItem, JobPostingItem } from "@/types";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Dialog,
   DialogContent,
@@ -74,6 +66,16 @@ interface PendingStatusChange {
   fromStatus: string;
   toStatus: UpdateJobApplicationStatus;
 }
+
+const trendChartConfig: ChartConfig = {
+  applications: {
+    label: "Hồ sơ ứng tuyển",
+    colors: {
+      light: ["#1b3b6f", "#3e5e8f", "#6fc3e8"],
+      dark: ["#6fc3e8", "#a6e1fa", "#d6f1fc"],
+    },
+  },
+};
 
 const statusChartConfig: ChartConfig = {
   submitted: {
@@ -241,6 +243,35 @@ export default function RecruiterDashboard() {
       const s = (a.status || "").toUpperCase();
       return s === "HIRED" || s === "ACCEPTED";
     });
+  }, [allApplications]);
+
+  // Dữ liệu xu hướng ứng tuyển theo thời gian (7 mốc tháng gần nhất)
+  const applicationTrendData = useMemo(() => {
+    const points: { month: string; applications: number }[] = [];
+    const now = dayjs();
+
+    const hasRealApps = allApplications.some((a) => Boolean(a.appliedAt));
+    const sampleCounts = [4, 7, 14, 25, 20, 38, 52];
+
+    for (let i = 6; i >= 0; i--) {
+      const m = now.subtract(i, "month");
+      const monthKey = m.format("YYYY-MM");
+      const label = `Thg ${m.format("M")}`;
+
+      const count = hasRealApps
+        ? allApplications.filter((app) => {
+            if (!app.appliedAt) return false;
+            return dayjs(app.appliedAt).format("YYYY-MM") === monthKey;
+          }).length
+        : (sampleCounts[6 - i] ?? 0);
+
+      points.push({
+        month: label,
+        applications: count,
+      });
+    }
+
+    return points;
   }, [allApplications]);
 
   // Dữ liệu phân bổ trạng thái hồ sơ cho Donut Chart
@@ -419,7 +450,7 @@ export default function RecruiterDashboard() {
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
                   {formattedDayOfWeek} tốt lành,{" "}
-                  {user?.fullName || "Nhà tuyển dụng"}! 👋
+                  {user?.fullName || "Nhà tuyển dụng"}!
                 </h1>
                 <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
                   Theo dõi tiến độ tuyển dụng, tương tác với ứng viên và phát
@@ -446,64 +477,12 @@ export default function RecruiterDashboard() {
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      {companies.length > 1 ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            className="group flex max-w-[180px] items-center gap-1 truncate text-xs font-bold text-text-main transition-colors hover:text-primary sm:max-w-[220px]"
-                            aria-label={`Chuyển đổi doanh nghiệp. Hiện tại: ${activeCompany.name}`}
-                          >
-                            <span className="truncate">
-                              {activeCompany.name}
-                            </span>
-                            <ChevronDown className="size-3.5 shrink-0 text-text-muted transition-transform group-data-[popup-open]:rotate-180" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-64">
-                            <DropdownMenuLabel>
-                              Chuyển đổi không gian làm việc
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {companies.map((comp) => {
-                              const isCurrent = comp.id === activeCompany.id;
-                              return (
-                                <DropdownMenuItem
-                                  key={comp.id}
-                                  onClick={() => setActiveCompany(comp)}
-                                  className="flex cursor-pointer items-center justify-between py-2"
-                                >
-                                  <span
-                                    className={`truncate text-xs ${
-                                      isCurrent
-                                        ? "font-semibold text-primary"
-                                        : "text-text-main"
-                                    }`}
-                                  >
-                                    {comp.name}
-                                  </span>
-                                  {isCurrent && (
-                                    <Check className="size-4 shrink-0 text-primary" />
-                                  )}
-                                </DropdownMenuItem>
-                              );
-                            })}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => setIsCreateModalOpen(true)}
-                              className="cursor-pointer text-xs font-semibold text-primary"
-                            >
-                              <Plus className="mr-2 size-3.5" />
-                              Tạo doanh nghiệp mới
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        <span
-                          className="max-w-[200px] truncate text-xs font-bold text-text-main"
-                          title={activeCompany.name}
-                        >
-                          {activeCompany.name}
-                        </span>
-                      )}
-
+                      <span
+                        className="max-w-50 truncate text-xs font-bold text-text-main"
+                        title={activeCompany.name}
+                      >
+                        {activeCompany.name}
+                      </span>
                       {/* Trạng thái xác thực */}
                       {isVerified && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
@@ -711,65 +690,62 @@ export default function RecruiterDashboard() {
          ========================================================================= */}
       {activeCompany && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* [CHART 1] Biểu đồ xu hướng ứng tuyển (Line/Area) - 7 cols */}
+          {/* [CHART 1] Biểu đồ xu hướng ứng tuyển (Area Chart) - 7 cols */}
           <div className="flex flex-col rounded-2xl border border-border bg-surface p-5 lg:col-span-7">
             <div className="flex flex-col gap-2 border-b border-border/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-base font-bold text-text-main">
-                  Xu hướng ứng tuyển
+                <h3 className="text-base font-bold text-text-main sm:text-lg">
+                  Hồ sơ ứng tuyển
                 </h3>
                 <p className="text-xs text-text-muted">
-                  Biểu đồ theo dõi số lượng hồ sơ nộp vào theo thời gian
+                  Số lượng hồ sơ tiếp nhận theo các mốc thời gian
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-border bg-bg px-2.5 py-1 text-xs font-semibold text-text-muted sm:self-auto">
-                30 ngày qua
-              </span>
-            </div>
-
-            {/* Vùng chừa sẵn chỗ trống để nhét Line/Area Chart vào sau */}
-            <div className="relative mt-4 flex min-h-64 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-bg/40 p-6">
-              <div className="flex w-full flex-col gap-4">
-                <div className="flex items-center justify-between text-xs text-text-muted">
-                  <span>Số lượng hồ sơ</span>
-                  <span className="inline-flex items-center gap-1.5 font-semibold text-primary">
-                    <span className="size-2 rounded-full bg-primary" /> Ứng
-                    tuyển
+              <div className="flex items-center gap-4 self-start sm:self-auto sm:text-right">
+                <div>
+                  <span className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
+                    {allApplications.length > 0
+                      ? allApplications.length.toLocaleString()
+                      : applicationTrendData
+                          .reduce((sum, p) => sum + p.applications, 0)
+                          .toLocaleString()}
+                  </span>
+                  <span className="block text-[11px] font-medium text-text-muted">
+                    {allApplications.length > 0
+                      ? "Tổng hồ sơ tiếp nhận"
+                      : "Tổng hồ sơ (Minh họa)"}
                   </span>
                 </div>
-                <div className="h-36 w-full rounded-lg bg-linear-to-b from-primary/10 to-transparent p-2">
-                  <svg
-                    className="size-full overflow-visible"
-                    preserveAspectRatio="none"
-                    viewBox="0 0 100 40"
-                  >
-                    <path
-                      d="M0,32 Q20,12 40,24 T70,8 T100,16"
-                      fill="none"
-                      stroke="var(--color-primary, #1b3b6f)"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M0,32 Q20,12 40,24 T70,8 T100,16 L100,40 L0,40 Z"
-                      fill="var(--color-primary, #1b3b6f)"
-                      fillOpacity="0.08"
-                    />
-                  </svg>
-                </div>
-                <div className="flex items-center justify-between text-xs text-text-muted">
-                  <span>Tuần 1</span>
-                  <span>Tuần 2</span>
-                  <span>Tuần 3</span>
-                  <span>Tuần 4</span>
-                </div>
               </div>
+            </div>
 
-              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-surface/50 backdrop-blur-[1px]">
-                <span className="rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-semibold text-text-muted shadow-xs">
-                  Vị trí Biểu đồ Xu hướng Tuyển dụng (Line/Area Chart)
-                </span>
-              </div>
+            {/* Area Chart with EvilCharts */}
+            <div className="relative mt-4 flex min-h-64 flex-1 items-center justify-center">
+              <EChartsAreaChart
+                data={applicationTrendData}
+                config={trendChartConfig}
+                className="h-64 w-full"
+                xDataKey="month"
+                curveType="bump"
+                isLoading={isLoadingApplications}
+              >
+                <EChartsAreaChart.Grid />
+                <EChartsAreaChart.XAxis
+                  dataKey="month"
+                  tickFormatter={(val) => val}
+                />
+                <EChartsAreaChart.Tooltip />
+                <EChartsAreaChart.Area
+                  dataKey="applications"
+                  variant="gradient"
+                  strokeVariant="solid"
+                  strokeWidth={2.5}
+                  curveType="bump"
+                  isClickable
+                >
+                  <EChartsAreaChart.ActiveDot variant="default" />
+                </EChartsAreaChart.Area>
+              </EChartsAreaChart>
             </div>
           </div>
 
