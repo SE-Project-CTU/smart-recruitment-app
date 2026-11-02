@@ -16,7 +16,7 @@ export const ObjectiveSection = React.memo<ObjectiveSectionProps>(({
   isReadOnly = false,
   renderField,
 }) => {
-  if (!section.visible) return null;
+  if (section.visible === false) return null;
 
   return (
     <section className="section-objective group relative mb-5">

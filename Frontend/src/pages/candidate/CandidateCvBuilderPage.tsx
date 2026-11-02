@@ -121,9 +121,9 @@ export default function CandidateCvBuilderPage() {
     );
   }
 
-  // 3. Có dữ liệu CV hợp lệ -> Hiển thị CV Builder Form
+  // 3. Có dữ liệu CV hợp lệ -> Hiển thị CV Builder Form (Cố định viewport, không cuộn window)
   return (
-    <div className="flex min-h-screen flex-col bg-bg-white-blue font-sans text-text-main">
+    <div className="flex h-screen max-h-screen flex-col overflow-hidden bg-bg-white-blue font-sans text-text-main">
       <CVBuilderFormContainer
         key={cvData.id}
         initialData={cvData}

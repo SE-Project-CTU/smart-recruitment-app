@@ -62,11 +62,19 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
     }, []);
 
     const handleDragStart = useCallback((start: DragStart) => {
-      const height =
-        measuredHeightsRef.current[start.draggableId] || 140;
+      let height = measuredHeightsRef.current[start.draggableId];
+      if (!height) {
+        const el = document.querySelector<HTMLElement>(
+          `[data-rfd-draggable-id="${start.draggableId}"]`,
+        );
+        if (el) {
+          height = el.getBoundingClientRect().height;
+          measuredHeightsRef.current[start.draggableId] = height;
+        }
+      }
       setActiveDrag({
         draggableId: start.draggableId,
-        draggedHeight: height,
+        draggedHeight: height || 140,
         sourceDroppableId: start.source.droppableId,
         destinationDroppableId: start.source.droppableId,
         destinationIndex: start.source.index,
@@ -84,6 +92,15 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
       });
     }, []);
 
+    const isSectionVisible = useCallback(
+      (key: string): boolean => {
+        const sec = content?.sections?.[key as keyof typeof content.sections];
+        if (!sec || typeof sec !== "object") return true;
+        return (sec as { visible?: boolean }).visible !== false;
+      },
+      [content],
+    );
+
     const handleDragEnd = useCallback(
       (result: DropResult) => {
         setActiveDrag(null);
@@ -97,38 +114,79 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
           if (sourceIndex === destIndex) return;
           const targetArea = layout?.areas?.find((a) => a.id === sourceAreaId);
           if (!targetArea) return;
-          const reordered = Array.from(targetArea.sections);
-          const [removed] = reordered.splice(sourceIndex, 1);
+          const visibleSections = targetArea.sections.filter(isSectionVisible);
+          const [removed] = visibleSections.splice(sourceIndex, 1);
           if (removed) {
-            reordered.splice(destIndex, 0, removed);
+            visibleSections.splice(destIndex, 0, removed);
+            const hiddenSections = targetArea.sections.filter(
+              (k) => !isSectionVisible(k),
+            );
+            const reordered = [...visibleSections, ...hiddenSections];
             onReorderAreaSections?.(sourceAreaId, reordered);
           }
         } else {
+          const sourceArea = layout?.areas?.find((a) => a.id === sourceAreaId);
+          const destArea = layout?.areas?.find((a) => a.id === destAreaId);
+          if (!sourceArea || !destArea) return;
+
+          const sourceSections = sourceArea.sections as string[];
+          const sourceVisible = sourceSections.filter(isSectionVisible);
+          const moved = sourceVisible[sourceIndex];
+          if (!moved) return;
+
+          const rawSourceIndex = sourceSections.indexOf(moved);
+          const destSections = destArea.sections as string[];
+          const destVisible = destSections.filter(isSectionVisible);
+          let rawDestIndex: number;
+          if (destIndex < destVisible.length) {
+            const targetItem = destVisible[destIndex];
+            rawDestIndex = destSections.indexOf(targetItem);
+          } else {
+            if (destVisible.length > 0) {
+              const lastVisible = destVisible[destVisible.length - 1];
+              rawDestIndex = destSections.indexOf(lastVisible) + 1;
+            } else {
+              rawDestIndex = 0;
+            }
+          }
+
           onMoveSectionBetweenAreas?.(
             sourceAreaId,
             destAreaId,
-            sourceIndex,
-            destIndex,
+            rawSourceIndex,
+            rawDestIndex,
           );
         }
       },
-      [isReadOnly, layout?.areas, onReorderAreaSections, onMoveSectionBetweenAreas],
+      [
+        isReadOnly,
+        isSectionVisible,
+        layout?.areas,
+        onReorderAreaSections,
+        onMoveSectionBetweenAreas,
+      ],
     );
 
     const moveSectionInArea = useCallback(
-      (areaId: string, index: number, direction: "up" | "down") => {
+      (areaId: string, visibleIndex: number, direction: "up" | "down") => {
         const targetArea = layout?.areas?.find((a) => a.id === areaId);
         if (!targetArea) return;
-        const newIndex = direction === "up" ? index - 1 : index + 1;
-        if (newIndex < 0 || newIndex >= targetArea.sections.length) return;
-        const reordered = Array.from(targetArea.sections);
-        const [removed] = reordered.splice(index, 1);
+        const visibleSections = targetArea.sections.filter(isSectionVisible);
+        const newVisibleIndex =
+          direction === "up" ? visibleIndex - 1 : visibleIndex + 1;
+        if (newVisibleIndex < 0 || newVisibleIndex >= visibleSections.length)
+          return;
+        const [removed] = visibleSections.splice(visibleIndex, 1);
         if (removed) {
-          reordered.splice(newIndex, 0, removed);
+          visibleSections.splice(newVisibleIndex, 0, removed);
+          const hiddenSections = targetArea.sections.filter(
+            (k) => !isSectionVisible(k),
+          );
+          const reordered = [...visibleSections, ...hiddenSections];
           onReorderAreaSections?.(areaId, reordered);
         }
       },
-      [layout?.areas, onReorderAreaSections],
+      [isSectionVisible, layout?.areas, onReorderAreaSections],
     );
 
     if (!content || !content.profile || !content.sections) {

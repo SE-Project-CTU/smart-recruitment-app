@@ -16,7 +16,7 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
   isReadOnly = false,
   renderField,
 }) => {
-  if (!section.visible) return null;
+  if (section.visible === false) return null;
 
   return (
     <div className="section-objective mb-3 group relative">

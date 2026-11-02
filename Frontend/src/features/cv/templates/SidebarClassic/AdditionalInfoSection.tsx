@@ -16,7 +16,7 @@ export const AdditionalInfoSection = React.memo<AdditionalInfoSectionProps>(({
   isReadOnly = false,
   renderField,
 }) => {
-  if (!section.visible) return null;
+  if (section.visible === false) return null;
 
   return (
     <section className="section-additionalInfo group relative mb-4">

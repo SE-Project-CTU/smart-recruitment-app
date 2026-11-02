@@ -101,11 +101,20 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
   }) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
-    const isSectionVisible = (key: string): boolean => {
-      const sec = sections[key as keyof typeof sections];
-      if (!sec || typeof sec !== "object") return true;
-      return (sec as { visible?: boolean }).visible !== false;
-    };
+    const isSectionVisible = useCallback(
+      (key: string): boolean => {
+        const sec = sections[key as keyof typeof sections];
+        if (!sec || typeof sec !== "object") return true;
+        return (sec as { visible?: boolean }).visible !== false;
+      },
+      [sections],
+    );
+
+    // Chỉ render các section đang hiển thị; section bị tắt hiển thị sẽ bị loại bỏ hoàn toàn khỏi CV
+    const visibleSections = React.useMemo(
+      () => sectionsList.filter(isSectionVisible),
+      [sectionsList, isSectionVisible],
+    );
 
     /**
      * renderClone:
@@ -128,9 +137,11 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
             style={{
               ...dragProvided.draggableProps.style,
               height: "auto",
+              maxHeight: "40px",
               minHeight: "unset",
               width: "max-content",
               maxWidth: "280px",
+              boxSizing: "border-box",
               ...(snapshot.isDropAnimating
                 ? { transitionDuration: "0.001s" }
                 : {}),
@@ -160,23 +171,8 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
               activeDrag?.destinationDroppableId === areaId &&
               activeDrag?.destinationIndex != null;
 
-            // Chiều cao chuẩn xác của section đang kéo do thư viện dnd tính toán
-            const dndPlaceholderHeight = (provided.placeholder as unknown as {
-              props?: {
-                placeholder?: {
-                  client?: {
-                    borderBox?: {
-                      height?: number;
-                    };
-                  };
-                };
-              };
-            })?.props?.placeholder?.client?.borderBox?.height;
-
-            const dropZoneHeight =
-              typeof dndPlaceholderHeight === "number" && dndPlaceholderHeight > 0
-                ? dndPlaceholderHeight
-                : activeDrag?.draggedHeight || 140;
+            // Chiều cao chuẩn xác của section thật đang kéo để bóng thả phủ kín 100% vùng trống có thể thả
+            const dropZoneHeight = activeDrag?.draggedHeight || 140;
 
             let indicatorTop = 0;
             if (
@@ -187,22 +183,38 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
             ) {
               const destIndex = activeDrag.destinationIndex;
               if (destIndex > 0) {
-                const children = Array.from(
-                  containerRef.current.querySelectorAll<HTMLElement>(
-                    ":scope > [data-rfd-draggable-id]",
-                  ),
-                );
-                if (children.length > 0) {
-                  const prevIndex = Math.min(
-                    destIndex - 1,
-                    children.length - 1,
+                let prevDraggableId: string | null;
+                if (areaId === activeDrag.sourceDroppableId) {
+                  // Đang kéo trong cùng vùng: loại bỏ item đang kéo khỏi danh sách visible thực tế
+                  const listWithoutDragged = visibleSections.filter(
+                    (id) => id !== activeDrag.draggableId,
                   );
-                  const prevEl = children[prevIndex];
+                  const targetIdx = Math.min(
+                    destIndex - 1,
+                    listWithoutDragged.length - 1,
+                  );
+                  prevDraggableId = listWithoutDragged[targetIdx] ?? null;
+                } else {
+                  // Đang kéo từ vùng khác sang
+                  const targetIdx = Math.min(
+                    destIndex - 1,
+                    visibleSections.length - 1,
+                  );
+                  prevDraggableId = visibleSections[targetIdx] ?? null;
+                }
+
+                if (prevDraggableId && containerRef.current) {
+                  const prevEl = containerRef.current.querySelector<HTMLElement>(
+                    `[data-rfd-draggable-id="${prevDraggableId}"]`,
+                  );
                   if (prevEl) {
-                    const style = window.getComputedStyle(prevEl);
-                    const marginBottom = parseFloat(style.marginBottom) || 0;
-                    indicatorTop =
-                      prevEl.offsetTop + prevEl.offsetHeight + marginBottom / 2;
+                    const prevRect = prevEl.getBoundingClientRect();
+                    const containerRect =
+                      containerRef.current.getBoundingClientRect();
+                    indicatorTop = Math.max(
+                      0,
+                      prevRect.bottom - containerRect.top,
+                    );
                   }
                 }
               }
@@ -227,20 +239,18 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
                       right: 0,
                       height: dropZoneHeight,
                     }}
-                    className="pointer-events-none rounded-sm border-2 border-dashed border-slate-400 bg-slate-200/50 shadow-inner"
+                    className="pointer-events-none z-10 rounded-sm border-2 border-dashed border-slate-400 bg-slate-200/50 shadow-inner"
                   />
                 )}
 
-                {sectionsList.map((sectionKey, index) => {
-                  const visible = isSectionVisible(sectionKey);
+                {visibleSections.map((sectionKey, index) => {
                   return (
                     <DraggableSectionCard
                       key={sectionKey}
                       sectionKey={sectionKey}
                       index={index}
                       isFirst={index === 0}
-                      isLast={index === sectionsList.length - 1}
-                      visible={visible}
+                      isLast={index === visibleSections.length - 1}
                       isReadOnly={isReadOnly}
                       onMoveUp={() => onMoveSectionInArea(areaId, index, "up")}
                       onMoveDown={() =>
@@ -273,20 +283,18 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
 
     return (
       <div>
-        {sectionsList
-          .filter((sectionKey) => isSectionVisible(sectionKey))
-          .map((sectionKey) => (
-            <div key={sectionKey} className="relative rounded-sm">
-              <SectionRenderer
-                sectionKey={sectionKey}
-                sections={sections}
-                primaryColor={primaryColor}
-                isReadOnly={isReadOnly}
-                renderField={renderField}
-                sectionEditors={sectionEditors}
-              />
-            </div>
-          ))}
+        {visibleSections.map((sectionKey) => (
+          <div key={sectionKey} className="relative rounded-sm">
+            <SectionRenderer
+              sectionKey={sectionKey}
+              sections={sections}
+              primaryColor={primaryColor}
+              isReadOnly={isReadOnly}
+              renderField={renderField}
+              sectionEditors={sectionEditors}
+            />
+          </div>
+        ))}
       </div>
     );
   },

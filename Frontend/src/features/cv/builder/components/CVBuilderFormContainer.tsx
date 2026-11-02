@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Eye,
   Loader2,
+  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/toast";
@@ -24,7 +25,7 @@ import {
 } from "../schema/richTextCvSchema";
 import { buildRichTextCvInitialValues } from "../utils/richTextInitialValues";
 import { extractTiptapPlainText } from "../utils/tiptapJson";
-import CvBuilderWysiwygToolbar from "./CvBuilderWysiwygToolbar";
+import { CvBuilderSidebar } from "./CvBuilderSidebar";
 import CvBuilderWorkspace from "./CvBuilderWorkspace";
 import { CvPreviewModal } from "./CvPreviewModal";
 import { CvTitleInput } from "./CvTitleInput";
@@ -53,6 +54,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   }
 
   const [isLocked, setIsLocked] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<RichTextCvEditorValues | null>(null);
@@ -189,9 +191,9 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
 
   return (
     <FormProvider {...methods}>
-      <div className="flex min-h-screen flex-col">
-        {/* ================= 1. TOP NAVBAR ================= */}
-        <header className="no-print sticky top-0 z-100 flex items-center justify-between border-b border-border bg-surface px-6 py-3 shadow-xs">
+      <div className="flex h-screen max-h-screen flex-col overflow-hidden bg-slate-100">
+        {/* ================= 1. TOP NAVBAR (CỐ ĐỊNH Ở TRÊN CÙNG) ================= */}
+        <header className="no-print shrink-0 z-40 flex h-14 items-center justify-between border-b border-border bg-surface px-6 shadow-xs">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -215,6 +217,16 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
           <div className="flex items-center gap-2.5">
             {!isLocked ? (
               <>
+                {/* Nút mở sidebar cho mobile */}
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="flex md:hidden h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main shadow-xs"
+                  title="Tùy chỉnh & Bố cục CV"
+                >
+                  <SlidersHorizontal className="h-4 w-4 text-primary" />
+                </button>
+
                 <button
                   key="btn-preview-cv"
                   type="button"
@@ -276,14 +288,11 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
         <form
           id="cv-builder-form"
           onSubmit={(e) => e.preventDefault()}
-          className="flex flex-1 flex-col"
+          className="flex flex-1 flex-col overflow-hidden h-[calc(100vh-56px)]"
         >
-          {/* ================= 2. WYSIWYG TOOLBAR ================= */}
-          <CvBuilderWysiwygToolbar isCompleted={isLocked} />
-
           {/* Banner thông báo khóa CV */}
           {isLocked && (
-            <div className="no-print flex items-center justify-center gap-2 border-b border-secondary-dark bg-secondary-light px-6 py-2.5 text-sm font-medium text-primary-dark">
+            <div className="no-print shrink-0 flex items-center justify-center gap-2 border-b border-secondary-dark bg-secondary-light px-6 py-2.5 text-sm font-medium text-primary-dark">
               <FileCheck className="h-4 w-4 text-primary" />
               <span>
                 Hồ sơ CV đã được kiểm tra tính hợp lệ và khóa chỉnh sửa! Bạn có thể xuất PDF ngay.
@@ -291,23 +300,38 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             </div>
           )}
 
-          {/* Banner hiển thị lỗi validation nếu có */}
-          {Object.keys(errors).length > 0 && !isLocked && (
-            <div className="no-print mx-auto mt-4 flex w-full max-w-[210mm] items-center gap-3 rounded-lg border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <div>
-                <span className="font-semibold">Vui lòng kiểm tra lại: </span>
-                {errors.title?.message ||
-                  errors.content?.profile?.fullName?.message ||
-                  errors.content?.profile?.email?.message ||
-                  errors.content?.profile?.phone?.message ||
-                  "Một số trường thông tin bắt buộc chưa hợp lệ hoặc đang để trống."}
-              </div>
+          {/* ================= 2. KHU VỰC THIẾT KẾ: TÁCH BIỆT SIDEBAR VÀ CV WORKSPACE ================= */}
+          <div className="flex flex-1 overflow-hidden h-full w-full relative">
+            {/* ITEM 1: SIDEBAR TÙY CHỈNH (CỐ ĐỊNH, HOÀN TOÀN KHÔNG BỊ SCROLL, DẠNG FLOATING, ĐẨY CV SANG PHẢI) */}
+            <div className="no-print hidden md:flex shrink-0 h-full py-3 pl-3 z-30 select-none">
+              <CvBuilderSidebar
+                isLocked={isLocked}
+                isOpenMobile={isMobileSidebarOpen}
+                onCloseMobile={() => setIsMobileSidebarOpen(false)}
+              />
             </div>
-          )}
 
-          {/* ================= 3. TRANG GIẤY A4 WYSIWYG WORKSPACE ================= */}
-          <CvBuilderWorkspace contentRef={cvPrintRef} isReadOnly={isLocked} />
+            {/* ITEM 2: CV WORKSPACE (ELEMENT DUY NHẤT CÓ SCROLL CHO TRANG CV) */}
+            <div className="flex flex-1 flex-col h-full overflow-y-auto overflow-x-auto min-w-0">
+              {/* Banner hiển thị lỗi validation nếu có */}
+              {Object.keys(errors).length > 0 && !isLocked && (
+                <div className="no-print mx-auto mt-4 flex w-full max-w-[210mm] shrink-0 items-center gap-3 rounded-lg border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <div>
+                    <span className="font-semibold">Vui lòng kiểm tra lại: </span>
+                    {errors.title?.message ||
+                      errors.content?.profile?.fullName?.message ||
+                      errors.content?.profile?.email?.message ||
+                      errors.content?.profile?.phone?.message ||
+                      "Một số trường thông tin bắt buộc chưa hợp lệ hoặc đang để trống."}
+                  </div>
+                </div>
+              )}
+
+              {/* TRANG GIẤY A4 WYSIWYG WORKSPACE */}
+              <CvBuilderWorkspace contentRef={cvPrintRef} isReadOnly={isLocked} />
+            </div>
+          </div>
         </form>
 
         {/* ================= 4. MODAL XEM TRƯỚC CV ================= */}

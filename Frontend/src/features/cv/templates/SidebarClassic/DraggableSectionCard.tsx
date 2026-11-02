@@ -7,7 +7,6 @@ interface DraggableSectionCardProps {
   index: number;
   isFirst: boolean;
   isLast: boolean;
-  visible: boolean;
   isReadOnly: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -50,7 +49,6 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
     index,
     isFirst,
     isLast,
-    visible,
     isReadOnly,
     onMoveUp,
     onMoveDown,
@@ -69,8 +67,6 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
             {...dragProvided.draggableProps}
             style={getDraggableStyle(dragProvided.draggableProps.style, snapshot)}
             className={`group relative rounded-sm hover:ring-1 hover:ring-slate-400 ${
-              !visible ? "opacity-40 grayscale" : ""
-            } ${
               snapshot.isDragging
                 ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
                 : ""

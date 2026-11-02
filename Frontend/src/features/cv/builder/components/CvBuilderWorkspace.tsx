@@ -45,7 +45,7 @@ export default function CvBuilderWorkspace({
   });
 
   // Theo dõi trạng thái hiển thị (visible) của từng section
-  useWatch({
+  const watchedVisibility = useWatch({
     control,
     name: [
       "content.sections.objective.visible",
@@ -117,7 +117,56 @@ export default function CvBuilderWorkspace({
     }
     return raw;
   }, [watchedLayout, watchedLayoutAreas, getValues]);
-  const currentContent = getValues("content") as unknown as RichTextCVContentDocument;
+  const currentContent = useMemo(() => {
+    const raw = getValues("content") as unknown as RichTextCVContentDocument;
+    if (!raw || !raw.sections) return raw;
+
+    const [
+      objectiveVisible,
+      experienceVisible,
+      educationVisible,
+      skillsVisible,
+      projectsVisible,
+      certificationsVisible,
+      awardsVisible,
+      interestsVisible,
+      additionalInfoVisible,
+    ] = watchedVisibility || [];
+
+    return {
+      ...raw,
+      sections: {
+        ...raw.sections,
+        objective: raw.sections.objective
+          ? { ...raw.sections.objective, visible: objectiveVisible !== false }
+          : raw.sections.objective,
+        experience: raw.sections.experience
+          ? { ...raw.sections.experience, visible: experienceVisible !== false }
+          : raw.sections.experience,
+        education: raw.sections.education
+          ? { ...raw.sections.education, visible: educationVisible !== false }
+          : raw.sections.education,
+        skills: raw.sections.skills
+          ? { ...raw.sections.skills, visible: skillsVisible !== false }
+          : raw.sections.skills,
+        projects: raw.sections.projects
+          ? { ...raw.sections.projects, visible: projectsVisible !== false }
+          : raw.sections.projects,
+        certifications: raw.sections.certifications
+          ? { ...raw.sections.certifications, visible: certificationsVisible !== false }
+          : raw.sections.certifications,
+        awards: raw.sections.awards
+          ? { ...raw.sections.awards, visible: awardsVisible !== false }
+          : raw.sections.awards,
+        interests: raw.sections.interests
+          ? { ...raw.sections.interests, visible: interestsVisible !== false }
+          : raw.sections.interests,
+        additionalInfo: raw.sections.additionalInfo
+          ? { ...raw.sections.additionalInfo, visible: additionalInfoVisible !== false }
+          : raw.sections.additionalInfo,
+      },
+    };
+  }, [watchedVisibility, getValues]);
 
   const layoutValidation = useMemo(() => {
     return validateCvLayout(currentLayout, templateCode);

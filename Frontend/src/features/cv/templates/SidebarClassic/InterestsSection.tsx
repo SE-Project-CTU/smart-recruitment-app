@@ -16,7 +16,7 @@ export const InterestsSection = React.memo<InterestsSectionProps>(({
   isReadOnly = false,
   renderField,
 }) => {
-  if (!section.visible) return null;
+  if (section.visible === false) return null;
 
   return (
     <section className="section-interests group relative mb-4">

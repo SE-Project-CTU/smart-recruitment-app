@@ -64,7 +64,8 @@ export function useCvMutations() {
   const toggleSectionVisibility = useCallback(
     (sectionKey: FixedSectionKey) => {
       const current = getValues(`content.sections.${sectionKey}.visible`);
-      setValue(`content.sections.${sectionKey}.visible`, !current, {
+      const isCurrentlyVisible = current !== false;
+      setValue(`content.sections.${sectionKey}.visible`, !isCurrentlyVisible, {
         shouldDirty: true,
         shouldValidate: true,
       });
