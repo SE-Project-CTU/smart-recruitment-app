@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertTriangle,
   Building2,
   ChevronDown,
   ChevronLeft,
@@ -16,6 +15,16 @@ import {
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, TableSkeleton } from "@/components/common";
 import { PATHS } from "@/constants/paths";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useProvinces } from "@/hooks/queries/useCatalog";
 import {
   useCompanyJobPostings,
@@ -492,62 +501,44 @@ export function RecruiterJobListPage() {
       )}
 
       {/* 6. Modal Xác nhận Tắt / Đóng tin tuyển dụng */}
-      {jobToClose && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center gap-3 text-rose-600">
-              <div className="flex size-11 items-center justify-center rounded-xl bg-rose-50">
-                <AlertTriangle className="size-6 text-rose-600" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  Xác nhận đóng tin tuyển dụng
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Thao tác này sẽ dừng nhận hồ sơ ứng tuyển
-                </p>
-              </div>
-            </div>
+      <AlertDialog
+        open={Boolean(jobToClose)}
+        onOpenChange={(open) => {
+          if (!open && !updateStatusMutation.isPending) {
+            setJobToClose(null);
+            setIsClosingSuccess(false);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận đóng tin tuyển dụng</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isClosingSuccess
+                ? "Đã đóng tin tuyển dụng thành công. Trạng thái đã chuyển sang Đã đóng."
+                : `Bạn có chắc chắn muốn đóng nhận hồ sơ cho vị trí "${jobToClose?.title}"? Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ ứng tuyển vào vị trí này nữa.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-            {isClosingSuccess ? (
-              <div className="my-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-800">
-                ✓ Đã đóng tin tuyển dụng thành công! Trạng thái đã chuyển sang
-                Đã đóng.
-              </div>
-            ) : (
-              <p className="my-3 text-xs leading-relaxed text-slate-600">
-                Bạn có chắc chắn muốn đóng nhận hồ sơ cho vị trí{" "}
-                <strong className="font-semibold text-slate-900">
-                  "{jobToClose.title}"
-                </strong>
-                ? Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ ứng tuyển vào vị
-                trí này nữa.
-              </p>
-            )}
-
-            {!isClosingSuccess && (
-              <div className="mt-6 flex items-center justify-end gap-2.5">
-                <Button
-                  variant="secondary"
-                  disabled={updateStatusMutation.isPending}
-                  onClick={() => setJobToClose(null)}
-                  className="px-4! py-2! text-xs! font-medium!"
-                >
-                  Hủy bỏ
-                </Button>
-                <Button
-                  variant="primary"
-                  isLoading={updateStatusMutation.isPending}
-                  onClick={handleExecuteClose}
-                  className="bg-rose-600! px-4! py-2! text-xs! font-semibold! hover:bg-rose-700!"
-                >
-                  Xác nhận đóng tin
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+          {!isClosingSuccess && (
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={updateStatusMutation.isPending}
+                onClick={() => setJobToClose(null)}
+              >
+                Hủy bỏ
+              </AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                disabled={updateStatusMutation.isPending}
+                onClick={handleExecuteClose}
+              >
+                {updateStatusMutation.isPending ? "Đang đóng tin..." : "Xác nhận đóng tin"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

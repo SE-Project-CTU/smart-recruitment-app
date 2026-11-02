@@ -140,10 +140,11 @@ export function DashboardSidebar() {
       if (currentPath.startsWith(targetUrl + "/")) {
         const allItems = groups.flatMap((g) => [
           ...g.items.map((i) => i.url),
-          ...(g.items.flatMap((i) => i.items?.map((sub) => sub.url) || [])),
+          ...g.items.flatMap((i) => i.items?.map((sub) => sub.url) || []),
         ]);
         const hasMoreSpecificMatch = allItems.some((url) => {
-          if (!url || url === "#" || url.toLowerCase() === targetUrl) return false;
+          if (!url || url === "#" || url.toLowerCase() === targetUrl)
+            return false;
           const uLower = url.toLowerCase();
           return (
             currentPath === uLower ||
@@ -243,7 +244,9 @@ export function DashboardSidebar() {
                   );
                   const siblingUrls = item.items?.map((sub) => sub.url) || [];
                   const isAnySubActive = Boolean(
-                    item.items?.some((sub) => isSubItemActive(sub.url, siblingUrls)),
+                    item.items?.some((sub) =>
+                      isSubItemActive(sub.url, siblingUrls),
+                    ),
                   );
                   const active = isItemActive(item) || isAnySubActive;
                   const isSubOpen =
@@ -349,7 +352,7 @@ export function DashboardSidebar() {
 
       {/* Footer: Phân hệ Recruiter hiển thị WorkspaceSwitcher, các phân hệ khác hiển thị footer items */}
       {role === "recruiter" ? (
-        <SidebarFooter className="border-t border-border/40 p-2">
+        <SidebarFooter className="border-t border-border/40 p-0!">
           <WorkspaceSwitcher />
         </SidebarFooter>
       ) : footerItems.length > 0 ? (

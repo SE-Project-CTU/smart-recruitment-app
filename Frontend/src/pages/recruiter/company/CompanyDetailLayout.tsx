@@ -68,12 +68,13 @@ export function CompanyDetailLayout() {
           {error?.message || "Doanh nghiệp không tồn tại"}
         </h2>
         <p className="mt-1.5 text-xs text-text-muted">
-          Vui lòng kiểm tra lại đường dẫn hoặc quay về trang tổng quan tuyển dụng.
+          Vui lòng kiểm tra lại đường dẫn hoặc quay về trang tổng quan tuyển
+          dụng.
         </p>
         <button
           onClick={() => navigate(PATHS.RECRUITER.DASHBOARD)}
           type="button"
-          className="hover:bg-primary-hover mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white cursor-pointer"
+          className="hover:bg-primary-hover mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
         >
           <ArrowLeft className="size-4" />
           Về trang tổng quan
@@ -104,7 +105,7 @@ export function CompanyDetailLayout() {
       <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4 sm:items-center">
-            <div className="shrink-0 rounded-2xl border border-border bg-white p-1">
+            <div className="shrink-0">
               <CompanyLogo
                 logoUrl={company.logoUrl}
                 name={company.name}
