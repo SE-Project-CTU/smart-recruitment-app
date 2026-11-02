@@ -27,6 +27,7 @@ import {
 } from "@/components/common";
 import { cn } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
+import Grainient from "@/components/external/Grainient";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
 import { CandidateTable } from "./candidate/CandidateTable";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
@@ -327,10 +328,12 @@ export default function RecruiterDashboard() {
               {/* Khối lời chào */}
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
-                  {formattedDayOfWeek} tốt lành, {user?.fullName || "Nhà tuyển dụng"}! 👋
+                  {formattedDayOfWeek} tốt lành,{" "}
+                  {user?.fullName || "Nhà tuyển dụng"}! 👋
                 </h1>
                 <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
-                  Theo dõi tiến độ tuyển dụng, tương tác với ứng viên và phát triển đội ngũ của{" "}
+                  Theo dõi tiến độ tuyển dụng, tương tác với ứng viên và phát
+                  triển đội ngũ của{" "}
                   <span className="font-semibold text-text-main">
                     {activeCompany?.name || "doanh nghiệp"}
                   </span>
@@ -359,11 +362,15 @@ export default function RecruiterDashboard() {
                             className="group flex max-w-[180px] items-center gap-1 truncate text-xs font-bold text-text-main transition-colors hover:text-primary sm:max-w-[220px]"
                             aria-label={`Chuyển đổi doanh nghiệp. Hiện tại: ${activeCompany.name}`}
                           >
-                            <span className="truncate">{activeCompany.name}</span>
+                            <span className="truncate">
+                              {activeCompany.name}
+                            </span>
                             <ChevronDown className="size-3.5 shrink-0 text-text-muted transition-transform group-data-[popup-open]:rotate-180" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-64">
-                            <DropdownMenuLabel>Chuyển đổi không gian làm việc</DropdownMenuLabel>
+                            <DropdownMenuLabel>
+                              Chuyển đổi không gian làm việc
+                            </DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {companies.map((comp) => {
                               const isCurrent = comp.id === activeCompany.id;
@@ -485,7 +492,8 @@ export default function RecruiterDashboard() {
             Không thể tải thông tin không gian doanh nghiệp
           </h2>
           <p className="mt-1 max-w-md text-xs text-slate-600">
-            Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.
+            Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng kiểm tra kết nối
+            mạng và thử lại.
           </p>
           <Button
             variant="outline"
@@ -509,7 +517,8 @@ export default function RecruiterDashboard() {
             Chưa có không gian làm việc doanh nghiệp
           </h2>
           <p className="mt-2 max-w-md text-sm text-text-muted">
-            Tạo hồ sơ doanh nghiệp mới hoặc tham gia doanh nghiệp để bắt đầu đăng tin tuyển dụng và quản lý hồ sơ ứng viên.
+            Tạo hồ sơ doanh nghiệp mới hoặc tham gia doanh nghiệp để bắt đầu
+            đăng tin tuyển dụng và quản lý hồ sơ ứng viên.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button
@@ -558,16 +567,25 @@ export default function RecruiterDashboard() {
                 className={cn(
                   "group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border p-4 transition-all focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:outline-none",
                   isFeatured
-                    ? "border-primary/40 bg-surface shadow-2xs hover:border-primary hover:bg-white"
+                    ? ""
                     : "border-border bg-surface hover:border-primary/40 hover:bg-white",
                 )}
               >
-                {/* Riêng badge "Tin đang mở" sử dụng CustomBackground */}
-                {isFeatured && <GradientGridBackground />}
+                {/* Riêng badge "Tin đang mở" sử dụng Grainient từ React Bits */}
+                {isFeatured && (
+                  <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl opacity-35">
+                    <Grainient
+                      color1="#ade8f4"
+                      color2="#48cae4"
+                      color3="#0096c7"
+                      timeSpeed={3}
+                    />
+                  </div>
+                )}
 
                 <div className="relative z-1 flex h-full flex-col justify-between">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    <span className="text-xs font-semibold tracking-wider text-text-muted uppercase">
                       {item.title}
                     </span>
                     <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
@@ -625,7 +643,8 @@ export default function RecruiterDashboard() {
                 <div className="flex items-center justify-between text-xs text-text-muted">
                   <span>Số lượng hồ sơ</span>
                   <span className="inline-flex items-center gap-1.5 font-semibold text-primary">
-                    <span className="size-2 rounded-full bg-primary" /> Ứng tuyển
+                    <span className="size-2 rounded-full bg-primary" /> Ứng
+                    tuyển
                   </span>
                 </div>
                 <div className="h-36 w-full rounded-lg bg-linear-to-b from-primary/10 to-transparent p-2">
@@ -684,7 +703,10 @@ export default function RecruiterDashboard() {
             <div className="relative mt-4 flex min-h-64 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-bg/40 p-6">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative flex size-32 items-center justify-center">
-                  <svg className="size-full -rotate-90 transform" viewBox="0 0 36 36">
+                  <svg
+                    className="size-full -rotate-90 transform"
+                    viewBox="0 0 36 36"
+                  >
                     <circle
                       cx="18"
                       cy="18"
@@ -708,7 +730,9 @@ export default function RecruiterDashboard() {
                     <span className="text-lg font-bold text-text-main">
                       {allApplications.length}
                     </span>
-                    <span className="block text-[10px] text-text-muted">Tổng đơn</span>
+                    <span className="block text-[10px] text-text-muted">
+                      Tổng đơn
+                    </span>
                   </div>
                 </div>
 
@@ -802,7 +826,8 @@ export default function RecruiterDashboard() {
                 Chưa có tin tuyển dụng nào
               </h3>
               <p className="mt-1 text-xs text-text-muted">
-                Đăng tin tuyển dụng đầu tiên để bắt đầu tiếp cận và thu hút các ứng viên tiềm năng.
+                Đăng tin tuyển dụng đầu tiên để bắt đầu tiếp cận và thu hút các
+                ứng viên tiềm năng.
               </p>
               {isVerified && (
                 <Button
@@ -855,7 +880,9 @@ export default function RecruiterDashboard() {
                     role="recruiter"
                     companyLogoUrl={activeCompany?.logoUrl}
                     onSelect={() =>
-                      navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))
+                      navigate(
+                        PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id),
+                      )
                     }
                   />
                 );
