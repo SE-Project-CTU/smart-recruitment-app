@@ -41,11 +41,6 @@ export interface CVTemplateItem {
   updatedAt?: string;
 }
 
-export interface CVPreviewFile {
-  id: string;
-  url: string;
-}
-
 // ==========================================
 // CORE CV DTOS (Ánh xạ 1:1 C# DTOs)
 // ==========================================

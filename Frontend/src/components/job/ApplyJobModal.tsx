@@ -165,8 +165,8 @@ export function ApplyJobModal({
         }
 
         try {
-          const versions = await cvService.getCvVersions(effectiveSelectedCvId);
-          const latestVersion = versions?.[0];
+          const versionsResult = await cvService.getCvVersions(effectiveSelectedCvId);
+          const latestVersion = Array.isArray(versionsResult) ? (versionsResult as unknown as Array<{ id: string }>)[0] : versionsResult?.items?.[0];
           if (!latestVersion?.id) {
             toast.error({
               description:
