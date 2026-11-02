@@ -35,6 +35,7 @@ public sealed class CohereRerankService : ICohereRerankService {
             return CalculateHeuristicScore(cvText, jobText);
         }
 
+        // Đồng bộ 100% với RerankJobsAsync: Query là CV ứng viên, Document là chi tiết Job Description
         var candidates = new List<RerankCandidate> {
             new(Guid.Empty, jobText)
         };
@@ -120,18 +121,48 @@ public sealed class CohereRerankService : ICohereRerankService {
         }
     }
 
+    private static string ExtractKeyJobRequirements(string jobText) {
+        if (string.IsNullOrWhiteSpace(jobText)) return "Job Requirements";
+        // Giới hạn query độ dài tối ưu cho Rerank model (dưới 400 từ)
+        var lines = jobText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var filteredLines = lines.Where(l => !l.StartsWith("Mức lương:", StringComparison.OrdinalIgnoreCase) &&
+                                            !l.StartsWith("Salary:", StringComparison.OrdinalIgnoreCase)).Take(10);
+        return string.Join("\n", filteredLines);
+    }
+
     private static decimal CalculateHeuristicScore(string cvText, string jobText) {
-        if (string.IsNullOrWhiteSpace(cvText) || string.IsNullOrWhiteSpace(jobText)) return 50.00m;
+        if (string.IsNullOrWhiteSpace(cvText) || string.IsNullOrWhiteSpace(jobText)) return 20.00m;
 
-        var cvWords = cvText.ToLowerInvariant().Split(new[] { ' ', ',', '.', ';', ':', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToHashSet();
-        var jobWords = jobText.ToLowerInvariant().Split(new[] { ' ', ',', '.', ';', ':', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+        // Bộ stop words thông dụng tiếng Việt và tiếng Anh để chấm điểm khắt khe, chính xác
+        var stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+            "và", "của", "là", "trong", "với", "cho", "các", "những", "được", "có", "tại", "để", "về", "một", "này", "khi",
+            "ở", "từ", "theo", "như", "đã", "sẽ", "đang", "rất", "nhiều", "lại", "ra", "vào", "lên", "xuống",
+            "and", "the", "in", "of", "to", "for", "with", "a", "an", "is", "at", "on", "by", "from", "as", "or", "are", "be"
+        };
 
-        if (jobWords.Count == 0) return 60.00m;
+        var delimiters = new[] { ' ', ',', '.', ';', ':', '\n', '\r', '(', ')', '[', ']', '-', '/', '•', '|', '+', '&' };
 
-        var intersectCount = cvWords.Intersect(jobWords).Count();
-        var ratio = (decimal)intersectCount / Math.Max(20, jobWords.Count);
-        var score = Math.Clamp(ratio * 100m + 40m, 50.00m, 95.00m);
-        return Math.Round(score, 2);
+        var cvTokens = cvText.ToLowerInvariant()
+            .Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
+            .Where(w => w.Length >= 2 && !stopWords.Contains(w))
+            .ToHashSet();
+
+        var jobTokens = jobText.ToLowerInvariant()
+            .Split(delimiters, StringSplitOptions.RemoveEmptyEntries)
+            .Where(w => w.Length >= 2 && !stopWords.Contains(w))
+            .Distinct()
+            .ToList();
+
+        if (jobTokens.Count == 0) return 25.00m;
+
+        var matchedCount = jobTokens.Count(t => cvTokens.Contains(t));
+        var matchRatio = (decimal)matchedCount / jobTokens.Count;
+
+        // Nếu khớp rất ít (<20% từ khóa): điểm 15 - 35%
+        // Nếu khớp vừa (40 - 60% từ khóa): điểm 45 - 65%
+        // Nếu khớp tốt (>75% từ khóa): điểm 75 - 92%
+        var calculatedScore = Math.Clamp(matchRatio * 85m + 10m, 15.00m, 95.00m);
+        return Math.Round(calculatedScore, 2);
     }
 
     private sealed class CohereRerankResponse {

@@ -127,7 +127,7 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
     }
 
     private static string BuildBatchCacheKey(EnhanceCvBatchCommand request, string language) {
-        var rawKey = $"{request.CvId}|{request.TargetJobId}|{language}|{string.Join(";", request.Sections.Select(s => $"{s.SectionType}:{s.Content}"))}";
+        var rawKey = $"{request.CvId}|{request.TargetJobId}|{request.TargetJobTitle}|{request.TargetJobDescription}|{language}|{string.Join(";", request.Sections.Select(s => $"{s.SectionType}:{s.Content}"))}";
         using var sha = SHA256.Create();
         var bytes = Encoding.UTF8.GetBytes(rawKey);
         var hash = sha.ComputeHash(bytes);

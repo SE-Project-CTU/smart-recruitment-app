@@ -20,6 +20,7 @@ using SmartHire.Application.Features.Ai.Queries.GetApplicationMatchResult;
 using SmartHire.Application.Features.Ai.Queries.GetConversationDetail;
 using SmartHire.Application.Features.Ai.Queries.GetConversations;
 using SmartHire.Application.Features.Ai.Queries.GetRecommendations;
+using SmartHire.Application.Features.Ai.Queries.RerankJobsRealtime;
 
 namespace SmartHire.Api.Controllers;
 
@@ -93,7 +94,10 @@ public sealed class AiController : ControllerBase {
         Response.Headers["X-Accel-Buffering"] = "no";
 
         await foreach (var token in _geminiAiService.StreamEnhanceCvAsync(request, cancellationToken)) {
-            await Response.WriteAsync($"data: {token}\n\n", cancellationToken);
+            // Chuẩn hóa SSE: Serialize token dưới dạng JSON string để bảo toàn 100% ký tự xuống dòng '\n'
+            // và cấu trúc gạch đầu dòng, ngăn chặn parser SSE client bị mất dòng hoặc dồn cụm văn bản.
+            var jsonToken = System.Text.Json.JsonSerializer.Serialize(token);
+            await Response.WriteAsync($"data: {jsonToken}\n\n", cancellationToken);
             await Response.Body.FlushAsync(cancellationToken);
         }
 
@@ -153,6 +157,18 @@ public sealed class AiController : ControllerBase {
         CancellationToken cancellationToken) {
         var result = await _sender.Send(new RefreshRecommendationsCommand(), cancellationToken);
         return Accepted(_responseFactory.Success(result));
+    }
+
+    /// <summary>
+    /// Gợi ý việc làm thời gian thực - Chấm điểm và xếp hạng danh sách việc làm đồng bộ qua Cohere Rerank v3.5
+    /// </summary>
+    [Authorize(Roles = RoleNames.Candidate)]
+    [HttpPost("jobs/rerank")]
+    public async Task<IActionResult> RerankJobsRealtime(
+        [FromBody] RerankJobsRealtimeQuery query,
+        CancellationToken cancellationToken) {
+        var result = await _sender.Send(query, cancellationToken);
+        return Ok(_responseFactory.Success(result));
     }
 
     /// <summary>

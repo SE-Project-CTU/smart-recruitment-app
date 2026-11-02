@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
@@ -34,24 +36,54 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
     public async Task<MatchAnalysisResultDto> Handle(MatchAnalysisCommand request, CancellationToken cancellationToken) {
         MatchAnalysisCommandValidator.Validate(request);
 
-        var job = await _jobPostingRepository.GetDetailByIdAsync(request.JobId, cancellationToken);
-        if (job == null) {
-            throw AiExceptions.JobPostingNotFound(request.JobId);
+        // 1. Phân giải JobText (Ưu tiên lấy từ Database để đồng bộ 100% với POST /ai/jobs/rerank)
+        string jobText;
+        string jobKeyPart;
+        if (request.JobId != Guid.Empty) {
+            var job = await _jobPostingRepository.GetDetailByIdAsync(request.JobId, cancellationToken);
+            if (job != null) {
+                jobText = JobTextExtractor.ExtractText(job);
+                jobKeyPart = job.Id.ToString();
+            } else if (!string.IsNullOrWhiteSpace(request.JobText)) {
+                jobText = request.JobText.Trim();
+                using var sha = SHA256.Create();
+                jobKeyPart = $"text:{Convert.ToHexString(sha.ComputeHash(Encoding.UTF8.GetBytes(jobText))).ToLowerInvariant()}";
+            } else {
+                throw AiExceptions.JobPostingNotFound(request.JobId);
+            }
+        } else if (!string.IsNullOrWhiteSpace(request.JobText)) {
+            jobText = request.JobText.Trim();
+            using var sha = SHA256.Create();
+            jobKeyPart = $"text:{Convert.ToHexString(sha.ComputeHash(Encoding.UTF8.GetBytes(jobText))).ToLowerInvariant()}";
+        } else {
+            throw AiExceptions.Validation("JobId hoặc JobText là bắt buộc.", []);
         }
 
-        CvVersion? cvVersion = null;
-        if (request.CvVersionId.HasValue && request.CvVersionId.Value != Guid.Empty) {
-            cvVersion = await _cvVersionRepository.GetByVersionIdAsync(request.CvVersionId.Value, cancellationToken);
-        } else if (request.CvId.HasValue && request.CvId.Value != Guid.Empty) {
-            cvVersion = await _cvVersionRepository.GetLatestByCvIdAsync(request.CvId.Value, cancellationToken);
+        // 2. Phân giải CvText
+        string cvText;
+        string cvKeyPart;
+        if (!string.IsNullOrWhiteSpace(request.CvText)) {
+            cvText = request.CvText.Trim();
+            using var sha = SHA256.Create();
+            cvKeyPart = $"text:{Convert.ToHexString(sha.ComputeHash(Encoding.UTF8.GetBytes(cvText))).ToLowerInvariant()}";
+        } else {
+            CvVersion? cvVersion = null;
+            if (request.CvVersionId.HasValue && request.CvVersionId.Value != Guid.Empty) {
+                cvVersion = await _cvVersionRepository.GetByVersionIdAsync(request.CvVersionId.Value, cancellationToken);
+            } else if (request.CvId.HasValue && request.CvId.Value != Guid.Empty) {
+                cvVersion = await _cvVersionRepository.GetLatestByCvIdAsync(request.CvId.Value, cancellationToken);
+            }
+
+            if (cvVersion == null) {
+                throw AiExceptions.CvNotFound();
+            }
+
+            cvText = CvTextExtractor.ExtractText(cvVersion);
+            cvKeyPart = cvVersion.Id.ToString();
         }
 
-        if (cvVersion == null) {
-            throw AiExceptions.CvNotFound();
-        }
-
-        // Cache Key for Redis: "match:{jobId}:{cvVersionId}"
-        var cacheKey = $"match:{job.Id}:{cvVersion.Id}";
+        // 3. Cache Key
+        var cacheKey = $"match:{jobKeyPart}:{cvKeyPart}";
         try {
             var cachedJson = await _cache.GetStringAsync(cacheKey, cancellationToken);
             if (!string.IsNullOrWhiteSpace(cachedJson)) {
@@ -64,18 +96,15 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
             // Graceful fallback if cache is temporarily unreachable
         }
 
-        var cvText = CvTextExtractor.ExtractText(cvVersion);
-        var jobText = JobTextExtractor.ExtractText(job);
-
-        // System 1: Precision Scoring via Cohere Rerank
+        // 4. System 1: Precision Scoring via Cohere Rerank
         var score = await _cohereRerankService.ComputeMatchScoreAsync(cvText, jobText, cancellationToken);
 
-        // System 2: Structured Explanation via Gemini Flash
+        // 5. System 2: Structured Explanation via Gemini Flash
         var explanation = await _geminiAiService.GenerateAnalysisExplanationAsync(cvText, jobText, score, cancellationToken);
 
         var result = AiResultMapper.ToMatchAnalysisResultDto(explanation);
 
-        // Save to Redis distributed cache with 24h expiration
+        // 6. Save to Redis distributed cache with 24h expiration
         try {
             var serialized = JsonSerializer.Serialize(result);
             await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions {
