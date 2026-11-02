@@ -44,13 +44,13 @@ const SALARY_PRESETS = [
 ];
 
 const JOB_TYPE_OPTIONS: FilterOption[] = [
-  { label: "Full-time", value: "Full-time" },
-  { label: "Part-time", value: "Part-time" },
+  { label: "Full-time", value: "FullTime" },
+  { label: "Part-time", value: "PartTime" },
   { label: "Contract", value: "Contract" },
 ];
 
 const WORK_MODE_OPTIONS: FilterOption[] = [
-  { label: "On-site", value: "On-site" },
+  { label: "On-site", value: "OnSite" },
   { label: "Hybrid", value: "Hybrid" },
   { label: "Remote", value: "Remote" },
 ];

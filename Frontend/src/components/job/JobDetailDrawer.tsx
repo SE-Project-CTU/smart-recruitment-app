@@ -27,7 +27,10 @@ import { getLoremAvt } from "@/utils/helper";
 import { extractJobDisplayData } from "@/utils/jobHelpers";
 import { toast } from "@/hooks/use-toast";
 import { PATHS } from "@/constants/paths";
-import { useApplyJobModalStore, type AnyJob } from "@/stores/applyJobModalStore";
+import {
+  useApplyJobModalStore,
+  type AnyJob,
+} from "@/stores/applyJobModalStore";
 import { useMyApplications } from "@/hooks/queries/useApplication";
 import type {
   JobPostingDetailResult,
@@ -54,8 +57,6 @@ export interface JobDetailDrawerProps<T extends JobDrawerItem = JobDrawerItem> {
   onApply?: (jobId: string) => void;
 }
 
-
-
 export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   job,
   open,
@@ -74,8 +75,8 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
 
   const isAlreadyApplied = Boolean(
     job &&
-      (("hasApplied" in job && job.hasApplied) ||
-        myApplications.some((app) => app.jobId === job.id)),
+    (("hasApplied" in job && job.hasApplied) ||
+      myApplications.some((app) => app.jobId === job.id)),
   );
 
   const isMarked =
@@ -276,7 +277,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                 {data.skillList.map((skill) => (
                   <span
                     key={skill}
-                    className="rounded-lg border border-border bg-bg/70 px-2.5 py-1 text-xs font-medium text-text-main"
+                    className="rounded-lg border border-border bg-bg/70 px-2.5 py-1 text-xs font-medium text-text-main capitalize"
                   >
                     {skill}
                   </span>
