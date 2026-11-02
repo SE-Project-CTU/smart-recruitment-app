@@ -34,13 +34,21 @@ export function WorkspaceSwitcher() {
   const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
   const activeCompany = useCompanyStore((s) => s.activeCompany);
   const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
+  const clearActiveCompany = useCompanyStore((s) => s.clearActiveCompany);
 
   // Lấy danh sách các công ty mà recruiter tham gia
   const { data: companies = [], isLoading } = useMyCompanies();
 
   // Khởi tạo & đồng bộ an toàn: tự chọn công ty đầu tiên nếu chưa chọn hoặc id cũ không còn hợp lệ
   useEffect(() => {
-    if (isLoading || companies.length === 0) return;
+    if (isLoading) return;
+
+    if (companies.length === 0) {
+      if (activeCompanyId !== null || activeCompany !== null) {
+        clearActiveCompany();
+      }
+      return;
+    }
 
     const matched = companies.find((c) => c.id === activeCompanyId);
     if (!matched) {
@@ -55,11 +63,14 @@ export function WorkspaceSwitcher() {
       // Giữ thông tin tóm tắt luôn đồng bộ mới nhất
       setActiveCompany(matched);
     }
-  }, [companies, activeCompanyId, activeCompany, isLoading, setActiveCompany]);
+  }, [companies, activeCompanyId, activeCompany, isLoading, setActiveCompany, clearActiveCompany]);
 
   // Tìm công ty đang hiển thị
   const currentCompany: CompanyItem | null = useMemo(() => {
-    if (activeCompany) return activeCompany;
+    if (companies.length === 0) return null;
+    if (activeCompany && companies.some((c) => c.id === activeCompany.id)) {
+      return activeCompany;
+    }
     if (activeCompanyId) {
       return companies.find((c) => c.id === activeCompanyId) || null;
     }

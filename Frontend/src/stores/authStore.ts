@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from "@/constants/storage";
 import { authService } from "@/services/authService";
 import { accountService } from "@/services/accountService";
 import { getOrRefreshAccessToken } from "@/api/axios";
+import { useCompanyStore } from "./companyStore";
 
 export interface AuthState {
   user: UserAccount | null;
@@ -42,6 +43,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setAuth: (data: LoginResult) => {
     localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(data.user));
+    // Dọn dẹp active company của tài khoản trước để tránh rò rỉ dữ liệu hoặc lỗi 403
+    useCompanyStore.getState().clearActiveCompany();
 
     set({
       user: data.user,
@@ -62,10 +65,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setUser: (user: UserAccount | null) => {
+    const prevUser = get().user;
     if (user) {
       localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
+      if (prevUser && prevUser.id !== user.id) {
+        useCompanyStore.getState().clearActiveCompany();
+      }
     } else {
       localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+      useCompanyStore.getState().clearActiveCompany();
     }
     set({ user });
   },
@@ -80,12 +88,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearAuth: () => {
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
-    try {
-      localStorage.removeItem("sr_active_company_id");
-      localStorage.removeItem("sr_my_company_ids");
-    } catch {
-      // ignore
-    }
+    useCompanyStore.getState().clearActiveCompany();
     set({
       user: null,
       accessToken: null,

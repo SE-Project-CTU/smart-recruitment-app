@@ -128,6 +128,7 @@ export default function RecruiterDashboard() {
   const activeCompany = useCompanyStore((s) => s.activeCompany);
   const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
   const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
+  const clearActiveCompany = useCompanyStore((s) => s.clearActiveCompany);
 
   // Modal tạo công ty mới
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -183,21 +184,35 @@ export default function RecruiterDashboard() {
 
   // Tự động đồng bộ và chọn doanh nghiệp hoạt động nếu chưa có hoặc dữ liệu server thay đổi
   useEffect(() => {
-    if (companies.length > 0) {
-      const found = companies.find((c) => c.id === activeCompany?.id);
-      if (found) {
-        if (
-          found.verificationStatus !== activeCompany?.verificationStatus ||
-          found.name !== activeCompany?.name ||
-          found.logoUrl !== activeCompany?.logoUrl
-        ) {
-          setActiveCompany(found);
-        }
-      } else {
-        setActiveCompany(companies[0]);
+    if (isLoadingCompanies) return;
+
+    if (companies.length === 0) {
+      if (activeCompany !== null || activeCompanyId !== null) {
+        clearActiveCompany();
       }
+      return;
     }
-  }, [companies, activeCompany, setActiveCompany]);
+
+    const found = companies.find((c) => c.id === activeCompanyId);
+    if (found) {
+      if (
+        found.verificationStatus !== activeCompany?.verificationStatus ||
+        found.name !== activeCompany?.name ||
+        found.logoUrl !== activeCompany?.logoUrl
+      ) {
+        setActiveCompany(found);
+      }
+    } else {
+      setActiveCompany(companies[0]);
+    }
+  }, [
+    companies,
+    activeCompany,
+    activeCompanyId,
+    isLoadingCompanies,
+    setActiveCompany,
+    clearActiveCompany,
+  ]);
 
   // Danh sách toàn bộ tin tuyển dụng của công ty
   const allJobs: JobPostingItem[] = useMemo(() => {
