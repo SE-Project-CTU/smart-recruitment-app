@@ -1,7 +1,7 @@
+import { CandidateMatching } from "@/assets/images/decoration";
 import { useState, useMemo } from "react";
 import {
   Compass,
-  BriefcaseBusiness,
   Target,
   CheckCircle,
   ArrowUpDown,
@@ -439,28 +439,29 @@ export default function MatchedJobsPage() {
         </div>
 
         {matchedJobs.length === 0 ? (
-          <div className="flex min-h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-surface p-8 text-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-              <BriefcaseBusiness className="size-6" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <h3 className="text-base font-semibold text-text-main">
+          <section className="flex flex-col items-center justify-center space-y-4 py-16 text-center">
+            <img
+              src={CandidateMatching}
+              alt="Không tìm thấy công việc phù hợp"
+              loading="lazy"
+              className="h-80 w-auto md:h-100"
+            />
+            <h2 className="text-base font-semibold text-text-main">
                 Không tìm thấy công việc phù hợp với tiêu chí hiện tại
-              </h3>
-              <p className="max-w-md text-xs text-text-muted">
+              </h2>
+            <p className="max-w-md text-xs text-text-muted">
                 Bạn có thể giảm yêu cầu về điểm tương thích (ví dụ về mức ≥70%)
                 hoặc xóa bộ lọc từ khóa để khám phá thêm nhiều cơ hội.
               </p>
-            </div>
             <Button
               type="button"
               variant="secondary"
               onClick={handleResetFilters}
-              className="mt-2"
+              className="mt-2 w-fit"
             >
               Đặt lại bộ lọc
             </Button>
-          </div>
+          </section>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {matchedJobs.map((job) => (

@@ -307,7 +307,7 @@ export default function CreateJobPage() {
         </div>
       ) : companies.length === 0 ? (
         <section className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
-          <img src={EmptyStreet} alt="Empty" className="h-80 w-auto md:h-100" />
+          <img src={EmptyStreet} alt="Empty" loading="lazy" className="h-80 w-auto md:h-100" />
           <h2 className="text-base font-semibold text-text-main">
             Chưa có doanh nghiệp để đăng tin
           </h2>

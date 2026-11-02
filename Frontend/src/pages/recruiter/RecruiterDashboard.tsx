@@ -10,7 +10,6 @@ import {
   ChevronRight,
   ExternalLink,
   RotateCcw,
-  Building2,
   AlertCircle,
   ShieldCheck,
   Clock,
@@ -34,6 +33,7 @@ import {
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
 import { CandidateTable } from "./candidate/CandidateTable";
+import { EmptyStreet } from "@/assets/images/decoration";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
 import { useCompanyStore } from "@/stores/companyStore";
@@ -595,18 +595,21 @@ export default function RecruiterDashboard() {
 
       {/* Trạng thái 0 công ty (Onboarding) */}
       {!isLoadingCompanies && !isErrorCompanies && companies.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-surface p-12 text-center shadow-xs">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Building2 className="size-8" />
-          </div>
-          <h2 className="mt-4 text-xl font-bold text-text-main">
+        <section className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
+          <img
+            src={EmptyStreet}
+            alt="Chưa có không gian làm việc doanh nghiệp"
+            loading="lazy"
+            className="h-80 w-auto md:h-100"
+          />
+          <h2 className="text-xl font-bold text-text-main">
             Chưa có không gian làm việc doanh nghiệp
           </h2>
-          <p className="mt-2 max-w-md text-sm text-text-muted">
+          <p className="max-w-md text-xs leading-relaxed text-text-muted sm:text-sm">
             Tạo hồ sơ doanh nghiệp mới hoặc tham gia doanh nghiệp để bắt đầu
             đăng tin tuyển dụng và quản lý hồ sơ ứng viên.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-2 flex flex-wrap gap-3">
             <Button
               variant="primary"
               icon={Plus}
@@ -625,7 +628,7 @@ export default function RecruiterDashboard() {
               Kiểm tra lời mời tham gia
             </Button>
           </div>
-        </div>
+        </section>
       )}
 
       {/* =========================================================================

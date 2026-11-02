@@ -1,3 +1,4 @@
+import { EmptyState } from "@/assets/images/decoration";
 import { getLoremAvt } from "@/utils/helper";
 import { useState, useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -16,7 +17,6 @@ import {
   Clock,
   Briefcase,
   Calendar,
-  FileQuestion,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
@@ -493,15 +493,20 @@ export default function CandidateApplicationStatusPage() {
             )}
           </>
         ) : (
-          <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
-            <FileQuestion className="size-10 text-slate-400" />
-            <h3 className="mt-3 text-sm font-semibold text-slate-700">
+          <section className="flex flex-col items-center justify-center space-y-4 py-16 text-center">
+            <img
+              src={EmptyState}
+              alt="Không tìm thấy hồ sơ nào"
+              loading="lazy"
+              className="h-80 w-auto md:h-100"
+            />
+            <h2 className="text-base font-semibold text-text-main">
               Không tìm thấy hồ sơ nào
-            </h3>
-            <p className="mt-1 text-xs text-slate-400">
+            </h2>
+            <p className="max-w-xs text-xs text-text-muted">
               Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm của bạn.
             </p>
-          </div>
+          </section>
         )}
       </section>
 

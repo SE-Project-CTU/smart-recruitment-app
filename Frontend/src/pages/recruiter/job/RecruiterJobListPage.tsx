@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Building2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -33,6 +32,7 @@ import {
 import { useCompanyStore } from "@/stores";
 import type { JobPostingItem } from "@/types/job";
 import { JobPostingsTable } from "./JobPostingsTable";
+import { EmptyStreet } from "@/assets/images/decoration";
 
 const STATUS_FILTER_OPTIONS = [
   { value: "ALL", label: "Tất cả trạng thái" },
@@ -195,14 +195,17 @@ export function RecruiterJobListPage() {
   // Trường hợp Recruiter chưa chọn công ty hoặc chưa có công ty nào
   if (!activeCompanyId && !isLoadingJobs) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-white px-6 py-16 text-center">
-        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Building2 className="size-7" />
-        </div>
+      <section className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 p-8 text-center">
+        <img
+          src={EmptyStreet}
+          alt="Chưa chọn doanh nghiệp làm việc"
+          loading="lazy"
+          className="h-80 w-auto md:h-100"
+        />
         <h2 className="text-lg font-bold text-text-main">
           Chưa chọn doanh nghiệp làm việc
         </h2>
-        <p className="mt-1.5 max-w-md text-xs text-text-muted">
+        <p className="max-w-md text-xs leading-relaxed text-text-muted">
           Vui lòng chọn doanh nghiệp tại thanh menu bên trái hoặc tạo hồ sơ
           doanh nghiệp mới để bắt đầu quản lý tin tuyển dụng.
         </p>
@@ -210,11 +213,11 @@ export function RecruiterJobListPage() {
           variant="primary"
           icon={Plus}
           onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
-          className="mt-6 text-xs font-semibold"
+          className="w-fit text-xs font-semibold"
         >
-          Tạo doanh nghiệp mới
+          Quản lý doanh nghiệp
         </Button>
-      </div>
+      </section>
     );
   }
 
