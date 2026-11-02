@@ -1,5 +1,10 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { AlertCircle, FileSearch, ArrowLeft, LayoutTemplate } from "lucide-react";
+import {
+  AlertCircle,
+  FileSearch,
+  ArrowLeft,
+  LayoutTemplate,
+} from "lucide-react";
 import { CVBuilderFormContainer } from "@/features/cv";
 import { useCvDetail } from "@/hooks/queries/useCv";
 import { Button } from "@/components/common";
@@ -46,7 +51,8 @@ export default function CandidateCvBuilderPage() {
             Không tìm thấy hồ sơ CV
           </h2>
           <p className="text-xs text-text-muted">
-            Đường dẫn không hợp lệ hoặc thiếu mã định danh hồ sơ CV. Vui lòng chọn một CV từ danh sách hoặc tạo mới từ mẫu.
+            Đường dẫn không hợp lệ hoặc thiếu mã định danh hồ sơ CV. Vui lòng
+            chọn một CV từ danh sách hoặc tạo mới từ mẫu.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Button
@@ -87,25 +93,27 @@ export default function CandidateCvBuilderPage() {
           <h2 className="text-lg font-bold text-text-main">
             Không thể tải dữ liệu CV
           </h2>
-          <p className="text-xs text-text-muted">
-            {errorMessage}
-          </p>
+          <p className="text-xs text-text-muted">{errorMessage}</p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Button
               variant="secondary"
               onClick={() => navigate(PATHS.CANDIDATE.CV_MANAGEMENT)}
               className="rounded-xl! px-4! py-2! text-xs!"
             >
-              <ArrowLeft className="mr-1.5 size-3.5" />
-              Danh sách CV của tôi
+              <div className="flex">
+                <ArrowLeft className="mr-1.5 size-3.5" />
+                Danh sách CV của tôi
+              </div>
             </Button>
             <Button
               variant="primary"
               onClick={() => navigate(PATHS.CANDIDATE.CV_TEMPLATES)}
               className="rounded-xl! px-4! py-2! text-xs!"
             >
-              <LayoutTemplate className="mr-1.5 size-3.5" />
-              Tạo CV từ mẫu
+              <div className="flex">
+                <LayoutTemplate className="mr-1.5 size-3.5" />
+                Tạo CV từ mẫu
+              </div>
             </Button>
           </div>
         </div>

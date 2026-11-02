@@ -1,14 +1,11 @@
 import React, { useRef, useState } from "react";
-import {
-  Camera,
-  Upload,
-  Trash2,
-  Loader2,
-} from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import type { RichTextCVProfile, CvTiptapDocument } from "@/types/cv";
 import { extractTiptapPlainText } from "../../builder/utils/tiptapJson";
 import type { CvFieldRenderer } from "../types";
 import { UserAvatar } from "@/components/common/UserAvatar";
+import { ImageUploadDialog } from "@/components/common/ImageUploadDialog";
+import { useImageCropUpload } from "@/components/common/useImageCropUpload";
 import { mediaService } from "@/services/mediaService";
 import { useDeleteMedia } from "@/hooks/queries/useMedia";
 import { toast } from "@/components/ui/toast";
@@ -28,7 +25,6 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
   isReadOnly = false,
   renderField,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const lastUploadedFileIdRef = useRef<string | null>(null);
 
@@ -51,34 +47,18 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
   const shouldShowField = (document?: CvTiptapDocument) =>
     !isReadOnly || hasText(document);
 
-  const handleAvatarClick = () => {
-    if (isReadOnly || isUploading) return;
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
+  const handleCropConfirm = async (croppedFile: File): Promise<boolean> => {
+    if (croppedFile.size > 5 * 1024 * 1024) {
       toast.add({
         type: "error",
-        description: "Vui lòng chọn file hình ảnh (PNG, JPG, WEBP).",
+        description: "Ảnh sau khi căn chỉnh vẫn vượt quá 5MB.",
       });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.add({
-        type: "error",
-        description: "Ảnh đại diện tối đa 5MB.",
-      });
-      return;
+      return false;
     }
 
     try {
       setIsUploading(true);
-      const res = await mediaService.uploadImage(file);
+      const res = await mediaService.uploadImage(croppedFile);
       const newUrl = res.data.fileUrl;
       const newFileId = res.data.id;
 
@@ -100,22 +80,20 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
         type: "success",
         description: "Đã cập nhật ảnh đại diện CV.",
       });
+      return true;
     } catch {
       toast.add({
         type: "error",
         description: "Không thể tải ảnh đại diện lên máy chủ. Vui lòng thử lại.",
       });
+      return false;
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
-  const handleRemoveAvatar = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isReadOnly) return;
+  const handleRemoveAvatar = async (): Promise<boolean> => {
+    if (isReadOnly) return false;
 
     // Case xóa ảnh profile: Gọi deleteMedia với fileId đã upload
     if (lastUploadedFileIdRef.current) {
@@ -134,6 +112,18 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
       type: "success",
       description: "Đã xóa ảnh đại diện CV.",
     });
+    return true;
+  };
+
+  const imageFlow = useImageCropUpload({
+    maxFileSizeBytes: 5 * 1024 * 1024,
+    onUpload: handleCropConfirm,
+    onRemove: handleRemoveAvatar,
+  });
+
+  const handleAvatarClick = () => {
+    if (isReadOnly || isUploading) return;
+    imageFlow.open();
   };
 
   const avatarSrc = profile?.avatarUrl;
@@ -165,17 +155,16 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
 
       {/* 2. Ảnh đại diện dạng tròn với viền trắng nổi bật */}
       <div className="relative mb-6 group/avatar">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-          disabled={isReadOnly || isUploading}
-        />
-
         <div
           onClick={handleAvatarClick}
+          role={!isReadOnly ? "button" : undefined}
+          tabIndex={!isReadOnly ? 0 : undefined}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleAvatarClick();
+            }
+          }}
           className={`relative h-44 w-44 rounded-full p-2 bg-white shadow-sm flex items-center justify-center transition-all ${
             !isReadOnly
               ? "cursor-pointer hover:ring-2 hover:ring-slate-400"
@@ -215,23 +204,22 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
           {!isReadOnly && !isUploading && (
             <div className="no-print absolute inset-0 rounded-full bg-black/35 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1.5">
               <div className="flex items-center gap-1 text-[11px] font-medium bg-black/60 px-2.5 py-1 rounded-full">
-                <Upload className="h-3.5 w-3.5" />
-                <span>Đổi ảnh</span>
+                <Camera className="h-3.5 w-3.5" />
+                <span>Quản lý ảnh</span>
               </div>
-              {avatarSrc && (
-                <button
-                  type="button"
-                  onClick={handleRemoveAvatar}
-                  className="flex items-center gap-1 text-[10px] text-rose-300 hover:text-rose-100 bg-rose-900/60 px-2 py-0.5 rounded-full"
-                  title="Xóa ảnh"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  <span>Xóa</span>
-                </button>
-              )}
             </div>
           )}
         </div>
+        <ImageUploadDialog
+          flow={imageFlow}
+          currentImageUrl={avatarSrc}
+          imageAlt="Ảnh hồ sơ hiện tại"
+          title="Ảnh hồ sơ CV"
+          description="Chọn ảnh mới để căn chỉnh trước khi tải lên CV."
+          aspectRatio={1}
+          shape="circle"
+          maxOutputDimension={512}
+        />
       </div>
 
       {/* 3. Tiêu đề THÔNG TIN CÁ NHÂN (Hộp chữ nhật nền đen chữ trắng) */}
