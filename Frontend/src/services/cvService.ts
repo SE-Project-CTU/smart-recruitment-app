@@ -83,6 +83,7 @@ export const cvService = {
     const data = (response as ApiResponse<RichTextCVDetail>)?.data ?? response;
     return data as RichTextCVDetail;
   },
+  },
 
   /**
    * Cập nhật thông tin / trạng thái / nội dung CV

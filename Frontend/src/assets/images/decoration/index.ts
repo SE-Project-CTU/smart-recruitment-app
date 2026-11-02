@@ -8,3 +8,4 @@ export { default as OfficeGirl } from "./OfficeGirl.png";
 export { default as OfficeGirl2 } from "./OfficeGirl2.png";
 export { default as Office } from "./office.png";
 export { default as EmptyState } from "./Empty-amico.svg";
+export { default as EmptyStreet } from "./Empty street-rafiki.svg";
