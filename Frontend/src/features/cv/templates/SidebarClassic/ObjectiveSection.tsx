@@ -10,7 +10,7 @@ interface ObjectiveSectionProps {
   renderField: CvFieldRenderer;
 }
 
-export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
+export const ObjectiveSection = React.memo<ObjectiveSectionProps>(({
   section,
   primaryColor = "#262626",
   isReadOnly = false,
@@ -39,4 +39,6 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+ObjectiveSection.displayName = "ObjectiveSection";

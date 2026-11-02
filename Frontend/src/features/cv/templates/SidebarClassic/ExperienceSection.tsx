@@ -12,7 +12,7 @@ interface ExperienceSectionProps {
   actions?: SectionItemEditorActions;
 }
 
-export const ExperienceSection: React.FC<ExperienceSectionProps> = ({
+export const ExperienceSection = React.memo<ExperienceSectionProps>(({
   section,
   primaryColor,
   isReadOnly = false,
@@ -107,4 +107,6 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+ExperienceSection.displayName = "ExperienceSection";

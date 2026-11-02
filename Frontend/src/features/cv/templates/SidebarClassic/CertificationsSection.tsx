@@ -15,7 +15,7 @@ interface CertificationsSectionProps {
   actions?: SectionItemEditorActions;
 }
 
-export const CertificationsSection: React.FC<CertificationsSectionProps> = ({
+export const CertificationsSection = React.memo<CertificationsSectionProps>(({
   section,
   primaryColor = "#262626",
   isReadOnly = false,
@@ -82,4 +82,6 @@ export const CertificationsSection: React.FC<CertificationsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+CertificationsSection.displayName = "CertificationsSection";

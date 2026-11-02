@@ -10,7 +10,7 @@ interface AdditionalInfoSectionProps {
   renderField: CvFieldRenderer;
 }
 
-export const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
+export const AdditionalInfoSection = React.memo<AdditionalInfoSectionProps>(({
   section,
   primaryColor = "#262626",
   isReadOnly = false,
@@ -39,4 +39,6 @@ export const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+AdditionalInfoSection.displayName = "AdditionalInfoSection";

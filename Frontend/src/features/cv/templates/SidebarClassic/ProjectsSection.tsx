@@ -12,7 +12,7 @@ interface ProjectsSectionProps {
   actions?: SectionItemEditorActions;
 }
 
-export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
+export const ProjectsSection = React.memo<ProjectsSectionProps>(({
   section,
   primaryColor,
   isReadOnly = false,
@@ -107,4 +107,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+ProjectsSection.displayName = "ProjectsSection";

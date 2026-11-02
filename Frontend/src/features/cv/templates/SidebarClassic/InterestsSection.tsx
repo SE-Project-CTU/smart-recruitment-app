@@ -10,7 +10,7 @@ interface InterestsSectionProps {
   renderField: CvFieldRenderer;
 }
 
-export const InterestsSection: React.FC<InterestsSectionProps> = ({
+export const InterestsSection = React.memo<InterestsSectionProps>(({
   section,
   primaryColor = "#262626",
   isReadOnly = false,
@@ -39,4 +39,6 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+InterestsSection.displayName = "InterestsSection";

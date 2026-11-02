@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import type { FixedSectionKey } from "../../types";
@@ -15,119 +16,161 @@ export function useCvMutations() {
   /**
    * Thay đổi thứ tự sections trong 1 area cụ thể của layout
    */
-  const reorderAreaSections = (
-    areaId: string,
-    newSections: (FixedSectionKey | string)[],
-  ) => {
-    const areas = getValues("layout.areas") || [];
-    const typedSections = newSections as FixedSectionKey[];
-    const updatedAreas = areas.map((area) => {
-      if (area.id === areaId) {
-        return {
-          ...area,
-          sections: typedSections,
-        };
-      }
-      return area;
-    });
+  const reorderAreaSections = useCallback(
+    (areaId: string, newSections: (FixedSectionKey | string)[]) => {
+      const currentLayout = getValues("layout");
+      const areas = currentLayout?.areas || [];
+      const typedSections = newSections as FixedSectionKey[];
+      const updatedAreas = areas.map((area) => {
+        if (area.id === areaId) {
+          return {
+            ...area,
+            sections: typedSections,
+          };
+        }
+        return area;
+      });
 
-    setValue("layout.areas", updatedAreas, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
+      const updatedLayout = {
+        ...currentLayout,
+        areas: updatedAreas,
+      };
+
+      setValue("layout", updatedLayout, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue("layout.areas", updatedAreas, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [getValues, setValue],
+  );
 
   /**
    * Thay đổi thứ tự sections legacy (cho main area)
    */
-  const reorderSections = (newOrder: (FixedSectionKey | string)[]) => {
-    reorderAreaSections("main", newOrder);
-  };
+  const reorderSections = useCallback(
+    (newOrder: (FixedSectionKey | string)[]) => {
+      reorderAreaSections("main", newOrder);
+    },
+    [reorderAreaSections],
+  );
 
   /**
    * Cập nhật trạng thái hiển thị (visible) của 1 section
    */
-  const toggleSectionVisibility = (sectionKey: FixedSectionKey) => {
-    const current = getValues(`content.sections.${sectionKey}.visible`);
-    setValue(`content.sections.${sectionKey}.visible`, !current, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
+  const toggleSectionVisibility = useCallback(
+    (sectionKey: FixedSectionKey) => {
+      const current = getValues(`content.sections.${sectionKey}.visible`);
+      setValue(`content.sections.${sectionKey}.visible`, !current, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [getValues, setValue],
+  );
 
   /**
    * Di chuyển 1 section sang 1 layout area khác
    */
-  const moveSectionToArea = (sectionKey: string, targetAreaId: string) => {
-    const typedKey = sectionKey as FixedSectionKey;
-    const areas = getValues("layout.areas") || [];
-    const updatedAreas = areas.map((area) => {
-      // Bỏ section khỏi các area khác
-      const filtered = area.sections.filter((s) => s !== typedKey);
-      if (area.id === targetAreaId) {
+  const moveSectionToArea = useCallback(
+    (sectionKey: string, targetAreaId: string) => {
+      const typedKey = sectionKey as FixedSectionKey;
+      const currentLayout = getValues("layout");
+      const areas = currentLayout?.areas || [];
+      const updatedAreas = areas.map((area) => {
+        // Bỏ section khỏi các area khác
+        const filtered = area.sections.filter((s) => s !== typedKey);
+        if (area.id === targetAreaId) {
+          return {
+            ...area,
+            sections: [...filtered, typedKey],
+          };
+        }
         return {
           ...area,
-          sections: [...filtered, typedKey],
+          sections: filtered,
         };
-      }
-      return {
-        ...area,
-        sections: filtered,
-      };
-    });
+      });
 
-    setValue("layout.areas", updatedAreas, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
+      const updatedLayout = {
+        ...currentLayout,
+        areas: updatedAreas,
+      };
+
+      setValue("layout", updatedLayout, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue("layout.areas", updatedAreas, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [getValues, setValue],
+  );
 
   /**
    * Di chuyển 1 section giữa 2 areas tại index cụ thể
    */
-  const moveSectionBetweenAreas = (
-    sourceAreaId: string,
-    destAreaId: string,
-    sourceIndex: number,
-    destIndex: number,
-  ) => {
-    const areas = getValues("layout.areas") || [];
-    const sourceArea = areas.find((a) => a.id === sourceAreaId);
-    const destArea = areas.find((a) => a.id === destAreaId);
-    if (!sourceArea || !destArea) return;
+  const moveSectionBetweenAreas = useCallback(
+    (
+      sourceAreaId: string,
+      destAreaId: string,
+      sourceIndex: number,
+      destIndex: number,
+    ) => {
+      const currentLayout = getValues("layout");
+      const areas = currentLayout?.areas || [];
+      const sourceArea = areas.find((a) => a.id === sourceAreaId);
+      const destArea = areas.find((a) => a.id === destAreaId);
+      if (!sourceArea || !destArea) return;
 
-    if (sourceAreaId === destAreaId) {
-      const newSections = Array.from(sourceArea.sections);
-      const [removed] = newSections.splice(sourceIndex, 1);
-      if (removed) {
-        newSections.splice(destIndex, 0, removed);
-        reorderAreaSections(sourceAreaId, newSections);
+      if (sourceAreaId === destAreaId) {
+        const newSections = Array.from(sourceArea.sections);
+        const [removed] = newSections.splice(sourceIndex, 1);
+        if (removed) {
+          newSections.splice(destIndex, 0, removed);
+          reorderAreaSections(sourceAreaId, newSections);
+        }
+        return;
       }
-      return;
-    }
 
-    const sourceSections = Array.from(sourceArea.sections);
-    const [moved] = sourceSections.splice(sourceIndex, 1);
-    if (!moved) return;
+      const sourceSections = Array.from(sourceArea.sections);
+      const [moved] = sourceSections.splice(sourceIndex, 1);
+      if (!moved) return;
 
-    const destSections = Array.from(destArea.sections);
-    destSections.splice(destIndex, 0, moved);
+      const destSections = Array.from(destArea.sections);
+      destSections.splice(destIndex, 0, moved);
 
-    const updatedAreas = areas.map((area) => {
-      if (area.id === sourceAreaId) {
-        return { ...area, sections: sourceSections as FixedSectionKey[] };
-      }
-      if (area.id === destAreaId) {
-        return { ...area, sections: destSections as FixedSectionKey[] };
-      }
-      return area;
-    });
+      const updatedAreas = areas.map((area) => {
+        if (area.id === sourceAreaId) {
+          return { ...area, sections: sourceSections as FixedSectionKey[] };
+        }
+        if (area.id === destAreaId) {
+          return { ...area, sections: destSections as FixedSectionKey[] };
+        }
+        return area;
+      });
 
-    setValue("layout.areas", updatedAreas, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
+      const updatedLayout = {
+        ...currentLayout,
+        areas: updatedAreas,
+      };
+
+      setValue("layout", updatedLayout, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      setValue("layout.areas", updatedAreas, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [getValues, setValue, reorderAreaSections],
+  );
 
   return {
     reorderAreaSections,

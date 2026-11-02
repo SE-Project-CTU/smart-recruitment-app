@@ -290,9 +290,17 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                       <div
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
-                        className={`group relative rounded-sm px-2 py-1 transition-colors hover:ring-1 hover:ring-slate-300 ${
+                        style={
+                          snapshot.isDropAnimating
+                            ? {
+                                ...dragProvided.draggableProps.style,
+                                transitionDuration: "0.001s",
+                              }
+                            : dragProvided.draggableProps.style
+                        }
+                        className={`group relative rounded-sm px-2 py-1 hover:ring-1 hover:ring-slate-300 ${
                           snapshot.isDragging
-                            ? "z-50 !transition-none bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
+                            ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
                             : ""
                         }`}
                       >

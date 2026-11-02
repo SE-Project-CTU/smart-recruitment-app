@@ -22,7 +22,7 @@ interface SidebarProfileProps {
   renderField: CvFieldRenderer;
 }
 
-export const SidebarProfile: React.FC<SidebarProfileProps> = ({
+export const SidebarProfile = React.memo<SidebarProfileProps>(({
   profile,
   primaryColor = "#262626",
   isReadOnly = false,
@@ -358,4 +358,6 @@ export const SidebarProfile: React.FC<SidebarProfileProps> = ({
       </div>
     </div>
   );
-};
+});
+
+SidebarProfile.displayName = "SidebarProfile";

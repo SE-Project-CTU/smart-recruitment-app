@@ -12,7 +12,7 @@ interface EducationSectionProps {
   actions?: SectionItemEditorActions;
 }
 
-export const EducationSection: React.FC<EducationSectionProps> = ({
+export const EducationSection = React.memo<EducationSectionProps>(({
   section,
   primaryColor,
   isReadOnly = false,
@@ -107,4 +107,6 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+EducationSection.displayName = "EducationSection";

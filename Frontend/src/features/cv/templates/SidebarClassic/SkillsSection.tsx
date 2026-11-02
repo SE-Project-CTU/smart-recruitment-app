@@ -12,7 +12,7 @@ interface SkillsSectionProps {
   actions?: SectionItemEditorActions;
 }
 
-export const SkillsSection: React.FC<SkillsSectionProps> = ({
+export const SkillsSection = React.memo<SkillsSectionProps>(({
   section,
   primaryColor,
   isReadOnly = false,
@@ -68,4 +68,6 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+SkillsSection.displayName = "SkillsSection";

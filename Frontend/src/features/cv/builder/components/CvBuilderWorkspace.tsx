@@ -20,8 +20,58 @@ export default function CvBuilderWorkspace({
   className = "",
   isReadOnly = false,
 }: CvBuilderWorkspaceProps) {
-  const { control } = useFormContext<RichTextCvEditorValues>();
-  const formData = useWatch({ control }) as RichTextCvEditorValues;
+  const { control, getValues } = useFormContext<RichTextCvEditorValues>();
+
+  // Thu hẹp subscription: Chỉ watch các trường ảnh hưởng đến cấu trúc hoặc giao diện template
+  const watchedTemplateCode = useWatch({
+    control,
+    name: "content.metadata.templateCode",
+  });
+  useWatch({
+    control,
+    name: "content.metadata.defaultStyle",
+  });
+  const watchedLayout = useWatch({
+    control,
+    name: "layout",
+  });
+  const watchedLayoutAreas = useWatch({
+    control,
+    name: "layout.areas",
+  });
+  useWatch({
+    control,
+    name: "content.profile.avatarUrl",
+  });
+
+  // Theo dõi trạng thái hiển thị (visible) của từng section
+  useWatch({
+    control,
+    name: [
+      "content.sections.objective.visible",
+      "content.sections.experience.visible",
+      "content.sections.education.visible",
+      "content.sections.skills.visible",
+      "content.sections.projects.visible",
+      "content.sections.certifications.visible",
+      "content.sections.awards.visible",
+      "content.sections.interests.visible",
+      "content.sections.additionalInfo.visible",
+    ],
+  });
+
+  // Theo dõi mảng items của từng section để thêm/xóa/sắp xếp item cập nhật ngay
+  useWatch({
+    control,
+    name: [
+      "content.sections.experience.items",
+      "content.sections.education.items",
+      "content.sections.skills.items",
+      "content.sections.projects.items",
+      "content.sections.certifications.items",
+      "content.sections.awards.items",
+    ],
+  });
 
   const {
     reorderAreaSections,
@@ -51,18 +101,31 @@ export default function CvBuilderWorkspace({
   }, []);
 
   const templateCode =
-    (formData?.content?.metadata?.templateCode as CvTemplateCode) ||
+    (watchedTemplateCode as CvTemplateCode) ||
+    (getValues("content.metadata.templateCode") as CvTemplateCode) ||
     "senior_harvard";
   const Template =
     TEMPLATE_REGISTRY[templateCode] ?? TEMPLATE_REGISTRY.senior_harvard;
 
+  const currentLayout = useMemo(() => {
+    if (watchedLayout && Array.isArray(watchedLayout.areas)) {
+      return watchedLayout;
+    }
+    const raw = getValues("layout");
+    if (watchedLayoutAreas) {
+      return { ...raw, areas: watchedLayoutAreas };
+    }
+    return raw;
+  }, [watchedLayout, watchedLayoutAreas, getValues]);
+  const currentContent = getValues("content") as unknown as RichTextCVContentDocument;
+
   const layoutValidation = useMemo(() => {
-    return validateCvLayout(formData?.layout, templateCode);
-  }, [formData?.layout, templateCode]);
+    return validateCvLayout(currentLayout, templateCode);
+  }, [currentLayout, templateCode]);
 
   const normalizedLayout = useMemo(() => {
-    return ensureValidLayout(formData?.layout, templateCode);
-  }, [formData?.layout, templateCode]);
+    return ensureValidLayout(currentLayout, templateCode);
+  }, [currentLayout, templateCode]);
 
   return (
     <main
@@ -84,9 +147,9 @@ export default function CvBuilderWorkspace({
             </ul>
           </div>
         ) : (
-          formData?.content && (
+          currentContent && (
             <Template
-              content={formData.content as unknown as RichTextCVContentDocument}
+              content={currentContent}
               layout={normalizedLayout}
               renderField={builderFieldRenderer}
               isReadOnly={isReadOnly}

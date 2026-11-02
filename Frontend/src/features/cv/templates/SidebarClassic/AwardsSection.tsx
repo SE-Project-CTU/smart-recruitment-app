@@ -15,7 +15,7 @@ interface AwardsSectionProps {
   actions?: SectionItemEditorActions;
 }
 
-export const AwardsSection: React.FC<AwardsSectionProps> = ({
+export const AwardsSection = React.memo<AwardsSectionProps>(({
   section,
   primaryColor = "#262626",
   isReadOnly = false,
@@ -82,4 +82,6 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+AwardsSection.displayName = "AwardsSection";
