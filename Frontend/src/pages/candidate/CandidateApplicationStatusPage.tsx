@@ -72,16 +72,35 @@ export default function CandidateApplicationStatusPage() {
   const totalItems = appData?.totalItems ?? rawApplications.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-  // Client-side search filter theo tên công việc hoặc tên công ty
+  // Client-side search & status filter theo tên công việc, công ty và trạng thái
   const filteredApplications = useMemo(() => {
-    if (!searchTerm.trim()) return rawApplications;
+    let result = rawApplications;
+
+    if (selectedStatus !== "ALL") {
+      const sf = selectedStatus.toUpperCase();
+      result = result.filter((app) => {
+        const s = (app.status || "").toUpperCase();
+        if (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") {
+          return s === "SUBMITTED" || s === "APPLIED" || s === "RECEIVED";
+        }
+        if (sf === "INTERVIEW" || sf === "INTERVIEWING") {
+          return s === "INTERVIEW" || s === "INTERVIEWING";
+        }
+        if (sf === "HIRED" || sf === "ACCEPTED") {
+          return s === "HIRED" || s === "ACCEPTED";
+        }
+        return s === sf;
+      });
+    }
+
+    if (!searchTerm.trim()) return result;
     const term = searchTerm.toLowerCase();
-    return rawApplications.filter(
+    return result.filter(
       (app) =>
         (app.jobTitle && app.jobTitle.toLowerCase().includes(term)) ||
         (app.companyName && app.companyName.toLowerCase().includes(term)),
     );
-  }, [rawApplications, searchTerm]);
+  }, [rawApplications, selectedStatus, searchTerm]);
 
   // Modal xem chi tiết & Timeline tiến trình
   const [selectedApplication, setSelectedApplication] =
@@ -105,16 +124,22 @@ export default function CandidateApplicationStatusPage() {
   const stats = useMemo(() => {
     return {
       total: totalItems,
-      reviewing: rawApplications.filter((a) => a.status === "REVIEWING").length,
-      interview: rawApplications.filter(
-        (a) => a.status === "INTERVIEW" || a.status === "INTERVIEWING",
-      ).length,
-      offered: rawApplications.filter(
-        (a) =>
-          a.status === "OFFERED" ||
-          a.status === "HIRED" ||
-          a.status === "ACCEPTED",
-      ).length,
+      reviewing: rawApplications.filter((a) => {
+        const s = (a.status || "").toUpperCase();
+        return s === "REVIEWING";
+      }).length,
+      interview: rawApplications.filter((a) => {
+        const s = (a.status || "").toUpperCase();
+        return s === "INTERVIEW" || s === "INTERVIEWING";
+      }).length,
+      offered: rawApplications.filter((a) => {
+        const s = (a.status || "").toUpperCase();
+        return (
+          s === "OFFERED" ||
+          s === "HIRED" ||
+          s === "ACCEPTED"
+        );
+      }).length,
     };
   }, [rawApplications, totalItems]);
 
@@ -258,11 +283,13 @@ export default function CandidateApplicationStatusPage() {
           header: "Trạng thái",
           filterFn: "includesString",
           cell: ({ row }) => {
-            const statusKey = row.original.status as string;
-            const cfg = APPLICATION_STATUS_CONFIG[statusKey] || {
-              label: statusKey,
-              badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-            };
+            const statusKey = (row.original.status as string) || "";
+            const cfg =
+              APPLICATION_STATUS_CONFIG[statusKey] ||
+              APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
+                label: statusKey,
+                badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+              };
             return (
               <span
                 className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
@@ -674,8 +701,9 @@ export default function CandidateApplicationStatusPage() {
                 ) : (
                   <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
                     Đơn ứng tuyển đang ở trạng thái ban đầu (
-                    {APPLICATION_STATUS_CONFIG[selectedApplication.status]
-                      ?.label || selectedApplication.status}
+                    {APPLICATION_STATUS_CONFIG[selectedApplication.status]?.label ||
+                      APPLICATION_STATUS_CONFIG[(selectedApplication.status || "").toUpperCase()]?.label ||
+                      selectedApplication.status}
                     ). Nhà tuyển dụng chưa có ghi nhận thay đổi mới.
                   </div>
                 )}

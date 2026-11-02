@@ -186,33 +186,58 @@ export default function SearchJobPage() {
 
       // 3. Lọc Hình thức làm việc (Full-time, Part-time, Contract...)
       if (filters.jobTypes.length > 0) {
-        const typeNormalized = normalizeJobType(job.jobType);
-        const isMatched =
-          (typeNormalized !== null &&
-            filters.jobTypes.includes(typeNormalized)) ||
-          (Boolean(job.jobType) &&
-            filters.jobTypes.includes(String(job.jobType)));
+        const typeNormalized =
+          normalizeJobType(job.jobType) ?? normalizeJobType(job.workMode);
+        const isMatched = filters.jobTypes.some((selected) => {
+          const selectedNorm = normalizeJobType(selected);
+          return (
+            (typeNormalized !== null &&
+              selectedNorm !== null &&
+              typeNormalized === selectedNorm) ||
+            (typeNormalized !== null && typeNormalized === selected) ||
+            (selectedNorm !== null &&
+              Boolean(job.jobType) &&
+              String(job.jobType).toLowerCase() === selectedNorm.toLowerCase()) ||
+            (Boolean(job.jobType) &&
+              String(job.jobType).toLowerCase() === selected.toLowerCase())
+          );
+        });
         if (!isMatched) return false;
       }
 
       // 4. Lọc Môi trường làm việc (On-site, Hybrid, Remote)
       if (filters.workModes.length > 0) {
-        const modeNormalized = normalizeWorkMode(job.workMode);
-        const isMatched =
-          (modeNormalized !== null &&
-            filters.workModes.includes(modeNormalized)) ||
-          (Boolean(job.workMode) &&
-            filters.workModes.includes(String(job.workMode)));
+        const modeNormalized =
+          normalizeWorkMode(job.workMode) ?? normalizeWorkMode(job.jobType);
+        const isMatched = filters.workModes.some((selected) => {
+          const selectedNorm = normalizeWorkMode(selected);
+          return (
+            (modeNormalized !== null &&
+              selectedNorm !== null &&
+              modeNormalized === selectedNorm) ||
+            (modeNormalized !== null && modeNormalized === selected) ||
+            (selectedNorm !== null &&
+              Boolean(job.workMode) &&
+              String(job.workMode).toLowerCase() === selectedNorm.toLowerCase()) ||
+            (Boolean(job.workMode) &&
+              String(job.workMode).toLowerCase() === selected.toLowerCase())
+          );
+        });
         if (!isMatched) return false;
       }
 
       // 5. Lọc Cấp bậc (Intern, Fresher, Junior, Middle, Senior, Lead...)
       if (filters.jobLevels.length > 0) {
         const levelNormalized = normalizeJobLevel(job.jobLevel);
-        const isMatched =
-          filters.jobLevels.includes(levelNormalized) ||
-          (Boolean(job.jobLevel) &&
-            filters.jobLevels.includes(String(job.jobLevel)));
+        const isMatched = filters.jobLevels.some((selected) => {
+          const selectedNorm = normalizeJobLevel(selected);
+          return (
+            levelNormalized === selectedNorm ||
+            levelNormalized === selected ||
+            (Boolean(job.jobLevel) &&
+              String(job.jobLevel).toLowerCase() === selected.toLowerCase())
+          );
+        });
         if (!isMatched) return false;
       }
 

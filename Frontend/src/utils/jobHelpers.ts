@@ -16,16 +16,16 @@ export interface SelectOption<T extends string = string> {
 
 // JobType: Hình thức làm việc (Employment Type)
 export const JOB_TYPE_OPTIONS: SelectOption<JobType>[] = [
-  { value: "FullTime", label: "FullTime" },
-  { value: "PartTime", label: "PartTime" },
+  { value: "FullTime", label: "Full-time" },
+  { value: "PartTime", label: "Part-time" },
   { value: "Contract", label: "Contract" },
-  { value: "Internship", label: "Thực tập" },
-  { value: "Freelance", label: "Tự do" },
+  { value: "Internship", label: "Internship" },
+  { value: "Freelance", label: "Freelance" },
 ];
 
 // WorkMode: Môi trường / Chế độ làm việc (Work Location)
 export const WORK_MODE_OPTIONS: SelectOption<WorkMode>[] = [
-  { value: "Onsite", label: "Onsite" },
+  { value: "Onsite", label: "On-site" },
   { value: "Hybrid", label: "Hybrid" },
   { value: "Remote", label: "Remote" },
 ];

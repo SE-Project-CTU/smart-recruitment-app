@@ -4,7 +4,11 @@ import { Slider } from "@/components/ui/slider";
 import { CheckIcon, ChevronDown, RotateCcw } from "lucide-react";
 import { MOCK_INDUSTRY_HIERARCHY } from "@/constants/mockData";
 import { useIndustryGroupsWithIndustries } from "@/hooks/queries/useCatalog";
-import { JOB_LEVEL_OPTIONS } from "@/utils/jobHelpers";
+import {
+  JOB_LEVEL_OPTIONS,
+  JOB_TYPE_OPTIONS,
+  WORK_MODE_OPTIONS,
+} from "@/utils/jobHelpers";
 
 export const SALARY_MIN_LIMIT = 0;
 export const SALARY_MAX_LIMIT = 100;
@@ -18,11 +22,6 @@ export interface JobFilterState {
   minSalary: string;
   maxSalary: string;
   negotiableOnly: boolean;
-}
-
-interface FilterOption {
-  label: string;
-  value: string;
 }
 
 interface JobFilterSidebarProps {
@@ -43,17 +42,6 @@ const SALARY_PRESETS = [
   { label: "Trên 25 triệu", min: "25", max: "" },
 ];
 
-const JOB_TYPE_OPTIONS: FilterOption[] = [
-  { label: "Full-time", value: "FullTime" },
-  { label: "Part-time", value: "PartTime" },
-  { label: "Contract", value: "Contract" },
-];
-
-const WORK_MODE_OPTIONS: FilterOption[] = [
-  { label: "On-site", value: "OnSite" },
-  { label: "Hybrid", value: "Hybrid" },
-  { label: "Remote", value: "Remote" },
-];
 
 interface FilterCheckboxItemProps {
   label: string;

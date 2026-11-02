@@ -20,6 +20,7 @@ import {
 import { useCompanyStore } from "@/stores/companyStore";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import { CreateCompanyModal } from "@/pages/recruiter/company/CreateCompanyModal";
+import { PATHS } from "@/constants/paths";
 import type { CompanyItem } from "@/types/company";
 
 export function WorkspaceSwitcher() {
@@ -83,8 +84,8 @@ export function WorkspaceSwitcher() {
     setActiveCompany(company);
 
     // Nếu đang ở trang quản trị chi tiết công ty, tự động đổi URL sang ID công ty mới
-    if (location.pathname.includes("/recruiter/company-management/")) {
-      navigate(`/recruiter/company-management/${company.id}/overview`, {
+    if (location.pathname.includes(PATHS.RECRUITER.COMPANY_MANAGEMENT)) {
+      navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", company.id), {
         replace: true,
       });
     }
@@ -93,8 +94,8 @@ export function WorkspaceSwitcher() {
   const handleCompanyCreated = (newCompany: CompanyItem) => {
     setActiveCompany(newCompany);
     setIsCreateModalOpen(false);
-    if (location.pathname.includes("/recruiter/company-management")) {
-      navigate(`/recruiter/company-management/${newCompany.id}/overview`, {
+    if (location.pathname.includes(PATHS.RECRUITER.COMPANY_MANAGEMENT)) {
+      navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", newCompany.id), {
         replace: true,
       });
     }

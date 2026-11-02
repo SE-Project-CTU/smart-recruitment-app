@@ -86,8 +86,10 @@ export function JobApplicationsTab({
       // 1. Lọc theo trạng thái
       if (statusFilter !== "ALL") {
         const s = (app.status || "").toUpperCase();
+        const sf = statusFilter.toUpperCase();
+
         if (
-          statusFilter === "SUBMITTED" &&
+          (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") &&
           s !== "SUBMITTED" &&
           s !== "APPLIED" &&
           s !== "RECEIVED"
@@ -95,20 +97,28 @@ export function JobApplicationsTab({
           return false;
         }
         if (
-          statusFilter === "INTERVIEW" &&
+          (sf === "INTERVIEW" || sf === "INTERVIEWING") &&
           s !== "INTERVIEW" &&
           s !== "INTERVIEWING"
         ) {
           return false;
         }
-        if (statusFilter === "HIRED" && s !== "HIRED" && s !== "ACCEPTED") {
+        if (
+          (sf === "HIRED" || sf === "ACCEPTED") &&
+          s !== "HIRED" &&
+          s !== "ACCEPTED"
+        ) {
           return false;
         }
         if (
-          statusFilter !== "SUBMITTED" &&
-          statusFilter !== "INTERVIEW" &&
-          statusFilter !== "HIRED" &&
-          s !== statusFilter
+          sf !== "SUBMITTED" &&
+          sf !== "APPLIED" &&
+          sf !== "RECEIVED" &&
+          sf !== "INTERVIEW" &&
+          sf !== "INTERVIEWING" &&
+          sf !== "HIRED" &&
+          sf !== "ACCEPTED" &&
+          s !== sf
         ) {
           return false;
         }

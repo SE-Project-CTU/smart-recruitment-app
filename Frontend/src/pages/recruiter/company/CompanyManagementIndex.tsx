@@ -24,7 +24,7 @@ export function CompanyManagementIndex() {
   const handleCompanyCreated = (newCompany: CompanyItem) => {
     setActiveCompany(newCompany);
     setIsCreateModalOpen(false);
-    navigate(`/recruiter/company-management/${newCompany.id}/overview`, {
+    navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", newCompany.id), {
       replace: true,
     });
   };
@@ -48,7 +48,7 @@ export function CompanyManagementIndex() {
 
     return (
       <Navigate
-        to={`/recruiter/company-management/${targetId}/overview`}
+        to={PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", targetId)}
         replace
       />
     );
