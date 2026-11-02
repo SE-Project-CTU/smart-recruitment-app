@@ -1,7 +1,13 @@
-import React, { useCallback } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import React, { useCallback, useRef, useState } from "react";
+import {
+  DragDropContext,
+  type BeforeCapture,
+  type DragStart,
+  type DragUpdate,
+  type DropResult,
+} from "@hello-pangea/dnd";
 import { SidebarProfile } from "./SidebarProfile";
-import { AreaSectionList } from "./AreaSectionList";
+import { AreaSectionList, type ActiveDragInfo } from "./AreaSectionList";
 import { CvTiptapReadOnlyView } from "../../builder/components/CvTiptapReadOnlyView";
 import { DEFAULT_CV_FONT_ID, getCvFontFamilyCss } from "../../constants/fonts";
 import type { CvTemplateProps, CvFieldRenderer } from "../types";
@@ -42,8 +48,45 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
     onMoveSectionBetweenAreas,
     onToggleSectionVisibility,
   }) => {
+    const [activeDrag, setActiveDrag] = useState<ActiveDragInfo | null>(null);
+    const measuredHeightsRef = useRef<Record<string, number>>({});
+
+    const handleBeforeCapture = useCallback((before: BeforeCapture) => {
+      const el = document.querySelector<HTMLElement>(
+        `[data-rfd-draggable-id="${before.draggableId}"]`,
+      );
+      if (el) {
+        measuredHeightsRef.current[before.draggableId] =
+          el.getBoundingClientRect().height;
+      }
+    }, []);
+
+    const handleDragStart = useCallback((start: DragStart) => {
+      const height =
+        measuredHeightsRef.current[start.draggableId] || 140;
+      setActiveDrag({
+        draggableId: start.draggableId,
+        draggedHeight: height,
+        sourceDroppableId: start.source.droppableId,
+        destinationDroppableId: start.source.droppableId,
+        destinationIndex: start.source.index,
+      });
+    }, []);
+
+    const handleDragUpdate = useCallback((update: DragUpdate) => {
+      setActiveDrag((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          destinationDroppableId: update.destination?.droppableId ?? null,
+          destinationIndex: update.destination?.index ?? null,
+        };
+      });
+    }, []);
+
     const handleDragEnd = useCallback(
       (result: DropResult) => {
+        setActiveDrag(null);
         if (!result.destination || isReadOnly) return;
         const sourceAreaId = result.source.droppableId;
         const destAreaId = result.destination.droppableId;
@@ -154,7 +197,12 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
         }}
       >
         {canDrag ? (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext
+            onBeforeCapture={handleBeforeCapture}
+            onDragStart={handleDragStart}
+            onDragUpdate={handleDragUpdate}
+            onDragEnd={handleDragEnd}
+          >
             {/* Cột Sidebar bên trái: Chiều rộng 39%, nền xám (#EBECEE) */}
             <aside className="w-[39%] bg-[#EBECEE] px-6 py-8 shrink-0 flex flex-col">
               <SidebarProfile
@@ -171,6 +219,7 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
                   primaryColor={primaryColor}
                   isReadOnly={isReadOnly}
                   canDrag={canDrag}
+                  activeDrag={activeDrag}
                   renderField={renderField}
                   sectionEditors={sectionEditors}
                   onMoveSectionInArea={moveSectionInArea}
@@ -188,6 +237,7 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
                 primaryColor={primaryColor}
                 isReadOnly={isReadOnly}
                 canDrag={canDrag}
+                activeDrag={activeDrag}
                 renderField={renderField}
                 sectionEditors={sectionEditors}
                 onMoveSectionInArea={moveSectionInArea}
