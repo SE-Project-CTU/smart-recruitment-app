@@ -48,7 +48,6 @@ export const LineHeightSection: React.FC = () => {
       />
       <div className="flex justify-between text-[10px] text-text-muted">
         <span>1.2x (Gọn)</span>
-        <span>1.5x (Chuẩn)</span>
         <span>2.0x (Rộng)</span>
       </div>
     </div>

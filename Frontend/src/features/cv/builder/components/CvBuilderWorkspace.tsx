@@ -27,7 +27,7 @@ export default function CvBuilderWorkspace({
     control,
     name: "content.metadata.templateCode",
   });
-  useWatch({
+  const watchedDefaultStyle = useWatch({
     control,
     name: "content.metadata.defaultStyle",
   });
@@ -39,7 +39,7 @@ export default function CvBuilderWorkspace({
     control,
     name: "layout.areas",
   });
-  useWatch({
+  const watchedAvatarUrl = useWatch({
     control,
     name: "content.profile.avatarUrl",
   });
@@ -135,6 +135,14 @@ export default function CvBuilderWorkspace({
 
     return {
       ...raw,
+      metadata: {
+        ...raw.metadata,
+        defaultStyle: watchedDefaultStyle ?? raw.metadata?.defaultStyle,
+      },
+      profile: {
+        ...raw.profile,
+        avatarUrl: watchedAvatarUrl ?? raw.profile?.avatarUrl,
+      },
       sections: {
         ...raw.sections,
         objective: raw.sections.objective
@@ -166,7 +174,7 @@ export default function CvBuilderWorkspace({
           : raw.sections.additionalInfo,
       },
     };
-  }, [watchedVisibility, getValues]);
+  }, [watchedVisibility, watchedDefaultStyle, watchedAvatarUrl, getValues]);
 
   const layoutValidation = useMemo(() => {
     return validateCvLayout(currentLayout, templateCode);
