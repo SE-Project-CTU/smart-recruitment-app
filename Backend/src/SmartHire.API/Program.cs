@@ -7,6 +7,7 @@ using DotNetEnv;
 using SmartHire.Api;
 using SmartHire.Api.Factories;
 using SmartHire.Api.Middleware;
+using SmartHire.Api.OpenApi;
 using DependencyInjection = SmartHire.Api.DependencyInjection;
 
 Env.TraversePath().Load();
@@ -25,19 +26,7 @@ builder.Host.UseNLog();
 
 builder.Services.AddApiServices();
 builder.Services.AddAppCors(builder.Configuration);
-
-builder.Services.AddOpenApi(options => {
-    options.AddOperationTransformer((operation, context, cancellationToken) => {
-        operation.Parameters ??= new List<Microsoft.OpenApi.IOpenApiParameter>();
-        operation.Parameters.Add(new Microsoft.OpenApi.OpenApiParameter {
-            Name = "X-Correlation-ID",
-            In = Microsoft.OpenApi.ParameterLocation.Header,
-            Required = true,
-            Description = "Correlation ID (UUID format, ví dụ: 550e8400-e29b-41d4-a716-446655440000)"
-        });
-        return Task.CompletedTask;
-    });
-});
+builder.Services.AddAppOpenApi();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 
@@ -62,8 +51,7 @@ await app.ApplyDatabaseMigrationsAndSeedAsync();
 app.UseRecurringBackgroundJobs();
 
 // ── OpenAPI / Swagger UI ──
-app.MapOpenApi();
-app.UseSwaggerUi(options => { options.DocumentPath = "/openapi/v1.json"; });
+app.UseAppOpenApi();
 
 // ── Background-job dashboard ──
 app.UseHttpsRedirection();

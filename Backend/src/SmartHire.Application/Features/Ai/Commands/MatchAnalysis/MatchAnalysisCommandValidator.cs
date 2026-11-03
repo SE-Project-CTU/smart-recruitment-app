@@ -7,7 +7,7 @@ public static class MatchAnalysisCommandValidator {
     public static void Validate(MatchAnalysisCommand command) {
         var details = new List<AppErrorDetail>();
 
-        if (command.JobId == Guid.Empty && string.IsNullOrWhiteSpace(command.JobText)) {
+        if ((!command.JobId.HasValue || command.JobId.Value == Guid.Empty) && string.IsNullOrWhiteSpace(command.JobText)) {
             details.Add(new AppErrorDetail("jobId", "REQUIRED", "Cần cung cấp jobId hoặc nội dung jobText."));
         }
 

@@ -39,8 +39,9 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
         // 1. Phân giải JobText (Ưu tiên lấy từ Database để đồng bộ 100% với POST /ai/jobs/rerank)
         string jobText;
         string jobKeyPart;
-        if (request.JobId != Guid.Empty) {
-            var job = await _jobPostingRepository.GetDetailByIdAsync(request.JobId, cancellationToken);
+        if (request.JobId.HasValue && request.JobId.Value != Guid.Empty) {
+            var jobId = request.JobId.Value;
+            var job = await _jobPostingRepository.GetDetailByIdAsync(jobId, cancellationToken);
             if (job != null) {
                 jobText = JobTextExtractor.ExtractText(job);
                 jobKeyPart = job.Id.ToString();
@@ -49,7 +50,7 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
                 using var sha = SHA256.Create();
                 jobKeyPart = $"text:{Convert.ToHexString(sha.ComputeHash(Encoding.UTF8.GetBytes(jobText))).ToLowerInvariant()}";
             } else {
-                throw AiExceptions.JobPostingNotFound(request.JobId);
+                throw AiExceptions.JobPostingNotFound(jobId);
             }
         } else if (!string.IsNullOrWhiteSpace(request.JobText)) {
             jobText = request.JobText.Trim();
