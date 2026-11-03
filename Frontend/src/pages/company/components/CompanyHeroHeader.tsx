@@ -43,15 +43,18 @@ export function CompanyHeroHeader({
   onOpenJoinModal,
   onOpenAuthPrompt,
 }: CompanyHeroHeaderProps) {
-  const user = useAuthStore((state) => state.user);
-  const isAuthenticated = Boolean(user);
+  const { user, isAuthenticated } = useAuthStore();
 
   const isCandidate =
-    user?.roles?.some((r) => r.toLowerCase() === "candidate") ?? false;
+    isAuthenticated &&
+    Boolean(user?.roles?.some((r) => r.toLowerCase() === "candidate"));
   const isRecruiter =
-    user?.roles?.some(
-      (r) => r.toLowerCase() === "recruiter" || r.toLowerCase() === "hr",
-    ) ?? false;
+    isAuthenticated &&
+    Boolean(
+      user?.roles?.some(
+        (r) => r.toLowerCase() === "recruiter" || r.toLowerCase() === "hr",
+      ),
+    );
 
   const isVerified = company.verificationStatus === "Verified";
 

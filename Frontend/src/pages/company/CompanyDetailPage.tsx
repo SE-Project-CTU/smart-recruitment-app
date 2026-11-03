@@ -47,9 +47,10 @@ export function CompanyDetailPage() {
   };
 
   // 2. Auth Context
-  const user = useAuthStore((state) => state.user);
+  const { user, isAuthenticated, isInitializing } = useAuthStore();
   const isCandidate =
-    user?.roles?.some((r) => r.toLowerCase() === "candidate") ?? false;
+    isAuthenticated &&
+    Boolean(user?.roles?.some((r) => r.toLowerCase() === "candidate"));
 
   // 3. Query dữ liệu chi tiết công ty (API 2)
   const {
@@ -65,8 +66,10 @@ export function CompanyDetailPage() {
   });
   const activeJobCount = jobsData?.meta?.totalItems ?? 0;
 
-  // 5. Query & Mutation Trạng thái Theo dõi (Candidate)
-  const { data: followedData } = useMyFollowedCompanies();
+  // 5. Query & Mutation Trạng thái Theo dõi (Chỉ kích hoạt cho Candidate đã đăng nhập)
+  const { data: followedData } = useMyFollowedCompanies(undefined, {
+    enabled: isCandidate && !isInitializing,
+  });
   const followMutation = useFollowCompany();
   const unfollowMutation = useUnfollowCompany();
 
@@ -113,7 +116,7 @@ export function CompanyDetailPage() {
   };
 
   // 8. Trạng thái Loading Skeleton
-  if (isLoadingCompany) {
+  if (isLoadingCompany || isInitializing) {
     return (
       <div className="container mx-auto min-h-[70vh] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-2 text-xs text-text-muted">

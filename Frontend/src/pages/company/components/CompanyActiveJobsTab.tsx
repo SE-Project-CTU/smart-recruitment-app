@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Search, X, Briefcase, Loader2 } from "lucide-react";
 import { JobCard } from "@/components/common/JobCard";
 import { ApplyJobModal } from "@/components/job/ApplyJobModal";
+import { JobDetailDrawer } from "@/components/job/JobDetailDrawer";
 import { useCompanyActivePublicJobs } from "@/hooks/queries/useJob";
 import type { JobPostingSearchItem } from "@/types/job";
 import Button from "@/components/common/Button";
@@ -20,6 +21,13 @@ export function CompanyActiveJobsTab({
   const [keyword, setKeyword] = useState("");
   const [searchSubmitted, setSearchSubmitted] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedJob, setSelectedJob] = useState<JobPostingSearchItem | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleSelectJob = (job: JobPostingSearchItem) => {
+    setSelectedJob(job);
+    setIsDrawerOpen(true);
+  };
 
   const { data, isLoading, isPlaceholderData } = useCompanyActivePublicJobs(
     companyId,
@@ -100,6 +108,8 @@ export function CompanyActiveJobsTab({
               job={job}
               companyLogoUrl={companyLogoUrl}
               role="candidate"
+              isSelected={selectedJob?.id === job.id && isDrawerOpen}
+              onSelect={handleSelectJob}
             />
           ))}
 
@@ -158,6 +168,13 @@ export function CompanyActiveJobsTab({
           )}
         </div>
       )}
+
+      {/* Drawer xem chi tiết công việc */}
+      <JobDetailDrawer
+        job={selectedJob}
+        open={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      />
 
       {/* Modal Ứng tuyển gắn tại trang để Candidate có thể ứng tuyển trực tiếp */}
       <ApplyJobModal />

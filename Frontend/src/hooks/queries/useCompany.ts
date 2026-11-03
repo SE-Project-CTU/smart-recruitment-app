@@ -32,10 +32,13 @@ export const useMyCompanies = () => {
  * Hook Query: Lấy thông tin chi tiết một công ty theo ID
  */
 export const useCompanyDetail = (companyId?: string) => {
+  const isInitializing = useAuthStore((state) => state.isInitializing);
+  const user = useAuthStore((state) => state.user);
+
   return useQuery({
-    queryKey: ["companies", "detail", companyId],
+    queryKey: ["companies", "detail", companyId, user?.id ?? "anonymous"],
     queryFn: () => companyService.getCompanyDetail(companyId!),
-    enabled: Boolean(companyId),
+    enabled: Boolean(companyId) && !isInitializing,
     staleTime: 2 * 60 * 1000,
   });
 };
@@ -407,11 +410,14 @@ export const useLeaveCompany = () => {
 /**
  * Hook Query: Danh sách công ty mà Candidate đang theo dõi
  */
-export const useMyFollowedCompanies = (params?: {
-  search?: string;
-  page?: number;
-  pageSize?: number;
-}) => {
+export const useMyFollowedCompanies = (
+  params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: [
       "companies",
@@ -422,6 +428,7 @@ export const useMyFollowedCompanies = (params?: {
     ],
     queryFn: () => companyService.getMyFollowedCompanies(params),
     staleTime: 60 * 1000,
+    enabled: options?.enabled ?? true,
   });
 };
 
