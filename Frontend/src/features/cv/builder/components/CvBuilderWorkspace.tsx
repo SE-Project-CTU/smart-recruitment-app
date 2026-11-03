@@ -13,12 +13,14 @@ interface CvBuilderWorkspaceProps {
   contentRef?: Ref<HTMLDivElement>;
   className?: string;
   isReadOnly?: boolean;
+  zoom?: number;
 }
 
 export default function CvBuilderWorkspace({
   contentRef,
   className = "",
   isReadOnly = false,
+  zoom = 1.0,
 }: CvBuilderWorkspaceProps) {
   const { control, getValues } = useFormContext<RichTextCvEditorValues>();
 
@@ -188,7 +190,15 @@ export default function CvBuilderWorkspace({
     <main
       className={`flex flex-1 justify-center overflow-x-auto bg-slate-100 px-4 py-8 ${className}`}
     >
-      <div ref={contentRef} className="print-container">
+      <div
+        className="cv-zoom-viewport flex justify-center min-w-fit"
+        style={{
+          transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+          transformOrigin: "top center",
+          marginBottom: zoom > 1 ? `calc((297mm + 4rem) * ${zoom - 1})` : undefined,
+        }}
+      >
+        <div ref={contentRef} className="print-container">
         {!layoutValidation.isValid ? (
           <div className="mx-auto min-h-[200px] w-[210mm] rounded-xl border-2 border-dashed border-rose-300 bg-rose-50/80 p-8 text-rose-900 shadow-md">
             <h3 className="text-lg font-bold text-rose-700">
@@ -225,6 +235,7 @@ export default function CvBuilderWorkspace({
             />
           )
         )}
+        </div>
       </div>
     </main>
   );

@@ -29,6 +29,8 @@ import { CvBuilderSidebar } from "./CvBuilderSidebar";
 import CvBuilderWorkspace from "./CvBuilderWorkspace";
 import { CvPreviewModal } from "./CvPreviewModal";
 import { CvTitleInput } from "./CvTitleInput";
+import { CvZoomControls } from "./CvZoomControls";
+import { useCvZoom } from "../hooks/useCvZoom";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -59,7 +61,18 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<RichTextCvEditorValues | null>(null);
   const cvPrintRef = useRef<HTMLDivElement>(null);
+  const workspaceScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const {
+    zoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    setZoom,
+    canZoomIn,
+    canZoomOut,
+  } = useCvZoom({ containerRef: workspaceScrollRef });
 
   const { mutateAsync: updateCv, isPending: isUpdatingCv } = useUpdateCv();
 
@@ -94,6 +107,27 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
       currentCvTitle ||
       methods.getValues("title") ||
       `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          transform: none !important;
+          zoom: 1 !important;
+        }
+        .cv-zoom-viewport,
+        .print-container,
+        .cv-page-container {
+          transform: none !important;
+          zoom: 1 !important;
+          margin: 0 !important;
+        }
+      }
+    `,
   });
 
   const handleCompleteCv = () => {
@@ -312,7 +346,10 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             </div>
 
             {/* ITEM 2: CV WORKSPACE (ELEMENT DUY NHẤT CÓ SCROLL CHO TRANG CV) */}
-            <div className="flex flex-1 flex-col h-full overflow-y-auto overflow-x-auto min-w-0">
+            <div
+              ref={workspaceScrollRef}
+              className="relative flex flex-1 flex-col h-full overflow-y-auto overflow-x-auto min-w-0"
+            >
               {/* Banner hiển thị lỗi validation nếu có */}
               {Object.keys(errors).length > 0 && !isLocked && (
                 <div className="no-print mx-auto mt-4 flex w-full max-w-[210mm] shrink-0 items-center gap-3 rounded-lg border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error">
@@ -329,7 +366,22 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
               )}
 
               {/* TRANG GIẤY A4 WYSIWYG WORKSPACE */}
-              <CvBuilderWorkspace contentRef={cvPrintRef} isReadOnly={isLocked} />
+              <CvBuilderWorkspace
+                contentRef={cvPrintRef}
+                isReadOnly={isLocked}
+                zoom={zoom}
+              />
+
+              {/* FLOATING ZOOM CONTROLS (NÚT ZOOM Ở BÊN DƯỚI GÓC PHẢI PAGE) */}
+              <CvZoomControls
+                zoom={zoom}
+                onZoomIn={zoomIn}
+                onZoomOut={zoomOut}
+                onResetZoom={resetZoom}
+                onZoomChange={setZoom}
+                canZoomIn={canZoomIn}
+                canZoomOut={canZoomOut}
+              />
             </div>
 
           </div>
