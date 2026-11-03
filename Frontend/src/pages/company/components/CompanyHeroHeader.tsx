@@ -23,6 +23,7 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { PATHS } from "@/constants/paths";
 import type { CompanyItem } from "@/types/company";
+import Grainient from "@/components/external/Grainient";
 
 export interface CompanyHeroHeaderProps {
   company: CompanyItem;
@@ -66,13 +67,12 @@ export function CompanyHeroHeader({
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-surface shadow-xs">
-      {/* 1. Cover Banner với gradient thương hiệu */}
       <div className="relative h-44 w-full bg-linear-to-r from-slate-900 via-primary/85 to-primary sm:h-56">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] bg-size-[20px_20px] opacity-10" />
+        <Grainient timeSpeed={1.5} />
       </div>
 
       {/* 2. Main Profile Info */}
-      <div className="relative px-5 pt-0 pb-6 sm:px-8">
+      <div className="relative px-5 pt-2 pb-6 sm:px-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           {/* Logo & Identity */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -92,9 +92,8 @@ export function CompanyHeroHeader({
 
                 {isVerified && (
                   <Tooltip>
-                    <TooltipTrigger className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                    <TooltipTrigger className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 p-1 text-xs font-semibold text-emerald-700">
                       <ShieldCheck className="size-3.5 shrink-0" />
-                      <span>Đã xác minh</span>
                     </TooltipTrigger>
                     <TooltipPanel>
                       Doanh nghiệp đã được SmartHire xác thực giấy phép & mã số

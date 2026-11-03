@@ -177,25 +177,21 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                     <Tooltip>
                       <TooltipTrigger
                         render={
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onClose();
-                              navigate(
-                                PATHS.COMPANY_DETAIL.replace(
-                                  ":id",
-                                  data.companyId!,
-                                ),
-                              );
-                            }}
+                          <a
+                            href={PATHS.COMPANY_DETAIL.replace(
+                              ":id",
+                              data.companyId!,
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
                             className="inline-flex size-5 cursor-pointer items-center justify-center rounded text-text-muted transition-colors hover:text-primary"
-                            aria-label="Xem trang công ty"
+                            aria-label="Xem trang công ty (mở tab mới)"
                           >
                             <ExternalLink className="size-3.5" />
-                          </button>
+                          </a>
                         }
                       />
-                      <TooltipPanel>Xem trang công ty</TooltipPanel>
+                      <TooltipPanel>Xem trang công ty (mở tab mới)</TooltipPanel>
                     </Tooltip>
                   )}
                 </div>

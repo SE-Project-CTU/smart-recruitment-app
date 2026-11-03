@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Building2,
-  MapPin,
-  Calendar,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import dayjs from "dayjs";
 import type { CompanyItem } from "@/types/company";
 
@@ -18,23 +11,34 @@ export function CompanyOverviewTab({ company }: CompanyOverviewTabProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const description = company.description?.trim() || "";
-  const shouldTruncate = description.length > 450;
+  const shouldTruncate = description.length > 500;
   const displayText =
     shouldTruncate && !isExpanded
-      ? `${description.slice(0, 450)}...`
+      ? `${description.slice(0, 500)}...`
       : description;
 
+  const isVerified = company.verificationStatus === "Verified";
+  const memberSince = company.createdAt
+    ? dayjs(company.createdAt).format("DD/MM/YYYY")
+    : null;
+  const lastUpdated = company.updatedAt
+    ? dayjs(company.updatedAt).format("DD/MM/YYYY")
+    : null;
+  const verifiedDate = company.verifiedAt
+    ? dayjs(company.verifiedAt).format("DD/MM/YYYY")
+    : null;
+
   return (
-    <div className="space-y-6">
-      {/* 1. Giới thiệu doanh nghiệp */}
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-xs">
-        <h2 className="text-base font-semibold text-text-main">
-          Về {company.name}
+    <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">
+      {/* 1. Phần giới thiệu (Editorial Narrative) */}
+      <section>
+        <h2 className="text-lg font-medium text-text-main sm:text-xl">
+          Giới thiệu doanh nghiệp
         </h2>
 
         {description ? (
           <div className="mt-4">
-            <p className="text-sm leading-relaxed whitespace-pre-line text-text-muted">
+            <p className="max-w-3xl text-sm leading-relaxed whitespace-pre-line text-text-main/80 sm:text-base/relaxed">
               {displayText}
             </p>
 
@@ -42,9 +46,11 @@ export function CompanyOverviewTab({ company }: CompanyOverviewTabProps) {
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-3.5 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                className="mt-3.5 inline-flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary-dark"
               >
-                <span>{isExpanded ? "Thu gọn nội dung" : "Xem thêm mô tả"}</span>
+                <span>
+                  {isExpanded ? "Thu gọn giới thiệu" : "Đọc toàn bộ giới thiệu"}
+                </span>
                 {isExpanded ? (
                   <ChevronUp className="size-3.5" />
                 ) : (
@@ -54,78 +60,62 @@ export function CompanyOverviewTab({ company }: CompanyOverviewTabProps) {
             )}
           </div>
         ) : (
-          <p className="mt-3 text-sm italic text-text-muted">
-            Doanh nghiệp chưa cập nhật phần giới thiệu tổng quan.
+          <p className="mt-3 text-sm text-text-muted italic">
+            Doanh nghiệp chưa cập nhật nội dung giới thiệu chi tiết.
           </p>
         )}
-      </div>
+      </section>
 
-      {/* 2. Điểm nổi bật & Thông tin hoạt động */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* Địa điểm trụ sở chính */}
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <MapPin className="size-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-text-muted">Địa chỉ trụ sở</p>
-              <p className="mt-0.5 text-sm font-medium text-text-main">
-                {company.address || "Chưa cập nhật"}
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* 2. Đường phân cách tinh tế */}
+      <hr className="my-8 border-border/70" />
 
-        {/* Mã số thuế */}
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Building2 className="size-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-text-muted">Mã số thuế</p>
-              <p className="mt-0.5 text-sm font-medium text-text-main">
-                {company.taxCode || "Chưa cập nhật"}
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* 3. Hồ sơ pháp lý & Xác thực minh bạch (Data Factsheet) */}
+      <section>
+        <h3 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+          Thông tin pháp lý & Tính xác thực
+        </h3>
 
-        {/* Thời gian tham gia SmartHire */}
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Calendar className="size-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-text-muted">Tham gia nền tảng</p>
-              <p className="mt-0.5 text-sm font-medium text-text-main">
-                {company.createdAt
-                  ? dayjs(company.createdAt).format("DD/MM/YYYY")
-                  : "Chưa rõ"}
-              </p>
-            </div>
+        <dl className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Mã số thuế */}
+          <div className="space-y-1">
+            <dt className="text-xs text-text-muted">Mã số thuế</dt>
+            <dd className="text-sm font-semibold text-text-main">
+              {company.taxCode || "Chưa cập nhật"}
+            </dd>
           </div>
-        </div>
 
-        {/* Tình trạng pháp lý */}
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <CheckCircle2 className="size-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-text-muted">Trạng thái hồ sơ</p>
-              <p className="mt-0.5 text-sm font-medium text-text-main">
-                {company.verificationStatus === "Verified"
-                  ? "Hồ sơ doanh nghiệp hợp lệ"
-                  : "Đang chờ hoàn thiện xác minh"}
+          {/* Trạng thái xác minh */}
+          <div className="space-y-1">
+            <dt className="text-xs text-text-muted">Trạng thái hồ sơ</dt>
+            <dd className="flex items-center gap-2 text-sm font-semibold text-text-main">
+              <span>
+                {isVerified ? "Đã xác thực pháp lý" : "Chờ xác thực hồ sơ"}
+              </span>
+            </dd>
+            {isVerified && verifiedDate && (
+              <p className="text-[11px] text-text-muted">
+                Xác thực vào {verifiedDate}
               </p>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
+
+          {/* Thời gian tham gia */}
+          <div className="space-y-1">
+            <dt className="text-xs text-text-muted">Tham gia nền tảng</dt>
+            <dd className="text-sm font-semibold text-text-main">
+              {memberSince || "Chưa xác định"}
+            </dd>
+          </div>
+
+          {/* Lần cập nhật gần nhất */}
+          <div className="space-y-1">
+            <dt className="text-xs text-text-muted">Cập nhật gần nhất</dt>
+            <dd className="text-sm font-semibold text-text-main">
+              {lastUpdated || "Mới đây"}
+            </dd>
+          </div>
+        </dl>
+      </section>
     </div>
   );
 }
