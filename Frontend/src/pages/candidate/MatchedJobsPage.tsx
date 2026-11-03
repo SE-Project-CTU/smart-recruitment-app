@@ -447,12 +447,12 @@ export default function MatchedJobsPage() {
               className="h-80 w-auto md:h-100"
             />
             <h2 className="text-base font-semibold text-text-main">
-                Không tìm thấy công việc phù hợp với tiêu chí hiện tại
-              </h2>
+              Không tìm thấy công việc phù hợp với tiêu chí hiện tại
+            </h2>
             <p className="max-w-md text-xs text-text-muted">
-                Bạn có thể giảm yêu cầu về điểm tương thích (ví dụ về mức ≥70%)
-                hoặc xóa bộ lọc từ khóa để khám phá thêm nhiều cơ hội.
-              </p>
+              Bạn có thể giảm yêu cầu về điểm tương thích (ví dụ về mức ≥70%)
+              hoặc xóa bộ lọc từ khóa để khám phá thêm nhiều cơ hội.
+            </p>
             <Button
               type="button"
               variant="secondary"
@@ -463,7 +463,7 @@ export default function MatchedJobsPage() {
             </Button>
           </section>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
             {matchedJobs.map((job) => (
               <JobCard
                 key={job.id}
