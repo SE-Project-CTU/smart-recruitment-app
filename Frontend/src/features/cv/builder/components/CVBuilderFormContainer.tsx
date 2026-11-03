@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useReactToPrint } from "react-to-print";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useBlocker } from "react-router-dom";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -30,6 +30,7 @@ import { extractTiptapPlainText } from "../utils/tiptapJson";
 import { CvBuilderSidebar } from "./CvBuilderSidebar";
 import CvBuilderWorkspace from "./CvBuilderWorkspace";
 import { CvPreviewModal } from "./CvPreviewModal";
+import { UnsavedChangesModal } from "./UnsavedChangesModal";
 import { CvTitleInput } from "./CvTitleInput";
 import { CvZoomControls } from "./CvZoomControls";
 import { useCvZoom } from "../hooks/useCvZoom";
@@ -69,9 +70,6 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
   const workspaceScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Quản lý hotkeys Undo / Redo (Ctrl+Z, Cmd+Z, Ctrl+Y, Ctrl+Shift+Z, Cmd+Shift+Z)
-  useCvHistoryHotkeys({ isLocked, isPreviewOpen });
-
   const {
     zoom,
     zoomIn,
@@ -103,6 +101,32 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
 
   const isBusy = isUpdatingCv || isSaving || isSubmitting;
   const canSave = isDirty && !isBusy;
+
+  // Chặn điều hướng nội bộ khi có thay đổi chưa lưu
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && !isBusy && currentLocation.pathname !== nextLocation.pathname,
+  );
+
+  // Cảnh báo người dùng khi reload (F5) hoặc đóng tab trình duyệt
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty && !isBusy) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty, isBusy]);
+
+  // Quản lý hotkeys Undo / Redo (Ctrl+Z, Cmd+Z, Ctrl+Y, Ctrl+Shift+Z, Cmd+Shift+Z)
+  useCvHistoryHotkeys({
+    isLocked,
+    isPreviewOpen: isPreviewOpen || blocker.state === "blocked",
+  });
 
   const handleDownloadPdf = useReactToPrint({
     contentRef: cvPrintRef,
@@ -424,6 +448,13 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
             title={previewData.title}
           />
         )}
+
+        {/* ================= 5. MODAL CẢNH BÁO THAY ĐỔI CHƯA LƯU KHI THOÁT TRANG ================= */}
+        <UnsavedChangesModal
+          isOpen={blocker.state === "blocked"}
+          onStay={() => blocker.reset?.()}
+          onLeave={() => blocker.proceed?.()}
+        />
       </div>
   );
 };
