@@ -33,6 +33,7 @@ import { CvPreviewModal } from "./CvPreviewModal";
 import { CvTitleInput } from "./CvTitleInput";
 import { CvZoomControls } from "./CvZoomControls";
 import { useCvZoom } from "../hooks/useCvZoom";
+import { useCvHistoryHotkeys } from "../hooks/useCvHistoryHotkeys";
 import { CvHistoryProvider, useCvHistory } from "../history";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
@@ -67,6 +68,9 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
   const cvPrintRef = useRef<HTMLDivElement>(null);
   const workspaceScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Quản lý hotkeys Undo / Redo (Ctrl+Z, Cmd+Z, Ctrl+Y, Ctrl+Shift+Z, Cmd+Shift+Z)
+  useCvHistoryHotkeys({ isLocked, isPreviewOpen });
 
   const {
     zoom,
@@ -267,7 +271,7 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
                     onClick={undo}
                     disabled={!canUndo}
                     aria-label="Hoàn tác (Undo)"
-                    title="Hoàn tác"
+                    title="Hoàn tác (Ctrl+Z)"
                     className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Undo2 className="h-4 w-4" />
@@ -277,7 +281,7 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
                     onClick={redo}
                     disabled={!canRedo}
                     aria-label="Làm lại (Redo)"
-                    title="Làm lại"
+                    title="Làm lại (Ctrl+Y / Ctrl+Shift+Z)"
                     className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Redo2 className="h-4 w-4" />

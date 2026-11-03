@@ -417,7 +417,7 @@ export const TiptapField: React.FC<TiptapFieldProps> = ({
   }, [editor, isReadOnly, placeholder, multiline]);
 
   useEffect(() => {
-    if (!editor || editor.isDestroyed || editor.isFocused) return;
+    if (!editor || editor.isDestroyed) return;
     const editorJson = JSON.stringify(
       sanitizeTiptapDocument(editor.getJSON() as CvTiptapDocument),
     );
