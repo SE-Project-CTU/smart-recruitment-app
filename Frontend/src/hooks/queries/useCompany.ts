@@ -10,6 +10,7 @@ import type {
   CreateCompanyPayload,
   InviteRecruiterPayload,
   ReviewJoinRequestPayload,
+  SubmitJoinRequestPayload,
   UpdateCompanyPayload,
   CompanyApplicationFilterParams,
 } from "@/types/company";
@@ -132,6 +133,31 @@ export const useInviteMember = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["companies", "members", variables.companyId],
+      });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Gửi yêu cầu gia nhập công ty (API 9 - Recruiter)
+ */
+export const useSubmitJoinRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      companyId,
+      payload,
+    }: {
+      companyId: string;
+      payload?: SubmitJoinRequestPayload;
+    }) => companyService.submitJoinRequest(companyId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "detail", variables.companyId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "join-requests", variables.companyId],
       });
     },
   });

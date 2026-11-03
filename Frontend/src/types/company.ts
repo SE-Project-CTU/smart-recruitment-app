@@ -140,6 +140,10 @@ export interface CompanyJoinRequestItem {
   user?: CompanyJoinRequestUser | null;
 }
 
+export interface SubmitJoinRequestPayload {
+  message?: string;
+}
+
 export interface ReviewJoinRequestPayload {
   status: "APPROVED" | "REJECTED";
 }
