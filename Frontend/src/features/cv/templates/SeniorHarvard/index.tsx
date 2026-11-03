@@ -12,11 +12,10 @@ import { EducationSection } from "./EducationSection";
 import { ExperienceSection } from "./ExperienceSection";
 import { SkillsSection } from "./SkillsSection";
 import { ProjectsSection } from "./ProjectsSection";
-import {
-  CertificationsSection,
-  AwardsSection,
-  TextSection,
-} from "./OtherSections";
+import { CertificationsSection } from "./CertificationsSection";
+import { AwardsSection } from "./AwardsSection";
+import { InterestsSection } from "./InterestsSection";
+import { AdditionalInfoSection } from "./AdditionalInfoSection";
 import DraggableSectionActions from "../../builder/components/DraggableSectionActions";
 import { CvTiptapReadOnlyView } from "../../builder/components/CvTiptapReadOnlyView";
 import { DEFAULT_CV_FONT_ID, getCvFontFamilyCss } from "../../constants/fonts";
@@ -221,10 +220,8 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
         );
       case "interests":
         return (
-          <TextSection
+          <InterestsSection
             section={sections.interests}
-            sectionKey="interests"
-            defaultTitle="SỞ THÍCH"
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
             renderField={renderField}
@@ -232,10 +229,8 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
         );
       case "additionalInfo":
         return (
-          <TextSection
+          <AdditionalInfoSection
             section={sections.additionalInfo}
-            sectionKey="additionalInfo"
-            defaultTitle="THÔNG TIN BỔ SUNG"
             primaryColor={primaryColor}
             isReadOnly={isReadOnly}
             renderField={renderField}

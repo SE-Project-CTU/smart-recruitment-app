@@ -1,5 +1,12 @@
 import React from "react";
-import { Phone, Mail, Globe, MapPin, CalendarDays, Link as LinkIcon } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  Globe,
+  MapPin,
+  CalendarDays,
+  Link as LinkIcon,
+} from "lucide-react";
 import type { RichTextCVProfile, CvTiptapDocument } from "@/types/cv";
 import { extractTiptapPlainText } from "../../builder/utils/tiptapJson";
 import type { CvFieldRenderer } from "../types";
