@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import {
   DragDropContext,
   Droppable,
@@ -281,39 +282,60 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                     index={index}
                     isDragDisabled={isReadOnly}
                   >
-                    {(dragProvided, snapshot) => (
-                      <div
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        style={
-                          snapshot.isDropAnimating
-                            ? {
-                                ...dragProvided.draggableProps.style,
-                                transitionDuration: "0.001s",
-                              }
-                            : dragProvided.draggableProps.style
-                        }
-                        className={`group relative rounded-sm px-2 py-1 hover:ring-1 hover:ring-slate-300 ${
-                          snapshot.isDragging
-                            ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
-                            : ""
-                        }`}
-                      >
-                        <DraggableSectionActions
-                          dragHandleProps={dragProvided.dragHandleProps}
-                          isFirst={index === 0}
-                          isLast={index === visibleSections.length - 1}
-                          onMoveUp={() => moveSection(index, "up")}
-                          onMoveDown={() => moveSection(index, "down")}
-                          onDelete={() =>
-                            onToggleSectionVisibility?.(
-                              sectionKey as FixedSectionKey,
-                            )
+                    {(dragProvided, snapshot) => {
+                      const card = (
+                        <div
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          style={
+                            snapshot.isDragging
+                              ? {
+                                  ...(snapshot.isDropAnimating
+                                    ? {
+                                        ...dragProvided.draggableProps.style,
+                                        transitionDuration: "0.001s",
+                                      }
+                                    : dragProvided.draggableProps.style),
+                                  fontFamily: getCvFontFamilyCss(fontFamily),
+                                  lineHeight,
+                                  ["--cv-font-scale" as string]: fontScale,
+                                  ["--cv-line-height" as string]: lineHeight,
+                                }
+                              : snapshot.isDropAnimating
+                                ? {
+                                    ...dragProvided.draggableProps.style,
+                                    transitionDuration: "0.001s",
+                                  }
+                                : dragProvided.draggableProps.style
                           }
-                        />
-                        {renderSectionContent(sectionKey)}
-                      </div>
-                    )}
+                          className={`group relative rounded-sm px-2 py-1 hover:ring-1 hover:ring-slate-300 ${
+                            snapshot.isDragging
+                              ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
+                              : ""
+                          }`}
+                        >
+                          <DraggableSectionActions
+                            dragHandleProps={dragProvided.dragHandleProps}
+                            isFirst={index === 0}
+                            isLast={index === visibleSections.length - 1}
+                            onMoveUp={() => moveSection(index, "up")}
+                            onMoveDown={() => moveSection(index, "down")}
+                            onDelete={() =>
+                              onToggleSectionVisibility?.(
+                                sectionKey as FixedSectionKey,
+                              )
+                            }
+                          />
+                          {renderSectionContent(sectionKey)}
+                        </div>
+                      );
+
+                      if (snapshot.isDragging) {
+                        return createPortal(card, document.body);
+                      }
+
+                      return card;
+                    }}
                   </Draggable>
                 ))}
                 {provided.placeholder}

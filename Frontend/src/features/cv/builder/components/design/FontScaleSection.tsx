@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Slider } from "@/components/ui/slider";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
+import { useCvHistory, ChangeDesignSettingCommand } from "../../history";
 
 /**
  * FontScaleSection:
@@ -9,12 +10,56 @@ import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
  */
 export const FontScaleSection: React.FC = () => {
   const { setValue, control } = useFormContext<RichTextCvEditorValues>();
+  const { executeCommand } = useCvHistory();
 
   const fontScale =
     useWatch({
       control,
       name: "content.metadata.defaultStyle.fontScale",
     }) ?? 1.0;
+
+  const startScaleRef = useRef(fontScale);
+  const isDraggingRef = useRef(false);
+
+  useEffect(() => {
+    if (!isDraggingRef.current) {
+      startScaleRef.current = fontScale;
+    }
+  }, [fontScale]);
+
+  const handleValueChange = (val: number | readonly number[]) => {
+    const nextVal = Array.isArray(val) ? val[0] : val;
+    if (typeof nextVal === "number") {
+      isDraggingRef.current = true;
+      setValue(
+        "content.metadata.defaultStyle.fontScale",
+        Number(nextVal.toFixed(1)),
+        {
+          shouldDirty: true,
+          shouldValidate: false,
+        },
+      );
+    }
+  };
+
+  const handleValueCommitted = (val: number | readonly number[]) => {
+    isDraggingRef.current = false;
+    const finalVal = Array.isArray(val) ? val[0] : val;
+    if (typeof finalVal === "number") {
+      const formattedFinal = Number(finalVal.toFixed(1));
+      if (formattedFinal !== startScaleRef.current) {
+        const command = new ChangeDesignSettingCommand(
+          "fontScale",
+          "content.metadata.defaultStyle.fontScale",
+          startScaleRef.current,
+          formattedFinal,
+          setValue,
+        );
+        executeCommand(command);
+        startScaleRef.current = formattedFinal;
+      }
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -31,19 +76,8 @@ export const FontScaleSection: React.FC = () => {
         min={0.5}
         max={2.0}
         step={0.1}
-        onValueChange={(val) => {
-          const nextVal = Array.isArray(val) ? val[0] : val;
-          if (typeof nextVal === "number") {
-            setValue(
-              "content.metadata.defaultStyle.fontScale",
-              Number(nextVal.toFixed(1)),
-              {
-                shouldDirty: true,
-                shouldValidate: true,
-              },
-            );
-          }
-        }}
+        onValueChange={handleValueChange}
+        onValueCommitted={handleValueCommitted}
         className="cursor-pointer py-1.5 [&_[data-slot=slider-range]]:h-full [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:w-full [&_[data-slot=slider-track]]:bg-border"
       />
       <div className="flex justify-between text-[10px] text-text-muted">

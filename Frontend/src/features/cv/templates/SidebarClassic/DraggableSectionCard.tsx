@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Draggable, type DraggableStateSnapshot } from "@hello-pangea/dnd";
 import DraggableSectionActions from "../../builder/components/DraggableSectionActions";
 
@@ -61,28 +62,36 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
         index={index}
         isDragDisabled={isReadOnly}
       >
-        {(dragProvided, snapshot) => (
-          <div
-            ref={dragProvided.innerRef}
-            {...dragProvided.draggableProps}
-            style={getDraggableStyle(dragProvided.draggableProps.style, snapshot)}
-            className={`group relative rounded-sm hover:ring-1 hover:ring-slate-400 ${
-              snapshot.isDragging
-                ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
-                : ""
-            }`}
-          >
-            <DraggableSectionActions
-              dragHandleProps={dragProvided.dragHandleProps}
-              isFirst={isFirst}
-              isLast={isLast}
-              onMoveUp={onMoveUp}
-              onMoveDown={onMoveDown}
-              onDelete={onToggleVisibility}
-            />
-            {children}
-          </div>
-        )}
+        {(dragProvided, snapshot) => {
+          const card = (
+            <div
+              ref={dragProvided.innerRef}
+              {...dragProvided.draggableProps}
+              style={getDraggableStyle(dragProvided.draggableProps.style, snapshot)}
+              className={`group relative rounded-sm hover:ring-1 hover:ring-slate-400 ${
+                snapshot.isDragging
+                  ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
+                  : ""
+              }`}
+            >
+              <DraggableSectionActions
+                dragHandleProps={dragProvided.dragHandleProps}
+                isFirst={isFirst}
+                isLast={isLast}
+                onMoveUp={onMoveUp}
+                onMoveDown={onMoveDown}
+                onDelete={onToggleVisibility}
+              />
+              {children}
+            </div>
+          );
+
+          if (snapshot.isDragging) {
+            return createPortal(card, document.body);
+          }
+
+          return card;
+        }}
       </Draggable>
     );
   },

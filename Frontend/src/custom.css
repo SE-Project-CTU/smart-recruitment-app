@@ -97,7 +97,6 @@
 .cv-zoom-viewport {
   transform-origin: top center;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
 }
 
 @media print {

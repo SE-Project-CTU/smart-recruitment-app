@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useReactToPrint } from "react-to-print";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,8 @@ import {
   Eye,
   Loader2,
   SlidersHorizontal,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/toast";
@@ -31,6 +33,7 @@ import { CvPreviewModal } from "./CvPreviewModal";
 import { CvTitleInput } from "./CvTitleInput";
 import { CvZoomControls } from "./CvZoomControls";
 import { useCvZoom } from "../hooks/useCvZoom";
+import { CvHistoryProvider, useCvHistory } from "../history";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -44,10 +47,11 @@ interface CVBuilderFormContainerProps {
   cvId?: string;
 }
 
-export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
+const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
   initialData,
   cvId,
 }) => {
+  const { undo, redo, canUndo, canRedo, clearHistory } = useCvHistory();
   const [currentCvTitle, setCurrentCvTitle] = useState(initialData.title);
   const [prevInitialTitle, setPrevInitialTitle] = useState(initialData.title);
   if (prevInitialTitle !== initialData.title) {
@@ -80,12 +84,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
     console.log("[CVBuilder] isLocked state changed:", isLocked);
   }, [isLocked]);
 
-  // Khởi tạo React Hook Form từ initialData nhận được
-  const methods = useForm<RichTextCvEditorValues>({
-    resolver: zodResolver(richTextCvEditorSchema),
-    defaultValues: buildRichTextCvInitialValues(initialData),
-    mode: "onSubmit",
-  });
+  const methods = useFormContext<RichTextCvEditorValues>();
 
   const {
     handleSubmit,
@@ -182,8 +181,9 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             },
           });
 
-          // 4. Đồng bộ lại form để isDirty trở về false
+          // 4. Đồng bộ lại form để isDirty trở về false và dọn sạch lịch sử undo/redo
           reset(data);
+          clearHistory();
 
           // 5. Điều hướng tới trang lưu thành công
           navigate(`${PATHS.CANDIDATE.SAVE_CV_SUCCESS}?id=${cvId}`);
@@ -224,8 +224,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   };
 
   return (
-    <FormProvider {...methods}>
-      <div className="flex h-screen max-h-screen flex-col overflow-hidden bg-slate-100">
+    <div className="flex h-screen max-h-screen flex-col overflow-hidden bg-slate-100">
         {/* ================= 1. TOP NAVBAR (CỐ ĐỊNH Ở TRÊN CÙNG) ================= */}
         <header className="no-print shrink-0 z-40 flex h-14 items-center justify-between border-b border-border bg-surface px-6 shadow-xs">
           <div className="flex items-center gap-3">
@@ -260,6 +259,30 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
                 >
                   <SlidersHorizontal className="h-4 w-4 text-primary" />
                 </button>
+
+                {/* Cụm Undo / Redo */}
+                <div className="flex items-center gap-1 border-r border-border pr-2 mr-1">
+                  <button
+                    type="button"
+                    onClick={undo}
+                    disabled={!canUndo}
+                    aria-label="Hoàn tác (Undo)"
+                    title="Hoàn tác"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={redo}
+                    disabled={!canRedo}
+                    aria-label="Làm lại (Redo)"
+                    title="Làm lại"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Redo2 className="h-4 w-4" />
+                  </button>
+                </div>
 
                 <button
                   key="btn-preview-cv"
@@ -398,6 +421,21 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
           />
         )}
       </div>
+  );
+};
+
+export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = (props) => {
+  const methods = useForm<RichTextCvEditorValues>({
+    resolver: zodResolver(richTextCvEditorSchema),
+    defaultValues: buildRichTextCvInitialValues(props.initialData),
+    mode: "onSubmit",
+  });
+
+  return (
+    <FormProvider {...methods}>
+      <CvHistoryProvider>
+        <CVBuilderFormContent {...props} />
+      </CvHistoryProvider>
     </FormProvider>
   );
 };

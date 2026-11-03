@@ -22,6 +22,7 @@ import {
   createEmptyTiptapDocument,
   sanitizeTiptapDocument,
 } from "../utils/tiptapJson";
+import { useCvHistory } from "../history";
 
 interface TiptapFieldProps {
   name: FieldPath<RichTextCvEditorValues>;
@@ -323,6 +324,7 @@ export const TiptapField: React.FC<TiptapFieldProps> = ({
 }) => {
   const { control } = useFormContext<RichTextCvEditorValues>();
   const { field } = useController({ name, control });
+  const { recordFieldChange, flushPending } = useCvHistory();
   const fieldRef = useRef(field);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -341,12 +343,14 @@ export const TiptapField: React.FC<TiptapFieldProps> = ({
       content: value,
       editable: !isReadOnly,
       onUpdate: ({ editor: currentEditor }) => {
-        fieldRef.current.onChange(
-          sanitizeTiptapDocument(currentEditor.getJSON() as CvTiptapDocument),
-        );
+        const newDoc = sanitizeTiptapDocument(currentEditor.getJSON() as CvTiptapDocument);
+        const currentDoc = fieldRef.current.value ?? createEmptyTiptapDocument();
+        recordFieldChange(name, newDoc, currentDoc);
+        fieldRef.current.onChange(newDoc);
       },
       onFocus: () => setIsFocused(true),
       onBlur: () => {
+        flushPending();
         fieldRef.current.onBlur();
         window.setTimeout(() => {
           const activeElement = document.activeElement;

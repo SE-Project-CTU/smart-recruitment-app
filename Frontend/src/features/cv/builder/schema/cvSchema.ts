@@ -3,19 +3,11 @@ import { z } from "zod";
 // Vietnamese phone number regex: starts with 0 or +84 followed by 9 digits
 const VIETNAMESE_PHONE_REGEX = /^(0|\+84)(3|5|7|8|9)[0-9]{8}$/;
 
-export const FIXED_SECTION_KEYS = [
-  "objective",
-  "experience",
-  "education",
-  "skills",
-  "projects",
-  "certifications",
-  "awards",
-  "interests",
-  "additionalInfo",
-] as const;
-
-export type FixedSectionKey = (typeof FIXED_SECTION_KEYS)[number];
+import {
+  FIXED_SECTION_KEYS,
+  type FixedSectionKey,
+} from "../../constants/sections";
+export { FIXED_SECTION_KEYS, type FixedSectionKey };
 
 // ==========================================
 // 1. Content Schema

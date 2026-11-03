@@ -8,6 +8,7 @@ import {
   setCvPreviewColor,
   clearAllCvPreviewColors,
 } from "../../utils/cvColorPreviewBridge";
+import { useCvHistory, ChangeDesignSettingCommand } from "../../history";
 
 /**
  * ColorPickerSection:
@@ -23,6 +24,7 @@ export const ColorPickerSection: React.FC = () => {
 
   const { setValue, getValues, control } =
     useFormContext<RichTextCvEditorValues>();
+  const { executeCommand } = useCvHistory();
 
   const watchedPrimaryColors = useWatch({
     control,
@@ -61,12 +63,16 @@ export const ColorPickerSection: React.FC = () => {
 
       const updated = [...currentList];
       updated[index] = formattedColor;
-      setValue("content.metadata.defaultStyle.primaryColors", updated, {
-        shouldDirty: true,
-        shouldValidate: false,
-      });
+      const command = new ChangeDesignSettingCommand(
+        "primaryColors",
+        "content.metadata.defaultStyle.primaryColors",
+        currentList,
+        updated,
+        setValue,
+      );
+      executeCommand(command);
     },
-    [getValues, setValue],
+    [getValues, setValue, executeCommand],
   );
 
   /**
