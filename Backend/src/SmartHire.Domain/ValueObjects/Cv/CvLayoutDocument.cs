@@ -9,5 +9,5 @@ public sealed record CvLayoutDocument
 public sealed record CvLayoutArea
 {
     public string Id { get; init; } = string.Empty;
-    public HashSet<string> Sections { get; init; } = [];
+    public List<string> Sections { get; init; } = [];
 }

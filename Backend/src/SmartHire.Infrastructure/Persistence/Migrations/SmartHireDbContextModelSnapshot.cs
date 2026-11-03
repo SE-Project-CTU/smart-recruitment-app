@@ -689,6 +689,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("layout");
 
+                    b.Property<Guid?>("PreviewFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("preview_file_id");
+
                     b.Property<Guid>("TemplateId")
                         .HasColumnType("uuid")
                         .HasColumnName("template_id");
@@ -699,6 +703,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_cv_versions");
+
+                    b.HasIndex("PreviewFileId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cv_versions_preview_file_id");
 
                     b.HasIndex("TemplateId")
                         .HasDatabaseName("ix_cv_versions_template_id");
@@ -1709,6 +1717,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_cv_versions_cvs_cv_id");
 
+                    b.HasOne("SmartHire.Domain.Entities.MediaFile", "PreviewFile")
+                        .WithMany()
+                        .HasForeignKey("PreviewFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_cv_versions_media_files_preview_file_id");
+
                     b.HasOne("SmartHire.Domain.Entities.CvTemplate", "Template")
                         .WithMany("CvVersions")
                         .HasForeignKey("TemplateId")
@@ -1717,6 +1731,8 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_cv_versions_cv_templates_template_id");
 
                     b.Navigation("Cv");
+
+                    b.Navigation("PreviewFile");
 
                     b.Navigation("Template");
                 });

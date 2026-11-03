@@ -96,4 +96,28 @@ public sealed class CvVersionRepository : ICvVersionRepository {
             .AnyAsync(version => version.Id == versionId && version.Cv.CandidateId == candidateId,
                 cancellationToken);
     }
+
+    public Task<bool> IsPreviewFileInUseAsync(
+        Guid previewFileId,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .AnyAsync(version => version.PreviewFileId == previewFileId, cancellationToken);
+    }
+
+    public Task<List<CvVersion>> GetOrphanedArchivedVersionsAsync(
+        DateTimeOffset archivedBefore,
+        int batchSize,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .Include(version => version.Cv)
+            .Where(version => version.Cv.DeletedAt != null && version.Cv.DeletedAt <= archivedBefore)
+            .Where(version => !version.Applications.Any())
+            .Take(batchSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public void Delete(CvVersion version) {
+        _dbContext.CvVersions.Remove(version);
+    }
 }

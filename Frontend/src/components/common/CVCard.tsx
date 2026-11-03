@@ -1,4 +1,4 @@
-﻿import { Clock, Download, Edit3, Trash } from "lucide-react";
+import { Clock, Download, Edit3, Eye, Trash } from "lucide-react";
 import Button from "./Button";
 import { getTimeAgo } from "@/utils/helper";
 import type { CVItem } from "@/types/cv";
@@ -8,6 +8,7 @@ import { Globe, Lock } from "lucide";
 
 interface CVCardProps {
   cv: CVItem;
+  onClick?: (cv: CVItem) => void;
   onEdit?: (cv: CVItem) => void;
   onRename?: (cv: CVItem) => void;
   onDownload?: (cv: CVItem) => void;
@@ -18,6 +19,7 @@ interface CVCardProps {
 
 export function CVCard({
   cv,
+  onClick,
   onEdit,
   onRename,
   onDownload,
@@ -30,7 +32,12 @@ export function CVCard({
   return (
     <div className="group flex flex-col justify-between rounded-2xl border border-border bg-white shadow-2xs transition-all duration-300 hover:border-secondary hover:shadow-md">
       {/* Khung ảnh thumbnail */}
-      <div className="group/image relative flex aspect-3/4 w-full flex-col justify-between overflow-hidden rounded-t-2xl">
+      <div
+        onClick={() => onClick?.(cv)}
+        className={`group/image relative flex aspect-3/4 w-full flex-col justify-between overflow-hidden rounded-t-2xl ${
+          onClick ? "cursor-pointer" : ""
+        }`}
+      >
         {cv.previewFile?.url ? (
           <img
             src={cv.previewFile.url}
@@ -70,25 +77,36 @@ export function CVCard({
           </div>
         )}
 
-        {/* Lớp phủ khi hover vào mới hiển thị thông tin Công khai + Ngôn ngữ */}
-        <div className="absolute inset-0 z-10 flex items-start justify-start gap-1.5 bg-linear-to-b from-black/75 via-black/20 to-transparent p-3 opacity-0 backdrop-blur-xs transition-opacity duration-300 group-hover/image:opacity-100">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs backdrop-blur-xs transition-colors duration-200 ${
-              cv.isPublic ? "bg-status-success/90" : "bg-slate-700/90"
-            }`}
-          >
+        {/* Lớp phủ khi hover vào mới hiển thị thông tin Công khai + Ngôn ngữ và nút Xem trước */}
+        <div className="absolute inset-0 z-10 flex flex-col justify-between bg-linear-to-b from-black/75 via-black/20 to-black/60 p-3 opacity-0 backdrop-blur-xs transition-opacity duration-300 group-hover/image:opacity-100">
+          <div className="flex items-start justify-start gap-1.5">
             <span
-              className={`size-1.5 rounded-full ${
-                cv.isPublic ? "bg-white" : "bg-slate-300"
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs backdrop-blur-xs transition-colors duration-200 ${
+                cv.isPublic ? "bg-status-success/90" : "bg-slate-700/90"
               }`}
-            />
-            {cv.isPublic ? "Công khai" : "Riêng tư"}
-          </span>
-
-          {cv.language && (
-            <span className="inline-flex items-center rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-slate-800 uppercase shadow-sm">
-              {cv.language}
+            >
+              <span
+                className={`size-1.5 rounded-full ${
+                  cv.isPublic ? "bg-white" : "bg-slate-300"
+                }`}
+              />
+              {cv.isPublic ? "Công khai" : "Riêng tư"}
             </span>
+
+            {cv.language && (
+              <span className="inline-flex items-center rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-slate-800 uppercase shadow-sm">
+                {cv.language}
+              </span>
+            )}
+          </div>
+
+          {onClick && (
+            <div className="flex items-center justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-1.5 text-xs font-semibold text-slate-900 shadow-md backdrop-blur-xs transition-transform duration-200 group-hover/image:scale-105">
+                <Eye className="size-3.5 text-primary" />
+                Xem trước
+              </span>
+            </div>
           )}
         </div>
       </div>
@@ -98,14 +116,20 @@ export function CVCard({
         <div className="flex items-center justify-between gap-1.5">
           <h3
             title={cv.title}
-            className="line-clamp-1 text-base font-bold text-slate-800"
+            onClick={() => onClick?.(cv)}
+            className={`line-clamp-1 text-base font-bold text-slate-800 ${
+              onClick ? "cursor-pointer transition-colors hover:text-primary" : ""
+            }`}
           >
             {cv.title}
           </h3>
           {onRename && (
             <button
               type="button"
-              onClick={() => onRename(cv)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRename(cv);
+              }}
               title="Đổi tên CV"
               className="cursor-pointer rounded-md p-1 text-text-muted transition-colors hover:bg-bg hover:text-text-main"
             >
@@ -124,7 +148,10 @@ export function CVCard({
       </div>
 
       {/* Hàng Switch bật tắt công khai bên trên bộ nút (trượt mượt mà 0.2s) */}
-      <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5"
+      >
         <div className="flex items-center gap-1.5">
           <MorphIcon
             icon={cv.isPublic ? Globe : Lock}
@@ -152,7 +179,10 @@ export function CVCard({
       </div>
 
       {/* Bộ nút thao tác: Tải xuống, Chỉnh sửa, Xóa */}
-      <div className="flex gap-2.5 px-4 pb-4">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex gap-2.5 px-4 pb-4"
+      >
         <Button
           variant="primary"
           icon={Download}

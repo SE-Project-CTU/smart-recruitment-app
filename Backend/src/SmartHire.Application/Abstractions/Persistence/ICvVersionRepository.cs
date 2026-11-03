@@ -20,4 +20,10 @@ public interface ICvVersionRepository {
     Task<CvVersion?> GetByVersionIdAsync(Guid versionId, CancellationToken cancellationToken);
     Task<CvVersion?> GetLatestByCvIdAsync(Guid cvId, CancellationToken cancellationToken);
     Task<bool> IsOwnedByCandidateAsync(Guid versionId, Guid candidateId, CancellationToken cancellationToken);
+    Task<bool> IsPreviewFileInUseAsync(Guid previewFileId, CancellationToken cancellationToken);
+    Task<List<CvVersion>> GetOrphanedArchivedVersionsAsync(
+        DateTimeOffset archivedBefore,
+        int batchSize,
+        CancellationToken cancellationToken);
+    void Delete(CvVersion version);
 }

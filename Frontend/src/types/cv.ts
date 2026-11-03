@@ -118,7 +118,7 @@ export interface CvDefaultStyle {
   lineHeight: number;
 }
 
-export type CvTemplateCode = "modern_two_column";
+export type CvTemplateCode = "senior_harvard" | "sidebar_classic";
 
 export interface CvTiptapDocumentMetadata {
   version: string;
@@ -198,7 +198,6 @@ export interface RichTextCVAwardItem {
 }
 
 export interface RichTextCVSections {
-  order: CVSectionKey[];
   objective: RichTextCVTextSection;
   experience: RichTextCVItemSection<RichTextCVExperienceItem>;
   education: RichTextCVItemSection<RichTextCVEducationItem>;

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FilePlus2, Plus } from "lucide-react";
 import { Button, CVCard } from "@/components/common";
@@ -129,6 +129,9 @@ export default function CandidateCvManagementPage() {
               <CVCard
                 key={cv.id}
                 cv={cv}
+                onClick={(item) => {
+                  navigate(`${PATHS.CANDIDATE.PREVIEW_CV}?id=${item.id}`);
+                }}
                 onTogglePublic={handleTogglePublic}
                 isTogglingPublic={isTogglingPublic}
                 onDownload={handleDownloadCv}
