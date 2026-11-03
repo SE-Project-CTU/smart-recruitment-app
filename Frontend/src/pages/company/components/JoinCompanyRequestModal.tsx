@@ -128,8 +128,8 @@ export function JoinCompanyRequestModal({
           <div className="flex items-center justify-end gap-2 pt-2">
             <Button
               type="button"
-              variant="outline"
-              className="text-xs px-3.5 py-2"
+              variant="secondary"
+              className="text-xs! px-3.5! py-2!"
               onClick={handleClose}
               disabled={submitMutation.isPending}
             >
@@ -138,7 +138,7 @@ export function JoinCompanyRequestModal({
             <Button
               type="submit"
               variant="primary"
-              className="text-xs px-3.5 py-2"
+              className="text-xs! px-3.5! py-2!"
               isLoading={submitMutation.isPending}
             >
               Gửi yêu cầu

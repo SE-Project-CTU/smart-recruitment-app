@@ -93,7 +93,7 @@ export function CompanyActiveJobsTab({
           </p>
         </div>
       ) : jobs.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {jobs.map((job) => (
             <JobCard
               key={job.id}
@@ -111,16 +111,16 @@ export function CompanyActiveJobsTab({
               </span>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  className="text-xs px-3 py-1.5"
+                  variant="secondary"
+                  className="px-3! py-1.5! text-xs!"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage <= 1 || isPlaceholderData}
                 >
                   Trang trước
                 </Button>
                 <Button
-                  variant="outline"
-                  className="text-xs px-3 py-1.5"
+                  variant="secondary"
+                  className="px-3! py-1.5! text-xs!"
                   onClick={() =>
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
@@ -133,7 +133,7 @@ export function CompanyActiveJobsTab({
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface/50 py-16 px-4 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface/50 px-4 py-16 text-center">
           <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <Briefcase className="size-6" />
           </div>
@@ -142,15 +142,15 @@ export function CompanyActiveJobsTab({
               ? "Không tìm thấy vị trí phù hợp"
               : "Hiện chưa có vị trí đang tuyển dụng"}
           </p>
-          <p className="mt-1 text-xs text-text-muted max-w-sm">
+          <p className="mt-1 max-w-sm text-xs text-text-muted">
             {searchSubmitted
               ? `Không có kết quả nào khớp với "${searchSubmitted}". Vui lòng thử tìm với từ khóa khác.`
               : `${companyName} hiện chưa mở đợt tuyển dụng mới. Hãy bấm "Theo dõi công ty" để nhận thông báo ngay khi có việc làm mới.`}
           </p>
           {searchSubmitted && (
             <Button
-              variant="outline"
-              className="mt-4 text-xs px-3.5 py-1.5"
+              variant="secondary"
+              className="mt-4! px-3.5! py-1.5! text-xs!"
               onClick={handleClear}
             >
               Xem tất cả vị trí

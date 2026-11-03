@@ -179,21 +179,14 @@ export function CompanySidebarInfo({
         </p>
 
         <Button
-          variant="outline"
+          variant="secondary"
+          icon={copied ? Check : Share2}
           onClick={handleCopyLink}
-          className="mt-3.5 w-full text-xs px-3.5 py-2 flex items-center justify-center gap-2"
+          className={`mt-3.5! w-full! text-xs! px-3.5! py-2! ${
+            copied ? "text-emerald-700! border-emerald-200! bg-emerald-50!" : ""
+          }`}
         >
-          {copied ? (
-            <>
-              <Check className="size-4 text-emerald-600" />
-              <span className="text-emerald-700">Đã sao chép liên kết</span>
-            </>
-          ) : (
-            <>
-              <Share2 className="size-4" />
-              <span>Sao chép liên kết</span>
-            </>
-          )}
+          {copied ? "Đã sao chép liên kết" : "Sao chép liên kết"}
         </Button>
       </div>
     </div>

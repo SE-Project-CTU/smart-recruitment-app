@@ -9,10 +9,10 @@ import {
   UserPlus,
   ArrowUpRight,
   Clock,
-  Sparkles,
   Bookmark,
   BookmarkCheck,
 } from "lucide-react";
+
 import Button from "@/components/common/Button";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import {
@@ -64,12 +64,8 @@ export function CompanyHeroHeader({
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-surface shadow-xs">
       {/* 1. Cover Banner với gradient thương hiệu */}
-      <div className="relative h-44 w-full bg-gradient-to-r from-slate-900 via-primary/85 to-primary sm:h-56">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-10" />
-        <div className="absolute right-6 bottom-4 hidden items-center gap-1.5 rounded-full bg-black/25 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-md sm:flex">
-          <Sparkles className="size-3.5 text-amber-300" />
-          <span>Hồ sơ doanh nghiệp tuyển dụng</span>
-        </div>
+      <div className="relative h-44 w-full bg-linear-to-r from-slate-900 via-primary/85 to-primary sm:h-56">
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] bg-size-[20px_20px] opacity-10" />
       </div>
 
       {/* 2. Main Profile Info */}
@@ -110,7 +106,7 @@ export function CompanyHeroHeader({
                 {company.address && (
                   <div className="flex items-center gap-1.5">
                     <MapPin className="size-3.5 shrink-0 text-text-muted/70" />
-                    <span className="truncate max-w-xs">{company.address}</span>
+                    <span className="max-w-xs truncate">{company.address}</span>
                   </div>
                 )}
 
@@ -133,7 +129,7 @@ export function CompanyHeroHeader({
                     className="flex items-center gap-1 text-primary hover:underline"
                   >
                     <Globe className="size-3.5 shrink-0" />
-                    <span className="truncate max-w-40">
+                    <span className="max-w-40 truncate">
                       {company.website.replace(/^https?:\/\//, "")}
                     </span>
                     <ExternalLink className="size-3" />
@@ -148,18 +144,14 @@ export function CompanyHeroHeader({
             {/* Case 1: Candidate đã đăng nhập */}
             {isCandidate && (
               <Button
-                variant={isFollowing ? "outline" : "primary"}
+                variant={isFollowing ? "secondary" : "primary"}
                 onClick={onToggleFollow}
+                icon={isFollowing ? BookmarkCheck : Bookmark}
                 disabled={isFollowingLoading}
                 onMouseEnter={() => setIsHoveredFollow(true)}
                 onMouseLeave={() => setIsHoveredFollow(false)}
-                className="text-xs px-4 py-2 flex items-center gap-2 transition-all"
+                className="px-4! py-2! text-xs!"
               >
-                {isFollowing ? (
-                  <BookmarkCheck className="size-4 text-primary" />
-                ) : (
-                  <Bookmark className="size-4" />
-                )}
                 <span>
                   {isFollowing
                     ? isHoveredFollow
@@ -179,11 +171,11 @@ export function CompanyHeroHeader({
                 )}
               >
                 <Button
-                  variant="outline"
-                  className="text-xs px-4 py-2 flex items-center gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
+                  variant="secondary"
+                  icon={ArrowUpRight}
+                  className="px-4! py-2! text-xs!"
                 >
-                  <ArrowUpRight className="size-4" />
-                  <span>Quản lý công ty</span>
+                  Quản lý công ty
                 </Button>
               </Link>
             )}
@@ -193,21 +185,21 @@ export function CompanyHeroHeader({
               <>
                 {isPendingJoinRequest ? (
                   <Button
-                    variant="outline"
+                    variant="secondary"
+                    icon={Clock}
                     disabled
-                    className="text-xs px-4 py-2 flex items-center gap-1.5 bg-slate-50 text-slate-500 border-slate-200 cursor-not-allowed"
+                    className="cursor-not-allowed! px-4! py-2! text-xs! opacity-70!"
                   >
-                    <Clock className="size-4" />
-                    <span>Yêu cầu đang chờ duyệt</span>
+                    Yêu cầu đang chờ duyệt
                   </Button>
                 ) : (
                   <Button
                     variant="primary"
+                    icon={UserPlus}
                     onClick={onOpenJoinModal}
-                    className="text-xs px-4 py-2 flex items-center gap-1.5"
+                    className="px-4! py-2! text-xs!"
                   >
-                    <UserPlus className="size-4" />
-                    <span>Yêu cầu gia nhập</span>
+                    Yêu cầu gia nhập
                   </Button>
                 )}
               </>
@@ -218,20 +210,20 @@ export function CompanyHeroHeader({
               <>
                 <Button
                   variant="primary"
+                  icon={Bookmark}
                   onClick={() => onOpenAuthPrompt("theo dõi doanh nghiệp")}
-                  className="text-xs px-4 py-2 flex items-center gap-1.5"
+                  className="px-4! py-2! text-xs!"
                 >
-                  <Bookmark className="size-4" />
-                  <span>Theo dõi công ty</span>
+                  Theo dõi công ty
                 </Button>
 
                 <Button
-                  variant="outline"
+                  variant="secondary"
+                  icon={UserPlus}
                   onClick={() => onOpenAuthPrompt("gửi yêu cầu gia nhập")}
-                  className="hidden text-xs px-4 py-2 items-center gap-1.5 sm:flex"
+                  className="hidden px-4! py-2! text-xs! sm:inline-flex"
                 >
-                  <UserPlus className="size-4" />
-                  <span>Gia nhập đội ngũ</span>
+                  Gia nhập đội ngũ
                 </Button>
               </>
             )}

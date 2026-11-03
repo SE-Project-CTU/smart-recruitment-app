@@ -60,16 +60,16 @@ export function AuthPromptModal({
         <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:justify-end">
           <Button
             type="button"
-            variant="outline"
-            className="text-xs px-3.5 py-2"
+            variant="secondary"
+            className="text-xs! px-3.5! py-2!"
             onClick={() => onOpenChange(false)}
           >
             Để sau
           </Button>
           <Button
             type="button"
-            variant="outline"
-            className="text-xs px-3.5 py-2"
+            variant="secondary"
+            className="text-xs! px-3.5! py-2!"
             onClick={handleSignUp}
           >
             Đăng ký tài khoản
@@ -77,10 +77,10 @@ export function AuthPromptModal({
           <Button
             type="button"
             variant="primary"
-            className="text-xs px-3.5 py-2 flex items-center gap-1.5"
+            icon={UserCheck}
+            className="text-xs! px-3.5! py-2!"
             onClick={handleSignIn}
           >
-            <UserCheck className="size-4" />
             Đăng nhập ngay
           </Button>
         </div>
