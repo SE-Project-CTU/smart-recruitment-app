@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { AlertCircle, Check, ChevronDown, Search, X } from "lucide-react";
+import { AlertCircle, ChevronDown, Search, X } from "lucide-react";
 import { useSkills } from "@/hooks/queries/useCatalog";
 import { cn } from "@/lib/utils";
 
@@ -238,7 +238,6 @@ export function SkillSelect({
                           : "border-border bg-bg font-normal text-text-main hover:border-border hover:bg-surface",
                       )}
                     >
-                      {isSelected && <Check className="size-3 shrink-0" />}
                       <span>{skill.name}</span>
                     </button>
                   );

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useParams, useNavigate, NavLink, Outlet } from "react-router-dom";
 import {
   ArrowLeft,
@@ -17,6 +18,7 @@ import { CompanyLogo } from "@/components/company/CompanyLogo";
 import type { CompanyItem } from "@/types/company";
 import { PATHS } from "@/constants/paths";
 import { Button } from "@/components/common";
+import { useCompanyStore } from "@/stores/companyStore";
 
 export interface CompanyOutletContext {
   company: CompanyItem;
@@ -28,12 +30,22 @@ export function CompanyDetailLayout() {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
 
+  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
+  const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
+
   const {
     data: company,
     isLoading,
     error,
     refetch: refreshCompany,
   } = useCompanyDetail(companyId);
+
+  // Tự động đồng bộ Active Company trong store nếu truy cập trực tiếp bằng URL của công ty
+  useEffect(() => {
+    if (company && company.id !== activeCompanyId) {
+      setActiveCompany(company);
+    }
+  }, [company, activeCompanyId, setActiveCompany]);
 
   if (isLoading) {
     return (
@@ -56,15 +68,16 @@ export function CompanyDetailLayout() {
           {error?.message || "Doanh nghiệp không tồn tại"}
         </h2>
         <p className="mt-1.5 text-xs text-text-muted">
-          Vui lòng kiểm tra lại đường dẫn hoặc quay về danh sách công ty.
+          Vui lòng kiểm tra lại đường dẫn hoặc quay về trang tổng quan tuyển
+          dụng.
         </p>
         <button
-          onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
+          onClick={() => navigate(PATHS.RECRUITER.DASHBOARD)}
           type="button"
-          className="hover:bg-primary-hover mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
+          className="hover:bg-primary-hover mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
         >
           <ArrowLeft className="size-4" />
-          Về danh sách công ty
+          Về trang tổng quan
         </button>
       </div>
     );
@@ -75,16 +88,16 @@ export function CompanyDetailLayout() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Nút Back ra danh sách công ty */}
+      {/* 1. Nút Back về Dashboard */}
       <div>
         <Button
           variant="secondary"
           icon={ArrowLeft}
           iconSize={15}
-          onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
+          onClick={() => navigate(PATHS.RECRUITER.DASHBOARD)}
           className="h-8! px-3! text-xs! font-medium!"
         >
-          Danh sách công ty
+          Về trang tổng quan
         </Button>
       </div>
 
@@ -92,7 +105,7 @@ export function CompanyDetailLayout() {
       <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4 sm:items-center">
-            <div className="shrink-0 rounded-2xl border border-border bg-white p-1">
+            <div className="shrink-0">
               <CompanyLogo
                 logoUrl={company.logoUrl}
                 name={company.name}
@@ -259,3 +272,4 @@ export function CompanyDetailLayout() {
     </div>
   );
 }
+export default CompanyDetailLayout;

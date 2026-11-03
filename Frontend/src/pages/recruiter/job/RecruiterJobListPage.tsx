@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertTriangle,
-  Building2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -10,28 +8,38 @@ import {
   LibraryBig,
   Plus,
   Search,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, TableSkeleton } from "@/components/common";
 import { PATHS } from "@/constants/paths";
-import { useProvinces } from "@/hooks/queries/useCatalog";
-import { useMyCompanies } from "@/hooks/queries/useCompany";
 import {
-  useRecruiterJobPostings,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useProvinces } from "@/hooks/queries/useCatalog";
+import {
+  useCompanyJobPostings,
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
 import { useCompanyStore } from "@/stores";
 import type { JobPostingItem } from "@/types/job";
 import { JobPostingsTable } from "./JobPostingsTable";
+import { EmptyStreet } from "@/assets/images/decoration";
 
 const STATUS_FILTER_OPTIONS = [
   { value: "ALL", label: "Tất cả trạng thái" },
-  { value: "OPEN", label: "Đang nhận hồ sơ" },
-  { value: "PENDING_REVIEW", label: "Chờ duyệt" },
-  { value: "PAUSED", label: "Tạm dừng" },
-  { value: "CLOSED", label: "Đã đóng" },
-  { value: "EXPIRED", label: "Hết hạn" },
+  { value: "Published", label: "Đang nhận hồ sơ" },
+  { value: "PendingReview", label: "Chờ duyệt" },
+  { value: "Closed", label: "Đã đóng" },
+  { value: "Expired", label: "Hết hạn" },
 ];
 
 const WORK_MODE_FILTER_OPTIONS = [
@@ -43,37 +51,36 @@ const WORK_MODE_FILTER_OPTIONS = [
 
 export function RecruiterJobListPage() {
   const navigate = useNavigate();
-  const { activeCompanyId, setActiveCompanyId } = useCompanyStore();
 
-  // 1. Data queries: Lấy công ty của recruiter trước, sau đó lấy toàn bộ tin của các công ty đó
-  const { data: myCompanies = [], isLoading: isLoadingCompanies } =
-    useMyCompanies();
-  const myCompanyIdsList = useMemo(
-    () => myCompanies.map((c) => c.id),
-    [myCompanies],
-  );
+  // 1. Lấy ngữ cảnh Workspace (Doanh nghiệp đang chọn) qua atomic selectors
+  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
+  const activeCompany = useCompanyStore((s) => s.activeCompany);
+
+  // 2. Data queries: Lấy trực tiếp tin tuyển dụng của công ty active (API 15 chuẩn Workspace)
   const { data: jobResponse, isLoading: isLoadingJobs } =
-    useRecruiterJobPostings(myCompanyIdsList);
+    useCompanyJobPostings(activeCompanyId);
   const { data: provinces = [] } = useProvinces();
   const updateStatusMutation = useUpdateJobPostingStatus();
 
-  const isLoading = isLoadingJobs || isLoadingCompanies;
-
-  // 2. Local filter & pagination state
+  // 3. Local filter & pagination state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [workModeFilter, setWorkModeFilter] = useState("ALL");
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(() => {
-    return activeCompanyId || "ALL";
-  });
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
-  // 3. Modal confirmation state
+  // Điều chỉnh state khi chuyển đổi Workspace công ty (tránh cascading render effect)
+  const [prevCompanyId, setPrevCompanyId] = useState(activeCompanyId);
+  if (prevCompanyId !== activeCompanyId) {
+    setPrevCompanyId(activeCompanyId);
+    setCurrentPage(1);
+  }
+
+  // 4. Modal confirmation state
   const [jobToClose, setJobToClose] = useState<JobPostingItem | null>(null);
   const [isClosingSuccess, setIsClosingSuccess] = useState(false);
 
-  // 4. Mappings for province and company logos
+  // 5. Mappings for province and company logos
   const provinceMap = useMemo(() => {
     const map = new Map<string, string>();
     provinces.forEach((p) => map.set(p.id, p.name));
@@ -82,53 +89,39 @@ export function RecruiterJobListPage() {
 
   const companyLogoMap = useMemo(() => {
     const map = new Map<string, string | null>();
-    myCompanies.forEach((c) => map.set(c.id, c.logoUrl));
+    if (activeCompanyId && activeCompany?.logoUrl) {
+      map.set(activeCompanyId, activeCompany.logoUrl);
+    }
     return map;
-  }, [myCompanies]);
+  }, [activeCompanyId, activeCompany]);
 
-  const companyFilterOptions = useMemo(() => {
-    const opts = [{ value: "ALL", label: "Tất cả công ty của tôi" }];
-    myCompanies.forEach((c) => {
-      opts.push({ value: c.id, label: c.name });
-    });
-    return opts;
-  }, [myCompanies]);
-
-  // Lấy toàn bộ JD mà recruiter này có quyền quản lý từ các công ty của mình
+  // Danh sách JD của công ty active
   const allJobs: JobPostingItem[] = useMemo(() => {
     return jobResponse?.items || [];
   }, [jobResponse]);
 
-  // 6. Filter jobs (Purely derived in useMemo)
+  // 6. Filter jobs (Purely derived in useMemo, bám sát các filter cục bộ)
   const filteredJobs = useMemo(() => {
     return allJobs.filter((job) => {
-      // Company filter
-      if (selectedCompanyId !== "ALL") {
-        const companyId = job.companyId || job.company?.id;
-        if (companyId !== selectedCompanyId) return false;
-      }
-
       // Status filter
       if (statusFilter !== "ALL") {
         const s = (job.status || "").toUpperCase();
+        const target = statusFilter.toUpperCase();
         if (
-          statusFilter === "OPEN" &&
-          s !== "OPEN" &&
+          target === "PUBLISHED" &&
           s !== "PUBLISHED" &&
+          s !== "OPEN" &&
           s !== "ACTIVE"
-        ) {
+        )
           return false;
-        }
-        if (statusFilter === "CLOSED" && s !== "CLOSED") return false;
-        if (statusFilter === "PAUSED" && s !== "PAUSED") return false;
-        if (statusFilter === "EXPIRED" && s !== "EXPIRED") return false;
         if (
-          statusFilter === "PENDING_REVIEW" &&
-          s !== "PENDING_REVIEW" &&
-          s !== "PENDINGREVIEW"
-        ) {
+          target === "PENDINGREVIEW" &&
+          s !== "PENDINGREVIEW" &&
+          s !== "PENDING_REVIEW"
+        )
           return false;
-        }
+        if (target === "CLOSED" && s !== "CLOSED") return false;
+        if (target === "EXPIRED" && s !== "EXPIRED") return false;
       }
 
       // WorkMode filter
@@ -149,9 +142,9 @@ export function RecruiterJobListPage() {
 
       return true;
     });
-  }, [allJobs, selectedCompanyId, statusFilter, workModeFilter, searchQuery]);
+  }, [allJobs, statusFilter, workModeFilter, searchQuery]);
 
-  // 7. Paginated jobs (Purely derived in useMemo)
+  // 7. Paginated jobs
   const totalItems = filteredJobs.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const paginatedJobs = useMemo(() => {
@@ -199,6 +192,35 @@ export function RecruiterJobListPage() {
     }
   };
 
+  // Trường hợp Recruiter chưa chọn công ty hoặc chưa có công ty nào
+  if (!activeCompanyId && !isLoadingJobs) {
+    return (
+      <section className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 p-8 text-center">
+        <img
+          src={EmptyStreet}
+          alt="Chưa chọn doanh nghiệp làm việc"
+          loading="lazy"
+          className="h-80 w-auto md:h-100"
+        />
+        <h2 className="text-lg font-bold text-text-main">
+          Chưa chọn doanh nghiệp làm việc
+        </h2>
+        <p className="max-w-md text-xs leading-relaxed text-text-muted">
+          Vui lòng chọn doanh nghiệp tại thanh menu bên trái hoặc tạo hồ sơ
+          doanh nghiệp mới để bắt đầu quản lý tin tuyển dụng.
+        </p>
+        <Button
+          variant="primary"
+          icon={Plus}
+          onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
+          className="w-fit text-xs font-semibold"
+        >
+          Quản lý doanh nghiệp
+        </Button>
+      </section>
+    );
+  }
+
   return (
     <div className="min-h-full space-y-6">
       {/* 1. Header & Actions */}
@@ -209,13 +231,28 @@ export function RecruiterJobListPage() {
               <LibraryBig className="size-5" />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-text-main sm:text-2xl">
-              Danh sách tin tuyển dụng (JD)
+              Danh sách tin tuyển dụng
             </h1>
           </div>
-          <p className="mt-1 text-xs text-text-muted sm:text-sm">
-            Quản lý toàn bộ danh sách JD của công ty, theo dõi hồ sơ ứng tuyển
-            và trạng thái tin
-          </p>
+          {activeCompany ? (
+            <div className="mt-1 flex items-center gap-2 text-xs text-text-muted">
+              <span>Đang quản lý tin của:</span>
+              <span className="inline-flex items-center gap-1.5 font-bold text-text-main">
+                {activeCompany.name}
+              </span>
+              {activeCompany.verificationStatus === "Verified" && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                  <ShieldCheck className="size-3.5" />
+                  Đã xác thực
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-text-muted sm:text-sm">
+              Quản lý toàn bộ danh sách JD của công ty, theo dõi hồ sơ ứng tuyển
+              và trạng thái tin
+            </p>
+          )}
         </div>
 
         <Button
@@ -264,11 +301,11 @@ export function RecruiterJobListPage() {
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Tìm kiếm theo tiêu đề JD hoặc tên công ty..."
+            placeholder="Tìm kiếm theo tiêu đề JD tuyển dụng..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset page on user typing
+              setCurrentPage(1);
             }}
             className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
           />
@@ -286,63 +323,8 @@ export function RecruiterJobListPage() {
           )}
         </div>
 
-        {/* Dropdown Filters */}
+        {/* Dropdown Filters: Trạng thái & Hình thức */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Company Filter (Dọn đường cho HR switch công ty) */}
-          {myCompanies.length > 1 && (
-            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-              <Building2 className="size-3.5 text-slate-400" />
-              <span className="text-xs text-slate-500">Công ty:</span>
-              <Select.Root
-                items={companyFilterOptions}
-                value={selectedCompanyId}
-                onValueChange={(val) => {
-                  const nextVal = val || "ALL";
-                  setSelectedCompanyId(nextVal);
-                  setActiveCompanyId(nextVal === "ALL" ? null : nextVal);
-                  setCurrentPage(1);
-                }}
-              >
-                <Select.Trigger
-                  aria-label="Lọc theo công ty"
-                  className="flex max-w-44 cursor-pointer items-center gap-1 truncate text-xs font-semibold text-slate-800 focus:outline-none"
-                >
-                  <Select.Value />
-                  <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
-                    <ChevronDown className="size-3.5" />
-                  </Select.Icon>
-                </Select.Trigger>
-
-                <Select.Portal>
-                  <Select.Positioner
-                    alignItemWithTrigger={false}
-                    sideOffset={4}
-                  >
-                    <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
-                      <Select.List>
-                        {companyFilterOptions.map((opt) => (
-                          <Select.Item
-                            key={opt.value}
-                            value={opt.value}
-                            className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
-                          >
-                            <Select.ItemText>{opt.label}</Select.ItemText>
-                            <Select.ItemIndicator
-                              animation="pop"
-                              className="ml-2 text-xs text-primary"
-                            >
-                              ✓
-                            </Select.ItemIndicator>
-                          </Select.Item>
-                        ))}
-                      </Select.List>
-                    </Select.Popup>
-                  </Select.Positioner>
-                </Select.Portal>
-              </Select.Root>
-            </div>
-          )}
-
           {/* Status Filter */}
           <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
             <Filter className="size-3.5 text-slate-400" />
@@ -441,7 +423,7 @@ export function RecruiterJobListPage() {
       </div>
 
       {/* 4. Data Table */}
-      {isLoading ? (
+      {isLoadingJobs ? (
         <TableSkeleton />
       ) : (
         <JobPostingsTable
@@ -452,14 +434,9 @@ export function RecruiterJobListPage() {
           onEditJob={handleEditJob}
           onViewDetail={handleViewDetail}
           emptyMessage={
-            myCompanies.length === 0
-              ? "Bạn chưa tham gia công ty nào. Vui lòng tạo hồ sơ công ty hoặc chấp nhận lời mời để quản lý tin tuyển dụng."
-              : searchQuery ||
-                  statusFilter !== "ALL" ||
-                  workModeFilter !== "ALL" ||
-                  selectedCompanyId !== "ALL"
-                ? "Không tìm thấy tin tuyển dụng nào phù hợp với bộ lọc."
-                : "Công ty của bạn chưa có tin tuyển dụng nào. Hãy bắt đầu bằng cách bấm 'Tạo tin mới'!"
+            searchQuery || statusFilter !== "ALL" || workModeFilter !== "ALL"
+              ? "Không tìm thấy tin tuyển dụng nào phù hợp với bộ lọc."
+              : `Doanh nghiệp "${activeCompany?.name || ""}" chưa có tin tuyển dụng nào. Hãy bắt đầu bằng cách bấm 'Tạo tin mới'!`
           }
         />
       )}
@@ -527,62 +504,45 @@ export function RecruiterJobListPage() {
       )}
 
       {/* 6. Modal Xác nhận Tắt / Đóng tin tuyển dụng */}
-      {jobToClose && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center gap-3 text-rose-600">
-              <div className="flex size-11 items-center justify-center rounded-xl bg-rose-50">
-                <AlertTriangle className="size-6 text-rose-600" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  Xác nhận đóng tin tuyển dụng
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Thao tác này sẽ dừng nhận hồ sơ ứng tuyển
-                </p>
-              </div>
-            </div>
+      <AlertDialog
+        open={Boolean(jobToClose)}
+        onOpenChange={(open) => {
+          if (!open && !updateStatusMutation.isPending) {
+            setJobToClose(null);
+            setIsClosingSuccess(false);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận đóng tin tuyển dụng</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isClosingSuccess
+                ? "Đã đóng tin tuyển dụng thành công. Trạng thái đã chuyển sang Đã đóng."
+                : `Bạn có chắc chắn muốn đóng nhận hồ sơ cho vị trí "${jobToClose?.title}"? Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ ứng tuyển vào vị trí này nữa.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-            {isClosingSuccess ? (
-              <div className="my-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-800">
-                ✓ Đã đóng tin tuyển dụng thành công! Trạng thái đã chuyển sang
-                Đã đóng.
-              </div>
-            ) : (
-              <p className="my-3 text-xs leading-relaxed text-slate-600">
-                Bạn có chắc chắn muốn đóng nhận hồ sơ cho vị trí{" "}
-                <strong className="font-semibold text-slate-900">
-                  "{jobToClose.title}"
-                </strong>
-                ? Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ ứng tuyển vào vị
-                trí này nữa.
-              </p>
-            )}
-
-            {!isClosingSuccess && (
-              <div className="mt-6 flex items-center justify-end gap-2.5">
-                <Button
-                  variant="secondary"
-                  disabled={updateStatusMutation.isPending}
-                  onClick={() => setJobToClose(null)}
-                  className="px-4! py-2! text-xs! font-medium!"
-                >
-                  Hủy bỏ
-                </Button>
-                <Button
-                  variant="primary"
-                  isLoading={updateStatusMutation.isPending}
-                  onClick={handleExecuteClose}
-                  className="bg-rose-600! px-4! py-2! text-xs! font-semibold! hover:bg-rose-700!"
-                >
-                  Xác nhận đóng tin
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+          {!isClosingSuccess && (
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={updateStatusMutation.isPending}
+                onClick={() => setJobToClose(null)}
+              >
+                Hủy bỏ
+              </AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                disabled={updateStatusMutation.isPending}
+                onClick={handleExecuteClose}
+              >
+                {updateStatusMutation.isPending ? "Đang đóng tin..." : "Xác nhận đóng tin"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+export default RecruiterJobListPage;

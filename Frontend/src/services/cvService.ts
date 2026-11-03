@@ -1,4 +1,4 @@
-﻿import axiosClient from "@/api/axios";
+import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type { ApiResponse } from "@/types";
 import type {
@@ -113,15 +113,15 @@ export const cvService = {
     id: string,
     params?: { page?: number; pageSize?: number },
   ): Promise<PagedCvVersionResult> {
-    const response = await axiosClient.get<
-      never,
-      ApiResponse<CVVersionItem[]>
-    >(API_ENDPOINTS.CV.VERSIONS(id), {
-      params: {
-        page: params?.page ?? 1,
-        pageSize: params?.pageSize ?? 20,
+    const response = await axiosClient.get<never, ApiResponse<CVVersionItem[]>>(
+      API_ENDPOINTS.CV.VERSIONS(id),
+      {
+        params: {
+          page: params?.page ?? 1,
+          pageSize: params?.pageSize ?? 20,
+        },
       },
-    });
+    );
 
     return {
       items: response.data || [],
@@ -139,10 +139,9 @@ export const cvService = {
     cvId: string,
     versionId: string,
   ): Promise<CVVersionDetail> {
-    const response = await axiosClient.get<
-      never,
-      ApiResponse<CVVersionDetail>
-    >(API_ENDPOINTS.CV.VERSION_DETAIL(cvId, versionId));
+    const response = await axiosClient.get<never, ApiResponse<CVVersionDetail>>(
+      API_ENDPOINTS.CV.VERSION_DETAIL(cvId, versionId),
+    );
     return response.data;
   },
 

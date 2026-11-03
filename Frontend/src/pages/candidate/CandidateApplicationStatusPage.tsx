@@ -1,3 +1,5 @@
+import { EmptyState } from "@/assets/images/decoration";
+import { getLoremAvt } from "@/utils/helper";
 import { useState, useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
@@ -14,13 +16,16 @@ import {
   ChevronRight,
   Clock,
   Briefcase,
-  Building2,
   Calendar,
-  FileQuestion,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
-import { Button, DataTable, type DataTableFeatures } from "@/components/common";
+import {
+  Button,
+  DataTable,
+  TableSkeleton,
+  type DataTableFeatures,
+} from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,
@@ -67,16 +72,35 @@ export default function CandidateApplicationStatusPage() {
   const totalItems = appData?.totalItems ?? rawApplications.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-  // Client-side search filter theo tên công việc hoặc tên công ty
+  // Client-side search & status filter theo tên công việc, công ty và trạng thái
   const filteredApplications = useMemo(() => {
-    if (!searchTerm.trim()) return rawApplications;
+    let result = rawApplications;
+
+    if (selectedStatus !== "ALL") {
+      const sf = selectedStatus.toUpperCase();
+      result = result.filter((app) => {
+        const s = (app.status || "").toUpperCase();
+        if (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") {
+          return s === "SUBMITTED" || s === "APPLIED" || s === "RECEIVED";
+        }
+        if (sf === "INTERVIEW" || sf === "INTERVIEWING") {
+          return s === "INTERVIEW" || s === "INTERVIEWING";
+        }
+        if (sf === "HIRED" || sf === "ACCEPTED") {
+          return s === "HIRED" || s === "ACCEPTED";
+        }
+        return s === sf;
+      });
+    }
+
+    if (!searchTerm.trim()) return result;
     const term = searchTerm.toLowerCase();
-    return rawApplications.filter(
+    return result.filter(
       (app) =>
         (app.jobTitle && app.jobTitle.toLowerCase().includes(term)) ||
         (app.companyName && app.companyName.toLowerCase().includes(term)),
     );
-  }, [rawApplications, searchTerm]);
+  }, [rawApplications, selectedStatus, searchTerm]);
 
   // Modal xem chi tiết & Timeline tiến trình
   const [selectedApplication, setSelectedApplication] =
@@ -100,16 +124,22 @@ export default function CandidateApplicationStatusPage() {
   const stats = useMemo(() => {
     return {
       total: totalItems,
-      reviewing: rawApplications.filter((a) => a.status === "REVIEWING").length,
-      interview: rawApplications.filter(
-        (a) => a.status === "INTERVIEW" || a.status === "INTERVIEWING",
-      ).length,
-      offered: rawApplications.filter(
-        (a) =>
-          a.status === "OFFERED" ||
-          a.status === "HIRED" ||
-          a.status === "ACCEPTED",
-      ).length,
+      reviewing: rawApplications.filter((a) => {
+        const s = (a.status || "").toUpperCase();
+        return s === "REVIEWING";
+      }).length,
+      interview: rawApplications.filter((a) => {
+        const s = (a.status || "").toUpperCase();
+        return s === "INTERVIEW" || s === "INTERVIEWING";
+      }).length,
+      offered: rawApplications.filter((a) => {
+        const s = (a.status || "").toUpperCase();
+        return (
+          s === "OFFERED" ||
+          s === "HIRED" ||
+          s === "ACCEPTED"
+        );
+      }).length,
     };
   }, [rawApplications, totalItems]);
 
@@ -124,17 +154,20 @@ export default function CandidateApplicationStatusPage() {
             const app = row.original;
             return (
               <div className="flex max-w-72 min-w-48 items-center gap-3">
-                {app.companyLogoUrl ? (
-                  <img
-                    src={app.companyLogoUrl}
-                    alt={app.companyName || "Logo"}
-                    className="size-10 shrink-0 rounded-xl border border-border object-cover"
-                  />
-                ) : (
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-slate-100 text-xs font-bold text-slate-500">
-                    {(app.companyName || "DN").slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <img
+                  src={app.companyLogoUrl || getLoremAvt(app.companyName)}
+                  alt={app.companyName || "Logo"}
+                  loading="lazy"
+                  onError={(event) => {
+                    const fallback = getLoremAvt(app.companyName);
+                    const img = event.currentTarget;
+                    if (img.src !== new URL(fallback, img.baseURI).href) {
+                      img.onerror = null;
+                      img.src = fallback;
+                    }
+                  }}
+                  className="size-10 shrink-0 rounded-xl border border-border object-cover"
+                />
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <Tooltip>
                     <TooltipTrigger
@@ -250,11 +283,13 @@ export default function CandidateApplicationStatusPage() {
           header: "Trạng thái",
           filterFn: "includesString",
           cell: ({ row }) => {
-            const statusKey = row.original.status as string;
-            const cfg = APPLICATION_STATUS_CONFIG[statusKey] || {
-              label: statusKey,
-              badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-            };
+            const statusKey = (row.original.status as string) || "";
+            const cfg =
+              APPLICATION_STATUS_CONFIG[statusKey] ||
+              APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
+                label: statusKey,
+                badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+              };
             return (
               <span
                 className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
@@ -308,7 +343,7 @@ export default function CandidateApplicationStatusPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-text-muted">
             Tổng đơn nộp
           </span>
@@ -316,19 +351,19 @@ export default function CandidateApplicationStatusPage() {
             {stats.total}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-sky-600">Đang xem xét</span>
           <span className="mt-2 text-2xl font-bold text-sky-700">
             {stats.reviewing}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-amber-600">Phỏng vấn</span>
           <span className="mt-2 text-2xl font-bold text-amber-700">
             {stats.interview}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
           <span className="text-xs font-medium text-emerald-600">
             Được đề nghị việc
           </span>
@@ -339,7 +374,7 @@ export default function CandidateApplicationStatusPage() {
       </div>
 
       {/* 2. Main Tracking Table Section with Filter & Search */}
-      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-6 shadow-2xs">
+      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-2xs">
         {/* Toolbar: Search input + Status Select Filter */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-xs">
@@ -349,12 +384,12 @@ export default function CandidateApplicationStatusPage() {
               placeholder="Tìm theo vị trí, công ty..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-3 pl-9 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-3 pl-9 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
             />
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-1.5 shadow-2xs">
               <Filter className="size-3.5 text-slate-400" />
               <span className="text-xs text-slate-500">Trạng thái:</span>
 
@@ -381,7 +416,7 @@ export default function CandidateApplicationStatusPage() {
                     alignItemWithTrigger={false}
                     sideOffset={4}
                   >
-                    <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                    <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-md">
                       <Select.List>
                         {APPLICATION_STATUS_OPTIONS.map((status) => (
                           <Select.Item
@@ -409,14 +444,7 @@ export default function CandidateApplicationStatusPage() {
 
         {/* Bảng dữ liệu ứng tuyển */}
         {isLoading ? (
-          <div className="space-y-3 py-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-14 w-full animate-pulse rounded-xl border border-border bg-slate-50"
-              />
-            ))}
-          </div>
+          <TableSkeleton />
         ) : filteredApplications.length > 0 ? (
           <>
             <DataTable
@@ -492,15 +520,20 @@ export default function CandidateApplicationStatusPage() {
             )}
           </>
         ) : (
-          <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
-            <FileQuestion className="size-10 text-slate-400" />
-            <h3 className="mt-3 text-sm font-semibold text-slate-700">
+          <section className="flex flex-col items-center justify-center space-y-4 py-16 text-center">
+            <img
+              src={EmptyState}
+              alt="Không tìm thấy hồ sơ nào"
+              loading="lazy"
+              className="h-80 w-auto md:h-100"
+            />
+            <h2 className="text-base font-semibold text-text-main">
               Không tìm thấy hồ sơ nào
-            </h3>
-            <p className="mt-1 text-xs text-slate-400">
+            </h2>
+            <p className="max-w-xs text-xs text-text-muted">
               Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm của bạn.
             </p>
-          </div>
+          </section>
         )}
       </section>
 
@@ -525,17 +558,25 @@ export default function CandidateApplicationStatusPage() {
             <div className="space-y-4 pt-2">
               {/* Job summary card */}
               <div className="flex items-start gap-3 rounded-2xl border border-border bg-slate-50/70 p-3.5">
-                {selectedApplication.companyLogoUrl ? (
-                  <img
-                    src={selectedApplication.companyLogoUrl}
-                    alt={selectedApplication.companyName || "Logo"}
-                    className="size-11 shrink-0 rounded-xl border border-border object-cover"
-                  />
-                ) : (
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-white text-xs font-bold text-slate-600">
-                    <Building2 className="size-5 text-slate-400" />
-                  </div>
-                )}
+                <img
+                  src={
+                    selectedApplication.companyLogoUrl ||
+                    getLoremAvt(selectedApplication.companyName)
+                  }
+                  alt={selectedApplication.companyName || "Logo"}
+                  loading="lazy"
+                  onError={(event) => {
+                    const fallback = getLoremAvt(
+                      selectedApplication.companyName,
+                    );
+                    const img = event.currentTarget;
+                    if (img.src !== new URL(fallback, img.baseURI).href) {
+                      img.onerror = null;
+                      img.src = fallback;
+                    }
+                  }}
+                  className="size-11 shrink-0 rounded-xl border border-border object-cover"
+                />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <h4 className="truncate text-sm font-bold text-slate-900">
                     {selectedApplication.jobTitle}
@@ -561,7 +602,7 @@ export default function CandidateApplicationStatusPage() {
 
               {/* Cover Letter nếu có */}
               {selectedApplication.coverLetter && (
-                <div className="rounded-xl border border-border bg-white p-3">
+                <div className="rounded-xl border border-border bg-surface p-3">
                   <span className="text-xs font-semibold text-slate-700">
                     Thư giới thiệu của bạn:
                   </span>
@@ -641,9 +682,7 @@ export default function CandidateApplicationStatusPage() {
 
                                 {stepTime && (
                                   <span className="text-[11px] text-text-muted">
-                                    {dayjs(stepTime).format(
-                                      "DD/MM/YYYY HH:mm",
-                                    )}
+                                    {dayjs(stepTime).format("DD/MM/YYYY HH:mm")}
                                   </span>
                                 )}
                               </div>
@@ -662,8 +701,9 @@ export default function CandidateApplicationStatusPage() {
                 ) : (
                   <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
                     Đơn ứng tuyển đang ở trạng thái ban đầu (
-                    {APPLICATION_STATUS_CONFIG[selectedApplication.status]
-                      ?.label || selectedApplication.status}
+                    {APPLICATION_STATUS_CONFIG[selectedApplication.status]?.label ||
+                      APPLICATION_STATUS_CONFIG[(selectedApplication.status || "").toUpperCase()]?.label ||
+                      selectedApplication.status}
                     ). Nhà tuyển dụng chưa có ghi nhận thay đổi mới.
                   </div>
                 )}

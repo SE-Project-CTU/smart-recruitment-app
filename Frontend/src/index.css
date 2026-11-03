@@ -26,6 +26,9 @@
 
   --color-surface: #ffffff;
   --color-border: #e2e8f0;
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-text-main);
+  --color-muted-foreground: var(--color-text-muted);
 
   /* text */
   --color-text-main: #1a202c;

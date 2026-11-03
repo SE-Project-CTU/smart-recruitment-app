@@ -9,6 +9,10 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: /^src\/components\/echarts-(.*)$/,
+        replacement: `${path.resolve(__dirname, "./src/components/evilcharts/ui/echarts-$1")}`,
+      },
+      {
         find: /^src\//,
         replacement: `${path.resolve(__dirname, "./src")}/`,
       },

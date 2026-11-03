@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
-  AlertCircle,
-  ArrowRight,
   CheckCircle2,
   ChevronDown,
   ExternalLink,
@@ -26,16 +24,21 @@ import {
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import type {
-  JobApplicationItem,
-  JobApplicationStatus,
-  UpdateJobApplicationStatus,
-} from "@/types/job";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   APPLICATION_STATUS_CONFIG,
   ALLOWED_STATUS_TRANSITIONS,
   APPLICATION_STATUS_OPTIONS,
   resolveCandidateProfile,
+  type JobApplicationItem,
+  type JobApplicationStatus,
+  type UpdateJobApplicationStatus,
 } from "@/types/application";
 
 const columnHelper = createColumnHelper<
@@ -83,8 +86,10 @@ export function JobApplicationsTab({
       // 1. Lọc theo trạng thái
       if (statusFilter !== "ALL") {
         const s = (app.status || "").toUpperCase();
+        const sf = statusFilter.toUpperCase();
+
         if (
-          statusFilter === "SUBMITTED" &&
+          (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") &&
           s !== "SUBMITTED" &&
           s !== "APPLIED" &&
           s !== "RECEIVED"
@@ -92,20 +97,28 @@ export function JobApplicationsTab({
           return false;
         }
         if (
-          statusFilter === "INTERVIEW" &&
+          (sf === "INTERVIEW" || sf === "INTERVIEWING") &&
           s !== "INTERVIEW" &&
           s !== "INTERVIEWING"
         ) {
           return false;
         }
-        if (statusFilter === "HIRED" && s !== "HIRED" && s !== "ACCEPTED") {
+        if (
+          (sf === "HIRED" || sf === "ACCEPTED") &&
+          s !== "HIRED" &&
+          s !== "ACCEPTED"
+        ) {
           return false;
         }
         if (
-          statusFilter !== "SUBMITTED" &&
-          statusFilter !== "INTERVIEW" &&
-          statusFilter !== "HIRED" &&
-          s !== statusFilter
+          sf !== "SUBMITTED" &&
+          sf !== "APPLIED" &&
+          sf !== "RECEIVED" &&
+          sf !== "INTERVIEW" &&
+          sf !== "INTERVIEWING" &&
+          sf !== "HIRED" &&
+          sf !== "ACCEPTED" &&
+          s !== sf
         ) {
           return false;
         }
@@ -537,171 +550,100 @@ export function JobApplicationsTab({
       )}
 
       {/* 4. Modal Đọc toàn bộ Thư giới thiệu (Cover Letter) */}
-      {selectedLetterApp && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-lg rounded-2xl border border-border bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <MessageSquare className="size-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Thư giới thiệu của ứng viên
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {resolveCandidateProfile(selectedLetterApp).name}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedLetterApp(null)}
-                className="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
+      <Dialog
+        open={Boolean(selectedLetterApp)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedLetterApp(null);
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Thư giới thiệu của ứng viên</DialogTitle>
+            <DialogDescription>
+              {selectedLetterApp
+                ? `${resolveCandidateProfile(selectedLetterApp).name} • Nộp lúc ${dayjs(selectedLetterApp.appliedAt).format("DD/MM/YYYY HH:mm")}`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-              <p className="text-xs leading-relaxed whitespace-pre-line text-slate-700 sm:text-sm">
-                {selectedLetterApp.coverLetter}
-              </p>
-            </div>
-
-            <div className="mt-5 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">
-                Nộp lúc:{" "}
-                {dayjs(selectedLetterApp.appliedAt).format("DD/MM/YYYY HH:mm")}
-              </span>
-              <Button
-                variant="secondary"
-                onClick={() => setSelectedLetterApp(null)}
-                className="px-4! py-1.5! text-xs! font-medium!"
-              >
-                Đóng
-              </Button>
-            </div>
+          <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+            <p className="text-xs leading-relaxed whitespace-pre-line text-slate-700 sm:text-sm">
+              {selectedLetterApp?.coverLetter || "Ứng viên không đính kèm thư giới thiệu."}
+            </p>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end pt-2">
+            <Button
+              variant="secondary"
+              onClick={() => setSelectedLetterApp(null)}
+              className="px-4! py-1.5! text-xs! font-medium!"
+            >
+              Đóng
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 5. Modal Xác nhận chuyển trạng thái hồ sơ theo State Machine */}
-      {pendingChange && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <AlertCircle className="size-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Xác nhận chuyển trạng thái
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Quy trình xử lý hồ sơ ứng viên
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={isSubmittingTransition}
-                onClick={() => setPendingChange(null)}
-                className="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
+      <Dialog
+        open={Boolean(pendingChange)}
+        onOpenChange={(open) => {
+          if (!open && !isSubmittingTransition) {
+            setPendingChange(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xác nhận chuyển trạng thái</DialogTitle>
+            <DialogDescription>
+              {pendingChange
+                ? `Chuyển hồ sơ ứng viên ${resolveCandidateProfile(pendingChange.app).name} từ "${APPLICATION_STATUS_CONFIG[pendingChange.fromStatus]?.label || pendingChange.fromStatus}" sang "${APPLICATION_STATUS_CONFIG[pendingChange.toStatus]?.label || pendingChange.toStatus}".`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
 
-            {/* Thông tin chuyển đổi */}
-            <div className="mt-4 space-y-3.5">
-              <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Ứng viên:</span>
-                  <span className="font-bold text-slate-800">
-                    {resolveCandidateProfile(pendingChange.app).name}
-                  </span>
-                </div>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="text-slate-500">Email:</span>
-                  <span className="text-slate-600">
-                    {resolveCandidateProfile(pendingChange.app).email}
-                  </span>
-                </div>
-              </div>
-
-              {/* Step indicator */}
-              <div className="flex items-center justify-center gap-3 rounded-xl border border-border bg-white p-3">
-                <span
-                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                    APPLICATION_STATUS_CONFIG[pendingChange.fromStatus]
-                      ?.badgeClass ||
-                    "border-slate-200 bg-slate-100 text-slate-700"
-                  }`}
-                >
-                  {APPLICATION_STATUS_CONFIG[pendingChange.fromStatus]?.label ||
-                    pendingChange.fromStatus}
-                </span>
-
-                <ArrowRight className="size-4 text-slate-400" />
-
-                <span
-                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                    APPLICATION_STATUS_CONFIG[pendingChange.toStatus]
-                      ?.badgeClass ||
-                    "border-primary/20 bg-primary/10 text-primary"
-                  }`}
-                >
-                  {APPLICATION_STATUS_CONFIG[pendingChange.toStatus]?.label ||
-                    pendingChange.toStatus}
-                </span>
-              </div>
-
-              {/* Ghi chú */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700">
-                  Ghi chú nội bộ (tùy chọn)
-                </label>
-                <p className="mt-0.5 text-[11px] text-slate-400">
-                  Lưu lại lý do hoặc thông tin cho vòng xử lý này (tối đa 2,000
-                  ký tự).
-                </p>
-                <textarea
-                  value={transitionNote}
-                  onChange={(e) => setTransitionNote(e.target.value)}
-                  maxLength={2000}
-                  rows={3}
-                  placeholder="Ví dụ: Đạt yêu cầu CV, hẹn phỏng vấn kỹ thuật vào thứ 5 tuần tới..."
-                  className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-5 flex items-center justify-end gap-2.5">
-              <Button
-                variant="secondary"
-                disabled={isSubmittingTransition}
-                onClick={() => setPendingChange(null)}
-                className="px-4! py-1.5! text-xs! font-medium!"
-              >
-                Hủy bỏ
-              </Button>
-              <Button
-                variant="primary"
-                disabled={isSubmittingTransition}
-                onClick={handleConfirmTransition}
-                className="px-4! py-1.5! text-xs! font-semibold!"
-              >
-                {isSubmittingTransition
-                  ? "Đang cập nhật..."
-                  : "Xác nhận chuyển"}
-              </Button>
+          <div className="space-y-3.5">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700">
+                Ghi chú nội bộ (tùy chọn)
+              </label>
+              <p className="mt-0.5 text-[11px] text-slate-400">
+                Lưu lại lý do hoặc thông tin cho vòng xử lý này (tối đa 2,000 ký tự).
+              </p>
+              <textarea
+                value={transitionNote}
+                onChange={(e) => setTransitionNote(e.target.value)}
+                maxLength={2000}
+                rows={3}
+                placeholder="Ví dụ: Đạt yêu cầu CV, hẹn phỏng vấn kỹ thuật vào thứ 5 tuần tới..."
+                className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+              />
             </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex items-center justify-end gap-2.5 pt-4">
+            <Button
+              variant="secondary"
+              disabled={isSubmittingTransition}
+              onClick={() => setPendingChange(null)}
+              className="px-4! py-1.5! text-xs! font-medium!"
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              variant="primary"
+              disabled={isSubmittingTransition}
+              onClick={handleConfirmTransition}
+              className="px-4! py-1.5! text-xs! font-semibold!"
+            >
+              {isSubmittingTransition
+                ? "Đang cập nhật..."
+                : "Xác nhận chuyển"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

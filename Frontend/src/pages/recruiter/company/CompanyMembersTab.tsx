@@ -8,7 +8,6 @@ import {
   X,
   ArrowRightLeft,
   Calendar,
-  AlertCircle,
   ChevronDown,
   UserMinus,
   LogOut,
@@ -31,6 +30,16 @@ import {
 } from "@/hooks/queries/useCompany";
 import { PATHS } from "@/constants/paths";
 import { InviteMemberModal } from "./InviteMemberModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 import type { CompanyMember } from "@/types/company";
 
@@ -382,171 +391,148 @@ export function CompanyMembersTab() {
       />
 
       {/* Modal Xác nhận Chuyển quyền Chủ sở hữu */}
-      {transferTarget && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
-            <div className="mb-3 flex items-center gap-3 text-amber-600">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-amber-50">
-                <AlertCircle className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-text-main">
-                  Xác nhận ủy quyền Chủ sở hữu
-                </h3>
-                <p className="text-xs text-text-muted">
-                  Hành động này sẽ thay đổi vai trò quản trị của bạn
-                </p>
-              </div>
+      <AlertDialog
+        open={Boolean(transferTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTransferTarget(null);
+            setTransferError(null);
+            setTransferMessage(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận ủy quyền chủ sở hữu</AlertDialogTitle>
+            <AlertDialogDescription>
+              {transferMessage
+                ? transferMessage
+                : `Bạn có chắc chắn muốn chuyển giao toàn bộ quyền chủ sở hữu của công ty ${company.name} cho thành viên ${transferTarget?.user.fullName} (${transferTarget?.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành thành viên thông thường.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {transferError && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              {transferError}
             </div>
+          )}
 
-            {transferError && (
-              <div className="my-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{transferError}</span>
-              </div>
-            )}
-
-            {transferMessage ? (
-              <div className="my-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
-                {transferMessage}
-              </div>
-            ) : (
-              <p className="my-4 text-xs leading-relaxed text-text-main">
-                Bạn có chắc chắn muốn chuyển giao toàn bộ quyền{" "}
-                <strong>Chủ sở hữu (Owner)</strong> của công ty{" "}
-                <strong>{company.name}</strong> cho thành viên{" "}
-                <strong>{transferTarget.user.fullName}</strong> (
-                {transferTarget.user.email})? Sau khi chuyển giao, tài khoản của
-                bạn sẽ trở thành <strong>Thành viên (HR)</strong> thông thường.
-              </p>
-            )}
-
-            <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
-              <Button
-                variant="secondary"
-                disabled={isTransferring}
-                onClick={() => setTransferTarget(null)}
-              >
-                Hủy bỏ
-              </Button>
-              <Button
-                variant="primary"
-                isLoading={isTransferring}
-                onClick={handleTransferOwnership}
-              >
-                Đồng ý chuyển quyền
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isTransferring}
+              onClick={() => {
+                setTransferTarget(null);
+                setTransferError(null);
+                setTransferMessage(null);
+              }}
+            >
+              Hủy bỏ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="default"
+              disabled={isTransferring}
+              onClick={handleTransferOwnership}
+            >
+              {isTransferring ? "Đang chuyển quyền..." : "Đồng ý chuyển quyền"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modal Xác nhận Xóa thành viên khỏi công ty */}
-      {removeTarget && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
-            <div className="mb-3 flex items-center gap-3 text-rose-600">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-rose-50">
-                <AlertCircle className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-text-main">
-                  Xác nhận xóa thành viên
-                </h3>
-                <p className="text-xs text-text-muted">
-                  Thành viên sẽ bị thu hồi quyền truy cập vào doanh nghiệp
-                </p>
-              </div>
+      <AlertDialog
+        open={Boolean(removeTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRemoveTarget(null);
+            setRemoveError(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa thành viên</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa thành viên {removeTarget?.user.fullName}{" "}
+              ({removeTarget?.user.email}) khỏi công ty {company.name}? Người
+              này sẽ không còn quyền xem và quản lý tin tuyển dụng hoặc ứng viên
+              của doanh nghiệp.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {removeError && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              {removeError}
             </div>
+          )}
 
-            {removeError && (
-              <div className="my-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{removeError}</span>
-              </div>
-            )}
-
-            <p className="my-4 text-xs leading-relaxed text-text-main">
-              Bạn có chắc chắn muốn xóa thành viên{" "}
-              <strong>{removeTarget.user.fullName}</strong> (
-              {removeTarget.user.email}) khỏi công ty{" "}
-              <strong>{company.name}</strong>? Sau khi xóa, người này sẽ không
-              còn quyền xem và quản lý tin tuyển dụng hoặc ứng viên của doanh
-              nghiệp.
-            </p>
-
-            <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
-              <Button
-                variant="secondary"
-                disabled={isRemoving}
-                onClick={() => setRemoveTarget(null)}
-              >
-                Hủy bỏ
-              </Button>
-              <Button
-                variant="primary"
-                className="bg-rose-600! hover:bg-rose-700!"
-                isLoading={isRemoving}
-                onClick={handleRemoveMember}
-              >
-                Xóa thành viên
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isRemoving}
+              onClick={() => {
+                setRemoveTarget(null);
+                setRemoveError(null);
+              }}
+            >
+              Hủy bỏ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isRemoving}
+              onClick={handleRemoveMember}
+            >
+              {isRemoving ? "Đang xóa..." : "Xóa thành viên"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modal Xác nhận Rời khỏi công ty */}
-      {isLeaveModalOpen && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6">
-            <div className="mb-3 flex items-center gap-3 text-rose-600">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-rose-50">
-                <AlertCircle className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-text-main">
-                  Xác nhận rời khỏi doanh nghiệp
-                </h3>
-                <p className="text-xs text-text-muted">
-                  Hành động này sẽ hủy tư cách thành viên của bạn
-                </p>
-              </div>
+      <AlertDialog
+        open={isLeaveModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsLeaveModalOpen(false);
+            setLeaveError(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận rời khỏi doanh nghiệp</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn rời khỏi công ty {company.name}? Bạn sẽ
+              không còn quyền quản lý tin tuyển dụng cũng như hồ sơ ứng tuyển
+              của doanh nghiệp này nữa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {leaveError && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              {leaveError}
             </div>
+          )}
 
-            {leaveError && (
-              <div className="my-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{leaveError}</span>
-              </div>
-            )}
-
-            <p className="my-4 text-xs leading-relaxed text-text-main">
-              Bạn có chắc chắn muốn rời khỏi công ty{" "}
-              <strong>{company.name}</strong>? Bạn sẽ không còn quyền quản lý
-              tin tuyển dụng cũng như hồ sơ ứng tuyển của doanh nghiệp này nữa.
-            </p>
-
-            <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
-              <Button
-                variant="secondary"
-                disabled={isLeaving}
-                onClick={() => setIsLeaveModalOpen(false)}
-              >
-                Hủy bỏ
-              </Button>
-              <Button
-                variant="primary"
-                className="bg-rose-600! hover:bg-rose-700!"
-                isLoading={isLeaving}
-                onClick={handleLeaveCompany}
-              >
-                Rời công ty
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isLeaving}
+              onClick={() => {
+                setIsLeaveModalOpen(false);
+                setLeaveError(null);
+              }}
+            >
+              Hủy bỏ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isLeaving}
+              onClick={handleLeaveCompany}
+            >
+              {isLeaving ? "Đang rời..." : "Rời công ty"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T15:13:30.000Z",
+  "title": "Design System: SmartHire",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Deep Oceanic Navy",
+        "canonical": "#1b3b6f",
+        "tonalRamp": ["#081223", "#0e203c", "#142e56", "#1b3b6f", "#33558c", "#5577ae", "#88a6d4", "#c8d9f1"]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Primary Dark",
+        "canonical": "#122a52",
+        "tonalRamp": ["#050c18", "#0b1931", "#122a52", "#1e417a", "#3061ad", "#5c8ad1", "#96b6e8", "#d1e1f7"]
+      },
+      "primary-light": {
+        "role": "primary",
+        "displayName": "Primary Light",
+        "canonical": "#3e5e8f",
+        "tonalRamp": ["#101927", "#1d2e46", "#2f476c", "#3e5e8f", "#5b7cb1", "#839ecb", "#b2c5e4", "#e1ebf7"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Glacier Sky",
+        "canonical": "#a6e1fa",
+        "tonalRamp": ["#193744", "#2a596e", "#3f819f", "#6fc3e8", "#a6e1fa", "#c8edfc", "#e4f6fe", "#f5fbff"]
+      },
+      "secondary-light": {
+        "role": "secondary",
+        "displayName": "Secondary Light",
+        "canonical": "#d6f1fc",
+        "tonalRamp": ["#1c3a47", "#31647b", "#4e96b7", "#85cae9", "#b5e5fa", "#d6f1fc", "#eef9fe", "#fafdff"]
+      },
+      "secondary-dark": {
+        "role": "secondary",
+        "displayName": "Secondary Dark",
+        "canonical": "#6fc3e8",
+        "tonalRamp": ["#11303e", "#1e4e64", "#307798", "#4ea4cf", "#6fc3e8", "#a2daf2", "#d0effa", "#f0fafe"]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Mist White",
+        "canonical": "#f7fafc",
+        "tonalRamp": ["#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f7fafc"]
+      },
+      "neutral-surface": {
+        "role": "neutral",
+        "displayName": "Pure Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#18181b", "#27272a", "#3f3f46", "#71717a", "#a1a1aa", "#d4d4d8", "#f4f4f5", "#ffffff"]
+      },
+      "neutral-border": {
+        "role": "neutral",
+        "displayName": "Crisp Border",
+        "canonical": "#e2e8f0",
+        "tonalRamp": ["#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f8fafc"]
+      },
+      "text-main": {
+        "role": "neutral",
+        "displayName": "Charcoal Ink",
+        "canonical": "#1a202c",
+        "tonalRamp": ["#0d1117", "#1a202c", "#2d3748", "#4a5568", "#718096", "#a0aec0", "#cbd5e0", "#edf2f7"]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Slate Muted",
+        "canonical": "#64748b",
+        "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"]
+      },
+      "status-success": {
+        "role": "neutral",
+        "displayName": "Success Green",
+        "canonical": "#22c55e",
+        "tonalRamp": ["#052e16", "#14532d", "#166534", "#15803d", "#22c55e", "#4ade80", "#86efac", "#dcfce7"]
+      },
+      "status-warning": {
+        "role": "neutral",
+        "displayName": "Warning Amber",
+        "canonical": "#f59e0b",
+        "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#f59e0b", "#fbbf24", "#fcd34d", "#fef3c7"]
+      },
+      "status-error": {
+        "role": "neutral",
+        "displayName": "Error Red",
+        "canonical": "#ef4444",
+        "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#dc2626", "#ef4444", "#f87171", "#fca5a5", "#fee2e2"]
+      },
+      "status-info": {
+        "role": "neutral",
+        "displayName": "Info Blue",
+        "canonical": "#3b82f6",
+        "tonalRamp": ["#172554", "#1e3a8a", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines, đại banner trang chủ." },
+      "headline": { "displayName": "Headline", "purpose": "Tiêu đề phân mục lớn của trang." },
+      "title": { "displayName": "Title", "purpose": "Tên công việc, tiêu đề thẻ card, nhóm chức năng." },
+      "body": { "displayName": "Body", "purpose": "Nội dung văn bản, chi tiết mô tả công việc, nội dung CV." },
+      "label": { "displayName": "Label", "purpose": "Nhãn badge, trạng thái, siêu dữ liệu phụ trợ." }
+    },
+    "shadows": [
+      { "name": "flat-rest", "value": "none", "purpose": "Trạng thái phẳng tự nhiên, tuân thủ nghiêm ngặt quy tắc Zero-Shadow." },
+      { "name": "overlay-subtle", "value": "0 4px 12px rgba(0, 0, 0, 0.05)", "purpose": "Chỉ dùng cho menu thả xuống hoặc hộp thoại nổi trên nền." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Gia tốc chuyển động chuẩn cho tương tác hover và chuyển đổi trạng thái." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Thời lượng đổi màu viền, nền nút bấm." },
+      { "name": "duration-normal", "value": "200ms", "purpose": "Thời lượng mở rộng, chuyển tab, dropdown." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Nút bấm hành động chính (CTA) với dáng bo viên thuốc thân thiện.",
+      "html": "<button class=\"ds-btn-primary\">Ứng tuyển ngay</button>",
+      "css": ".ds-btn-primary { font-family: Montserrat, sans-serif; background: #1b3b6f; color: #ffffff; padding: 8px 16px; border-radius: 9999px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.15s; outline: none; } .ds-btn-primary:hover { background: #122a52; } .ds-btn-primary:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Nút bấm hành động phụ viền mảnh, dáng viên thuốc.",
+      "html": "<button class=\"ds-btn-secondary\">Xem chi tiết</button>",
+      "css": ".ds-btn-secondary { font-family: Montserrat, sans-serif; background: transparent; color: #1b3b6f; padding: 8px 16px; border-radius: 9999px; font-size: 14px; font-weight: 500; border: 1px solid #1b3b6f; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s, transform 0.15s; outline: none; } .ds-btn-secondary:hover { background: rgba(214, 241, 252, 0.4); color: #122a52; border-color: #122a52; } .ds-btn-secondary:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Thanh tìm kiếm dạng viên thuốc đặc trưng trên nền trắng tinh khiết.",
+      "html": "<input type=\"text\" class=\"ds-input-search\" placeholder=\"Tìm kiếm việc làm, kỹ năng, công ty...\" />",
+      "css": ".ds-input-search { font-family: Montserrat, sans-serif; width: 100%; background: #ffffff; color: #1a202c; border: 2px solid transparent; border-radius: 9999px; padding: 12px 24px; font-size: 14px; outline: none; transition: border-color 0.2s; box-sizing: border-box; } .ds-input-search:focus { border-color: #1b3b6f; }"
+    },
+    {
+      "name": "Job Card",
+      "kind": "card",
+      "refersTo": "card-base",
+      "description": "Thẻ hiển thị tin tuyển dụng bo góc tối đa 2xl, phẳng hoàn toàn, hover chuyển sắc.",
+      "html": "<div class=\"ds-card-job\"><div class=\"ds-card-header\"><span class=\"ds-card-salary\">$1,500/tháng</span><span class=\"ds-card-badge\">Toàn thời gian</span></div><h4 class=\"ds-card-title\">Senior Frontend Engineer</h4><p class=\"ds-card-company\">SmartHire Technology</p></div>",
+      "css": ".ds-card-job { font-family: Montserrat, sans-serif; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; cursor: pointer; transition: border-color 0.25s, background 0.25s; } .ds-card-job:hover { border-color: #38bdf8; background: linear-gradient(180deg, rgba(240, 249, 255, 0.5) 0%, #bae6fd 100%); } .ds-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; } .ds-card-salary { font-size: 16px; font-weight: 600; color: #1a202c; } .ds-card-badge { font-size: 12px; font-weight: 600; color: #0284c7; background: #f0f9ff; padding: 2px 8px; border-radius: 6px; } .ds-card-title { margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #1a202c; } .ds-card-company { margin: 0; font-size: 14px; color: #64748b; font-weight: 400; }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-status",
+      "description": "Badge trạng thái hồ sơ tuyển dụng rõ ràng, dễ phân biệt.",
+      "html": "<span class=\"ds-badge-reviewing\">Đang xem xét</span>",
+      "css": ".ds-badge-reviewing { font-family: Montserrat, sans-serif; display: inline-flex; align-items: center; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Trust Navigator",
+    "overview": "SmartHire được thiết kế với tinh thần định vị sự nghiệp đáng tin cậy, vững chãi và hiện đại. Lấy cảm hứng từ sắc xanh thẳm của đại dương sâu thẳm kết hợp cùng những làn gió xanh băng trong trẻo, giao diện phản ánh cam kết dẫn lối ứng viên và nhà tuyển dụng tìm đến nhau một cách minh bạch, an tâm và chuẩn xác. Triết lý thị giác của hệ thống đề cao sự tinh tế, cân bằng và thanh lịch, làm chủ không gian bằng phân tầng màu nền (tonal layering), đường viền mảnh dẻ tinh tế (#e2e8f0), khoảng cách thở mạch lạc và phông chữ Montserrat đầy bản lĩnh.",
+    "keyCharacteristics": [
+      "Thân thiện & Mềm mại: Nút bấm hành động và thanh tìm kiếm chủ đạo dùng dáng bo viên thuốc (pill shape/rounded-full).",
+      "Phẳng có trật tự (Flat by Default): Tuyệt đối không spam bóng đổ; độ sâu được kiến tạo thông qua sự tương phản nền Mist White (#f7fafc), bề mặt thẻ (#ffffff) và viền mảnh (#e2e8f0).",
+      "Trọng lượng kiểu chữ kỷ luật: Tối đa mức đậm font-semibold cho nội dung thông thường, chỉ dành font-bold cho các tiêu đề lớn."
+    ],
+    "rules": [
+      {
+        "name": "The Rarity of Navy Rule",
+        "body": "Màu Deep Oceanic Navy (#1b3b6f) chỉ được xuất hiện ở tối đa 15% diện tích màn hình để giữ nguyên vẹn giá trị dẫn hướng và sức nặng thị giác của các hành động chính.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Color-Inflation Rule",
+        "body": "Không tự ý thêm các mã màu nằm ngoài bảng màu đã định nghĩa trong index.css; mọi trạng thái phản hồi phải tái sử dụng màu hệ thống hoặc các biến đã chuẩn hóa.",
+        "section": "colors"
+      },
+      {
+        "name": "The Semibold Ceiling Rule",
+        "body": "Ngoại trừ các thẻ tiêu đề lớn (h1, h2, .section-title), độ đậm tối đa của mọi văn bản trong hệ thống chỉ được đạt mức font-semibold (600). Tuyệt đối không dùng font-bold cho văn bản body, button hay label.",
+        "section": "typography"
+      },
+      {
+        "name": "The Zero-Shadow Doctrine",
+        "body": "Tuyệt đối không spam shadow lên các bề mặt tĩnh. Ở trạng thái nghỉ, toàn bộ thẻ và khối nội dung đều phẳng hoàn toàn (shadow: none hoặc tối đa shadow-xs). Bóng mờ chỉ xuất hiện rất nhẹ (shadow-sm) khi nhấc bề mặt tương tác.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Card Radius Ceiling Rule",
+        "body": "Mọi thành phần chứa nội dung (Card, Container, Dialog, Box) có bán kính bo góc tối đa là rounded-2xl (16px). Dáng rounded-full chỉ dành riêng cho Button, Search Input, Chip/Badge và Avatar.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do sử dụng dáng bo viên thuốc (rounded-full) cho các nút bấm chính và thanh tìm kiếm để giữ nét thân thiện, hiện đại.",
+      "Do giới hạn bo góc cho các thẻ card ở mức tối đa rounded-2xl (16px).",
+      "Do tạo chiều sâu bằng phân tầng màu nền (Mist White #f7fafc dưới đáy, Pure Surface #ffffff phía trên) và đường viền mảnh 1px (#e2e8f0).",
+      "Do giữ độ đậm nhất của văn bản ở mức font-semibold (600), ngoại trừ các tiêu đề lớn của trang.",
+      "Do sử dụng các biến CSS và token đã chuẩn hóa trong Frontend/src/index.css."
+    ],
+    "donts": [
+      "Don't spam shadow hay sử dụng các hiệu ứng đổ bóng đen đậm, bóng mờ lan rộng trên bề mặt phẳng tĩnh.",
+      "Don't bo góc thẻ card vượt quá rounded-2xl (như rounded-3xl hay rounded-[32px]).",
+      "Don't sử dụng font-bold (700) tràn lan trong các khối văn bản thông thường, button hay nhãn form.",
+      "Don't sử dụng inline styles hoặc tùy tiện pha trộn màu sắc nằm ngoài bảng màu chuẩn của hệ thống.",
+      "Don't thêm viền kép hoặc kết hợp cả viền đậm lẫn bóng nổi trên cùng một component gây nặng nề thị giác."
+    ]
+  }
+}

@@ -210,6 +210,59 @@ function Toaster({
 const createToastManager = ToastPrimitive.createToastManager;
 const useToastManager = ToastPrimitive.useToastManager;
 
+export type ToastInput =
+  | string
+  | {
+      title?: React.ReactNode;
+      description?: React.ReactNode;
+      type?: "default" | "success" | "error" | "warning" | "info" | "loading";
+      [key: string]: unknown;
+    };
+
+export interface CustomToastManager
+  extends ReturnType<typeof ToastPrimitive.createToastManager> {
+  success: (input: ToastInput, title?: React.ReactNode) => void;
+  error: (input: ToastInput, title?: React.ReactNode) => void;
+  warning: (input: ToastInput, title?: React.ReactNode) => void;
+  info: (input: ToastInput, title?: React.ReactNode) => void;
+}
+
+const baseAdd = toast.add.bind(toast);
+
+const normalizeToastArgs = (
+  type: "default" | "success" | "error" | "warning" | "info" | "loading",
+  input: ToastInput,
+  title?: React.ReactNode,
+) => {
+  if (typeof input === "string") {
+    return {
+      type,
+      title,
+      description: input,
+    };
+  }
+  return {
+    ...input,
+    type: (input.type as typeof type) || type,
+    description: input.description,
+    title: input.title || title,
+  };
+};
+
+const typedToast = toast as unknown as CustomToastManager;
+
+typedToast.success = (input: ToastInput, title?: React.ReactNode) =>
+  baseAdd(normalizeToastArgs("success", input, title));
+
+typedToast.error = (input: ToastInput, title?: React.ReactNode) =>
+  baseAdd(normalizeToastArgs("error", input, title));
+
+typedToast.warning = (input: ToastInput, title?: React.ReactNode) =>
+  baseAdd(normalizeToastArgs("warning", input, title));
+
+typedToast.info = (input: ToastInput, title?: React.ReactNode) =>
+  baseAdd(normalizeToastArgs("info", input, title));
+
 export {
   Toaster,
   Toast,
@@ -222,6 +275,6 @@ export {
   ToastTitle,
   ToastViewport,
   createToastManager,
-  toast,
+  typedToast as toast,
   useToastManager,
 };

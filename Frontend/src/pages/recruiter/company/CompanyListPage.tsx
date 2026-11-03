@@ -41,11 +41,11 @@ export function CompanyListPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleSelectCompany = (company: CompanyItem) => {
-    navigate(`/recruiter/company-management/${company.id}/overview`);
+    navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", company.id));
   };
 
   const handleCompanyCreated = (newCompany: CompanyItem) => {
-    navigate(`/recruiter/company-management/${newCompany.id}/overview`);
+    navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", newCompany.id));
   };
 
   const handleCreateJob = (company: CompanyItem) => {

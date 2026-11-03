@@ -19,6 +19,16 @@ import {
 import dayjs from "dayjs";
 import Button from "@/components/common/Button";
 import { PATHS } from "@/constants/paths";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import {
   DropdownMenu,
@@ -33,7 +43,7 @@ import {
   useUpdateApplicationStatus,
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
-import type { JobApplicationStatus } from "@/types/job";
+import type { JobApplicationStatus } from "@/types/application";
 import {
   formatSalaryRange,
   getJobLevelLabel,
@@ -254,7 +264,7 @@ export function JobDetailPage() {
               <div className="flex items-center">
                 {job.companyId || job.company?.id ? (
                   <Link
-                    to={`/recruiter/company-management/${job.companyId || job.company?.id}/overview`}
+                    to={PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", String(job.companyId || job.company?.id))}
                     className="group inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
                   >
                     <span className="truncate">{compName}</span>
@@ -472,61 +482,45 @@ export function JobDetailPage() {
       )}
 
       {/* 5. Modal Xác nhận Đóng tin */}
-      {isClosingModalOpen && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-5 shadow-xl sm:rounded-3xl sm:p-6">
-            <div className="mb-4 flex items-center gap-3 text-rose-600">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 sm:size-11">
-                <AlertTriangle className="size-5 text-rose-600 sm:size-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 sm:text-base">
-                  Xác nhận đóng tin tuyển dụng
-                </h3>
-                <p className="mt-0.5 text-[11px] text-slate-500 sm:text-xs">
-                  Thao tác này sẽ ẩn tin và dừng nhận hồ sơ
-                </p>
-              </div>
-            </div>
+      <AlertDialog
+        open={isClosingModalOpen}
+        onOpenChange={(open) => {
+          if (!open && !updateJobStatusMutation.isPending) {
+            setIsClosingModalOpen(false);
+            setIsClosingSuccess(false);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận đóng tin tuyển dụng</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isClosingSuccess
+                ? "Đã đóng tin tuyển dụng thành công."
+                : `Bạn có chắc chắn muốn đóng nhận hồ sơ cho vị trí "${job.title}"? Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ vào vị trí này nữa.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-            {isClosingSuccess ? (
-              <div className="my-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-800">
-                ✓ Đã đóng tin tuyển dụng thành công!
-              </div>
-            ) : (
-              <p className="my-3 text-xs leading-relaxed text-slate-600 sm:my-4">
-                Bạn có chắc chắn muốn đóng nhận hồ sơ cho tin{" "}
-                <strong className="font-semibold text-slate-900">
-                  "{job.title}"
-                </strong>
-                ? Sau khi đóng, ứng viên sẽ không thể gửi hồ sơ vào vị trí này
-                nữa.
-              </p>
-            )}
-
-            {!isClosingSuccess && (
-              <div className="mt-5 flex flex-col-reverse items-center justify-end gap-2.5 sm:mt-6 sm:flex-row sm:gap-3">
-                <Button
-                  variant="secondary"
-                  disabled={updateJobStatusMutation.isPending}
-                  onClick={() => setIsClosingModalOpen(false)}
-                  className="w-full px-4! py-2! text-xs! font-medium! sm:w-auto"
-                >
-                  Hủy bỏ
-                </Button>
-                <Button
-                  variant="primary"
-                  isLoading={updateJobStatusMutation.isPending}
-                  onClick={handleExecuteCloseJob}
-                  className="w-full bg-rose-600! px-4! py-2! text-xs! font-semibold! hover:bg-rose-700! sm:w-auto"
-                >
-                  Xác nhận đóng tin
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+          {!isClosingSuccess && (
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={updateJobStatusMutation.isPending}
+                onClick={() => setIsClosingModalOpen(false)}
+              >
+                Hủy bỏ
+              </AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                disabled={updateJobStatusMutation.isPending}
+                onClick={handleExecuteCloseJob}
+              >
+                {updateJobStatusMutation.isPending ? "Đang đóng tin..." : "Xác nhận đóng tin"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+export default JobDetailPage;

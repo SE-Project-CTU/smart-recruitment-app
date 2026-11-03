@@ -6,7 +6,6 @@ import {
   X,
   Search,
   RotateCw,
-  AlertCircle,
   Clock,
   CheckCircle2,
   XCircle,
@@ -28,6 +27,16 @@ import {
   useReviewJoinRequest,
 } from "@/hooks/queries/useCompany";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type {
   CompanyJoinRequestItem,
   CompanyJoinRequestStatus,
@@ -524,65 +533,36 @@ export function CompanyJoinRequestsTab() {
       </div>
 
       {/* Modal xác nhận từ chối yêu cầu gia nhập */}
-      {rejectTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-white p-6 transition-all">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
-                  <AlertCircle className="size-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900">
-                    Từ chối yêu cầu gia nhập
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Xác nhận từ chối người ứng tuyển
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setRejectTarget(null)}
-                disabled={isReviewing}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <p className="mt-4 text-xs leading-relaxed text-slate-600 sm:text-sm">
-              Bạn có chắc chắn muốn từ chối yêu cầu gia nhập của nhà tuyển dụng{" "}
-              <span className="font-semibold text-slate-900">
-                {rejectTarget.user?.fullName} ({rejectTarget.user?.email})
-              </span>
-              ? Người dùng này sẽ không thể tham gia vào đội ngũ tuyển dụng của
-              công ty trừ khi gửi lại yêu cầu khác.
-            </p>
-
-            <div className="mt-6 flex items-center justify-end gap-2">
-              <Button
-                variant="secondary"
-                disabled={isReviewing}
-                onClick={() => setRejectTarget(null)}
-                className="h-9! px-4! text-xs! font-medium!"
-              >
-                Hủy bỏ
-              </Button>
-              <Button
-                variant="primary"
-                isLoading={isReviewing}
-                onClick={handleConfirmReject}
-                className="h-9! bg-rose-600! px-4! text-xs! font-medium! text-white! hover:bg-rose-700!"
-              >
-                Xác nhận từ chối
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog
+        open={Boolean(rejectTarget)}
+        onOpenChange={(open) => {
+          if (!open && !isReviewing) setRejectTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Từ chối yêu cầu gia nhập</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn từ chối yêu cầu gia nhập của {rejectTarget?.user?.fullName} ({rejectTarget?.user?.email})? Người dùng này sẽ không thể tham gia vào đội ngũ tuyển dụng của công ty trừ khi gửi lại yêu cầu khác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isReviewing}
+              onClick={() => setRejectTarget(null)}
+            >
+              Hủy bỏ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isReviewing}
+              onClick={handleConfirmReject}
+            >
+              {isReviewing ? "Đang từ chối..." : "Xác nhận từ chối"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
-
-export default CompanyJoinRequestsTab;

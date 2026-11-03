@@ -1,5 +1,5 @@
-import React from "react";
-import { AlertCircle, MapPin } from "lucide-react";
+import { AlertCircle, ChevronDown, MapPin } from "lucide-react";
+import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { useProvinces, useWards } from "@/hooks/queries/useCatalog";
 import { cn } from "@/lib/utils";
 
@@ -41,12 +41,6 @@ export function LocationSelector({
     provinceId || undefined,
   );
 
-  const handleProvinceSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextProvinceId = e.target.value;
-    onChangeProvince(nextProvinceId);
-    onChangeWard(""); // Luôn reset phường/xã khi đổi tỉnh/thành
-  };
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -58,29 +52,75 @@ export function LocationSelector({
             {required && <span className="text-status-error">*</span>}
           </label>
           <div className="relative">
-            <select
-              value={provinceId}
+            <Select.Root
+              items={provinces.map((p) => ({ value: p.id, label: p.name }))}
+              value={provinceId || null}
               disabled={disabled || isLoadingProvinces}
-              onChange={handleProvinceSelect}
-              className={cn(
-                "w-full appearance-none rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main transition-colors outline-none focus:ring-1",
-                errors.provinceId
-                  ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
-                  : "border-border focus:border-primary focus:ring-primary/20",
-                disabled && "cursor-not-allowed opacity-60",
-              )}
+              onValueChange={(val) => {
+                if (val && val !== provinceId) {
+                  onChangeProvince(val);
+                  onChangeWard("");
+                }
+              }}
             >
-              <option value="">
-                {isLoadingProvinces
-                  ? "Đang tải tỉnh/thành..."
-                  : "-- Chọn Tỉnh / Thành phố --"}
-              </option>
-              {provinces.map((prov) => (
-                <option key={prov.id} value={prov.id}>
-                  {prov.name}
-                </option>
-              ))}
-            </select>
+              <Select.Trigger
+                aria-label="Chọn Tỉnh / Thành phố"
+                className={cn(
+                  "group flex w-full cursor-pointer items-center justify-between rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main transition-colors outline-none focus:ring-1",
+                  errors.provinceId
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                  (disabled || isLoadingProvinces) &&
+                    "cursor-not-allowed opacity-60",
+                )}
+              >
+                <Select.Value
+                  placeholder={
+                    isLoadingProvinces
+                      ? "Đang tải tỉnh/thành..."
+                      : "Chọn tỉnh thành"
+                  }
+                >
+                  {(val) =>
+                    provinces.find((p) => p.id === val)?.name ||
+                    (isLoadingProvinces
+                      ? "Đang tải tỉnh/thành..."
+                      : "Chọn tỉnh thành")
+                  }
+                </Select.Value>
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                  <ChevronDown className="size-3.5" />
+                </Select.Icon>
+              </Select.Trigger>
+
+              <Select.Portal>
+                <Select.Positioner
+                  alignItemWithTrigger={false}
+                  sideOffset={4}
+                  className="isolate z-50"
+                >
+                  <Select.Popup className="max-h-64 w-(--anchor-width) min-w-48 overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md">
+                    <Select.List>
+                      {provinces.map((prov) => (
+                        <Select.Item
+                          key={prov.id}
+                          value={prov.id}
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        >
+                          <Select.ItemText>{prov.name}</Select.ItemText>
+                          <Select.ItemIndicator
+                            animation="pop"
+                            className="ml-2 text-xs text-primary"
+                          >
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
           </div>
           <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
             {errors.provinceId && (
@@ -98,31 +138,76 @@ export function LocationSelector({
             <span>Phường / Xã</span>
           </label>
           <div className="relative">
-            <select
-              value={wardId}
+            <Select.Root
+              items={wards.map((w) => ({ value: w.id, label: w.name }))}
+              value={wardId || null}
               disabled={disabled || !provinceId || isFetchingWards}
-              onChange={(e) => onChangeWard(e.target.value)}
-              className={cn(
-                "w-full appearance-none rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main transition-colors outline-none focus:ring-1",
-                errors.wardId
-                  ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
-                  : "border-border focus:border-primary focus:ring-primary/20",
-                (!provinceId || disabled) && "cursor-not-allowed opacity-60",
-              )}
+              onValueChange={(val) => {
+                if (val) onChangeWard(val);
+              }}
             >
-              <option value="">
-                {!provinceId
-                  ? "-- Vui lòng chọn Tỉnh/Thành trước --"
-                  : isFetchingWards
-                    ? "Đang tải phường/xã..."
-                    : "-- Chọn Phường / Xã --"}
-              </option>
-              {wards.map((ward) => (
-                <option key={ward.id} value={ward.id}>
-                  {ward.name}
-                </option>
-              ))}
-            </select>
+              <Select.Trigger
+                aria-label="Chọn Phường / Xã"
+                className={cn(
+                  "group flex w-full cursor-pointer items-center justify-between rounded-xl border bg-surface px-3 py-2.5 text-xs font-medium text-text-main transition-colors outline-none focus:ring-1",
+                  errors.wardId
+                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    : "border-border focus:border-primary focus:ring-primary/20",
+                  (!provinceId || disabled || isFetchingWards) &&
+                    "cursor-not-allowed opacity-60",
+                )}
+              >
+                <Select.Value
+                  placeholder={
+                    !provinceId
+                      ? "--Chưa chọn tỉnh--"
+                      : isFetchingWards
+                        ? "Đang tải phường/xã..."
+                        : "Chọn phường/xã"
+                  }
+                >
+                  {(val) =>
+                    wards.find((w) => w.id === val)?.name ||
+                    (!provinceId
+                      ? "--Chưa chọn tỉnh--"
+                      : isFetchingWards
+                        ? "Đang tải phường/xã..."
+                        : "Chọn phường/xã")
+                  }
+                </Select.Value>
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                  <ChevronDown className="size-3.5" />
+                </Select.Icon>
+              </Select.Trigger>
+
+              <Select.Portal>
+                <Select.Positioner
+                  alignItemWithTrigger={false}
+                  sideOffset={4}
+                  className="isolate z-50"
+                >
+                  <Select.Popup className="max-h-64 w-(--anchor-width) min-w-48 overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md">
+                    <Select.List>
+                      {wards.map((ward) => (
+                        <Select.Item
+                          key={ward.id}
+                          value={ward.id}
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        >
+                          <Select.ItemText>{ward.name}</Select.ItemText>
+                          <Select.ItemIndicator
+                            animation="pop"
+                            className="ml-2 text-xs text-primary"
+                          >
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
           </div>
           <div className="mt-1 min-h-5 text-[11px] leading-tight text-status-error">
             {errors.wardId && (

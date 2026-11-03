@@ -1,13 +1,19 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { Check, ChevronDown, MapPin, Search, X } from "lucide-react";
-import {
-  MOCK_LOCATION_HIERARCHY,
-  type LocationGroup,
-} from "@/constants/mockData";
+import { useProvinces, useWards } from "@/hooks/queries/useCatalog";
+import type { ProvinceItem, WardItem } from "@/types/catalog";
 
 export interface SelectedLocation {
   province: string | null;
   ward: string | null;
+  provinceId?: string | null;
+  wardId?: string | null;
+}
+
+export interface LocationGroup {
+  province: string;
+  wards: string[];
+  provinceId?: string;
 }
 
 interface LocationComboboxProps {
@@ -16,18 +22,61 @@ interface LocationComboboxProps {
   groups?: LocationGroup[];
   className?: string;
   buttonClassName?: string;
+  useCatalogApi?: boolean;
 }
 
 export function LocationCombobox({
   value,
   onChange,
-  groups = MOCK_LOCATION_HIERARCHY,
+  groups,
   className = "min-w-52",
   buttonClassName,
+  useCatalogApi = true,
 }: LocationComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Lấy dữ liệu 63 tỉnh/thành phố thật từ backend API
+  const { data: realProvinces = [], isLoading: isLoadingProvinces } =
+    useProvinces();
+
+  // Danh sách tỉnh hiển thị: Ưu tiên dữ liệu từ Catalog API, hỗ trợ fallback groups nếu có
+  const provinceList = useMemo<ProvinceItem[]>(() => {
+    if (useCatalogApi && realProvinces.length > 0) {
+      return realProvinces;
+    }
+    if (groups && groups.length > 0) {
+      return groups.map((g, idx) => ({
+        id: g.provinceId || `loc-${idx}`,
+        name: g.province,
+        status: "Active",
+        isCentrallyGoverned: false,
+      }));
+    }
+    return realProvinces;
+  }, [useCatalogApi, realProvinces, groups]);
+
+  // Tỉnh hiện đang được mở rộng xem danh sách phường/xã
+  const selectedProvinceId = useMemo(() => {
+    if (value.provinceId) return value.provinceId;
+    if (!value.province) return null;
+    return provinceList.find((p) => p.name === value.province)?.id ?? null;
+  }, [value.provinceId, value.province, provinceList]);
+  const valueKey = value.provinceId ?? value.province ?? "";
+  const [expansionOverride, setExpansionOverride] = useState<{
+    valueKey: string;
+    provinceId: string | null;
+  } | null>(null);
+  const expandedProvinceId =
+    expansionOverride?.valueKey === valueKey
+      ? expansionOverride.provinceId
+      : selectedProvinceId;
+
+  // Lấy danh sách phường/xã thật của tỉnh đang được mở rộng
+  const { data: realWards = [], isFetching: isFetchingWards } = useWards(
+    expandedProvinceId || undefined,
+  );
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -42,22 +91,12 @@ export function LocationCombobox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredGroups = useMemo(() => {
+  // Lọc danh sách tỉnh/thành theo từ khóa tìm kiếm
+  const filteredProvinces = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return groups;
-
-    return groups
-      .map((g) => {
-        const matchProvince = g.province.toLowerCase().includes(q);
-        const matchedWards = g.wards.filter((w) => w.toLowerCase().includes(q));
-        if (matchProvince) return g;
-        if (matchedWards.length > 0) {
-          return { province: g.province, wards: matchedWards };
-        }
-        return null;
-      })
-      .filter((g): g is LocationGroup => g !== null);
-  }, [groups, query]);
+    if (!q) return provinceList;
+    return provinceList.filter((p) => p.name.toLowerCase().includes(q));
+  }, [provinceList, query]);
 
   const displayLabel = useMemo(() => {
     if (!value.province) return "Tất cả địa điểm";
@@ -65,10 +104,27 @@ export function LocationCombobox({
     return value.province;
   }, [value]);
 
-  const handleSelect = (province: string | null, ward: string | null) => {
-    onChange({ province, ward });
+  const handleSelect = (
+    province: string | null,
+    ward: string | null,
+    provinceId?: string | null,
+    wardId?: string | null,
+  ) => {
+    onChange({
+      province,
+      ward,
+      provinceId: provinceId ?? null,
+      wardId: wardId ?? null,
+    });
     setOpen(false);
     setQuery("");
+  };
+
+  const toggleExpandProvince = (provinceId: string) => {
+    setExpansionOverride({
+      valueKey,
+      provinceId: expandedProvinceId === provinceId ? null : provinceId,
+    });
   };
 
   return (
@@ -93,7 +149,7 @@ export function LocationCombobox({
               tabIndex={0}
               onClick={(e) => {
                 e.stopPropagation();
-                handleSelect(null, null);
+                handleSelect(null, null, null, null);
               }}
               className="rounded-full p-0.5 text-text-muted hover:bg-border hover:text-text-main"
             >
@@ -125,10 +181,10 @@ export function LocationCombobox({
           <div className="flex-1 overflow-y-auto p-1.5">
             <button
               type="button"
-              onClick={() => handleSelect(null, null)}
+              onClick={() => handleSelect(null, null, null, null)}
               className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-2.5 py-2 text-left text-xs transition-colors hover:bg-bg ${
                 !value.province
-                  ? "font-bold text-primary"
+                  ? "font-medium text-primary"
                   : "font-medium text-text-main"
               }`}
             >
@@ -136,57 +192,105 @@ export function LocationCombobox({
               {!value.province && <Check className="size-3.5 text-primary" />}
             </button>
 
-            {filteredGroups.length === 0 ? (
+            {isLoadingProvinces ? (
+              <p className="py-4 text-center text-xs text-text-muted">
+                Đang tải danh sách địa điểm...
+              </p>
+            ) : filteredProvinces.length === 0 ? (
               <p className="py-4 text-center text-xs text-text-muted">
                 Không tìm thấy khu vực phù hợp
               </p>
             ) : (
-              filteredGroups.map((group) => {
+              filteredProvinces.map((prov: ProvinceItem) => {
                 const isProvinceSelected =
-                  value.province === group.province && !value.ward;
+                  (value.provinceId === prov.id ||
+                    value.province === prov.name) &&
+                  !value.ward;
+                const isExpanded = expandedProvinceId === prov.id;
 
                 return (
-                  <div key={group.province} className="mt-1 flex flex-col">
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(group.province, null)}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-bg ${
-                        isProvinceSelected
-                          ? "bg-primary/5 font-bold text-primary"
-                          : "font-bold text-text-main"
-                      }`}
-                    >
-                      <span>{group.province} (Tất cả)</span>
-                      {isProvinceSelected && (
-                        <Check className="size-3.5 text-primary" />
-                      )}
-                    </button>
+                  <div key={prov.id} className="mt-1 flex flex-col">
+                    <div className="flex items-center justify-between rounded-xl hover:bg-bg">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSelect(prov.name, null, prov.id, null);
+                        }}
+                        className={`flex flex-1 cursor-pointer items-center justify-between px-2.5 py-1.5 text-left text-xs transition-colors ${
+                          isProvinceSelected
+                            ? "bg-primary/5 font-medium text-primary"
+                            : "font-medium text-text-main"
+                        }`}
+                      >
+                        <span>{prov.name}</span>
+                        {isProvinceSelected && (
+                          <Check className="size-3.5 text-primary" />
+                        )}
+                      </button>
 
-                    <div className="ml-3 flex flex-col border-l border-border pl-2">
-                      {group.wards.map((ward) => {
-                        const isWardSelected =
-                          value.province === group.province &&
-                          value.ward === ward;
-
-                        return (
-                          <button
-                            key={ward}
-                            type="button"
-                            onClick={() => handleSelect(group.province, ward)}
-                            className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-bg ${
-                              isWardSelected
-                                ? "font-semibold text-primary"
-                                : "text-text-muted hover:text-text-main"
-                            }`}
-                          >
-                            <span className="truncate">{ward}</span>
-                            {isWardSelected && (
-                              <Check className="size-3.5 shrink-0 text-primary" />
-                            )}
-                          </button>
-                        );
-                      })}
+                      <button
+                        type="button"
+                        aria-label={`Mở rộng danh sách xã của ${prov.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpandProvince(prov.id);
+                        }}
+                        className="cursor-pointer p-1.5 text-text-muted hover:text-primary"
+                      >
+                        <ChevronDown
+                          className={`size-3 transition-transform duration-200 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
                     </div>
+
+                    {isExpanded && (
+                      <div className="ml-3 flex flex-col border-l border-border pl-2">
+                        {isFetchingWards ? (
+                          <span className="px-2.5 py-1.5 text-[11px] text-text-muted">
+                            Đang tải phường/xã...
+                          </span>
+                        ) : realWards.length === 0 ? (
+                          <span className="px-2.5 py-1.5 text-[11px] text-text-muted">
+                            Không có dữ liệu phường/xã
+                          </span>
+                        ) : (
+                          realWards.map((ward: WardItem) => {
+                            const isWardSelected =
+                              (value.wardId === ward.id ||
+                                value.ward === ward.name) &&
+                              (value.provinceId === prov.id ||
+                                value.province === prov.name);
+
+                            return (
+                              <button
+                                key={ward.id}
+                                type="button"
+                                onClick={() =>
+                                  handleSelect(
+                                    prov.name,
+                                    ward.name,
+                                    prov.id,
+                                    ward.id,
+                                  )
+                                }
+                                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-bg ${
+                                  isWardSelected
+                                    ? "font-semibold text-primary"
+                                    : "text-text-muted hover:text-text-main"
+                                }`}
+                              >
+                                <span className="truncate">{ward.name}</span>
+                                {isWardSelected && (
+                                  <Check className="size-3.5 shrink-0 text-primary" />
+                                )}
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })

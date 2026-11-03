@@ -1,23 +1,17 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useMemo, type ChangeEvent, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import {
   AlertCircle,
   ArrowLeft,
+  Clock,
   DollarSign,
   GraduationCap,
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { BadgeSelector, Button } from "@/components/common";
+import { BadgeSelector, Button, DatePicker } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
 import SkillSelect from "@/components/catalog/SkillSelect";
@@ -26,6 +20,7 @@ import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { PATHS } from "@/constants/paths";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import { useCreateJobPosting } from "@/hooks/queries/useJob";
+import { useCompanyStore } from "@/stores";
 import {
   EDUCATION_LEVEL_OPTIONS,
   JOB_LEVEL_OPTIONS,
@@ -39,7 +34,7 @@ import type {
   JobType,
   WorkMode,
 } from "@/types";
-import type { CompanyItem } from "@/types/company";
+import { EmptyStreet } from "@/assets/images/decoration";
 
 interface JobFormState {
   companyId: string;
@@ -103,8 +98,10 @@ const inputClassName =
 
 export default function CreateJobPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const requestedCompanyId = searchParams.get("companyId") ?? "";
+
+  // 1. Lấy thông tin Workspace đang kích hoạt qua atomic selectors
+  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
+  const activeCompany = useCompanyStore((s) => s.activeCompany);
 
   const {
     data: companies = [],
@@ -115,14 +112,22 @@ export default function CreateJobPage() {
   const { mutateAsync: createJobPosting, isPending: isSubmitting } =
     useCreateJobPosting();
 
+  // Tìm doanh nghiệp đang đại diện đăng tin
+  const selectedCompany = useMemo(() => {
+    if (activeCompany) return activeCompany;
+    if (activeCompanyId) {
+      return companies.find((c) => c.id === activeCompanyId) || null;
+    }
+    return companies[0] || null;
+  }, [activeCompany, activeCompanyId, companies]);
+
+  const companyId = selectedCompany?.id ?? "";
+  const isCompanyVerified = selectedCompany?.verificationStatus === "Verified";
+
   const [formData, setFormData] = useState<JobFormState>(() =>
-    initialFormState(requestedCompanyId),
+    initialFormState(companyId),
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-  const companyId = requestedCompanyId || formData.companyId;
-  const selectedCompany = companies.find((company) => company.id === companyId);
-  const isCompanyVerified = selectedCompany?.verificationStatus === "Verified";
 
   const updateForm = <K extends keyof JobFormState>(
     key: K,
@@ -164,7 +169,7 @@ export default function CreateJobPage() {
     const errors: Record<string, string> = {};
     if (!companyId || !selectedCompany) {
       errors.companyId =
-        "Vui lòng chọn doanh nghiệp mà bạn đang là thành viên.";
+        "Vui lòng chọn doanh nghiệp làm việc tại menu bên trái.";
     } else if (!isCompanyVerified) {
       errors.companyId = "Doanh nghiệp cần được xác thực trước khi đăng tin.";
     }
@@ -178,30 +183,32 @@ export default function CreateJobPage() {
       errors.experienceYears = "Kinh nghiệm không thể âm.";
     if (formData.industryIds.length === 0)
       errors.industryIds = "Vui lòng chọn ít nhất một ngành nghề.";
-    if (formData.skillIds.length === 0)
-      errors.skillIds = "Vui lòng chọn ít nhất một kỹ năng.";
-    if (formData.description.trim().length < 20)
-      errors.description = "Mô tả cần có ít nhất 20 ký tự.";
-    if (formData.requirements.trim().length < 20)
-      errors.requirements = "Yêu cầu cần có ít nhất 20 ký tự.";
+    if (!formData.description.trim())
+      errors.description = "Vui lòng nhập mô tả công việc.";
+    if (!formData.requirements.trim())
+      errors.requirements = "Vui lòng nhập yêu cầu công việc.";
+    if (!formData.deadline) errors.deadline = "Vui lòng chọn hạn nhận hồ sơ.";
+
     if (!formData.salaryNegotiable) {
       const min = Number(formData.salaryMin);
       const max = Number(formData.salaryMax);
-      if (formData.salaryMin && min < 0)
-        errors.salaryMin = "Mức lương không thể âm.";
-      if (formData.salaryMax && max < 0)
-        errors.salaryMax = "Mức lương không thể âm.";
-      if (formData.salaryMin && formData.salaryMax && min > max) {
-        errors.salaryMax =
-          "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
+
+      if (!formData.salaryMin && !formData.salaryMax) {
+        errors.salaryMin = "Nhập mức lương hoặc chọn Lương thỏa thuận.";
+      } else {
+        if (formData.salaryMin && (Number.isNaN(min) || min < 0)) {
+          errors.salaryMin = "Mức lương tối thiểu không hợp lệ.";
+        }
+        if (formData.salaryMax && (Number.isNaN(max) || max < 0)) {
+          errors.salaryMax = "Mức lương tối đa không hợp lệ.";
+        }
+        if (formData.salaryMin && formData.salaryMax && min > max) {
+          errors.salaryMax =
+            "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
+        }
       }
     }
-    if (
-      !formData.deadline ||
-      dayjs(formData.deadline).isBefore(dayjs(), "day")
-    ) {
-      errors.deadline = "Hạn nhận hồ sơ phải từ hôm nay trở đi.";
-    }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -214,8 +221,8 @@ export default function CreateJobPage() {
       companyId,
       title: formData.title.trim(),
       provinceId: formData.provinceId,
-      wardId: formData.wardId || null,
-      detailedLocation: formData.detailedLocation.trim() || null,
+      wardId: formData.wardId || undefined,
+      detailedLocation: formData.detailedLocation.trim() || undefined,
       experienceYears: formData.experienceYears,
       jobLevel: formData.jobLevel,
       educationLevel: formData.educationLevel,
@@ -224,29 +231,29 @@ export default function CreateJobPage() {
       jobType: formData.jobType,
       description: formData.description.trim(),
       requirements: formData.requirements.trim(),
-      benefits: formData.benefits.trim() || null,
-      salaryMin:
-        !formData.salaryNegotiable && formData.salaryMin
-          ? Number(formData.salaryMin)
-          : null,
-      salaryMax:
-        !formData.salaryNegotiable && formData.salaryMax
-          ? Number(formData.salaryMax)
-          : null,
+      benefits: formData.benefits.trim() || undefined,
       salaryNegotiable: formData.salaryNegotiable,
+      salaryMin:
+        formData.salaryNegotiable || !formData.salaryMin
+          ? null
+          : Number(formData.salaryMin),
+      salaryMax:
+        formData.salaryNegotiable || !formData.salaryMax
+          ? null
+          : Number(formData.salaryMax),
       deadline: dayjs(formData.deadline).endOf("day").toISOString(),
       industryIds: formData.industryIds,
       skillIds: formData.skillIds,
     };
 
     try {
-      const result = await createJobPosting(payload);
+      const created = await createJobPosting(payload);
       toast.add({
         type: "success",
-        description: `Đã gửi tin tuyển dụng “${result.title}” thành công.`,
+        description: "Tạo tin tuyển dụng thành công!",
       });
-      navigate(`${PATHS.RECRUITER.COMPANY_MANAGEMENT}/${companyId}/overview`);
-    } catch (error: unknown) {
+      navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", created.id));
+    } catch (error) {
       const apiErrors = getApiFieldErrors(error);
       if (Object.keys(apiErrors).length > 0) {
         setFieldErrors(apiErrors);
@@ -262,21 +269,11 @@ export default function CreateJobPage() {
     }
   };
 
-  const availableCompanies = companies;
-
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6 pb-12">
       {/* Thanh tiêu đề trên cùng */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          {/* <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="mb-2 inline-flex items-center gap-1.5 text-xs text-text-muted transition-colors hover:text-primary"
-          >
-            <ArrowLeft className="size-3.5" />
-            <span>Quay lại</span>
-          </button> */}
           <Button
             variant="secondary"
             icon={ArrowLeft}
@@ -286,7 +283,7 @@ export default function CreateJobPage() {
           >
             Quay lại
           </Button>
-          <div className="flex items-center gap-3">
+          <div className="mt-2 flex items-center gap-3">
             <div>
               <h1 className="text-xl font-bold tracking-tight text-text-main sm:text-2xl">
                 Tạo tin tuyển dụng
@@ -302,20 +299,21 @@ export default function CreateJobPage() {
 
       {isLoadingCompanies ? (
         <div className="animate-pulse rounded-3xl border border-border bg-surface p-8 text-center text-xs text-text-muted">
-          Đang tải danh sách doanh nghiệp…
+          Đang tải thông tin doanh nghiệp…
         </div>
       ) : isError ? (
         <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-xs text-status-error">
-          Không tải được danh sách doanh nghiệp. Vui lòng thử tải lại trang.
+          Không tải được thông tin doanh nghiệp. Vui lòng thử tải lại trang.
         </div>
-      ) : availableCompanies.length === 0 ? (
-        <section className="space-y-4 rounded-3xl border border-border bg-surface p-8 text-center">
+      ) : companies.length === 0 ? (
+        <section className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
+          <img src={EmptyStreet} alt="Empty" loading="lazy" className="h-80 w-auto md:h-100" />
           <h2 className="text-base font-semibold text-text-main">
             Chưa có doanh nghiệp để đăng tin
           </h2>
           <p className="text-xs text-text-muted">
-            Bạn cần thuộc về ít nhất một doanh nghiệp đã xác thực để bắt đầu tạo
-            JD tuyển dụng.
+            Bạn cần thuộc về ít nhất một doanh nghiệp đã được xác thực để bắt
+            đầu tạo JD tuyển dụng.
           </p>
           <Button
             variant="primary"
@@ -327,14 +325,13 @@ export default function CreateJobPage() {
         </section>
       ) : (
         <form onSubmit={handleSubmit}>
-          {/* LAYOUT 2 CỘT (Cột trái: Detail về JD - Cột phải: Thông tin Doanh nghiệp & Địa điểm) */}
+          {/* LAYOUT 2 CỘT (Cột trái: Chi tiết JD - Cột phải: Thông tin Doanh nghiệp & Vị trí) */}
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
             {/* =========================================================================
                 CỘT TRÁI (lg:col-span-7 xl:col-span-8): Chi tiết JD
-                Tên JD, Ngành nghề, Kỹ năng, Yêu cầu & Chế độ, Mô tả chi tiết
                ========================================================================= */}
             <div className="space-y-6 lg:col-span-7 xl:col-span-8">
-              {/* Khối 1: Tên tin tuyển dụng & Danh mục ngành nghề & Kỹ năng */}
+              {/* Khối 1: Tên tin tuyển dụng & Ngành nghề & Kỹ năng */}
               <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
                   <h2 className="text-sm font-semibold text-text-main">
@@ -343,7 +340,7 @@ export default function CreateJobPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {/* Tên công việc (Job Title) */}
+                  {/* Tiêu đề tin tuyển dụng */}
                   <div className="mb-4">
                     <label
                       htmlFor="title"
@@ -363,14 +360,14 @@ export default function CreateJobPage() {
                     <FieldError message={fieldErrors.title} />
                   </div>
 
-                  {/* Ngành nghề tuyển dụng (Job Category) */}
+                  {/* Ngành nghề tuyển dụng */}
                   <IndustrySelect
                     selectedIds={formData.industryIds}
                     onChange={(ids) => updateForm("industryIds", ids)}
                     error={fieldErrors.industryIds}
                   />
 
-                  {/* Kỹ năng chuyên môn (Skills) */}
+                  {/* Kỹ năng chuyên môn */}
                   <SkillSelect
                     selectedIds={formData.skillIds}
                     onChange={(ids) => updateForm("skillIds", ids)}
@@ -379,7 +376,7 @@ export default function CreateJobPage() {
                 </div>
               </section>
 
-              {/* Khối 2: Yêu cầu và chế độ đãi ngộ (Requirements & Compensation) */}
+              {/* Khối 2: Yêu cầu & Chế độ đãi ngộ */}
               <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
                   <GraduationCap className="size-4" />
@@ -389,7 +386,7 @@ export default function CreateJobPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {/* Hình thức làm việc (Employment Type - JobType) */}
+                  {/* Hình thức làm việc */}
                   <BadgeSelector
                     label="Hình thức làm việc"
                     required
@@ -398,26 +395,24 @@ export default function CreateJobPage() {
                     onChange={(value) => updateForm("jobType", value)}
                   />
 
-                  {/* Cấp bậc & Trình độ học vấn */}
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <BadgeSelector
-                      label="Cấp bậc"
-                      required
-                      options={JOB_LEVEL_OPTIONS}
-                      value={formData.jobLevel}
-                      onChange={(value) => updateForm("jobLevel", value)}
-                    />
+                  {/* Cấp bậc */}
+                  <BadgeSelector
+                    label="Cấp bậc"
+                    required
+                    options={JOB_LEVEL_OPTIONS}
+                    value={formData.jobLevel}
+                    onChange={(value) => updateForm("jobLevel", value)}
+                  />
 
-                    <BadgeSelector
-                      label="Trình độ học vấn"
-                      required
-                      options={EDUCATION_LEVEL_OPTIONS}
-                      value={formData.educationLevel}
-                      onChange={(value) => updateForm("educationLevel", value)}
-                    />
-                  </div>
+                  {/* Trình độ học vấn */}
+                  <BadgeSelector
+                    label="Trình độ học vấn tối thiểu"
+                    required
+                    options={EDUCATION_LEVEL_OPTIONS}
+                    value={formData.educationLevel}
+                    onChange={(value) => updateForm("educationLevel", value)}
+                  />
 
-                  {/* Số lượng tuyển & Kinh nghiệm */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label
@@ -444,7 +439,7 @@ export default function CreateJobPage() {
                         htmlFor="experienceYears"
                         className="mb-1.5 block text-xs font-semibold text-text-main"
                       >
-                        Kinh nghiệm yêu cầu (năm){" "}
+                        Số năm kinh nghiệm tối thiểu
                         <span className="text-status-error">*</span>
                       </label>
                       <input
@@ -460,28 +455,28 @@ export default function CreateJobPage() {
                     </div>
                   </div>
 
-                  {/* Mức lương (Salary / Compensation) */}
-                  <div className="space-y-3 rounded-2xl border border-border/80 bg-bg/50 p-4">
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold text-text-main">
-                        <DollarSign className="size-3.5 text-primary" />
+                  {/* Mức lương */}
+                  <div className="border-t border-border pt-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-text-main">
+                        <DollarSign className="size-4 text-emerald-600" />
                         <span>Mức lương dự kiến</span>
-                      </label>
-                      <label className="flex cursor-pointer items-center gap-2 text-xs text-text-main select-none">
+                      </div>
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-text-muted">
                         <input
                           type="checkbox"
                           checked={formData.salaryNegotiable}
                           onChange={(e) =>
                             updateForm("salaryNegotiable", e.target.checked)
                           }
-                          className="size-4 rounded accent-primary"
+                          className="size-3.5 rounded border-border text-primary focus:ring-primary"
                         />
-                        <span>Mức lương thỏa thuận</span>
+                        <span>Lương thỏa thuận</span>
                       </label>
                     </div>
 
                     {!formData.salaryNegotiable && (
-                      <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <label
                             htmlFor="salaryMin"
@@ -604,7 +599,6 @@ export default function CreateJobPage() {
 
             {/* =========================================================================
                 CỘT PHẢI (lg:col-span-5 xl:col-span-4): Thông tin Doanh nghiệp & Vị trí
-                Employer Details, Chi nhánh / Địa chỉ, Môi trường làm việc, Deadline
                ========================================================================= */}
             <div className="space-y-6 lg:sticky lg:top-6 lg:col-span-5 xl:col-span-4">
               <div className="space-y-5 rounded-3xl border border-border bg-surface p-5 shadow-xs sm:p-6">
@@ -612,69 +606,66 @@ export default function CreateJobPage() {
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <div className="flex items-center gap-2 text-primary">
                     <h2 className="text-sm font-semibold text-text-main">
-                      Thông tin doanh nghiệp
+                      Doanh nghiệp tuyển dụng
                     </h2>
                   </div>
-                  {isCompanyVerified && (
+                  {isCompanyVerified ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
                       <ShieldCheck className="size-3" />
-                      <span>Verified</span>
+                      <span>Đã xác thực</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                      <Clock className="size-3" />
+                      <span>
+                        {selectedCompany?.verificationStatus || "Chờ duyệt"}
+                      </span>
                     </span>
                   )}
                 </div>
 
-                {/* 1. Doanh nghiệp tuyển dụng (Company Selector / Summary) */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-text-main">
-                    Doanh nghiệp tuyển dụng{" "}
-                    <span className="text-status-error">*</span>
-                  </label>
-
-                  <div>
-                    <Select
-                      value={companyId || null}
-                      onValueChange={(value) =>
-                        updateForm("companyId", String(value ?? ""))
-                      }
-                    >
-                      <SelectTrigger
-                        id="companyId"
-                        aria-label="Chọn doanh nghiệp đăng tin"
-                        className="h-12! w-full! rounded-xl! border-border! bg-surface! px-3! text-xs! text-text-main! shadow-none! focus-visible:border-primary! focus-visible:ring-1! focus-visible:ring-primary/20!"
-                      >
-                        <SelectValue placeholder="-- Chọn doanh nghiệp --">
-                          {(value) => {
-                            const company = companies.find(
-                              (item) => item.id === value,
-                            );
-                            return company ? (
-                              <CompanySelectLabel company={company} />
-                            ) : (
-                              <span className="text-text-muted">
-                                -- Chọn doanh nghiệp --
-                              </span>
-                            );
-                          }}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="max-h-72! rounded-2xl! border! border-border! bg-surface! p-1! shadow-md!">
-                        {companies.map((company) => (
-                          <SelectItem
-                            key={company.id}
-                            value={company.id}
-                            label={company.name}
-                            className="rounded-xl! py-2! pr-8! pl-2! text-text-main! data-highlighted:bg-bg!"
-                          >
-                            <CompanySelectLabel company={company} showTaxCode />
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FieldError message={fieldErrors.companyId} />
+                {/* 1. Thẻ Doanh nghiệp cố định theo Workspace */}
+                {selectedCompany && (
+                  <div className="">
+                    <div className="flex items-start gap-3">
+                      <CompanyLogo
+                        logoUrl={selectedCompany.logoUrl}
+                        name={selectedCompany.name}
+                        size="md"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold text-text-main">
+                          {selectedCompany.name}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-text-muted">
+                          MST: {selectedCompany.taxCode}
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-[11px] text-slate-500">
+                          {selectedCompany.address}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* 2. Vị trí làm việc (LocationSelector: Province, Ward, Detailed Location) */}
+                {/* Cảnh báo nếu công ty chưa Verified */}
+                {!isCompanyVerified && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900">
+                    <p className="font-semibold text-amber-800">
+                      ⚠️ Doanh nghiệp chưa được xác thực
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-amber-700">
+                      Hồ sơ doanh nghiệp đang ở trạng thái{" "}
+                      <strong>{selectedCompany?.verificationStatus}</strong>.
+                      Quản trị viên cần duyệt hồ sơ trước khi bạn có thể đăng
+                      tin tuyển dụng.
+                    </p>
+                  </div>
+                )}
+
+                <FieldError message={fieldErrors.companyId} />
+
+                {/* 2. Vị trí làm việc (LocationSelector) */}
                 <div className="border-t border-border pt-4">
                   <LocationSelector
                     provinceId={formData.provinceId}
@@ -692,10 +683,10 @@ export default function CreateJobPage() {
                   />
                 </div>
 
-                {/* 3. Môi trường làm việc (WorkMode: Onsite, Hybrid, Remote) */}
+                {/* 3. Môi trường làm việc */}
                 <div className="border-t border-border pt-4">
                   <BadgeSelector
-                    label="Môi trường làm việc "
+                    label="Môi trường làm việc"
                     required
                     options={WORK_MODE_OPTIONS}
                     value={formData.workMode}
@@ -709,21 +700,29 @@ export default function CreateJobPage() {
                     htmlFor="deadline"
                     className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text-main"
                   >
-                    <span>Hạn nhận hồ sơ </span>
+                    <span>Hạn nhận hồ sơ</span>
                     <span className="text-status-error">*</span>
                   </label>
-                  <input
+                  <DatePicker
                     id="deadline"
                     name="deadline"
-                    type="date"
-                    min={dayjs().format("YYYY-MM-DD")}
+                    minDate={dayjs().format("YYYY-MM-DD")}
                     value={formData.deadline}
-                    onChange={handleTextChange}
-                    className={inputClassName}
+                    onChange={(val) => {
+                      updateForm("deadline", val);
+                      setFieldErrors((current) => {
+                        const next = { ...current };
+                        delete next.deadline;
+                        return next;
+                      });
+                    }}
+                    error={Boolean(fieldErrors.deadline)}
+                    placeholder="Chọn hạn nhận hồ sơ"
                   />
                   <FieldError message={fieldErrors.deadline} />
                 </div>
-                {/* Nút hành động phía dưới cột trái */}
+
+                {/* Nút hành động */}
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <Button
                     type="button"
@@ -749,36 +748,5 @@ export default function CreateJobPage() {
         </form>
       )}
     </main>
-  );
-}
-
-function CompanySelectLabel({
-  company,
-  showTaxCode = false,
-}: {
-  company: CompanyItem;
-  showTaxCode?: boolean;
-}) {
-  const verificationLabel =
-    company.verificationStatus === "Verified"
-      ? "Đã xác thực"
-      : company.verificationStatus === "Rejected"
-        ? "Bị từ chối"
-        : "Chờ xác thực";
-
-  return (
-    <span className="flex min-w-0 items-center gap-2.5">
-      <CompanyLogo logoUrl={company.logoUrl} name={company.name} size="sm" />
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-xs font-medium text-text-main">
-          {company.name}
-        </span>
-        {showTaxCode && (
-          <span className="truncate text-[10px] text-text-muted">
-            MST {company.taxCode} · {verificationLabel}
-          </span>
-        )}
-      </span>
-    </span>
   );
 }

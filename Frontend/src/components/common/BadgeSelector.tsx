@@ -51,7 +51,7 @@ export function BadgeSelector<T extends string = string>({
               disabled={disabled}
               onClick={() => onChange(option.value)}
               className={cn(
-                "inline-flex cursor-pointer items-center gap-1.5 rounded-xl border transition-all duration-150 select-none",
+                "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border transition-all duration-150 select-none",
                 size === "sm"
                   ? "px-2.5 py-1 text-[11px]"
                   : "px-3.5 py-2 text-xs",

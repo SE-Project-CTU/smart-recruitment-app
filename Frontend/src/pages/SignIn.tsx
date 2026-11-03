@@ -84,14 +84,6 @@ function SignIn() {
             biệt cách làm truyền thống phức tạp
           </p>
 
-          {/* Thông báo lỗi nếu có */}
-          {errorMessage && (
-            <div className="mb-6 flex w-full max-w-md items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 transition-all">
-              <AlertCircle size={18} className="shrink-0" />
-              <span className="flex-1">{errorMessage}</span>
-            </div>
-          )}
-
           <form
             className="flex w-full max-w-md flex-col gap-5"
             onSubmit={handleSubmit}
@@ -142,7 +134,17 @@ function SignIn() {
               </button>
             </div>
 
-            <div className="-mt-2 flex justify-end">
+            {/* Thông báo lỗi không background, không border, giữ min-height chống giật layout */}
+            <div className="-mt-2 min-h-5 px-3 flex items-center">
+              {errorMessage ? (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-status-error animate-in fade-in duration-150">
+                  <AlertCircle size={14} className="shrink-0" />
+                  <span className="truncate">{errorMessage}</span>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="-mt-3 flex justify-end">
               <a
                 href="#"
                 className="text-text text-sm font-semibold transition-colors hover:text-primary"
