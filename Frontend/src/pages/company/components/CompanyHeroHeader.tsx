@@ -76,7 +76,7 @@ export function CompanyHeroHeader({
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           {/* Logo & Identity */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="-mt-14 shrink-0 rounded-2xl border-4 border-surface bg-surface p-1 shadow-md sm:-mt-16">
+            <div className="-mt-14 shrink-0 overflow-hidden rounded-full border-4 border-surface sm:-mt-16">
               <CompanyLogo
                 logoUrl={company.logoUrl}
                 name={company.name}

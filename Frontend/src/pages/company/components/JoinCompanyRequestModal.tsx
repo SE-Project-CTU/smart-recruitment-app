@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { UserPlus, AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -71,16 +70,13 @@ export function JoinCompanyRequestModal({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="space-y-0 text-left">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <UserPlus className="size-5" />
-            </div>
-            <div>
-              <DialogTitle className="text-base font-semibold text-text-main">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="truncate text-base font-semibold text-text-main">
                 Yêu cầu gia nhập doanh nghiệp
               </DialogTitle>
-              <DialogDescription className="text-xs text-text-muted">
+              <DialogDescription className="mt-0.5 truncate text-xs text-text-muted">
                 {company?.name}
               </DialogDescription>
             </div>
@@ -89,22 +85,22 @@ export function JoinCompanyRequestModal({
 
         <form onSubmit={handleSubmit} className="mt-3 space-y-4">
           <p className="text-xs leading-relaxed text-text-muted">
-            Yêu cầu của bạn sẽ được gửi tới Quản trị viên (Chủ sở hữu) của{" "}
+            Yêu cầu của bạn sẽ được gửi tới Quản trị viên của{" "}
             <span className="font-medium text-text-main">{company?.name}</span>.
-            Sau khi được phê duyệt, bạn sẽ trở thành thành viên chính thức và có
-            thể tham gia tuyển dụng.
+            Sau khi được phê duyệt, bạn sẽ trở thành thành viên chính thức trong
+            đội ngũ tuyển dụng.
           </p>
 
           <div>
-            <div className="mb-1.5 flex items-center justify-between">
+            <div className="mb-1.5 flex items-center justify-between text-xs">
               <label
                 htmlFor="join-message"
-                className="text-xs font-medium text-text-main"
+                className="font-medium text-text-main"
               >
                 Lời nhắn tự giới thiệu (tùy chọn)
               </label>
               <span className="text-[11px] text-text-muted">
-                {message.length}/1000
+                {message.length} / 1000
               </span>
             </div>
             <textarea
@@ -113,23 +109,22 @@ export function JoinCompanyRequestModal({
               maxLength={1000}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="VD: Tôi là Recruiter chuyên mảng Công nghệ thông tin với 3 năm kinh nghiệm, rất mong được gia nhập đội ngũ tuyển dụng của quý công ty..."
+              placeholder="Chia sẻ ngắn gọn về chuyên môn tuyển dụng hoặc lý do bạn mong muốn đồng hành cùng doanh nghiệp..."
               className="w-full resize-none rounded-xl border border-border bg-surface p-3 text-xs text-text-main transition-colors outline-none placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/20"
             />
           </div>
 
           {errorMsg && (
-            <div className="flex items-start gap-2 rounded-xl bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200">
-              <AlertCircle className="size-4 shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-700">
+              {errorMsg}
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-2">
             <Button
               type="button"
               variant="secondary"
-              className="text-xs! px-3.5! py-2!"
+              className="px-4! py-2! text-xs!"
               onClick={handleClose}
               disabled={submitMutation.isPending}
             >
@@ -138,7 +133,7 @@ export function JoinCompanyRequestModal({
             <Button
               type="submit"
               variant="primary"
-              className="text-xs! px-3.5! py-2!"
+              className="px-4! py-2! text-xs!"
               isLoading={submitMutation.isPending}
             >
               Gửi yêu cầu

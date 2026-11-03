@@ -25,6 +25,7 @@ import { useCompanyActivePublicJobs } from "@/hooks/queries/useJob";
 import { useAuthStore } from "@/stores/authStore";
 import { PATHS } from "@/constants/paths";
 import Button from "@/components/common/Button";
+import { GradientBackground } from "@/components/common";
 
 type CompanyTabKey = "overview" | "jobs";
 
@@ -188,8 +189,9 @@ export function CompanyDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-white-blue/50 pt-30 pb-16">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-bg-white-blue pt-30 pb-16">
+      <GradientBackground />
+      <div className="relative container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb Navigation */}
         <div className="mb-5 flex items-center gap-2 text-xs text-text-muted">
           <Link

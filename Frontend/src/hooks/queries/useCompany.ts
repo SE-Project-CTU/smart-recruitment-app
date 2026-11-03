@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { companyService } from "@/services/companyService";
 import { useAuthStore } from "@/stores/authStore";
+import { useCompanyStore } from "@/stores/companyStore";
 import type {
   CreateCompanyPayload,
   InviteRecruiterPayload,
@@ -110,11 +111,19 @@ export const useUpdateCompany = () => {
     }) => companyService.updateCompany(id, payload),
     onSuccess: (updatedCompany) => {
       // Cập nhật cache chi tiết và danh sách
+      queryClient.invalidateQueries({ queryKey: ["companies", "detail"] });
       queryClient.setQueryData(
         ["companies", "detail", updatedCompany.id],
         updatedCompany,
       );
       queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
+      queryClient.invalidateQueries({ queryKey: ["companies", "public"] });
+
+      // Nếu công ty vừa cập nhật là activeCompany hiện tại, cập nhật ngay lập tức vào companyStore
+      const activeId = useCompanyStore.getState().activeCompanyId;
+      if (activeId === updatedCompany.id) {
+        useCompanyStore.getState().setActiveCompany(updatedCompany);
+      }
     },
   });
 };

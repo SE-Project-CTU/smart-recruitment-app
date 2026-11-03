@@ -59,7 +59,9 @@ export function WorkspaceSwitcher() {
       !activeCompany ||
       activeCompany.id !== matched.id ||
       activeCompany.name !== matched.name ||
-      activeCompany.logoUrl !== matched.logoUrl
+      activeCompany.logoUrl !== matched.logoUrl ||
+      activeCompany.logoFileId !== matched.logoFileId ||
+      activeCompany.verificationStatus !== matched.verificationStatus
     ) {
       // Giữ thông tin tóm tắt luôn đồng bộ mới nhất
       setActiveCompany(matched);
@@ -69,11 +71,15 @@ export function WorkspaceSwitcher() {
   // Tìm công ty đang hiển thị
   const currentCompany: CompanyItem | null = useMemo(() => {
     if (companies.length === 0) return null;
+    const matched = companies.find((c) => c.id === activeCompanyId);
+    if (matched) {
+      if (activeCompany && activeCompany.id === matched.id) {
+        return activeCompany;
+      }
+      return matched;
+    }
     if (activeCompany && companies.some((c) => c.id === activeCompany.id)) {
       return activeCompany;
-    }
-    if (activeCompanyId) {
-      return companies.find((c) => c.id === activeCompanyId) || null;
     }
     return companies[0] || null;
   }, [activeCompany, activeCompanyId, companies]);
@@ -160,6 +166,7 @@ export function WorkspaceSwitcher() {
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface shadow-xs">
               <img
+                key={currentCompany?.logoUrl || "current-logo"}
                 src={
                   currentCompany?.logoUrl ||
                   getLoremAvt(currentCompany?.name || "Doanh nghiệp")
@@ -214,6 +221,10 @@ export function WorkspaceSwitcher() {
 
             {companies.map((comp) => {
               const isSelected = comp.id === currentCompany?.id;
+              const displayComp =
+                isSelected && activeCompany?.id === comp.id
+                  ? activeCompany
+                  : comp;
               return (
                 <DropdownMenuItem
                   key={comp.id}
@@ -227,11 +238,12 @@ export function WorkspaceSwitcher() {
                   <div className="flex min-w-0 items-center gap-2.5">
                     <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
                       <img
-                        src={comp.logoUrl || getLoremAvt(comp.name)}
-                        alt={comp.name}
+                        key={displayComp.logoUrl || comp.id}
+                        src={displayComp.logoUrl || getLoremAvt(displayComp.name)}
+                        alt={displayComp.name}
                         className="size-full object-contain p-0.5"
                         onError={(e) => {
-                          const fallback = getLoremAvt(comp.name);
+                          const fallback = getLoremAvt(displayComp.name);
                           const img = e.currentTarget;
                           if (img.src !== new URL(fallback, img.baseURI).href) {
                             img.onerror = null;
@@ -241,7 +253,7 @@ export function WorkspaceSwitcher() {
                       />
                     </div>
                     <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-xs">{comp.name}</span>
+                      <span className="truncate text-xs">{displayComp.name}</span>
                       <span className="text-[10px] text-text-muted">
                         {getRoleLabel(comp)}
                       </span>
