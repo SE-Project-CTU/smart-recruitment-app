@@ -331,6 +331,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
               {/* TRANG GIẤY A4 WYSIWYG WORKSPACE */}
               <CvBuilderWorkspace contentRef={cvPrintRef} isReadOnly={isLocked} />
             </div>
+
           </div>
         </form>
 

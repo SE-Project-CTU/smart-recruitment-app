@@ -14,6 +14,29 @@ export function createEmptyTiptapDocument(fontSize = 13): CvTiptapDocument {
   };
 }
 
+export function createTiptapDocumentFromText(
+  text: string,
+  fontSize = 13,
+): CvTiptapDocument {
+  const paragraphs = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length === 0) {
+    return createEmptyTiptapDocument(fontSize);
+  }
+
+  return {
+    type: "doc",
+    attrs: { fontSize },
+    content: paragraphs.map((p) => ({
+      type: "paragraph",
+      content: [{ type: "text", text: p }],
+    })),
+  };
+}
+
 export function createBulletListDocument(
   items: string[] = [],
   fontSize = 13,

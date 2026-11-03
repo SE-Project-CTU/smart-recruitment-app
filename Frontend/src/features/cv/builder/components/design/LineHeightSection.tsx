@@ -28,7 +28,7 @@ export const LineHeightSection: React.FC = () => {
       </div>
       <Slider
         value={[lineHeight]}
-        min={1.2}
+        min={1.0}
         max={2.0}
         step={0.05}
         onValueChange={(val) => {
@@ -47,8 +47,8 @@ export const LineHeightSection: React.FC = () => {
         className="cursor-pointer py-1.5 [&_[data-slot=slider-range]]:h-full [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:w-full [&_[data-slot=slider-track]]:bg-border"
       />
       <div className="flex justify-between text-[10px] text-text-muted">
-        <span>1.2x (Gọn)</span>
-        <span>2.0x (Rộng)</span>
+        <span>1.2</span>
+        <span>2.0</span>
       </div>
     </div>
   );

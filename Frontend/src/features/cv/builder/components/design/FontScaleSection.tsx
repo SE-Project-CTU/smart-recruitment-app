@@ -47,8 +47,8 @@ export const FontScaleSection: React.FC = () => {
         className="cursor-pointer py-1.5 [&_[data-slot=slider-range]]:h-full [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:w-full [&_[data-slot=slider-track]]:bg-border"
       />
       <div className="flex justify-between text-[10px] text-text-muted">
-        <span>50%</span>
-        <span>200%</span>
+        <span>Nhỏ</span>
+        <span>Lớn</span>
       </div>
     </div>
   );

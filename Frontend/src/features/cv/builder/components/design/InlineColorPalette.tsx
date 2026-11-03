@@ -1,7 +1,5 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
-import { Check } from "lucide-react";
+import React, { useRef, useEffect, useState } from "react";
 import {
-  THEME_COLORS,
   isValidHexColor,
   hexToHsv,
   hsvToHex,

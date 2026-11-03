@@ -34,8 +34,6 @@ export const ColorPickerSection: React.FC = () => {
       ? watchedPrimaryColors
       : ["#262626", "#EBECEE"];
 
-  const primaryColors = [rawColors[0] || "#262626", rawColors[1] || "#EBECEE"];
-
   // Dọn dẹp preview khi component unmount
   useEffect(() => {
     return () => {
@@ -104,7 +102,7 @@ export const ColorPickerSection: React.FC = () => {
 
       {/* Hàng các ô màu: Click để chọn ô màu cần chỉnh sửa */}
       <div className="mt-1 flex flex-wrap items-center gap-3">
-        {primaryColors.map((color, index) => {
+        {rawColors.map((color, index) => {
           const isEditing = editingColorIndex === index;
 
           return (
@@ -138,12 +136,12 @@ export const ColorPickerSection: React.FC = () => {
 
       {/* Bảng màu trực tiếp hiển thị bên dưới ô màu đang được chọn */}
       {editingColorIndex !== null &&
-        editingColorIndex < primaryColors.length && (
+        editingColorIndex < rawColors.length && (
           <div className="animate-in fade-in zoom-in-95 space-y-2.5 duration-150">
             {/* Bảng màu inline: Vùng chọn 2D + Thanh trượt Hue + Màu có sẵn */}
             <InlineColorPalette
               key={editingColorIndex}
-              color={primaryColors[editingColorIndex]}
+              color={rawColors[editingColorIndex]}
               onDragColor={handleDragColor}
               onCommitColor={handleCommitColor}
             />
