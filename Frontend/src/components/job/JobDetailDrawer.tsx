@@ -10,6 +10,7 @@ import {
   BookmarkCheck,
   Share2,
   Zap,
+  ExternalLink,
 } from "lucide-react";
 import {
   Sheet,
@@ -171,6 +172,31 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                   </span>
                   {data.isCompanyVerified && (
                     <CheckCircle2 className="size-3.5 text-status-success" />
+                  )}
+                  {data.companyId && (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onClose();
+                              navigate(
+                                PATHS.COMPANY_DETAIL.replace(
+                                  ":id",
+                                  data.companyId!,
+                                ),
+                              );
+                            }}
+                            className="inline-flex size-5 cursor-pointer items-center justify-center rounded text-text-muted transition-colors hover:text-primary"
+                            aria-label="Xem trang công ty"
+                          >
+                            <ExternalLink className="size-3.5" />
+                          </button>
+                        }
+                      />
+                      <TooltipPanel>Xem trang công ty</TooltipPanel>
+                    </Tooltip>
                   )}
                 </div>
               </div>

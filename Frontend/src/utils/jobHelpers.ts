@@ -366,6 +366,7 @@ export function formatSalaryCompact(
 export function extractJobDisplayData(job: AnyJob) {
   if (!job) {
     return {
+      companyId: null as string | null,
       companyName: "Doanh nghiệp tuyển dụng",
       companyLogoUrl: null as string | null,
       isCompanyVerified: false,
@@ -396,6 +397,16 @@ export function extractJobDisplayData(job: AnyJob) {
       benefits: null as string | null,
     };
   }
+
+  const companyId =
+    (job.company &&
+    "id" in job.company &&
+    typeof (job.company as { id?: unknown }).id === "string"
+      ? (job.company as { id: string }).id
+      : null) ||
+    ("companyId" in job && typeof job.companyId === "string"
+      ? job.companyId
+      : null);
 
   const companyName =
     job.company?.name ||
@@ -514,6 +525,7 @@ export function extractJobDisplayData(job: AnyJob) {
     "benefits" in job && typeof job.benefits === "string" ? job.benefits : null;
 
   return {
+    companyId,
     companyName,
     companyLogoUrl,
     isCompanyVerified,
