@@ -1131,6 +1131,65 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.ToTable("notifications", (string)null);
                 });
 
+            modelBuilder.Entity("SmartHire.Domain.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("module");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_permissions");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_permissions_code");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_permissions_is_active");
+
+                    b.HasIndex("Module")
+                        .HasDatabaseName("ix_permissions_module");
+
+                    b.ToTable("permissions", (string)null);
+                });
+
             modelBuilder.Entity("SmartHire.Domain.Entities.Province", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1229,6 +1288,29 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_roles_name");
 
                     b.ToTable("roles", (string)null);
+                });
+
+            modelBuilder.Entity("SmartHire.Domain.Entities.RolePermission", b =>
+                {
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("permission_id");
+
+                    b.Property<DateTimeOffset>("AssignedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("assigned_at");
+
+                    b.HasKey("RoleId", "PermissionId")
+                        .HasName("pk_role_permissions");
+
+                    b.HasIndex("PermissionId")
+                        .HasDatabaseName("ix_role_permissions_permission_id");
+
+                    b.ToTable("role_permissions", (string)null);
                 });
 
             modelBuilder.Entity("SmartHire.Domain.Entities.Skill", b =>
@@ -1820,6 +1902,27 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SmartHire.Domain.Entities.RolePermission", b =>
+                {
+                    b.HasOne("SmartHire.Domain.Entities.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_role_permissions_permissions_permission_id");
+
+                    b.HasOne("SmartHire.Domain.Entities.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_role_permissions_roles_role_id");
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("SmartHire.Domain.Entities.User", b =>
                 {
                     b.HasOne("SmartHire.Domain.Entities.MediaFile", "AvatarFile")
@@ -1950,6 +2053,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.Navigation("UploadedCvApplication");
                 });
 
+            modelBuilder.Entity("SmartHire.Domain.Entities.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
             modelBuilder.Entity("SmartHire.Domain.Entities.Province", b =>
                 {
                     b.Navigation("JobPostings");
@@ -1959,6 +2067,8 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("SmartHire.Domain.Entities.Role", b =>
                 {
+                    b.Navigation("RolePermissions");
+
                     b.Navigation("UserRoles");
                 });
 

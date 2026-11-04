@@ -1,8 +1,9 @@
-﻿namespace SmartHire.Domain.Enums;
+namespace SmartHire.Domain.Enums;
 
 public enum JobPostingStatus {
     PendingReview,
     Published,
     Closed,
-    Expired
+    Expired,
+    Rejected
 }
