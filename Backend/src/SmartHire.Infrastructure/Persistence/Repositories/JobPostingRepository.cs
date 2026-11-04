@@ -6,6 +6,7 @@ using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Abstractions.Persistence.Criteria;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
+using SmartHire.Application.Features.Admin.JobPostings.DTOs;
 using JobPostingDetailData = SmartHire.Application.Abstractions.Persistence.ReadModels.JobPostingDetailData;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -259,6 +260,68 @@ public sealed class JobPostingRepository : IJobPostingRepository {
         return (items, totalCount);
     }
     
+    public async Task<(IReadOnlyList<AdminJobPostingItemDto> Items, int TotalCount)> GetAdminJobPostingsPagedAsync(
+        string? search,
+        JobPostingStatus? status,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.JobPostings.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmed = search.Trim();
+            query = query.Where(j => EF.Functions.ILike(j.Title, "%" + trimmed + "%") || EF.Functions.ILike(j.Company.Name, "%" + trimmed + "%"));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(j => j.Status == status.Value);
+        }
+
+        if (companyId.HasValue)
+        {
+            query = query.Where(j => j.CompanyId == companyId.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(j => j.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(j => new AdminJobPostingItemDto(
+                j.Id,
+                j.CompanyId,
+                j.Company.Name,
+                j.Company.LogoFile != null ? j.Company.LogoFile.FileUrl : null,
+                j.CreatedBy,
+                j.Title,
+                j.Status.ToString().ToUpperInvariant(),
+                j.Province.Name,
+                j.Ward != null ? j.Ward.Name : null,
+                j.Vacancies,
+                j.SalaryMin,
+                j.SalaryMax,
+                j.SalaryNegotiable,
+                j.Deadline,
+                j.CreatedAt,
+                j.UpdatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public Task<JobPosting?> GetForModerationByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.JobPostings
+            .Include(j => j.Company)
+            .SingleOrDefaultAsync(j => j.Id == id, cancellationToken);
+    }
+
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         JobPostingSortField sort,
