@@ -858,6 +858,10 @@
           <option value="marketing_en">📈 Marketing (Performance Lead - 100% English)</option>
           <option value="education_vi">🎓 Sư phạm (Trưởng bộ môn Đào tạo - Tiếng Việt)</option>
           <option value="automotive_en">🚗 Kỹ thuật Ô tô (Automotive / EV - 100% English)</option>
+          <option value="accounting_vi">📊 Kế toán & Tài chính (Kế toán trưởng - Tiếng Việt)</option>
+          <option value="logistics_vi">📦 Logistics & Chuỗi cung ứng (XNK / WMS - Tiếng Việt)</option>
+          <option value="hr_vi">👥 Quản trị Nhân sự (HR Generalist / C&B - Tiếng Việt)</option>
+          <option value="fuzzy_semantic_test">🧪 Test Đa ngành (FuzzySharp + pgvector Semantic)</option>
         </select>
       </div>
 
@@ -998,9 +1002,13 @@
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; overflow-x: auto;">
           <span style="font-size: 11.5px; font-weight: 700; color: #fff; white-space: nowrap;">📂 Chọn Hồ sơ & JD:</span>
           <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('it_vi')" id="btnPresetIt" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0; border-color: var(--primary);">💻 1. IT</button>
-          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('marketing_en')" id="btnPresetMarketing" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">📈 2. Marketing (EN)</button>
-          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('education_vi')" id="btnPresetEdu" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">🎓 3. Sư phạm (VN)</button>
-          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('automotive_en')" id="btnPresetAuto" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">🚗 4. Ô tô / EV (EN)</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('marketing_en')" id="btnPresetMarketing" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">📈 2. Marketing</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('education_vi')" id="btnPresetEdu" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">🎓 3. Sư phạm</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('automotive_en')" id="btnPresetAuto" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">🚗 4. Ô tô / EV</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('accounting_vi')" id="btnPresetAcc" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">📊 5. Kế toán</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('logistics_vi')" id="btnPresetLog" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">📦 6. Logistics</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('hr_vi')" id="btnPresetHr" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">👥 7. Nhân sự</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('fuzzy_semantic_test')" id="btnPresetFuzzy" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0; color: #a7f3d0; border-color: #10b981;">🧪 8. Test Fuzzy & pgvector</button>
         </div>
         <div style="font-size: 11px; color: var(--accent-cyan); font-weight: 700; white-space: nowrap; margin-left: 8px;" id="presetLangIndicator">Ngôn ngữ: Tiếng Việt 🇻🇳</div>
       </div>
@@ -1208,9 +1216,9 @@
         <div class="drawer-content" id="drawerTabContentMatch" style="display: none;">
           <!-- Score Gauge -->
           <div class="match-gauge-box">
-            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 2px;">ĐIỂM TƯƠNG THÍCH HIỆN TẠI VỚI JD (COHERE RERANK V3.5)</div>
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 2px;">ĐIỂM TƯƠNG THÍCH HIỆN TẠI VỚI JD (IN-HOUSE MATCH ENGINE: FUZZY + PGVECTOR)</div>
             <div class="gauge-score" id="matchGaugeScore">--%</div>
-            <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;" id="matchSummaryText">Hồ sơ sẵn sàng. Chọn [Đối chiếu theo JD này] hoặc bấm [Chạy phân tích Cohere Rerank + Gemini] để bắt đầu.</div>
+            <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;" id="matchSummaryText">Hồ sơ sẵn sàng. Chọn [Đối chiếu theo JD này] hoặc bấm [Chạy phân tích In-House Match Engine + Gemini] để bắt đầu.</div>
 
             <!-- Before vs After Score Comparison Box -->
             <div class="score-comparison-row">
@@ -1241,7 +1249,7 @@
               </div>
             </div>
             <button class="btn btn-primary" onclick="runRealTimeMatchAnalysis()">
-              🚀 Chạy phân tích Cohere Rerank + Gemini
+              🚀 Chạy phân tích In-House Match Engine + Gemini
             </button>
           </div>
 
@@ -1270,29 +1278,72 @@
         <!-- TAB 4: SMART RECOMMENDATIONS                              -->
         <!-- ======================================================== -->
         <div class="drawer-content" id="drawerTabContentRecs" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 11.5px; color: var(--text-sub);">Min Score:</span>
-              <select class="form-select" id="recMinScore" style="padding: 3px 6px; font-size: 11px;" onchange="fetchRecommendations()">
-                <option value="0" selected>Tất cả việc làm</option>
-                <option value="30">≥ 30% Match</option>
-                <option value="50">≥ 50% Match</option>
-                <option value="70">≥ 70% Match</option>
-              </select>
+          <!-- Filter Toolbar Đa ngành & Đa cấp bậc (~50 việc/ngành) -->
+          <div style="background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <div>
+                <label style="font-size: 10.5px; color: var(--text-sub); display: block; margin-bottom: 2px;">🏢 Ngành nghề:</label>
+                <select class="form-select" id="recFilterIndustry" style="padding: 4px 6px; font-size: 11px;" onchange="applyRecommendationFilters(1)">
+                  <option value="ALL" selected>Tất cả ngành nghề</option>
+                  <option value="IT">💻 CNTT & Phần mềm</option>
+                  <option value="MKT">📢 Marketing & Truyền thông</option>
+                  <option value="ACC">📊 Kế toán & Tài chính</option>
+                  <option value="LOG">🚢 Logistics & Chuỗi cung ứng</option>
+                  <option value="HR">👥 Quản trị Nhân sự & HC</option>
+                  <option value="EDU">🎓 Giáo dục & Sư phạm</option>
+                  <option value="DES">🎨 Thiết kế & Sáng tạo</option>
+                  <option value="MED">🩺 Y tế & Dược phẩm</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 10.5px; color: var(--text-sub); display: block; margin-bottom: 2px;">🎖️ Cấp bậc:</label>
+                <select class="form-select" id="recFilterLevel" style="padding: 4px 6px; font-size: 11px;" onchange="applyRecommendationFilters(1)">
+                  <option value="ALL" selected>Tất cả cấp bậc</option>
+                  <option value="Intern">Thực tập sinh (Intern)</option>
+                  <option value="Fresher">Fresher (Mới ra trường)</option>
+                  <option value="Junior">Junior (1-2 năm)</option>
+                  <option value="Middle">Middle (3-4 năm)</option>
+                  <option value="Senior">Senior (5+ năm)</option>
+                  <option value="Lead">Trưởng nhóm (Lead / TeamLead)</option>
+                  <option value="Manager">Quản lý / Trưởng phòng</option>
+                </select>
+              </div>
             </div>
-            <div style="display: flex; gap: 6px;">
-              <button class="btn btn-primary btn-sm" onclick="fetchRecommendations()">
-                🔍 Lấy gợi ý
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="triggerRefreshRecommendations()">
-                🔄 Làm mới
-              </button>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 10.5px; color: var(--text-sub);">Min Score:</span>
+                <select class="form-select" id="recMinScore" style="padding: 3px 6px; font-size: 11px;" onchange="applyRecommendationFilters(1)">
+                  <option value="0" selected>Tất cả điểm</option>
+                  <option value="30">≥ 30% Match</option>
+                  <option value="50">≥ 50% Match</option>
+                  <option value="70">≥ 70% Match</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 4px;">
+                <button class="btn btn-primary btn-sm" onclick="fetchRecommendations()">
+                  🔍 Lấy gợi ý
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="triggerRefreshRecommendations()">
+                  🔄 Làm mới
+                </button>
+              </div>
             </div>
           </div>
 
+          <!-- Pagination Status Header -->
+          <div id="recPaginationHeader" style="display: flex; justify-content: space-between; align-items: center; padding: 2px 2px; font-size: 11px; color: var(--text-sub);">
+            <span id="recCounterText">Đang tải việc làm gợi ý...</span>
+            <div id="recPaginationButtonsTop" style="display: flex; gap: 4px;"></div>
+          </div>
+
+          <!-- Job Cards List (Chính xác 20 việc / trang) -->
           <div id="recommendationsList" style="display: flex; flex-direction: column; gap: 8px;">
             <!-- Content -->
           </div>
+
+          <!-- Pagination Controls Bottom -->
+          <div id="recPaginationFooter" style="display: flex; justify-content: center; align-items: center; gap: 6px; padding: 8px 0;"></div>
         </div>
 
         <!-- ======================================================== -->
@@ -1522,6 +1573,114 @@
           salary: "Salary: 35,000,000 – 55,000,000 VNĐ",
           requirements: "Automotive Systems Diagnostics, CAN Bus, OBD-II Protocols, Electric Vehicle (EV) Powertrain, Battery Management System (BMS), MATLAB/Simulink, ISO 26262"
         }
+      },
+      accounting_vi: {
+        label: "Kế toán & Tài chính (Kế toán trưởng)",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "NGUYỄN THỊ THU HÀ",
+        targetRole: "Kế toán viên Tổng hợp / Chuyên viên Kế toán Thuế",
+        contact: "<span>📧 thuha.nguyen@finance.vn</span><span>📱 (+84) 918 234 567</span><span>📍 Quận 3, TP. Hồ Chí Minh</span><span>🔗 linkedin.com/in/thuha-cpa</span>",
+        objective: "Cử nhân Kế toán - Kiểm toán với 4 năm kinh nghiệm kế toán tổng hợp, kê khai thuế và lập báo cáo tài chính doanh nghiệp, mong muốn ứng tuyển vị trí Kế toán trưởng nhằm chuẩn hóa hệ thống chứng từ, áp dụng chuẩn mực IFRS và tối ưu hóa chi phí vận hành cho tập đoàn.",
+        expRoleCompany: "Kế toán Tổng hợp — Công ty CP Tập đoàn Thương mại Á Châu",
+        expPeriod: "2021 – Hiện tại",
+        experience: "- Trực tiếp lập và hoàn thiện hệ thống Báo cáo tài chính năm, Báo cáo lưu chuyển tiền tệ và Thuyết minh BCTC theo chuẩn mực VAS.\n- Thực hiện kê khai, quyết toán thuế TNDN, thuế GTGT, thuế TNCN và giải trình số liệu trực tiếp với cơ quan thuế.\n- Quản lý và hạch toán dòng tiền, theo dõi công nợ khách hàng và nhà cung cấp trên phần mềm MISA SME và Fast Accounting.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Chuyên môn Kế toán:</strong> <span class="cv-tag">Báo cáo tài chính</span> <span class="cv-tag">Kế toán thuế</span> <span class="cv-tag">Quyết toán thuế</span> <span class="cv-tag">Kế toán tổng hợp</span> <span class="cv-tag">Kiểm toán nội bộ</span> <span class="cv-tag">VAS / IFRS</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Phần mềm & Công cụ:</strong> <span class="cv-tag">MISA</span> <span class="cv-tag">Fast Accounting</span> <span class="cv-tag">SAP ERP cơ bản</span> <span class="cv-tag">Excel nâng cao (VLOOKUP, PivotTable)</span></div>`,
+        projName: "Quyết toán Thuế Doanh nghiệp Niên độ 2023",
+        projPeriod: "2023 – 2024",
+        project: "Rà soát toàn bộ hệ thống hóa đơn điện tử, đối chiếu 12.000 chứng từ kế toán phát sinh và giải trình thành công trước đoàn thanh tra thuế, giúp doanh nghiệp tiết kiệm 250 triệu VNĐ tiền phạt chậm nộp.",
+        awards: "Chứng chỉ Kế toán viên Hành nghề (CPA Việt Nam) năm 2023.",
+        initialScore: 32,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000005",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571ee",
+          title: "Kế toán trưởng / Trưởng phòng Tài chính Kế toán",
+          company: "Tập đoàn Đầu tư & Bán lẻ Quốc tế • Quận 1, TP. HCM",
+          salary: "Mức lương: 25,000,000 – 40,000,000 VNĐ",
+          requirements: "Kế toán tổng hợp, Báo cáo tài chính, Kế toán thuế, Quyết toán thuế, Chuẩn mực VAS & IFRS, Phần mềm MISA / SAP ERP, Phân tích tài chính, Excel nâng cao"
+        }
+      },
+      logistics_vi: {
+        label: "Logistics & Chuỗi cung ứng (XNK / WMS)",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "LÊ HOÀNG NAM",
+        targetRole: "Chuyên viên Xuất Nhập Khẩu & Thủ tục Hải quan",
+        contact: "<span>📧 hoangnam.logistics@vanship.com</span><span>📱 (+84) 938 777 666</span><span>📍 Hải Phòng / Hà Nội</span><span>🔗 linkedin.com/in/nam-supplychain</span>",
+        objective: "Chuyên viên Xuất Nhập Khẩu với hơn 3 năm kinh nghiệm làm việc trong lĩnh vực giao nhận vận tải quốc tế (Freight Forwarding), thành thạo mở tờ khai hải quan điện tử VNACCS và xử lý chứng từ vận tải, mong muốn ứng tuyển vị trí Trưởng nhóm Quản trị Chuỗi cung ứng & Logistics.",
+        expRoleCompany: "Chuyên viên Chứng từ & Khai báo Hải quan — Tân Cảng Logistics",
+        expPeriod: "2022 – Hiện tại",
+        experience: "- Khai báo tờ khai hải quan điện tử trên hệ thống phần mềm ECUS/VNACCS cho các lô hàng FCL/LCL nhập khẩu và xuất khẩu.\n- Soạn thảo và kiểm tra bộ chứng từ thanh toán quốc tế: Hợp đồng ngoại thương, Hóa đơn thương mại (Commercial Invoice), Phiếu đóng gói (Packing List), Vận đơn đường biển (B/L), C/O form D, E, AK.\n- Làm việc trực tiếp với các hãng tàu, đại lý vận tải (forwarder) và kho bãi để theo dõi tiến độ giao nhận hàng hóa theo điều kiện Incoterms 2020.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Nghiệp vụ Logistics:</strong> <span class="cv-tag">Xuất nhập khẩu</span> <span class="cv-tag">Thủ tục hải quan</span> <span class="cv-tag">Incoterms 2020</span> <span class="cv-tag">Vận tải quốc tế</span> <span class="cv-tag">Quản lý kho (WMS)</span> <span class="cv-tag">Chuỗi cung ứng</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Chứng từ & Hệ thống:</strong> <span class="cv-tag">ECUS / VNACCS</span> <span class="cv-tag">Vận đơn B/L</span> <span class="cv-tag">Chứng nhận xuất xứ (C/O)</span> <span class="cv-tag">Thanh toán L/C</span> <span class="cv-tag">Tiếng Anh thương mại</span></div>`,
+        projName: "Quy trình Tối ưu hóa Luồng Hàng Hóa Cảng Cát Lái",
+        projPeriod: "2023 – 2024",
+        project: "Chuẩn hóa quy trình thông quan hàng nhập khẩu nguyên container, cắt giảm thời gian lưu kho bãi từ 3.5 ngày xuống còn 1.8 ngày, giải phóng hơn 500 TEU hàng hóa đúng lịch trình cam kết.",
+        awards: "Top 3 Nhân sự Xuất sắc phòng Vận hành Logistics Tân Cảng năm 2023.",
+        initialScore: 30,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000006",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571ef",
+          title: "Chuyên viên Quản trị Chuỗi cung ứng & Xuất Nhập Khẩu",
+          company: "VinFast Supply Chain Division • Hải Phòng / Hà Nội",
+          salary: "Mức lương: 18,000,000 – 28,000,000 VNĐ",
+          requirements: "Xuất nhập khẩu, Thủ tục hải quan, Incoterms 2020, Vận tải quốc tế, Quản lý kho bãi, Quản trị chuỗi cung ứng, Mua hàng Procurement"
+        }
+      },
+      hr_vi: {
+        label: "Quản trị Nhân sự (HR Generalist / C&B)",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "PHẠM BÍCH NGỌC",
+        targetRole: "Chuyên viên Tuyển dụng & Tiền lương (HR Generalist)",
+        contact: "<span>📧 bichngoc.hr@talent.vn</span><span>📱 (+84) 977 111 222</span><span>📍 Cầu Giấy, Hà Nội</span><span>🔗 linkedin.com/in/bichngoc-hr</span>",
+        objective: "Chuyên viên Nhân sự tổng hợp với 3 năm kinh nghiệm trong công tác tuyển dụng nhân tài (Talent Acquisition) và vận hành chế độ phúc lợi tiền lương (C&B), nắm vững Bộ luật Lao động và phần mềm nhân sự, tìm kiếm cơ hội Trưởng nhóm Nhân sự để xây dựng văn hóa doanh nghiệp gắn kết.",
+        expRoleCompany: "Chuyên viên Nhân sự Tổng hợp — Golden Gate Group",
+        expPeriod: "2022 – Hiện tại",
+        experience: "- Phụ trách toàn bộ quy trình tuyển dụng từ tiếp nhận nhu cầu, đăng tin, sàng lọc hồ sơ đến phỏng vấn cho quy mô 300+ nhân sự.\n- Thực hiện tính bảng lương hàng tháng, trích nộp bảo hiểm xã hội (BHXH), thuế TNCN và giải quyết chế độ ốm đau, thai sản đúng hạn.\n- Xây dựng hệ thống tiêu chí đánh giá hiệu quả công việc theo KPI và tổ chức các chương trình đào tạo hội nhập cho nhân viên mới.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Nghiệp vụ Nhân sự:</strong> <span class="cv-tag">Tuyển dụng (Talent Acquisition)</span> <span class="cv-tag">C&B (Tiền lương & Phúc lợi)</span> <span class="cv-tag">Luật lao động</span> <span class="cv-tag">Bảo hiểm xã hội</span> <span class="cv-tag">Đánh giá KPI</span> <span class="cv-tag">Đào tạo nội bộ (L&D)</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Kỹ năng & Phần mềm:</strong> <span class="cv-tag">Phần mềm HRIS</span> <span class="cv-tag">Hành chính văn phòng</span> <span class="cv-tag">Giao tiếp & Đàm phán</span> <span class="cv-tag">Excel nhân sự</span></div>`,
+        projName: "Số hóa Quy trình Onboarding & Tính lương Tự động",
+        projPeriod: "2024",
+        project: "Triển khai phần mềm nhân sự Base HRM, tự động hóa tính lương và điểm danh vân tay cho 35 chi nhánh nhà hàng, rút ngắn 65% thời gian chốt bảng lương cuối tháng.",
+        awards: "Giải thưởng Nhân viên Nhân sự Đổi mới Sáng tạo xuất sắc năm 2024.",
+        initialScore: 35,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000007",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571eg",
+          title: "Trưởng nhóm Tuyển dụng & Quản trị Nhân sự (HR Lead)",
+          company: "Sun Life Financial • Ba Đình, Hà Nội",
+          salary: "Mức lương: 20,000,000 – 32,000,000 VNĐ",
+          requirements: "Tuyển dụng, C&B, Tiền lương và phúc lợi, Luật lao động, Bảo hiểm xã hội, Đào tạo nội bộ, Đánh giá hiệu quả công việc KPI"
+        }
+      },
+      fuzzy_semantic_test: {
+        label: "🧪 Test So Khớp: FuzzySharp + pgvector Semantic",
+        langName: "Đa ngành: Test So Khớp Mờ & Ngữ Nghĩa 🧬",
+        language: "vi",
+        name: "VÕ HOÀNG VŨ (TEST FUZZY & SEMANTIC)",
+        targetRole: "Kỹ sư Tối ưu hóa Dữ liệu & Trải nghiệm Khách hàng",
+        contact: "<span>📧 hoangvu.test@domain.com</span><span>📱 (+84) 999 888 777</span><span>📍 Toàn quốc (Remote / Hybrid)</span><span>🔗 github.com/test-fuzzy</span>",
+        objective: "Hồ sơ chuyên dụng để kiểm thử khả năng phát hiện lỗi gõ chính tả (FuzzySharp), từ đồng nghĩa đa ngành (SkillNormalizationMap) và khả năng bù điểm ngữ nghĩa sâu (pgvector Cosine Similarity) khi ứng viên dùng văn phong tương đương.",
+        expRoleCompany: "Chuyên viên Vận hành Hệ thống & Tối ưu Trải nghiệm — Tech & Retail Group",
+        expPeriod: "2021 – Hiện tại",
+        experience: "- Thiết kế các quy trình tối ưu hóa hành trình khách hàng (tương đương với Thiết kế trải nghiệm người dùng / UX Design).\n- Trực tiếp quản trị cơ sở dữ liệu quan hệ postgre sql và triển khai cụm dịch vụ trên nền tảng k8s.\n- Thực hiện công tác kế toán tổng hợp nội bộ và kiểm tra thủ tục giao nhận hàng hóa theo chuẩn incoterm quốc tế.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Kỹ năng gõ lỗi chính tả & biến thể (Test FuzzySharp):</strong> <span class="cv-tag">postgre sql</span> <span class="cv-tag">react.js</span> <span class="cv-tag">incoterm</span> <span class="cv-tag">photoshp</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Từ đồng nghĩa & Ngữ nghĩa sâu (Test pgvector & Map):</strong> <span class="cv-tag">k8s</span> <span class="cv-tag">tối ưu hóa hành trình khách hàng</span> <span class="cv-tag">báo cáo tài chính</span> <span class="cv-tag">đàm phán thương lượng</span></div>`,
+        projName: "Dự án Thử nghiệm So khớp Ngữ nghĩa Đa ngành",
+        projPeriod: "2024",
+        project: "Xây dựng hệ thống kiểm thử tự động so khớp giữa các từ khóa lệch ký tự (postgre sql vs postgresql, react.js vs react) và từ khóa văn xuôi tương đương (Customer Journey vs UI/UX Design).",
+        awards: "Giải thưởng Sáng tạo Thuật toán So khớp Thông minh 2024.",
+        initialScore: 40,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000008",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571eh",
+          title: "Chuyên viên Công nghệ & Trải nghiệm Đa ngành (Full Spectrum)",
+          company: "SmartHire Technology & Innovation Labs • Toàn quốc / Remote",
+          salary: "Mức lương: 30,000,000 – 50,000,000 VNĐ",
+          requirements: "PostgreSQL, React, Kubernetes, Incoterms 2020, Thiết kế trải nghiệm người dùng, Kế toán tổng hợp, Đàm phán"
+        }
       }
     };
 
@@ -1540,10 +1699,19 @@
       const btnMkt = document.getElementById('btnPresetMarketing');
       const btnEdu = document.getElementById('btnPresetEdu');
       const btnAuto = document.getElementById('btnPresetAuto');
+      const btnAcc = document.getElementById('btnPresetAcc');
+      const btnLog = document.getElementById('btnPresetLog');
+      const btnHr = document.getElementById('btnPresetHr');
+      const btnFuzzy = document.getElementById('btnPresetFuzzy');
+
       if (btnIt) btnIt.style.borderColor = presetKey === 'it_vi' ? 'var(--primary)' : 'var(--border)';
       if (btnMkt) btnMkt.style.borderColor = presetKey === 'marketing_en' ? 'var(--primary)' : 'var(--border)';
       if (btnEdu) btnEdu.style.borderColor = presetKey === 'education_vi' ? 'var(--primary)' : 'var(--border)';
       if (btnAuto) btnAuto.style.borderColor = presetKey === 'automotive_en' ? 'var(--primary)' : 'var(--border)';
+      if (btnAcc) btnAcc.style.borderColor = presetKey === 'accounting_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnLog) btnLog.style.borderColor = presetKey === 'logistics_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnHr) btnHr.style.borderColor = presetKey === 'hr_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnFuzzy) btnFuzzy.style.borderColor = presetKey === 'fuzzy_semantic_test' ? 'var(--accent-emerald)' : 'var(--border)';
 
       const langInd = document.getElementById('presetLangIndicator');
       if (langInd) langInd.innerText = preset.langName;
@@ -1678,7 +1846,6 @@
     window.addEventListener('DOMContentLoaded', async () => {
       renderCvSectionCards();
       updateJobTailoringAnalysis();
-      fetchRecommendations();
 
       // Tự động quét lại khi người dùng gõ trực tiếp trên CV Canvas (bao gồm cả Kỹ năng)
       ['cvBlockObjective', 'cvBlockExperience', 'cvBlockProject', 'cvBlockAwards', 'cvBlockSkills'].forEach(id => {
@@ -1691,14 +1858,15 @@
         }
       });
 
-      if (token) {
-        updateUserBadge('Token đã lưu sẵn');
+      if (!token) {
+        await quickLogin('candidate', true);
+      } else {
+        updateUserBadge('Ứng viên: Mai Anh (Token sẵn)');
         document.getElementById('cfgToken').value = token;
         await loadConversationsList();
-      } else {
-        await quickLogin('candidate', true);
       }
       pingBackendHealth();
+      await fetchRecommendations();
     });
 
     // Render Cards in Tab 1 based on actual CV sections (4 sections, no Skills)
@@ -1816,46 +1984,109 @@
     }
 
     // ========================================================
-    // PHÂN TÍCH KỸ NĂNG: CHỈ QUÉT TRONG PHẠM VI SECTION SKILLS (#cvBlockSkills)
-    // TUYỆT ĐỐI KHÔNG QUÉT TOÀN BỘ CV - ĐỒNG BỘ CẢ TAB 1 VÀ TAB 2
+    // BỘ BÓC TÁCH & CHUẨN HÓA KỸ NĂNG ĐA NGÀNH (MULTI-INDUSTRY SKILL EXTRACTOR)
+    // Tự động loại bỏ tiền tố mô tả, ranh giới câu, và meta-requirements
+    // ========================================================
+    function extractSkillsClean(rawText) {
+      if (!rawText) return [];
+      // 1. Tách theo ranh giới câu và các ký tự phân cách đa dòng
+      const rawParts = rawText.split(/[\n\r;•|]+|(?<=\w)\.\s+/);
+      const items = [];
+
+      rawParts.forEach(part => {
+        // Tách tiếp theo dấu phẩy
+        const commaParts = part.split(',');
+        commaParts.forEach(sub => {
+          let cleaned = sub.trim().replace(/^[-•*+]\s*/, '');
+          // Loại bỏ tiền tố nhãn mô tả như "Yêu cầu chuyên môn:", "Kỹ năng chuyên môn:", v.v.
+          cleaned = cleaned.replace(/^(yêu cầu chuyên môn|kỹ năng chuyên môn|yêu cầu kỹ năng|yêu cầu công việc|yêu cầu|kỹ năng|chuyên môn|skills|requirements)\s*:\s*/i, '').trim();
+          // Loại bỏ dấu chấm thừa ở cuối
+          cleaned = cleaned.replace(/\.+$/, '').trim();
+
+          const lower = cleaned.toLowerCase();
+          // Siêu dữ liệu / Yêu cầu cấp bậc / Tiêu chí phẩm chất (Không phải kỹ năng chuyên môn)
+          const isMetaSentence = lower.includes('kinh nghiệm') ||
+                                 lower.includes('cấp bậc') ||
+                                 lower.includes('trách nhiệm') ||
+                                 lower.includes('tư duy') ||
+                                 lower.includes('giao tiếp') ||
+                                 lower.includes('tốt nghiệp') ||
+                                 lower.includes('cẩn thận') ||
+                                 lower.includes('trung thực') ||
+                                 lower.includes('áp lực');
+          const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
+
+          // Kỹ năng chuyên môn trong mọi ngành là cụm danh từ ngắn (<= 5 từ)
+          if (cleaned.length >= 2 && cleaned.length <= 45 && !isMetaSentence && wordCount <= 5) {
+            items.push(cleaned);
+          }
+        });
+      });
+
+      return [...new Set(items)];
+    }
+
+    // ========================================================
+    // PHÂN TÍCH KỸ NĂNG: ĐỐI SOÁT CHÍNH XÁC SECTION SKILLS & BẮT KỸ NĂNG ẨN TRONG EXP / PROJECTS
     // ========================================================
     function analyzeSkillsSectionAgainstJob() {
       const skillsEl = document.getElementById('cvBlockSkills');
       const currentSkillsRaw = skillsEl ? skillsEl.innerText.trim() : '';
       const skillsLower = currentSkillsRaw.toLowerCase();
 
+      // Quét ngữ cảnh toàn bộ các section khác (Experience, Projects, Objective)
+      const expEl = document.getElementById('cvBlockExperience');
+      const projEl = document.getElementById('cvBlockProject');
+      const objEl = document.getElementById('cvBlockObjective');
+      const otherSectionsText = [
+        expEl ? expEl.innerText : '',
+        projEl ? projEl.innerText : '',
+        objEl ? objEl.innerText : ''
+      ].join(' ').toLowerCase();
+
       const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
       const targetJob = activePreset.targetJob;
       const reqText = targetJob.requirements || '';
 
-      const reqItems = reqText.split(/[,;•\n]+/)
-        .map(s => s.trim())
-        .filter(s => s.length > 1);
+      // Áp dụng bộ trích xuất chuẩn hóa đa ngành sạch sẽ
+      const reqItems = extractSkillsClean(reqText);
 
       const matchedSkills = [];
+      const detectedInContextSkills = [];
       const missingSkills = [];
 
       reqItems.forEach(req => {
         const reqClean = req.toLowerCase();
-        // QUY TẮC BẮT BUỘC: CHỈ quét trong phạm vi duy nhất của Section Skills (#cvBlockSkills)
-        let found = skillsLower.includes(reqClean);
+        let foundInSkills = skillsLower.includes(reqClean);
 
         // Hỗ trợ kiểm tra kỹ năng viết tắt trong ngoặc e.g. "Electric Vehicle (EV)" -> "ev"
-        if (!found && req.includes('(')) {
+        if (!foundInSkills && req.includes('(')) {
           const sub = req.match(/\(([^)]+)\)/);
           if (sub && sub[1] && sub[1].trim().length > 1) {
-            found = skillsLower.includes(sub[1].trim().toLowerCase());
+            foundInSkills = skillsLower.includes(sub[1].trim().toLowerCase());
           }
         }
         // Hỗ trợ kỹ năng có dấu gạch chéo e.g. "MATLAB/Simulink"
-        if (!found && req.includes('/')) {
-          found = req.split('/').some(part => part.trim().length > 1 && skillsLower.includes(part.trim().toLowerCase()));
+        if (!foundInSkills && req.includes('/')) {
+          foundInSkills = req.split('/').some(part => part.trim().length > 1 && skillsLower.includes(part.trim().toLowerCase()));
         }
 
-        if (found) {
+        if (foundInSkills) {
           matchedSkills.push(req);
         } else {
-          missingSkills.push(req);
+          // Kiểm tra xem kỹ năng này có xuất hiện trong Kinh nghiệm hoặc Dự án không
+          let foundInContext = otherSectionsText.includes(reqClean);
+          if (!foundInContext && req.includes('(')) {
+            const sub = req.match(/\(([^)]+)\)/);
+            if (sub && sub[1] && sub[1].trim().length > 1) {
+              foundInContext = otherSectionsText.includes(sub[1].trim().toLowerCase());
+            }
+          }
+          if (foundInContext) {
+            detectedInContextSkills.push(req);
+          } else {
+            missingSkills.push(req);
+          }
         }
       });
 
@@ -1864,16 +2095,36 @@
         targetJob,
         reqItems,
         matchedSkills,
+        detectedInContextSkills,
         missingSkills
       };
     }
 
-    // Cập nhật nội dung nhắc nhở kỹ năng theo Target Job và CV hiện tại (CHỈ quét Section Skills)
+    // 1-Click Promote: Tự động đưa kỹ năng tìm thấy từ Dự án / Kinh nghiệm vào Section Skills
+    function promoteSkillToSection(skillName) {
+      const skillsEl = document.getElementById('cvBlockSkills');
+      if (!skillsEl) return;
+
+      const tagHtml = `<span class="cv-tag highlight-tag">${skillName}</span> `;
+      const firstDiv = skillsEl.querySelector('div');
+      if (firstDiv) {
+        firstDiv.insertAdjacentHTML('beforeend', ' ' + tagHtml);
+      } else {
+        skillsEl.insertAdjacentHTML('beforeend', ' ' + tagHtml);
+      }
+
+      updateSkillsAdvisoryReminder(true);
+      showToast(`✨ Đã thêm kỹ năng "${skillName}" vào mục Kỹ năng trên CV!`);
+      // Kích hoạt tính điểm lại ngay
+      runRealTimeMatchAnalysis(false);
+    }
+
+    // Cập nhật nội dung nhắc nhở kỹ năng theo Target Job và CV hiện tại
     function updateSkillsAdvisoryReminder(userTriggered = false) {
       const reminderBox = document.getElementById('skillsReminderContent');
       if (!reminderBox) return;
 
-      const { currentSkillsRaw, targetJob, reqItems, matchedSkills, missingSkills } = analyzeSkillsSectionAgainstJob();
+      const { currentSkillsRaw, targetJob, reqItems, matchedSkills, detectedInContextSkills, missingSkills } = analyzeSkillsSectionAgainstJob();
 
       const srcSkills = document.getElementById('src-box-SKILLS');
       if (srcSkills) {
@@ -1901,13 +2152,33 @@
               </div>
             </div>
           ` : ''}
+
+          ${detectedInContextSkills.length > 0 ? `
+            <div style="margin-bottom: 8px; padding: 8px 10px; background: rgba(59, 130, 246, 0.12); border: 1px dashed rgba(96, 165, 250, 0.6); border-radius: 6px;">
+              <div style="color: #93c5fd; font-weight: 700; font-size: 11.5px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+                <span>💡 Kỹ năng tìm thấy trong Dự án / Kinh nghiệm (${detectedInContextSkills.length}):</span>
+                <span style="font-size: 10px; color: #bfdbfe;">(Bấm nút để đưa vào Skills)</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                ${detectedInContextSkills.map(s => `
+                  <button type="button" onclick="promoteSkillToSection('${s.replace(/'/g, "\\'")}')" style="background: rgba(30, 58, 138, 0.7); border: 1px solid #60a5fa; color: #ffffff; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='rgba(30, 58, 138, 0.7)'" title="Bấm để bổ sung ngay vào mục Kỹ năng trên CV">
+                    <span>➕</span> <strong>${s}</strong>
+                  </button>
+                `).join('')}
+              </div>
+              <div style="margin-top: 4px; font-size: 10.5px; color: #bfdbfe;">
+                ⚡ <em>Hệ thống phát hiện bạn đã dùng các kỹ năng này trong Dự án/Kinh nghiệm. Hãy bấm để thêm vào mục Kỹ năng giúp ATS tối ưu điểm tối đa!</em>
+              </div>
+            </div>
+          ` : ''}
+
           ${missingSkills.length > 0 ? `
             <div style="margin-bottom: 8px;">
-              <div style="color: #fbbf24; font-weight: 700; font-size: 11.5px; margin-bottom: 4px;">
-                ⚠️ Kỹ năng JD yêu cầu nhưng Section Skills còn thiếu (${missingSkills.length}/${reqItems.length}):
+              <div style="color: #fbbf25; font-weight: 700; font-size: 11.5px; margin-bottom: 4px;">
+                ⚠️ Kỹ năng JD yêu cầu nhưng hồ sơ chưa đề cập (${missingSkills.length}/${reqItems.length}):
               </div>
               <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                ${missingSkills.map(s => `<span class="cv-tag" style="border-color: rgba(245, 158, 11, 0.4); color: #fde68a; font-size: 11px; padding: 2px 7px;">⚠️ ${s}</span>`).join('')}
+                ${missingSkills.map(s => `<span class="cv-tag" style="border-color: rgba(245, 158, 11, 0.4); color: #000000; font-size: 11px; padding: 2px 7px;">⚠️ ${s}</span>`).join('')}
               </div>
             </div>
             <div style="margin-top: 8px; color: #a7f3d0; font-size: 11.5px; line-height: 1.5;">
@@ -2298,10 +2569,21 @@
       const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
       showToast(`🎯 Đang 1-Chạm tối ưu toàn diện CV theo vị trí "${activePreset.targetJob.title}"...`);
 
-      // 1. Tự động đồng bộ và nâng tầm Chức danh trên CV (Target Job)
+      // 1. Tự động đồng bộ và nâng tầm Chức danh trên CV (Bảo đảm tính trung thực về cấp bậc)
       const titleEl = document.getElementById('cvTitle');
       if (titleEl) {
-        titleEl.innerText = activePreset.targetJob.title;
+        const curTitle = titleEl.innerText.trim();
+        const targetTitle = activePreset.targetJob.title;
+        const curLower = curTitle.toLowerCase();
+        const targetLower = targetTitle.toLowerCase();
+        const isTargetManager = targetLower.includes('trưởng phòng') || targetLower.includes('manager') || targetLower.includes('director') || targetLower.includes('head');
+        const isCurFresher = curLower.includes('fresher') || curLower.includes('intern') || curLower.includes('thực tập') || curLower.includes('mới tốt nghiệp') || curLower.includes('junior');
+
+        if (isTargetManager && isCurFresher) {
+          titleEl.innerText = `${curTitle} (Định hướng: ${targetTitle})`;
+        } else {
+          titleEl.innerText = targetTitle;
+        }
         triggerBlockPulse(titleEl);
       }
 
@@ -2695,25 +2977,29 @@
       const cvText = extractFullCvTextFromCanvas();
       const cid = crypto.randomUUID();
       const start = performance.now();
-      showToast('🎯 Đang chấm điểm so khớp CV với JD qua Cohere & Gemini...');
+      showToast('🎯 Đang chấm điểm so khớp CV với JD qua In-House Match Engine & Gemini...');
+
+      if (!token) {
+        await quickLogin('candidate', true);
+      }
 
       const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
       const jobDesc = `Tiêu đề: ${activePreset.targetJob.title}\nCông ty: ${activePreset.targetJob.company}\nMức lương: ${activePreset.targetJob.salary}\nYêu cầu tuyển dụng: ${activePreset.targetJob.requirements}`;
 
       try {
         const payload = {
-          cvText: cvText
+          cvText: cvText,
+          jobText: jobDesc
         };
-        if (jobId && jobId.length === 36) {
+        // Chỉ gửi jobId khi là GUID thật trong DB và không phải mock ID
+        if (jobId && jobId.length === 36 && !jobId.startsWith('11111111-aaaa')) {
           payload.jobId = jobId;
-        } else {
-          payload.jobText = jobDesc;
         }
-        if (cvId && cvId.length === 36) {
+        if (cvId && cvId.length === 36 && !cvId.startsWith('de3bc2f1-1e10')) {
           payload.cvId = cvId;
         }
 
-        const res = await fetch(`${BASE_URL}/api/v1/ai/match-analysis`, {
+        let res = await fetch(`${BASE_URL}/api/v1/ai/match-analysis`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2722,6 +3008,22 @@
           },
           body: JSON.stringify(payload)
         });
+
+        // Tự động khôi phục nếu Token bị hết hạn hoặc không hợp lệ (401)
+        if (res.status === 401) {
+          logConsole('Token hết hạn (401), đang tự động đăng nhập lại...', 'WARN', 401);
+          await quickLogin('candidate', true);
+          res = await fetch(`${BASE_URL}/api/v1/ai/match-analysis`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Correlation-ID': crypto.randomUUID()
+            },
+            body: JSON.stringify(payload)
+          });
+        }
+
         const duration = Math.round(performance.now() - start);
         const json = await res.json();
 
@@ -2791,31 +3093,41 @@
           logConsole(`POST /match-analysis hoàn tất: ${score}%`, 'SUCCESS', 200, duration, cid);
           showToast(`🎯 Chấm điểm thành công: ${score}% (Dữ liệu thật)!`);
         } else {
-          showToast(`⚠️ Không thể chấm điểm: ${json.detail || 'Lỗi server'}`);
+          const errorMsg = json.error?.message || json.detail || json.message || `Lỗi server (${res.status})`;
+          showToast(`⚠️ Không thể chấm điểm: ${errorMsg}`);
+          logConsole(`Lỗi match-analysis (${res.status}): ${errorMsg}`, 'ERROR', res.status);
         }
       } catch (err) {
         logConsole(`Lỗi match-analysis: ${err.message}`, 'ERROR', 500);
+        showToast(`⚠️ Không thể chấm điểm: ${err.message}`);
       }
     }
 
     // ========================================================
-    // TAB: SMART RECOMMENDATIONS (ĐỒNG BỘ 100% COHERE RERANK V3.5)
+    // TAB: SMART RECOMMENDATIONS (ĐA NGÀNH, ĐA CẤP BẬC, PHÂN TRANG 20 ITEM/TRANG)
     // ========================================================
+    let allRecommendedJobs = [];
+    let filteredRecommendedJobs = [];
+    let recCurrentPage = 1;
+    const recPageSize = 20;
+
     async function fetchRecommendations() {
-      const minScoreVal = document.getElementById('recMinScore').value;
-      const numScore = parseFloat(minScoreVal) < 1 ? parseFloat(minScoreVal) * 100 : parseFloat(minScoreVal);
       const cid = crypto.randomUUID();
       const start = performance.now();
-      showToast('🔍 Đang tính toán việc làm gợi ý qua Cohere Rerank v3.5...');
+      showToast('🔍 Đang lấy và xếp hạng việc làm gợi ý qua In-House Match Engine...');
+
+      if (!token) {
+        await quickLogin('candidate', true);
+      }
 
       const cvText = extractFullCvTextFromCanvas();
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-        // Gọi Endpoint Real-time Rerank của Backend (Dùng chung 100% mô hình Cohere Rerank v3.5 với Tab Chấm điểm JD)
-        const res = await fetch(`${BASE_URL}/api/v1/ai/jobs/rerank`, {
+        // Gọi Endpoint Real-time Rerank của Backend (Dùng chung 100% mô hình In-House Match Engine với Tab Chấm điểm JD)
+        let res = await fetch(`${BASE_URL}/api/v1/ai/jobs/rerank`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2824,33 +3136,139 @@
           },
           body: JSON.stringify({
             cvText: cvText,
-            limit: 20
+            limit: 200
           }),
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+
+        if (res.status === 401) {
+          logConsole('Token hết hạn (401), đang tự động đăng nhập lại...', 'WARN', 401);
+          await quickLogin('candidate', true);
+          res = await fetch(`${BASE_URL}/api/v1/ai/jobs/rerank`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Correlation-ID': crypto.randomUUID()
+            },
+            body: JSON.stringify({
+              cvText: cvText,
+              limit: 200
+            })
+          });
+        }
 
         const duration = Math.round(performance.now() - start);
         const json = await res.json();
         const rawJobs = Array.isArray(json.data) ? json.data : (json.data?.items || []);
 
         if (res.ok && rawJobs.length > 0) {
-          const filteredJobs = numScore > 0 ? rawJobs.filter(j => j.score >= numScore) : rawJobs;
-          renderRecommendationsList(filteredJobs);
-          logConsole(`POST /jobs/rerank: Cohere Rerank đã chấm điểm ${rawJobs.length} việc làm (${duration}ms)`, 'SUCCESS', 200, duration, cid);
-          showToast(`✅ Đã cập nhật ${filteredJobs.length} việc làm gợi ý (Điểm thật Cohere Rerank v3.5)!`);
+          allRecommendedJobs = rawJobs;
+          applyRecommendationFilters(1);
+          logConsole(`POST /jobs/rerank: In-House Match Engine đã chấm điểm ${rawJobs.length} việc làm (${duration}ms)`, 'SUCCESS', 200, duration, cid);
+          showToast(`✅ Đã nạp ${rawJobs.length} việc làm! Hiển thị 20 việc/trang.`);
         } else {
           showToast(`⚠️ Chưa có dữ liệu việc làm từ server.`);
         }
       } catch (e) {
-        logConsole(`Lỗi khi xếp hạng việc làm qua Cohere: ${e.message}`, 'WARN', 500);
+        logConsole(`Lỗi khi xếp hạng việc làm: ${e.message}`, 'WARN', 500);
+        showToast(`⚠️ Không thể tải việc làm: ${e.message}`);
       }
+    }
+
+    function applyRecommendationFilters(targetPage = 1) {
+      const indEl = document.getElementById('recFilterIndustry');
+      const lvlEl = document.getElementById('recFilterLevel');
+      const scoreEl = document.getElementById('recMinScore');
+
+      const indVal = indEl ? indEl.value : 'ALL';
+      const lvlVal = lvlEl ? lvlEl.value : 'ALL';
+      const minScoreVal = scoreEl ? scoreEl.value : '0';
+      const numScore = parseFloat(minScoreVal) < 1 ? parseFloat(minScoreVal) * 100 : parseFloat(minScoreVal);
+
+      filteredRecommendedJobs = allRecommendedJobs.filter(j => {
+        if (numScore > 0 && (j.score || 0) < numScore) return false;
+
+        const title = (j.title || '').toUpperCase();
+        const req = (j.requirements || '').toUpperCase();
+        const text = `${title} ${req}`;
+
+        if (indVal !== 'ALL') {
+          if (indVal === 'IT' && !text.includes('IT') && !text.includes('LẬP TRÌNH') && !text.includes('BACKEND') && !text.includes('FRONTEND') && !text.includes('FULLSTACK') && !text.includes('DATA') && !text.includes('DEVOPS') && !text.includes('MOBILE') && !text.includes('QA') && !text.includes('SOFTWARE') && !text.includes('.NET') && !text.includes('REACT')) return false;
+          if (indVal === 'MKT' && !text.includes('MKT') && !text.includes('MARKETING') && !text.includes('SEO') && !text.includes('CONTENT') && !text.includes('BRAND') && !text.includes('QUẢNG CÁO') && !text.includes('PR') && !text.includes('ADS')) return false;
+          if (indVal === 'ACC' && !text.includes('ACC') && !text.includes('KẾ TOÁN') && !text.includes('TÀI CHÍNH') && !text.includes('KIỂM TOÁN') && !text.includes('THUẾ') && !text.includes('FINANCIAL') && !text.includes('MISA')) return false;
+          if (indVal === 'LOG' && !text.includes('LOG') && !text.includes('LOGISTICS') && !text.includes('XUẤT NHẬP KHẨU') && !text.includes('HẢI QUAN') && !text.includes('KHO') && !text.includes('WMS') && !text.includes('SUPPLY CHAIN') && !text.includes('MUA HÀNG') && !text.includes('INCOTERMS')) return false;
+          if (indVal === 'HR' && !text.includes('HR') && !text.includes('NHÂN SỰ') && !text.includes('TUYỂN DỤNG') && !text.includes('C&B') && !text.includes('HÀNH CHÍNH') && !text.includes('ĐÀO TẠO') && !text.includes('HRBP')) return false;
+          if (indVal === 'EDU' && !text.includes('EDU') && !text.includes('GIÁO DỤC') && !text.includes('GIÁO VIÊN') && !text.includes('GIẢNG VIÊN') && !text.includes('SƯ PHẠM') && !text.includes('HỌC LIỆU') && !text.includes('LMS') && !text.includes('TRỢ GIẢNG') && !text.includes('IELTS')) return false;
+          if (indVal === 'DES' && !text.includes('DES') && !text.includes('THIẾT KẾ') && !text.includes('DESIGN') && !text.includes('UI/UX') && !text.includes('GRAPHIC') && !text.includes('3D') && !text.includes('MOTION') && !text.includes('ART') && !text.includes('FIGMA')) return false;
+          if (indVal === 'MED' && !text.includes('MED') && !text.includes('Y TẾ') && !text.includes('DƯỢC') && !text.includes('THUỐC') && !text.includes('BỆNH VIỆN') && !text.includes('ĐIỀU DƯỠNG') && !text.includes('BÁC SĨ') && !text.includes('XÉT NGHIỆM')) return false;
+        }
+
+        if (lvlVal !== 'ALL') {
+          const jobLvl = (j.jobLevel || '').toUpperCase();
+          if (lvlVal === 'Intern' && !text.includes('INTERN') && !text.includes('THỰC TẬP') && jobLvl !== 'INTERN') return false;
+          if (lvlVal === 'Fresher' && !text.includes('FRESHER') && !text.includes('MỚI') && jobLvl !== 'FRESHER') return false;
+          if (lvlVal === 'Junior' && !text.includes('JUNIOR') && jobLvl !== 'JUNIOR') return false;
+          if (lvlVal === 'Middle' && !text.includes('MIDDLE') && jobLvl !== 'MIDDLE') return false;
+          if (lvlVal === 'Senior' && !text.includes('SENIOR') && jobLvl !== 'SENIOR') return false;
+          if (lvlVal === 'Lead' && !text.includes('LEAD') && !text.includes('TRƯỞNG NHÓM') && jobLvl !== 'TEAMLEAD') return false;
+          if (lvlVal === 'Manager' && !text.includes('MANAGER') && !text.includes('TRƯỞNG PHÒNG') && !text.includes('QUẢN LÝ') && jobLvl !== 'DEPARTMENTHEAD') return false;
+        }
+
+        return true;
+      });
+
+      const total = filteredRecommendedJobs.length;
+      const totalPages = Math.max(1, Math.ceil(total / recPageSize));
+      recCurrentPage = Math.min(Math.max(1, targetPage), totalPages);
+
+      const startIndex = (recCurrentPage - 1) * recPageSize;
+      const pageItems = filteredRecommendedJobs.slice(startIndex, startIndex + recPageSize);
+
+      renderRecommendationsList(pageItems);
+      renderPaginationControls(recCurrentPage, totalPages, total);
+    }
+
+    function renderPaginationControls(currentPage, totalPages, total) {
+      const counterEl = document.getElementById('recCounterText');
+      const topBtnsEl = document.getElementById('recPaginationButtonsTop');
+      const footerEl = document.getElementById('recPaginationFooter');
+
+      if (counterEl) {
+        if (total === 0) {
+          counterEl.innerText = '0 việc làm phù hợp';
+        } else {
+          const from = (currentPage - 1) * recPageSize + 1;
+          const to = Math.min(currentPage * recPageSize, total);
+          counterEl.innerHTML = `Hiển thị <strong>${from} - ${to}</strong> / <strong>${total}</strong> việc làm (Trang ${currentPage}/${totalPages})`;
+        }
+      }
+
+      const prevDisabled = currentPage <= 1 ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : '';
+      const nextDisabled = currentPage >= totalPages ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : '';
+
+      const topButtonsHtml = `
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage - 1})" ${prevDisabled} title="Trang trước" style="padding: 2px 7px; font-size: 11px;">◀</button>
+        <span style="font-size: 11px; padding: 2px 6px; font-weight: 700; color: #fff;">${currentPage}/${totalPages}</span>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage + 1})" ${nextDisabled} title="Trang sau" style="padding: 2px 7px; font-size: 11px;">▶</button>
+      `;
+      if (topBtnsEl) topBtnsEl.innerHTML = topButtonsHtml;
+
+      const footerHtml = `
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(1)" ${prevDisabled} style="font-size: 11px; padding: 3px 8px;">⏮️ Đầu</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage - 1})" ${prevDisabled} style="font-size: 11px; padding: 3px 8px;">◀️ Trước</button>
+        <span style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); padding: 0 8px;">Trang ${currentPage} / ${totalPages}</span>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage + 1})" ${nextDisabled} style="font-size: 11px; padding: 3px 8px;">Sau ▶️</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${totalPages})" ${nextDisabled} style="font-size: 11px; padding: 3px 8px;">Cuối ⏭️</button>
+      `;
+      if (footerEl) footerEl.innerHTML = footerHtml;
     }
 
     function renderRecommendationsList(items) {
       const container = document.getElementById('recommendationsList');
       if (!items || items.length === 0) {
-        container.innerHTML = `<div style="font-size: 11.5px; color: var(--text-muted); text-align: center; padding: 20px;">Không có việc làm nào phù hợp với bộ lọc hiện tại.</div>`;
+        container.innerHTML = `<div style="font-size: 11.5px; color: var(--text-muted); text-align: center; padding: 24px; background: rgba(30,41,59,0.4); border-radius: 8px;">Không có việc làm nào phù hợp với bộ lọc hiện tại. Hãy chọn [Tất cả ngành nghề] hoặc hạ [Min Score].</div>`;
         return;
       }
 
@@ -2889,7 +3307,7 @@
     }
 
     async function triggerRefreshRecommendations() {
-      showToast('🔄 Đang tự động quét lại CV và tính toán việc làm gợi ý qua Cohere...');
+      showToast('🔄 Đang tự động quét lại CV và tính toán việc làm gợi ý qua In-House Match Engine...');
       await fetchRecommendations();
     }
 
@@ -2967,7 +3385,7 @@
       const currentScore = latestMatchAnalysis ? Math.round(latestMatchAnalysis.score) : activePreset.initialScore;
 
       // CHỈ quét khoảng cách kỹ năng trong Section Skills (#cvBlockSkills), đồng bộ 100% với Tab 1
-      const { matchedSkills, missingSkills, reqItems } = analyzeSkillsSectionAgainstJob();
+      const { matchedSkills, detectedInContextSkills, missingSkills, reqItems } = analyzeSkillsSectionAgainstJob();
 
       const defaultRecs = activePreset.language === 'en'
         ? [`Incorporate quantifiable Google XYZ metrics into your experience section.`, `Highlight core competencies aligned with ${jobTitleText}.`]
@@ -3038,20 +3456,34 @@
             </div>
           </div>
 
-          <!-- Gap 2: Kỹ năng trọng tâm còn thiếu theo phân tích trực tiếp từ Section Skills -->
-          <div class="gap-item" style="border-left: 3px solid ${missingSkills.length === 0 ? 'var(--accent-emerald)' : 'var(--accent-amber)'}; background: ${missingSkills.length === 0 ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.05)'};">
-            <span style="font-size: 16px;">${missingSkills.length === 0 ? '✅' : '⚠️'}</span>
+          <!-- Gap 2: Kỹ năng trọng tâm theo phân tích trực tiếp từ Section Skills & Context -->
+          <div class="gap-item" style="border-left: 3px solid ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? 'var(--accent-emerald)' : 'var(--accent-amber)'}; background: ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.05)'};">
+            <span style="font-size: 16px;">${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? '✅' : '⚠️'}</span>
             <div>
-              <strong style="color: ${missingSkills.length === 0 ? '#a7f3d0' : '#fde68a'};">
-                ${missingSkills.length === 0 ? 'Kỹ năng Section Skills: ĐÃ HOÀN TOÀN ĐÁP ỨNG' : 'Khoảng cách Kỹ năng & Công nghệ cần làm nổi bật (quét từ Section Skills):'}
+              <strong style="color: ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? '#a7f3d0' : '#fde68a'};">
+                ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? 'Kỹ năng Section Skills: ĐÃ HOÀN TOÀN ĐÁP ỨNG' : 'Khoảng cách Kỹ năng & Công nghệ theo JD:'}
               </strong>
               <div style="color: var(--text-sub); margin-top: 4px;">
-                ${missingSkills.length === 0
+                ${missingSkills.length === 0 && detectedInContextSkills.length === 0
                   ? `Toàn bộ ${reqItems.length} kỹ năng trọng điểm của JD đã được ghi nhận đầy đủ trong mục Kỹ năng trên CV.`
-                  : `Mục Kỹ năng trên CV hiện tại còn thiếu các công nghệ sau theo yêu cầu JD (${missingSkills.length}/${reqItems.length}):
-                     <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">
-                       ${missingSkills.map(s => `<span class="cv-tag" style="border-color: rgba(244,63,94,0.4); color: #fda4af;">${s}</span>`).join('')}
-                     </div>`}
+                  : `
+                    ${detectedInContextSkills.length > 0 ? `
+                      <div style="margin-bottom: 6px;">
+                        <span style="color: #93c5fd; font-size: 11px; font-weight: 700;">💡 Tìm thấy trong Dự án/Kinh nghiệm nhưng chưa đưa vào Skills:</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px;">
+                          ${detectedInContextSkills.map(s => `<button type="button" onclick="promoteSkillToSection('${s.replace(/'/g, "\\'")}')" style="background: rgba(30,58,138,0.7); border: 1px solid #60a5fa; color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 10.5px; cursor: pointer;">➕ ${s}</button>`).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                    ${missingSkills.length > 0 ? `
+                      <div>
+                        <span style="color: #fda4af; font-size: 11px; font-weight: 700;">Chưa đề cập trong CV (${missingSkills.length}/${reqItems.length}):</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px;">
+                          ${missingSkills.map(s => `<span class="cv-tag" style="border-color: rgba(244,63,94,0.4); color: #fda4af;">${s}</span>`).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                  `}
               </div>
             </div>
           </div>

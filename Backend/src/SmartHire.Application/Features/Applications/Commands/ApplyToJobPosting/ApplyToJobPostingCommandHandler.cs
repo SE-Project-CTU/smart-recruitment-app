@@ -1,8 +1,10 @@
+using System.Text.Json;
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Features.Ai.Matching;
 using SmartHire.Application.Features.Applications.DTOs;
 using SmartHire.Application.Features.Applications.Exceptions;
 using SmartHire.Domain.Entities;
@@ -19,6 +21,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
     private readonly IJobApplicationRepository _applicationRepository;
     private readonly ICvVersionRepository _cvVersionRepository;
     private readonly IMediaFileRepository _mediaFileRepository;
+    private readonly IAiMatchResultRepository _aiMatchResultRepository;
+    private readonly ISmartHireMatchEngine _matchEngine;
     private readonly IUnitOfWork _unitOfWork;
 
     public ApplyToJobPostingCommandHandler(
@@ -27,12 +31,16 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         IJobApplicationRepository applicationRepository,
         ICvVersionRepository cvVersionRepository,
         IMediaFileRepository mediaFileRepository,
+        IAiMatchResultRepository aiMatchResultRepository,
+        ISmartHireMatchEngine matchEngine,
         IUnitOfWork unitOfWork) {
         _currentUser = currentUser;
         _jobPostingRepository = jobPostingRepository;
         _applicationRepository = applicationRepository;
         _cvVersionRepository = cvVersionRepository;
         _mediaFileRepository = mediaFileRepository;
+        _aiMatchResultRepository = aiMatchResultRepository;
+        _matchEngine = matchEngine;
         _unitOfWork = unitOfWork;
     }
 
@@ -59,8 +67,10 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         }
 
         MediaFile? uploadedCv = null;
+        CvVersion? cvVersion = null;
         if (request.CvVersionId is Guid cvVersionId) {
-            if (!await _cvVersionRepository.IsOwnedByCandidateAsync(cvVersionId, candidateId, cancellationToken)) {
+            cvVersion = await _cvVersionRepository.GetByVersionIdAsync(cvVersionId, cancellationToken);
+            if (cvVersion is null || !await _cvVersionRepository.IsOwnedByCandidateAsync(cvVersionId, candidateId, cancellationToken)) {
                 throw ApplicationExceptions.CvVersionNotFound();
             }
         } else if (request.UploadedCvFileId is Guid fileId) {
@@ -91,6 +101,27 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         try {
             await _unitOfWork.ExecuteInTransactionAsync(async ct => {
                 await _applicationRepository.AddAsync(application, ct);
+
+                if (request.CvVersionId is Guid cvVerId && cvVersion?.Content is not null) {
+                    var jobDetail = await _jobPostingRepository.GetDetailByIdAsync(jobPostingId, ct);
+                    if (jobDetail is not null) {
+                        var matchResult = _matchEngine.Evaluate(cvVersion.Content, jobDetail);
+                        var analysisJson = JsonSerializer.Serialize(new {
+                            matchResult.Score,
+                            matchResult.Breakdown,
+                            matchResult.MatchingSkills,
+                            matchResult.MissingSkills
+                        });
+                        var aiMatchResult = AiMatchResult.Create(
+                            application.Id,
+                            cvVerId,
+                            (decimal)matchResult.Score,
+                            analysisJson,
+                            now);
+                        await _aiMatchResultRepository.AddAsync(aiMatchResult, ct);
+                    }
+                }
+
                 await _unitOfWork.SaveChangesAsync(ct);
                 return true;
             }, cancellationToken);

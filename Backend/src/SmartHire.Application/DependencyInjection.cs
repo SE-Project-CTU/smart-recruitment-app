@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using SmartHire.Application.Abstractions.BackgroundJobs;
+using SmartHire.Application.Features.Ai.Matching;
 using SmartHire.Application.Features.Auth.RegisterAccount;
 using SmartHire.Application.Features.Cv.Jobs.CleanupOrphanedArchivedCvVersions;
 using SmartHire.Application.Features.Media.Jobs.DeleteMediaFile;
@@ -13,6 +14,7 @@ public static class DependencyInjection {
         this IServiceCollection services
     ) {
         services.AddScoped<RegisterAccountWorkflow>();
+        services.AddScoped<ISmartHireMatchEngine, SmartHireMatchEngine>();
         
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly)
@@ -27,6 +29,5 @@ public static class DependencyInjection {
         services.AddBackgroundJob<CleanupOrphanedArchivedCvVersionsJob, CleanupOrphanedArchivedCvVersionsJobArgs>();
         
         return services;
-
     }
 }

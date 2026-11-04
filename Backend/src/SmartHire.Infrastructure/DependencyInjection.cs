@@ -77,10 +77,8 @@ public static class DependencyInjection {
         services.AddScoped<IAiConversationRepository, AiConversationRepository>();
 
         services.Configure<GeminiOptions>(configuration.GetSection(GeminiOptions.SectionName));
-        services.Configure<CohereOptions>(configuration.GetSection(CohereOptions.SectionName));
 
         services.AddHttpClient<IGeminiAiService, GeminiAiService>();
-        services.AddHttpClient<ICohereRerankService, CohereRerankService>();
 
         services.AddMemoryCache();
 

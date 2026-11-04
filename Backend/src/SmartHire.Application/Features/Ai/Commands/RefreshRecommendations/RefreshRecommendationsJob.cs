@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
-using SmartHire.Application.Abstractions.Ai;
 using SmartHire.Application.Abstractions.BackgroundJobs;
 using SmartHire.Application.Abstractions.Persistence;
-using SmartHire.Application.Features.Ai.Common;
+using SmartHire.Application.Features.Ai.Matching;
 using SmartHire.Domain.Entities;
+using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Ai.Commands.RefreshRecommendations;
 
@@ -13,7 +13,7 @@ public sealed class RefreshRecommendationsJob : IBackgroundJob<RefreshRecommenda
     private readonly ICvEmbeddingRepository _cvEmbeddingRepository;
     private readonly IJobEmbeddingRepository _jobEmbeddingRepository;
     private readonly IJobPostingRepository _jobPostingRepository;
-    private readonly ICohereRerankService _cohereRerankService;
+    private readonly ISmartHireMatchEngine _matchEngine;
     private readonly IJobRecommendationRepository _recommendationRepository;
     private readonly ILogger<RefreshRecommendationsJob> _logger;
 
@@ -21,13 +21,13 @@ public sealed class RefreshRecommendationsJob : IBackgroundJob<RefreshRecommenda
         ICvEmbeddingRepository cvEmbeddingRepository,
         IJobEmbeddingRepository jobEmbeddingRepository,
         IJobPostingRepository jobPostingRepository,
-        ICohereRerankService cohereRerankService,
+        ISmartHireMatchEngine matchEngine,
         IJobRecommendationRepository recommendationRepository,
         ILogger<RefreshRecommendationsJob> logger) {
         _cvEmbeddingRepository = cvEmbeddingRepository;
         _jobEmbeddingRepository = jobEmbeddingRepository;
         _jobPostingRepository = jobPostingRepository;
-        _cohereRerankService = cohereRerankService;
+        _matchEngine = matchEngine;
         _recommendationRepository = recommendationRepository;
         _logger = logger;
     }
@@ -41,7 +41,7 @@ public sealed class RefreshRecommendationsJob : IBackgroundJob<RefreshRecommenda
             return;
         }
 
-        // Use the latest CV embedding for candidate
+        // Dùng CV embedding mới nhất của Candidate
         var latestCvEmbedding = cvEmbeddings.OrderByDescending(e => e.CreatedAt).First();
 
         // Stage 1: pgvector fast similarity search (Top 40 jobs)
@@ -55,34 +55,31 @@ public sealed class RefreshRecommendationsJob : IBackgroundJob<RefreshRecommenda
             return;
         }
 
-        // Fetch details of candidate jobs
-        var candidateJobs = new List<(Guid JobId, string JobText)>();
-        foreach (var (jobId, _) in similarJobIds) {
-            var detail = await _jobPostingRepository.GetDetailByIdAsync(jobId, cancellationToken);
-            if (detail != null && detail.Status == Domain.Enums.JobPostingStatus.Published) {
-                var text = JobTextExtractor.ExtractText(detail);
-                candidateJobs.Add((jobId, text));
-            }
-        }
+        // Stage 2: Nạp chi tiết trong 1 Query duy nhất (Triệt tiêu N+1 Query)
+        var jobIds = similarJobIds.Select(s => s.JobId);
+        var candidateJobs = await _jobPostingRepository.GetDetailsByIdsAsync(jobIds, cancellationToken);
+        var publishedJobs = candidateJobs.Where(j => j.Status == JobPostingStatus.Published).ToList();
 
-        if (candidateJobs.Count == 0) {
+        if (publishedJobs.Count == 0) {
             return;
         }
 
-        // Stage 2: Cohere Rerank precision scoring
-        var cvText = CvTextExtractor.ExtractText(latestCvEmbedding.CvVersion);
-        var rerankCandidates = candidateJobs.Select(j => new RerankCandidate(j.JobId, j.JobText)).ToList();
+        // Tạo map độ tương đồng Cosine từ pgvector: CosineSimilarity = 1.0 - Distance
+        var similarities = similarJobIds.ToDictionary(
+            x => x.JobId,
+            x => (decimal)Math.Max(0.0, 1.0 - x.Distance));
 
-        var rerankedResults = await _cohereRerankService.RerankJobsAsync(
-            cvText,
-            rerankCandidates,
-            cancellationToken);
+        // Stage 3: Đánh giá bằng SmartHire In-House Match Engine (Thuần In-Memory, < 5ms)
+        var rankedResults = _matchEngine.EvaluateBatch(
+            latestCvEmbedding.CvVersion.Content,
+            publishedJobs,
+            semanticVectorSimilarities: similarities);
 
-        // Take top 20 recommendations
+        // Lấy Top 20 việc làm tương thích cao nhất
         var now = DateTimeOffset.UtcNow;
-        var newRecommendations = rerankedResults
+        var newRecommendations = rankedResults
             .Take(20)
-            .Select(r => JobRecommendation.Create(args.CandidateId, r.Id, r.Score, now))
+            .Select(r => JobRecommendation.Create(args.CandidateId, r.JobId, r.Score, now))
             .ToList();
 
         await _recommendationRepository.UpsertRangeAsync(newRecommendations, cancellationToken);
