@@ -1,3 +1,4 @@
+using SmartHire.Application.Features.Admin.Catalogs.DTOs;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Abstractions.Persistence;
@@ -28,4 +29,30 @@ public interface IIndustryCatalogRepository
         int skip,
         int pageSize,
         CancellationToken cancellationToken);
+
+    // Admin methods
+    Task<(IReadOnlyList<AdminIndustryGroupDto> Items, int TotalCount)> GetAdminIndustryGroupsPagedAsync(
+        string? search,
+        bool? isActive,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+
+    Task<IndustryGroup?> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> GroupNameExistsAsync(string name, Guid? excludeId, CancellationToken cancellationToken);
+    Task AddGroupAsync(IndustryGroup group, CancellationToken cancellationToken);
+    Task<bool> HasLinkedIndustriesAsync(Guid groupId, CancellationToken cancellationToken);
+
+    Task<(IReadOnlyList<AdminIndustryDto> Items, int TotalCount)> GetAdminIndustriesPagedAsync(
+        Guid? groupId,
+        string? search,
+        bool? isActive,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+
+    Task<Industry?> GetIndustryByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> IndustryNameExistsAsync(string name, Guid? excludeId, CancellationToken cancellationToken);
+    Task AddIndustryAsync(Industry industry, CancellationToken cancellationToken);
+    Task<bool> HasLinkedJobPostingsForIndustryAsync(Guid industryId, CancellationToken cancellationToken);
 }
