@@ -1,5 +1,6 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Admin.Exceptions;
 using SmartHire.Application.Features.Admin.Users.DTOs;
@@ -32,8 +33,16 @@ public sealed class UpdateUserStatusCommandHandler
             throw AdminExceptions.UserNotFound(command.UserId);
         }
 
-        // Không cho phép khóa Admin cuối cùng
-        if (command.Status == UserStatus.Locked && user.UserRoles.Any(ur => ur.Role.Name == RoleNames.Admin)) {
+        if (user.Status == command.Status) {
+            throw AdminExceptions.Conflict(
+                AdminErrorCodes.InvalidStatusTransition,
+                $"User is already in '{command.Status}' status.",
+                "status");
+        }
+
+        // Không cho phép khóa hoặc vô hiệu hóa Admin cuối cùng
+        if ((command.Status == UserStatus.Locked || command.Status == UserStatus.Inactive) &&
+            user.UserRoles.Any(ur => ur.Role.Name == RoleNames.Admin)) {
             var activeAdminCount = await _userRepository.CountActiveAdminsAsync(cancellationToken);
             if (activeAdminCount <= 1) {
                 throw AdminExceptions.CannotLockLastAdmin();
@@ -46,6 +55,10 @@ public sealed class UpdateUserStatusCommandHandler
         return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
             if (command.Status == UserStatus.Locked) {
                 user.Lock(now);
+                await _refreshTokenRepository.RevokeAllUnrevokedByUserIdAsync(user.Id, now, ct);
+                tokensRevoked = true;
+            } else if (command.Status == UserStatus.Inactive) {
+                user.Deactivate(now);
                 await _refreshTokenRepository.RevokeAllUnrevokedByUserIdAsync(user.Id, now, ct);
                 tokensRevoked = true;
             } else if (command.Status == UserStatus.Active) {

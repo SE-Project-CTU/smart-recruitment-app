@@ -41,6 +41,7 @@ public interface ILocationCatalogRepository
     Task<bool> ProvinceNameExistsAsync(string name, Guid? excludeId, CancellationToken cancellationToken);
     Task AddProvinceAsync(Province province, CancellationToken cancellationToken);
     Task<bool> HasLinkedWardsOrJobsAsync(Guid provinceId, CancellationToken cancellationToken);
+    Task<int> GetWardsCountByProvinceIdAsync(Guid provinceId, CancellationToken cancellationToken);
 
     Task<(IReadOnlyList<AdminWardDto> Items, int TotalCount)> GetAdminWardsPagedAsync(
         Guid? provinceId,

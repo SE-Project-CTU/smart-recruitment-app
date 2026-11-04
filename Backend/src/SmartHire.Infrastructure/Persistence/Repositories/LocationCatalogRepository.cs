@@ -188,6 +188,11 @@ public sealed class LocationCatalogRepository : ILocationCatalogRepository
         return await _dbContext.JobPostings.AnyAsync(j => j.ProvinceId == provinceId, cancellationToken);
     }
 
+    public Task<int> GetWardsCountByProvinceIdAsync(Guid provinceId, CancellationToken cancellationToken)
+    {
+        return _dbContext.Wards.CountAsync(w => w.ProvinceId == provinceId, cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<AdminWardDto> Items, int TotalCount)> GetAdminWardsPagedAsync(
         Guid? provinceId,
         string? search,

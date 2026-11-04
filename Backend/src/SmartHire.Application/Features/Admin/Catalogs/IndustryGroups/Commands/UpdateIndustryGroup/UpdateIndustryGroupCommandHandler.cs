@@ -42,7 +42,7 @@ public sealed class UpdateIndustryGroupCommandHandler
         group.Update(command.Name ?? group.Name, command.IsActive);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var count = await _repository.HasLinkedIndustriesAsync(group.Id, cancellationToken) ? 1 : 0;
+        var count = await _repository.GetIndustriesCountByGroupIdAsync(group.Id, cancellationToken);
         return new AdminIndustryGroupDto(group.Id, group.Name, group.IsActive, count);
     }
 }

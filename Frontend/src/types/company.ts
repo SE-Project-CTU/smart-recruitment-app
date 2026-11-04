@@ -27,6 +27,8 @@ export interface CompanyItem {
   createdAt: string;
   updatedAt: string;
   membership?: CompanyMembershipSummary | null;
+  isFollowed?: boolean | null;
+  hasPendingJoinRequest?: boolean;
 }
 
 export interface CompanyMemberUser {

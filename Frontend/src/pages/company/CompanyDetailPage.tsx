@@ -17,7 +17,6 @@ import {
 } from "./components";
 import {
   useCompanyDetail,
-  useMyFollowedCompanies,
   useFollowCompany,
   useUnfollowCompany,
 } from "@/hooks/queries/useCompany";
@@ -67,17 +66,14 @@ export function CompanyDetailPage() {
   });
   const activeJobCount = jobsData?.meta?.totalItems ?? 0;
 
-  // 5. Query & Mutation Trạng thái Theo dõi (Chỉ kích hoạt cho Candidate đã đăng nhập)
-  const { data: followedData } = useMyFollowedCompanies(undefined, {
-    enabled: isCandidate && !isInitializing,
-  });
+  // 5. Query & Mutation Trạng thái Theo dõi (Đồng bộ trực tiếp từ server)
   const followMutation = useFollowCompany();
   const unfollowMutation = useUnfollowCompany();
 
   const isFollowing = useMemo(() => {
-    if (!isCandidate || !id || !followedData?.items) return false;
-    return followedData.items.some((c) => c.id === id);
-  }, [isCandidate, id, followedData]);
+    if (!isCandidate || !company) return false;
+    return Boolean(company.isFollowed);
+  }, [isCandidate, company]);
 
   const isFollowingLoading =
     followMutation.isPending || unfollowMutation.isPending;
@@ -91,20 +87,12 @@ export function CompanyDetailPage() {
     }
   };
 
-  // 6. Quản lý trạng thái Yêu cầu gia nhập của Recruiter ngoài
+  // 6. Quản lý trạng thái Yêu cầu gia nhập của Recruiter ngoài (Đồng bộ trực tiếp từ server)
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const [isPendingJoinRequest, setIsPendingJoinRequest] = useState<boolean>(
-    () => {
-      if (!id || typeof window === "undefined") return false;
-      return sessionStorage.getItem(`sr_join_pending_${id}`) === "true";
-    },
-  );
+  const isPendingJoinRequest = Boolean(company?.hasPendingJoinRequest);
 
   const handleJoinSuccess = () => {
-    if (id) {
-      sessionStorage.setItem(`sr_join_pending_${id}`, "true");
-      setIsPendingJoinRequest(true);
-    }
+    setIsJoinModalOpen(false);
   };
 
   // 7. Quản lý Modal nhắc đăng nhập cho khách vãng lai
@@ -249,32 +237,22 @@ export function CompanyDetailPage() {
             }`}
           >
             <Briefcase className="size-4" />
-            <span>Vị trí tuyển dụng</span>
-            {activeJobCount > 0 && (
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                  currentTab === "jobs"
-                    ? "bg-primary/10 text-primary"
-                    : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {activeJobCount}
-              </span>
-            )}
+            <span>Việc làm đang mở ({activeJobCount})</span>
           </button>
         </div>
 
-        {/* 3. Bố Cục Thân Trang (2 Cột Desktop / Xếp Chồng Mobile) */}
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-12">
+        {/* 3. Nội Dung Chi Tiết Theo Tab Tuyển Chọn */}
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Cột chính (Trái - 8/12) */}
-          <main className="lg:col-span-8">
-            {currentTab === "overview" ? (
+          <main className="space-y-8 lg:col-span-8">
+            {currentTab === "overview" && (
               <CompanyOverviewTab company={company} />
-            ) : (
+            )}
+
+            {currentTab === "jobs" && (
               <CompanyActiveJobsTab
                 companyId={company.id}
                 companyName={company.name}
-                companyLogoUrl={company.logoUrl}
               />
             )}
           </main>

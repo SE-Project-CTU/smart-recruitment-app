@@ -127,4 +127,9 @@ public class User {
         Status = UserStatus.Active;
         UpdatedAt = now;
     }
+
+    public void Deactivate(DateTimeOffset now) {
+        Status = UserStatus.Inactive;
+        UpdatedAt = now;
+    }
 }

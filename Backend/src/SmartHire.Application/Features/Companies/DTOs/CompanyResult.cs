@@ -19,5 +19,7 @@ public sealed record CompanyResult(
     DateTimeOffset? VerifiedAt,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    CompanyMembershipSummary? Membership = null
+    CompanyMembershipSummary? Membership = null,
+    bool? IsFollowed = null,
+    bool HasPendingJoinRequest = false
 );

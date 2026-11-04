@@ -7,8 +7,10 @@ public static class CompanyResultMapper {
     public static CompanyResult ToCompanyResult(
         Company company,
         string? logoUrl = null,
-        CompanyMembershipSummary? membership = null) =>
-        CompanyDetailMapper.ToResult(company, logoUrl, membership);
+        CompanyMembershipSummary? membership = null,
+        bool? isFollowed = null,
+        bool hasPendingJoinRequest = false) =>
+        CompanyDetailMapper.ToResult(company, logoUrl, membership, isFollowed, hasPendingJoinRequest);
 
     public static CompanyMemberResult ToCompanyMemberResult(CompanyMembership membership) =>
         CompanyMemberMapper.ToResult(membership);

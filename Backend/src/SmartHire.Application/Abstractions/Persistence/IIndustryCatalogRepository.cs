@@ -42,6 +42,7 @@ public interface IIndustryCatalogRepository
     Task<bool> GroupNameExistsAsync(string name, Guid? excludeId, CancellationToken cancellationToken);
     Task AddGroupAsync(IndustryGroup group, CancellationToken cancellationToken);
     Task<bool> HasLinkedIndustriesAsync(Guid groupId, CancellationToken cancellationToken);
+    Task<int> GetIndustriesCountByGroupIdAsync(Guid groupId, CancellationToken cancellationToken);
 
     Task<(IReadOnlyList<AdminIndustryDto> Items, int TotalCount)> GetAdminIndustriesPagedAsync(
         Guid? groupId,

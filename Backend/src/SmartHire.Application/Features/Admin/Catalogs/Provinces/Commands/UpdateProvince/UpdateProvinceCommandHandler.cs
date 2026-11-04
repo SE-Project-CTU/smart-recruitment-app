@@ -46,7 +46,7 @@ public sealed class UpdateProvinceCommandHandler
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var count = await _repository.HasLinkedWardsOrJobsAsync(province.Id, cancellationToken) ? 1 : 0;
+        var count = await _repository.GetWardsCountByProvinceIdAsync(province.Id, cancellationToken);
         return new AdminProvinceDto(
             province.Id,
             province.Name,

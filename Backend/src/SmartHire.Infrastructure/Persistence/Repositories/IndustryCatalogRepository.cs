@@ -183,6 +183,11 @@ public sealed class IndustryCatalogRepository : IIndustryCatalogRepository
         return _dbContext.Industries.AnyAsync(i => i.GroupId == groupId, cancellationToken);
     }
 
+    public Task<int> GetIndustriesCountByGroupIdAsync(Guid groupId, CancellationToken cancellationToken)
+    {
+        return _dbContext.Industries.CountAsync(i => i.GroupId == groupId, cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<AdminIndustryDto> Items, int TotalCount)> GetAdminIndustriesPagedAsync(
         Guid? groupId,
         string? search,

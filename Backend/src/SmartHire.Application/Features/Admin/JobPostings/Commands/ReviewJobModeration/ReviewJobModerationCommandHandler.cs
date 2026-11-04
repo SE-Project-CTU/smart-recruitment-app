@@ -66,6 +66,8 @@ public sealed class ReviewJobModerationCommandHandler
                 await _notificationRepository.AddAsync(notification, ct);
             }
 
+            await _unitOfWork.SaveChangesAsync(ct);
+
             return new ReviewJobModerationResult(
                 job.Id,
                 job.Status.ToString().ToUpperInvariant(),
