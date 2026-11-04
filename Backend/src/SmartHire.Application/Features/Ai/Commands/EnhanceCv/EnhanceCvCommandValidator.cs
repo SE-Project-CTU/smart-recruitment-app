@@ -5,6 +5,8 @@ namespace SmartHire.Application.Features.Ai.Commands.EnhanceCv;
 
 public static class EnhanceCvCommandValidator {
     public static readonly HashSet<string> CanonicalSectionTypes = new(StringComparer.OrdinalIgnoreCase) {
+        "TARGET_JOB",
+        "TITLE",
         "EXPERIENCE",
         "PROJECTS",
         "SKILLS",
@@ -18,6 +20,12 @@ public static class EnhanceCvCommandValidator {
         if (string.IsNullOrWhiteSpace(raw)) return null;
         var s = raw.Trim().ToUpperInvariant();
         return s switch {
+            "TARGET_JOB" => "TARGET_JOB",
+            "TARGET_JOB_TITLE" => "TARGET_JOB",
+            "TARGETROLE" => "TARGET_JOB",
+            "TITLE" => "TARGET_JOB",
+            "JOB_TITLE" => "TARGET_JOB",
+            "POSITION" => "TARGET_JOB",
             "WORK_EXPERIENCE" => "EXPERIENCE",
             "EXPERIENCE" => "EXPERIENCE",
             "PROJECT" => "PROJECTS",
@@ -69,7 +77,7 @@ public static class EnhanceCvCommandValidator {
         if (!string.IsNullOrWhiteSpace(command.SectionType)) {
             var normalized = NormalizeSectionType(command.SectionType);
             if (!CanonicalSectionTypes.Contains(normalized!)) {
-                details.Add(new AppErrorDetail("sectionType", "INVALID_VALUE", "Loại mục không hợp lệ. Chuẩn AI hỗ trợ các mục: EXPERIENCE, PROJECTS, SKILLS, EDUCATION, OBJECTIVE, CERTIFICATIONS, AWARDS."));
+                details.Add(new AppErrorDetail("sectionType", "INVALID_VALUE", "Loại mục không hợp lệ. Chuẩn AI hỗ trợ các mục: TARGET_JOB, EXPERIENCE, PROJECTS, SKILLS, EDUCATION, OBJECTIVE, CERTIFICATIONS, AWARDS."));
             }
         }
 

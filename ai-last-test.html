@@ -916,8 +916,12 @@
       <div class="left-menu">
         <div>
           <div class="menu-section-title">CÁC MỤC TRÊN BẢN IN CV</div>
-          <button class="menu-item" onclick="highlightSection('cvBlockObjective')">
+          <button class="menu-item" onclick="highlightSection('cvTitle')">
             <span class="menu-item-icon">🎯</span>
+            <div>Vị trí ứng tuyển (Target Job)</div>
+          </button>
+          <button class="menu-item" onclick="highlightSection('cvBlockObjective')">
+            <span class="menu-item-icon">📝</span>
             <div>Mục tiêu nghề nghiệp</div>
           </button>
           <button class="menu-item" onclick="highlightSection('cvBlockExperience')">
@@ -1016,7 +1020,14 @@
       <div class="cv-paper" id="cvPaperDocument">
         <!-- Profile Header -->
         <div class="cv-header-name" id="cvFullName" contenteditable="true" oninput="syncCvSectionsToCards()">TRẦN THỊ MAI ANH</div>
-        <div class="cv-header-title" id="cvTitle" contenteditable="true" oninput="syncCvSectionsToCards()">Frontend Developer (React / Web Developer)</div>
+
+        <!-- Target Job / Vị trí ứng tuyển mục tiêu Section -->
+        <div class="cv-section-heading" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <span>Vị trí ứng tuyển mục tiêu (TARGET JOB)</span>
+          <span style="font-size: 10px; font-weight: 500; color: #64748b; text-transform: none;">Khớp chức danh JD</span>
+        </div>
+        <div class="cv-highlight-block cv-header-title" id="cvTitle" contenteditable="true" oninput="syncCvSectionsToCards()" style="font-size: 14.5px; font-weight: 700; color: #1e3a8a; margin-bottom: 6px; padding: 4px 8px; border-radius: 4px;">Frontend Developer</div>
+
         <div class="cv-contact-row">
           <span>📧 maianh.tran@email.com</span>
           <span>📱 (+84) 939 123 456</span>
@@ -1076,7 +1087,7 @@
       <div class="collapsed-icon-strip">
         <button class="strip-btn" title="Đề xuất & Viết lại" onclick="toggleCopilotDrawer(); openDrawerTab('suggestions');">
           ⚡
-          <span class="strip-badge" id="stripBadgeCount">4</span>
+          <span class="strip-badge" id="stripBadgeCount">5</span>
         </button>
         <button class="strip-btn" title="Tối ưu theo Job" onclick="toggleCopilotDrawer(); openDrawerTab('jobTailor');">🎯</button>
         <button class="strip-btn" title="Chấm điểm ATS" onclick="toggleCopilotDrawer(); openDrawerTab('match');">📊</button>
@@ -1373,7 +1384,8 @@
               <div style="display: flex; gap: 6px; align-items: center;">
                 <span style="font-size: 11px; color: var(--text-sub); font-weight: 700;">NGỮ CẢNH:</span>
                 <select class="form-select" id="chatSectionType" style="flex: 1; padding: 4px 8px; font-size: 11.5px;">
-                  <option value="OBJECTIVE">🎯 OBJECTIVE (Mục tiêu nghề nghiệp)</option>
+                  <option value="TARGET_JOB">🎯 TARGET_JOB (Vị trí ứng tuyển mục tiêu)</option>
+                  <option value="OBJECTIVE">📝 OBJECTIVE (Mục tiêu nghề nghiệp)</option>
                   <option value="EXPERIENCE">💼 EXPERIENCE (Kinh nghiệm làm việc)</option>
                   <option value="PROJECTS">🚀 PROJECTS (Dự án tiêu biểu)</option>
                   <option value="AWARDS">🏆 AWARDS (Giải thưởng & Thành tích)</option>
@@ -1382,7 +1394,8 @@
 
               <!-- Quick Chips -->
               <div style="display: flex; gap: 4px; overflow-x: auto; padding: 2px 0;">
-                <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Tối ưu câu mục tiêu nghề nghiệp theo chuẩn Google XYZ')">🎯 Chuẩn Mục tiêu XYZ</button>
+                <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Gợi ý chuẩn xác chức danh nghề nghiệp mục tiêu theo JD (không mở ngoặc, không từ định hướng)')">🎯 Chuẩn Chức danh JD</button>
+                <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Tối ưu câu mục tiêu nghề nghiệp theo chuẩn Google XYZ')">📝 Chuẩn Mục tiêu XYZ</button>
                 <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Tối ưu câu kinh nghiệm này theo chuẩn Google XYZ')">💼 Chuẩn Kinh nghiệm XYZ</button>
                 <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Translate and polish this section into professional English')">🇬🇧 Dịch tiếng Anh</button>
               </div>
@@ -1429,7 +1442,7 @@
             Tự động đồng bộ với CV Editor
           </div>
           <button class="btn btn-primary btn-sm" onclick="applyAllCvSectionsEnhancement()">
-            ✨ Áp dụng các mục tối ưu vào CV (4 mục, không đè Skills)
+            ✨ Áp dụng các mục tối ưu vào CV (5 mục, không đè Skills)
           </button>
         </div>
       </div>
@@ -1471,7 +1484,7 @@
         langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
         language: "vi",
         name: "TRẦN THỊ MAI ANH",
-        targetRole: "Frontend Developer (React / Web Developer)",
+        targetRole: "Frontend Developer",
         contact: "<span>📧 maianh.tran@email.com</span><span>📱 (+84) 939 123 456</span><span>📍 Cần Thơ / TP. Hồ Chí Minh</span><span>🔗 github.com/maianh-dev</span>",
         objective: "Lập trình viên Frontend với 2 năm kinh nghiệm phát triển giao diện web với HTML, CSS và ReactJS cơ bản, mong muốn ứng tuyển vào vị trí Senior Fullstack & React Engineer để mở rộng chuyên môn sang backend C# .NET 10 và kiến trúc microservices quy mô lớn.",
         expRoleCompany: "Frontend Web Developer — Saigon Tech Solution",
@@ -1498,7 +1511,7 @@
         langName: "Language: English 🇺🇸 (100%)",
         language: "en",
         name: "MICHAEL NGUYEN",
-        targetRole: "Digital Marketing Specialist / Growth Analyst",
+        targetRole: "Digital Marketing Specialist",
         contact: "<span>📧 michael.nguyen@bizmail.com</span><span>📱 (+84) 912 888 999</span><span>📍 District 1, Ho Chi Minh City</span><span>🔗 linkedin.com/in/michael-growth</span>",
         objective: "Goal-driven Digital Marketing Specialist with 3 years of hands-on experience running social ads, optimizing customer acquisition funnels, and managing brand campaigns, seeking a Senior Performance Marketing Lead role to drive multi-channel ROI and data-driven revenue growth.",
         expRoleCompany: "Digital Marketing Specialist — Delta Retail Group",
@@ -1525,7 +1538,7 @@
         langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
         language: "vi",
         name: "THS. NGUYỄN VĂN HOÀNG",
-        targetRole: "Giáo viên Tiếng Anh / Chuyên viên Sư phạm",
+        targetRole: "Giáo viên Tiếng Anh",
         contact: "<span>📧 hoang.nguyen@edu.vn</span><span>📱 (+84) 903 555 777</span><span>📍 Ninh Kiều, Cần Thơ</span><span>🔗 linkedin.com/in/hoang-edutech</span>",
         objective: "Giảng viên Tiếng Anh với hơn 4 năm kinh nghiệm giảng dạy ngôn ngữ và luyện thi chứng chỉ, mong muốn ứng tuyển vị trí Trưởng bộ môn Đào tạo & Khảo thí nhằm phát triển khung chương trình chuẩn quốc tế, ứng dụng phương pháp Blended Learning và nâng cao tỷ lệ học viên đạt chuẩn đầu ra.",
         expRoleCompany: "Giảng viên Tiếng Anh & Chuyên viên Học thuật — Athena International Academy",
@@ -1552,7 +1565,7 @@
         langName: "Language: English 🇺🇸 (100%)",
         language: "en",
         name: "ALEX TRAN",
-        targetRole: "Automotive Systems Diagnostics & EV Powertrain Engineer",
+        targetRole: "Automotive Diagnostics Engineer",
         contact: "<span>📧 alex.tran@autotech.io</span><span>📱 (+84) 909 333 888</span><span>📍 Hai Phong / Hanoi</span><span>🔗 linkedin.com/in/alex-autotech</span>",
         objective: "Results-driven Automotive Diagnostics & Embedded Systems Engineer with 3+ years of hands-on experience in vehicle electronic testing, seeking a Senior Automotive Systems Diagnostics & EV Powertrain Engineer role to advance Battery Management System (BMS) calibration, CAN bus communication, and ISO 26262 functional safety validation.",
         expRoleCompany: "Automotive Systems Test Engineer — VinFast Electric Vehicle Division",
@@ -1579,7 +1592,7 @@
         langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
         language: "vi",
         name: "NGUYỄN THỊ THU HÀ",
-        targetRole: "Kế toán viên Tổng hợp / Chuyên viên Kế toán Thuế",
+        targetRole: "Kế toán viên Tổng hợp",
         contact: "<span>📧 thuha.nguyen@finance.vn</span><span>📱 (+84) 918 234 567</span><span>📍 Quận 3, TP. Hồ Chí Minh</span><span>🔗 linkedin.com/in/thuha-cpa</span>",
         objective: "Cử nhân Kế toán - Kiểm toán với 4 năm kinh nghiệm kế toán tổng hợp, kê khai thuế và lập báo cáo tài chính doanh nghiệp, mong muốn ứng tuyển vị trí Kế toán trưởng nhằm chuẩn hóa hệ thống chứng từ, áp dụng chuẩn mực IFRS và tối ưu hóa chi phí vận hành cho tập đoàn.",
         expRoleCompany: "Kế toán Tổng hợp — Công ty CP Tập đoàn Thương mại Á Châu",
@@ -1606,7 +1619,7 @@
         langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
         language: "vi",
         name: "LÊ HOÀNG NAM",
-        targetRole: "Chuyên viên Xuất Nhập Khẩu & Thủ tục Hải quan",
+        targetRole: "Chuyên viên Xuất Nhập Khẩu",
         contact: "<span>📧 hoangnam.logistics@vanship.com</span><span>📱 (+84) 938 777 666</span><span>📍 Hải Phòng / Hà Nội</span><span>🔗 linkedin.com/in/nam-supplychain</span>",
         objective: "Chuyên viên Xuất Nhập Khẩu với hơn 3 năm kinh nghiệm làm việc trong lĩnh vực giao nhận vận tải quốc tế (Freight Forwarding), thành thạo mở tờ khai hải quan điện tử VNACCS và xử lý chứng từ vận tải, mong muốn ứng tuyển vị trí Trưởng nhóm Quản trị Chuỗi cung ứng & Logistics.",
         expRoleCompany: "Chuyên viên Chứng từ & Khai báo Hải quan — Tân Cảng Logistics",
@@ -1633,7 +1646,7 @@
         langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
         language: "vi",
         name: "PHẠM BÍCH NGỌC",
-        targetRole: "Chuyên viên Tuyển dụng & Tiền lương (HR Generalist)",
+        targetRole: "Chuyên viên Tuyển dụng và Tiền lương",
         contact: "<span>📧 bichngoc.hr@talent.vn</span><span>📱 (+84) 977 111 222</span><span>📍 Cầu Giấy, Hà Nội</span><span>🔗 linkedin.com/in/bichngoc-hr</span>",
         objective: "Chuyên viên Nhân sự tổng hợp với 3 năm kinh nghiệm trong công tác tuyển dụng nhân tài (Talent Acquisition) và vận hành chế độ phúc lợi tiền lương (C&B), nắm vững Bộ luật Lao động và phần mềm nhân sự, tìm kiếm cơ hội Trưởng nhóm Nhân sự để xây dựng văn hóa doanh nghiệp gắn kết.",
         expRoleCompany: "Chuyên viên Nhân sự Tổng hợp — Golden Gate Group",
@@ -1649,7 +1662,7 @@
         targetJob: {
           jobId: "11111111-aaaa-4444-8888-000000000007",
           cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571eg",
-          title: "Trưởng nhóm Tuyển dụng & Quản trị Nhân sự (HR Lead)",
+          title: "Trưởng nhóm Tuyển dụng & Quản trị Nhân sự",
           company: "Sun Life Financial • Ba Đình, Hà Nội",
           salary: "Mức lương: 20,000,000 – 32,000,000 VNĐ",
           requirements: "Tuyển dụng, C&B, Tiền lương và phúc lợi, Luật lao động, Bảo hiểm xã hội, Đào tạo nội bộ, Đánh giá hiệu quả công việc KPI"
@@ -1660,7 +1673,7 @@
         langName: "Đa ngành: Test So Khớp Mờ & Ngữ Nghĩa 🧬",
         language: "vi",
         name: "VÕ HOÀNG VŨ (TEST FUZZY & SEMANTIC)",
-        targetRole: "Kỹ sư Tối ưu hóa Dữ liệu & Trải nghiệm Khách hàng",
+        targetRole: "Kỹ sư Tối ưu hóa Dữ liệu và Trải nghiệm",
         contact: "<span>📧 hoangvu.test@domain.com</span><span>📱 (+84) 999 888 777</span><span>📍 Toàn quốc (Remote / Hybrid)</span><span>🔗 github.com/test-fuzzy</span>",
         objective: "Hồ sơ chuyên dụng để kiểm thử khả năng phát hiện lỗi gõ chính tả (FuzzySharp), từ đồng nghĩa đa ngành (SkillNormalizationMap) và khả năng bù điểm ngữ nghĩa sâu (pgvector Cosine Similarity) khi ứng viên dùng văn phong tương đương.",
         expRoleCompany: "Chuyên viên Vận hành Hệ thống & Tối ưu Trải nghiệm — Tech & Retail Group",
@@ -1796,13 +1809,28 @@
       showToast(`🔄 Đã đổi sang hồ sơ: [${preset.label}], Job và gợi ý việc làm đã tự động cập nhật!`);
     }
 
-    // Sections dynamically tied to CV canvas (4 mục tối ưu hóa Google XYZ)
+    function cleanTargetJobTitle(title) {
+      if (!title) return '';
+      let clean = title.replace(/\s*\([^)]*\)/g, '').replace(/\s*\[[^\]]*\]/g, '').trim();
+      clean = clean.replace(/^(định hướng|hướng đến|mong muốn)\s*:?\s*/i, '').trim();
+      return clean || title;
+    }
+
+    // Sections dynamically tied to CV canvas (5 mục tối ưu hóa Google XYZ & Chức danh)
     const CV_SECTIONS = [
+      {
+        type: 'TARGET_JOB',
+        aliases: ['TARGET_JOB', 'TITLE', 'JOB_TITLE', 'POSITION'],
+        name: 'Vị trí ứng tuyển mục tiêu (TARGET JOB)',
+        icon: '🎯',
+        elementId: 'cvTitle',
+        scoreGain: '+10 Điểm So khớp Chức danh'
+      },
       {
         type: 'OBJECTIVE',
         aliases: ['OBJECTIVE', 'SUMMARY'],
         name: 'Mục tiêu nghề nghiệp (OBJECTIVE)',
-        icon: '🎯',
+        icon: '📝',
         elementId: 'cvBlockObjective',
         scoreGain: '+5 Điểm ATS'
       },
@@ -1877,7 +1905,8 @@
 
       CV_SECTIONS.forEach(sec => {
         let originalText = '';
-        if (sec.type === 'OBJECTIVE') originalText = activePreset.objective;
+        if (sec.type === 'TARGET_JOB') originalText = activePreset.targetRole || activePreset.title;
+        else if (sec.type === 'OBJECTIVE') originalText = activePreset.objective;
         else if (sec.type === 'EXPERIENCE') originalText = activePreset.experience;
         else if (sec.type === 'PROJECTS') originalText = activePreset.project;
         else if (sec.type === 'AWARDS') originalText = activePreset.awards;
@@ -2393,7 +2422,9 @@
     // Helper: Map any section type alias to exact element ID
     function getElementForSectionType(sectionType) {
       const upper = (sectionType || '').toUpperCase().trim();
-      if (upper === 'OBJECTIVE' || upper === 'SUMMARY' || upper === 'GOAL') {
+      if (upper === 'TARGET_JOB' || upper === 'TITLE' || upper === 'JOB_TITLE' || upper === 'POSITION') {
+        return document.getElementById('cvTitle');
+      } else if (upper === 'OBJECTIVE' || upper === 'SUMMARY' || upper === 'GOAL') {
         return document.getElementById('cvBlockObjective');
       } else if (upper === 'EXPERIENCE' || upper === 'WORK_EXPERIENCE' || upper === 'WORK') {
         return document.getElementById('cvBlockExperience');
@@ -2543,8 +2574,8 @@
             statsEl.innerHTML = `🚀 <strong style="color: var(--accent-emerald);">${duration}ms</strong> • Tiết kiệm <strong>~75% Token</strong> (Chắt lọc JD + Few-Shot) • Batch Thành công!`;
           }
 
-          logConsole(`POST /cv/enhance/batch hoàn tất trong ${duration}ms (4 mục)`, 'SUCCESS', 200, duration, cid);
-          showToast(`⚡ Batch thành công trong ${duration}ms! Toàn bộ 4 mục đã sẵn sàng xem trước.`);
+          logConsole(`POST /cv/enhance/batch hoàn tất trong ${duration}ms (5 mục)`, 'SUCCESS', 200, duration, cid);
+          showToast(`⚡ Batch thành công trong ${duration}ms! Toàn bộ 5 mục đã sẵn sàng xem trước.`);
         } else {
           showToast(`⚠️ Batch không thành công: ${json.detail || 'Lỗi xử lý'}`);
         }
@@ -2569,22 +2600,13 @@
       const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
       showToast(`🎯 Đang 1-Chạm tối ưu toàn diện CV theo vị trí "${activePreset.targetJob.title}"...`);
 
-      // 1. Tự động đồng bộ và nâng tầm Chức danh trên CV (Bảo đảm tính trung thực về cấp bậc)
+      // 1. Tự động đồng bộ Chức danh trên CV dựa thẳng vào Job mục tiêu (không mở ngoặc, không từ định hướng)
       const titleEl = document.getElementById('cvTitle');
       if (titleEl) {
-        const curTitle = titleEl.innerText.trim();
-        const targetTitle = activePreset.targetJob.title;
-        const curLower = curTitle.toLowerCase();
-        const targetLower = targetTitle.toLowerCase();
-        const isTargetManager = targetLower.includes('trưởng phòng') || targetLower.includes('manager') || targetLower.includes('director') || targetLower.includes('head');
-        const isCurFresher = curLower.includes('fresher') || curLower.includes('intern') || curLower.includes('thực tập') || curLower.includes('mới tốt nghiệp') || curLower.includes('junior');
-
-        if (isTargetManager && isCurFresher) {
-          titleEl.innerText = `${curTitle} (Định hướng: ${targetTitle})`;
-        } else {
-          titleEl.innerText = targetTitle;
-        }
+        const targetTitle = cleanTargetJobTitle(activePreset.targetJob.title);
+        titleEl.innerText = targetTitle;
         triggerBlockPulse(titleEl);
+        syncCvSectionsToCards();
       }
 
       // 2. Chuyển sang Tab 1 "Viết lại từng mục" để người dùng theo dõi tiến trình
@@ -3505,7 +3527,7 @@
       const btnFull = document.getElementById('btnFullJobTailor');
       if (btnFull) {
         if (isFullyOptimized) {
-          btnFull.innerHTML = '✨ Quét lại và tối ưu lại toàn bộ (4 mục)';
+          btnFull.innerHTML = '✨ Quét lại và tối ưu lại toàn bộ (5 mục)';
           btnFull.className = 'btn btn-success';
         } else {
           btnFull.innerHTML = '🚀 1-Chạm Tối ưu toàn diện CV theo JD này';

@@ -71,7 +71,47 @@ internal static class GeminiPrompts {
             """;
     }
 
+    public static string BuildTargetJobEnhancePrompt(CvEnhanceRequest request) {
+        var targetTitle = request.TargetJobTitle ?? "Vị trí chuyên môn mục tiêu";
+        var langInstruction = ResolveLanguageInstruction(request.Language);
+
+        return $$"""
+            Bạn là chuyên gia tư vấn tuyển dụng cấp cao và định vị chức danh nghề nghiệp chuyên nghiệp.
+            Nhiệm vụ: Phân tích vị trí ứng tuyển / chức danh hiện tại trên CV của ứng viên và đối chiếu với vị trí tuyển dụng '{{targetTitle}}' để GỢI Ý CHỨC DANH / VỊ TRÍ ỨNG TUYỂN MỤC TIÊU (TARGET JOB) chuẩn xác, chuyên nghiệp nhất.
+
+            QUY TẮC CỐT LÕI (TUYỆT ĐỐI TUÂN THỦ):
+            1. DỰA TRỰC TIẾP VÀO YÊU CẦU CỦA VỊ TRÍ TUYỂN DỤNG ĐỂ GỢI Ý:
+               - Tên chức danh nghề nghiệp ngắn gọn, súc tích, phản ánh đúng chuyên môn và cấp bậc phù hợp với Job (ví dụ: Senior Backend .NET Engineer, Frontend Developer, Performance Marketing Lead, Kế toán trưởng...).
+            2. TUYỆT ĐỐI KHÔNG SỬ DỤNG DẤU MỞ NGOẶC ĐÓNG NGOẶC '()' HAY '[]' (Không viết kiểu "Frontend Developer (React / Web Developer)", "Lập trình viên (Senior .NET)...").
+            3. TUYỆT ĐỐI KHÔNG DÙNG CÁC TỪ NGỮ ĐỊNH HƯỚNG HAY MỤC TIÊU NHƯ: "định hướng", "mong muốn", "hướng đến", "mục tiêu", "seeking", "aspiring"... Cứ viết thẳng tên chức danh nghề nghiệp chuẩn mực.
+            4. Chỉ trả về một dòng chức danh duy nhất (từ 2 đến 7 từ).
+            5. {{langInstruction}}
+
+            THÔNG TIN ĐẦU VÀO:
+            - Vị trí mục tiêu từ JD: {{targetTitle}}
+            {{(string.IsNullOrWhiteSpace(request.JobContext) ? "" : $"- Yêu cầu cốt lõi (JD chắt lọc):\n{request.JobContext}\n")}}
+            - Chức danh / Vị trí hiện tại trên CV:
+            "{{request.Content}}"
+
+            TRẢ VỀ ĐÚNG ĐỊNH DẠNG JSON (không kèm markdown bên ngoài):
+            {
+              "detectedSection": "TARGET_JOB",
+              "enhancedContent": "Tên chức danh nghề nghiệp chuẩn xác, không mở ngoặc đóng ngoặc, không từ định hướng",
+              "suggestedKeywords": ["từ khóa 1", "từ khóa 2"],
+              "improvements": [
+                "Chuẩn hóa chức danh bám sát vị trí tuyển dụng",
+                "Không sử dụng dấu mở ngoặc đóng ngoặc hay cụm từ định hướng"
+              ]
+            }
+            """;
+    }
+
     public static string BuildCvEnhancePrompt(CvEnhanceRequest request) {
+        if (string.Equals(request.SectionType, "TARGET_JOB", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(request.SectionType, "TITLE", StringComparison.OrdinalIgnoreCase)) {
+            return BuildTargetJobEnhancePrompt(request);
+        }
+
         if (string.Equals(request.SectionType, "SKILLS", StringComparison.OrdinalIgnoreCase)) {
             return BuildSkillsEnhancePrompt(request);
         }
@@ -133,6 +173,7 @@ internal static class GeminiPrompts {
             1. BẢO TOÀN CẤU TRÚC VÀ SỐ LƯỢNG GẠCH ĐẦU DÒNG (BẮT BUỘC):
                - Mỗi mục có bao nhiêu gạch đầu dòng (bullet points '•', '-') thì giữ nguyên bấy nhiêu gạch đầu dòng, viết lại từng ý riêng biệt, TUYỆT ĐỐI KHÔNG GOM thành một đầu dòng hay một đoạn văn nói liên tiếp nhau. Mỗi gạch đầu dòng phải xuống dòng riêng.
                - Mục nào có đoạn văn đơn (như Mục tiêu nghề nghiệp / Objective), hãy giữ nguyên dạng đoạn văn súc tích (1-2 câu), TUYỆT ĐỐI KHÔNG tự chèn thêm gạch đầu dòng '-'.
+               - Nếu có mục 'TARGET_JOB' hoặc 'TITLE': Chỉ xuất đúng TÊN CHỨC DANH NGHỀ NGHIỆP chuẩn mực bám sát yêu cầu JD (1 dòng duy nhất). TUYỆT ĐỐI KHÔNG dùng dấu ngoặc đơn '()' hay ngoặc vuông '[]', TUYỆT ĐỐI KHÔNG dùng từ 'định hướng', 'mong muốn', 'hướng đến'.
             2. Tối ưu từng mục tương ứng theo cấu trúc Google XYZ: Action Verb + Chuyên môn cụ thể + Giá trị định tính/định lượng chân thực của ngành.
             3. Tuyệt đối không tự bịa đặt số liệu hoặc phần trăm nếu gốc không có. Đo lường bằng kết quả nghiệp vụ thực tế.
             4. TỐI ƯU TOÀN DIỆN BÁM SÁT YÊU CẦU JD: Nếu có 'Yêu cầu tuyển dụng', hãy chủ động nâng tầm các mục trên CV lên tương xứng với vị trí '{{targetTitle}}', khéo léo tích hợp các kỹ năng, công nghệ, công cụ và tiêu chuẩn chất lượng từ JD vào ngữ cảnh thực tế của ứng viên để tối đa hóa điểm số ATS.
@@ -161,6 +202,24 @@ internal static class GeminiPrompts {
     }
 
     public static string BuildCvEnhanceStreamPrompt(CvEnhanceRequest request) {
+        if (string.Equals(request.SectionType, "TARGET_JOB", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(request.SectionType, "TITLE", StringComparison.OrdinalIgnoreCase)) {
+            var targetRole = request.TargetJobTitle ?? "Vị trí chuyên môn mục tiêu";
+            return $$"""
+                Bạn là chuyên gia tư vấn tuyển dụng.
+                Nhiệm vụ: Gợi ý chức danh nghề nghiệp mục tiêu (Target Job Title) chuẩn xác dựa vào vị trí tuyển dụng '{{targetRole}}'.
+                QUY TẮC BẮT BUỘC:
+                1. Trả về DUY NHẤT một dòng tên chức danh nghề nghiệp chuẩn xác (2 - 7 từ).
+                2. TUYỆT ĐỐI KHÔNG dùng dấu ngoặc đơn '()', ngoặc vuông '[]'.
+                3. TUYỆT ĐỐI KHÔNG dùng các từ 'định hướng', 'hướng đến', 'mong muốn'.
+                4. {{ResolveLanguageInstruction(request.Language)}}
+                5. CHỈ TRẢ VỀ DUY NHẤT TÊN CHỨC DANH (không lời chào, không giải thích):
+
+                Vị trí hiện tại trên CV:
+                "{{request.Content ?? request.CvContext}}"
+                """;
+        }
+
         if (string.Equals(request.SectionType, "SKILLS", StringComparison.OrdinalIgnoreCase)) {
             var targetRole = request.TargetJobTitle ?? "Vị trí chuyên môn mục tiêu";
             return $$"""
@@ -211,6 +270,24 @@ internal static class GeminiPrompts {
 
     public static CvEnhanceResult CreateFallbackEnhancement(CvEnhanceRequest request) {
         var isEn = string.Equals(request.Language, "en", StringComparison.OrdinalIgnoreCase);
+
+        if (string.Equals(request.SectionType, "TARGET_JOB", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(request.SectionType, "TITLE", StringComparison.OrdinalIgnoreCase)) {
+            var rawTitle = !string.IsNullOrWhiteSpace(request.TargetJobTitle)
+                ? request.TargetJobTitle.Trim()
+                : (request.Content ?? (isEn ? "Specialist" : "Chuyên viên chuyên môn"));
+            var cleanTitle = System.Text.RegularExpressions.Regex.Replace(rawTitle, @"\s*\([^)]*\)", "").Trim();
+            cleanTitle = System.Text.RegularExpressions.Regex.Replace(cleanTitle, @"\s*\[[^\]]*\]", "").Trim();
+            return new CvEnhanceResult(
+                OriginalContent: request.Content ?? cleanTitle,
+                EnhancedContent: cleanTitle,
+                SuggestedKeywords: new[] { cleanTitle },
+                Improvements: new[] { "Chuẩn hóa chức danh bám sát vị trí tuyển dụng." },
+                DetectedSection: "TARGET_JOB",
+                ConversationTitle: isEn ? "Job Title Optimization" : "Tối ưu vị trí ứng tuyển"
+            );
+        }
+
         var original = request.Content ?? request.CvContext ?? (isEn ? "CV Content" : "Nội dung CV");
         var enhanced = isEn
             ? "AI service is currently busy, please try again later!"
@@ -229,13 +306,21 @@ internal static class GeminiPrompts {
     }
 
     public static CvBatchEnhanceResult CreateFallbackBatchEnhancement(CvBatchEnhanceRequest request) {
-        var results = request.Sections.Select(s => new CvSectionEnhancedResult(
-            SectionType: s.SectionType,
-            OriginalContent: s.Content,
-            EnhancedContent: s.Content,
-            SuggestedKeywords: new[] { s.SectionType },
-            Improvements: new[] { "Bảo toàn nội dung gốc do dịch vụ AI đang bận." }
-        )).ToList();
+        var results = request.Sections.Select(s => {
+            var isTargetJob = string.Equals(s.SectionType, "TARGET_JOB", StringComparison.OrdinalIgnoreCase) ||
+                              string.Equals(s.SectionType, "TITLE", StringComparison.OrdinalIgnoreCase);
+            var content = isTargetJob && !string.IsNullOrWhiteSpace(request.TargetJobTitle)
+                ? System.Text.RegularExpressions.Regex.Replace(request.TargetJobTitle, @"\s*\([^)]*\)", "").Trim()
+                : s.Content;
+
+            return new CvSectionEnhancedResult(
+                SectionType: s.SectionType,
+                OriginalContent: s.Content,
+                EnhancedContent: content,
+                SuggestedKeywords: new[] { s.SectionType },
+                Improvements: new[] { isTargetJob ? "Chuẩn hóa chức danh bám sát vị trí tuyển dụng." : "Bảo toàn nội dung gốc do dịch vụ AI đang bận." }
+            );
+        }).ToList();
 
         return new CvBatchEnhanceResult(results);
     }
