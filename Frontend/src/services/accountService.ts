@@ -1,11 +1,13 @@
 import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type {
+  ApiResponse,
   ChangePasswordRequest,
   UpdateProfileRequest,
   UpdateProfileResult,
-} from "@/types/account";
-import type { ApiResponse, UserAccount } from "@/types/auth";
+  UserAccount,
+} from "@/types";
+
 
 export const accountService = {
   getMe(): Promise<ApiResponse<UserAccount>> {

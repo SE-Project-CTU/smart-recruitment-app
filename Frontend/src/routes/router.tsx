@@ -1,7 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
-import BaseLayout from "@/layouts/BaseLayout";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import BaseLayout from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import Page from "@/components/Page";
+import Page from "@/components/common/Page";
 import {
   SignUp,
   SignIn,
@@ -10,13 +10,38 @@ import {
   UserProfile,
   BadRequestPage,
 } from "@/pages";
-import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute";
-import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
+import { ProtectedRoute } from "./ProtectedRoute";
 import { PATHS } from "@/constants/paths";
 import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
+import CandidateCvManagementPage from "@/pages/candidate/CandidateCvManagementPage";
+import CandidateCvTemplatesPage from "@/pages/candidate/CandidateCvTemplatesPage";
+import CandidateApplicationStatusPage from "@/pages/candidate/CandidateApplicationStatusPage";
+import MatchedJobsPage from "@/pages/candidate/MatchedJobsPage";
+import CandidateSaveCvSuccessPage from "@/pages/candidate/CandidateSaveCvSuccessPage";
+import CandidatePreviewCvPage from "@/pages/candidate/CandidatePreviewCvPage";
+import CompanyManagement from "@/pages/recruiter/CompanyManagement";
+import CreateJobPage from "@/pages/recruiter/CreateJobPage";
+import RecruiterDashboard from "@/pages/recruiter/RecruiterDashboard";
+import {
+  CompanyManagementIndex,
+  CompanyDetailLayout,
+  CompanyOverviewTab,
+  CompanyMembersTab,
+  CompanySettingsTab,
+  CompanyInvitation,
+  CompanyJoinRequestsTab,
+} from "@/pages/recruiter/company";
+import {
+  RecruiterJobListPage,
+  JobDetailPage,
+  EditJobPage,
+} from "@/pages/recruiter/job";
+import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
+import CandidateCvBuilderPage from "@/pages/candidate/CandidateCvBuilderPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -42,8 +67,20 @@ const router = createBrowserRouter([
     element: <ProtectedRoute allowRoles={["candidate"]} />,
     children: [
       {
+        path: PATHS.CANDIDATE.EDIT_CV,
+        element: <CandidateCvBuilderPage />,
+      },
+      {
         element: <DashboardLayout />,
         children: [
+          {
+            path: "/candidate",
+            element: <Navigate to={PATHS.CANDIDATE.DASHBOARD} replace />,
+          },
+          {
+            path: "/candidate/bookmarks",
+            element: <Navigate to={PATHS.CANDIDATE.BOOKMARK_JOBS} replace />,
+          },
           {
             path: PATHS.CANDIDATE.DASHBOARD,
             element: <CandidateDashboard />,
@@ -54,15 +91,28 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.CANDIDATE.MATCHED_JOBS,
-            element: <Page title="Việc làm phù hợp" />,
+            element: <MatchedJobsPage />,
           },
           {
             path: PATHS.CANDIDATE.CV_MANAGEMENT,
-            element: <Page title="Quản lý CV" />,
+            element: <CandidateCvManagementPage />,
           },
           {
+            path: PATHS.CANDIDATE.CV_TEMPLATES,
+            element: <CandidateCvTemplatesPage />,
+          },
+          {
+            path: PATHS.CANDIDATE.SAVE_CV_SUCCESS,
+            element: <CandidateSaveCvSuccessPage />,
+          },
+          {
+            path: PATHS.CANDIDATE.PREVIEW_CV,
+            element: <CandidatePreviewCvPage />,
+          },
+
+          {
             path: PATHS.CANDIDATE.APPLICATION_STATUS,
-            element: <Page title="Trạng thái hồ sơ" />,
+            element: <CandidateApplicationStatusPage />,
           },
           {
             path: PATHS.CANDIDATE.BOOKMARK_COMPANIES,
@@ -97,8 +147,72 @@ const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           {
+            path: "/recruiter",
+            element: <Navigate to={PATHS.RECRUITER.DASHBOARD} replace />,
+          },
+          {
+            path: PATHS.RECRUITER.JOBS,
+            element: <RecruiterJobListPage />,
+          },
+          {
+            path: PATHS.RECRUITER.JOB_DETAIL,
+            element: <JobDetailPage />,
+          },
+          {
+            path: PATHS.RECRUITER.EDIT_JOB,
+            element: <EditJobPage />,
+          },
+          {
+            path: PATHS.RECRUITER.CREATE_JOB,
+            element: <CreateJobPage />,
+          },
+          {
+            path: PATHS.RECRUITER.CANDIDATES,
+            element: <RecruiterCandidateListPage />,
+          },
+          {
             path: PATHS.RECRUITER.DASHBOARD,
-            element: <Page title="Recruiter Dashboard Overview" />,
+            element: <RecruiterDashboard />,
+          },
+          {
+            path: PATHS.RECRUITER.COMPANY_MANAGEMENT,
+            element: <CompanyManagement />,
+            children: [
+              {
+                index: true,
+                element: <CompanyManagementIndex />,
+              },
+              {
+                path: ":companyId",
+                element: <CompanyDetailLayout />,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate to="overview" replace />,
+                  },
+                  {
+                    path: "overview",
+                    element: <CompanyOverviewTab />,
+                  },
+                  {
+                    path: "members",
+                    element: <CompanyMembersTab />,
+                  },
+                  {
+                    path: "settings",
+                    element: <CompanySettingsTab />,
+                  },
+                  {
+                    path: "invitations",
+                    element: <CompanyJoinRequestsTab />,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: PATHS.RECRUITER.COMPANY_INVITATION,
+            element: <CompanyInvitation />,
           },
           {
             path: PATHS.RECRUITER.USER_PROFILE,
@@ -116,6 +230,14 @@ const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
+          {
+            path: "/admin",
+            element: <Navigate to={PATHS.ADMIN.DASHBOARD} replace />,
+          },
+          {
+            path: "/admin/aprove",
+            element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
+          },
           {
             path: PATHS.ADMIN.DASHBOARD,
             element: <Page title="Admin Dashboard Overview" />,
@@ -137,15 +259,15 @@ const router = createBrowserRouter([
     ],
   },
 
-  {
-    element: <ProtectedRoute />,
-    children: [
-      {
-        path: PATHS.CREATE_CV,
-        element: <Page title="Trình tạo CV (Full Screen)" />,
-      },
-    ],
-  },
+  // {
+  //   element: <ProtectedRoute />,
+  //   children: [
+  //     {
+  //       path: PATHS.CREATE_CV,
+  //       element: <CVBuilder />,
+  //     },
+  //   ],
+  // },
 
   {
     path: PATHS.FORBIDDEN,

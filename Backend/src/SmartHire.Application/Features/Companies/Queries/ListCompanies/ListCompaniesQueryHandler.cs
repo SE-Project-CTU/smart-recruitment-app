@@ -1,5 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Common.Pagination;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Mapping;
 
@@ -16,11 +18,13 @@ public sealed class ListCompaniesQueryHandler
     public async Task<(IReadOnlyList<CompanyResult> Items, int TotalCount)> Handle(
         ListCompaniesQuery request,
         CancellationToken cancellationToken) {
-        var page = request.Page < 1 ? 1 : request.Page;
-        var pageSize = request.PageSize is < 1 or > 100 ? 20 : request.PageSize;
+        var pagination = request.Pagination ?? new PaginationParams();
+        var page = PagedListQueryValidator.ValidatePage(pagination.Page);
+        var pageSize = PagedListQueryValidator.ValidatePageSize(pagination.PageSize);
+        var search = PagedListQueryValidator.NormalizeSearch(request.Search);
 
         var (companies, totalCount) = await _companyRepository.GetCompaniesPagedAsync(
-            request.Search,
+            search,
             request.Status,
             page,
             pageSize,

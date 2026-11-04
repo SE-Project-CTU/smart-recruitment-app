@@ -11,7 +11,6 @@ public sealed record CvResult(
     string Title,
     CvContentDocument Content,
     CvLayoutDocument Layout,
-    CvPresentationDocument Presentation,
     CvLanguage Language,
     bool IsPublic,
     DateTimeOffset CreatedAt,

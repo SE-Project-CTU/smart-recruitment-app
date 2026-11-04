@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { Office } from "@/assets/images/decoration";
 import { SmartHire_default } from "@/assets/images/logo";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import { AlertCircle, Lock, UserRound } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
 import { useLogin } from "@/hooks/queries/useAccount";
@@ -70,6 +70,7 @@ function SignIn() {
               <img
                 src={SmartHire_default}
                 alt="SmartHire Logo"
+                loading="lazy"
                 className="max-w-30 md:max-w-none"
               />
             </Link>
@@ -82,14 +83,6 @@ function SignIn() {
             Chào mừng bạn đến với hệ sinh thái tuyển dụng tất cả trong một, tạm
             biệt cách làm truyền thống phức tạp
           </p>
-
-          {/* Thông báo lỗi nếu có */}
-          {errorMessage && (
-            <div className="mb-6 flex w-full max-w-md items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 transition-all">
-              <AlertCircle size={18} className="shrink-0" />
-              <span className="flex-1">{errorMessage}</span>
-            </div>
-          )}
 
           <form
             className="flex w-full max-w-md flex-col gap-5"
@@ -141,7 +134,17 @@ function SignIn() {
               </button>
             </div>
 
-            <div className="-mt-2 flex justify-end">
+            {/* Thông báo lỗi không background, không border, giữ min-height chống giật layout */}
+            <div className="-mt-2 min-h-5 px-3 flex items-center">
+              {errorMessage ? (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-status-error animate-in fade-in duration-150">
+                  <AlertCircle size={14} className="shrink-0" />
+                  <span className="truncate">{errorMessage}</span>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="-mt-3 flex justify-end">
               <a
                 href="#"
                 className="text-text text-sm font-semibold transition-colors hover:text-primary"
@@ -184,6 +187,7 @@ function SignIn() {
               <img
                 key={item}
                 className="h-8 w-8 rounded-full border-2 border-white object-cover md:h-12 md:w-12"
+                loading="lazy"
                 src={`https://i.pravatar.cc/100?img=${item + 39}`}
                 alt="Avatar"
               />
@@ -205,6 +209,7 @@ function SignIn() {
         <img
           src={Office}
           alt="SmartHire Office"
+          loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
         />
 

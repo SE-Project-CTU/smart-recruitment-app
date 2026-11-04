@@ -7,4 +7,4 @@ public sealed record ApplyToJobPostingCommand(
     string? JobPostingId,
     Guid? CvVersionId,
     Guid? UploadedCvFileId,
-    string? CoverLetter) : IRequest<JobApplicationResult>;
+    string? CoverLetter) : IRequest<ApplyJobResult>;

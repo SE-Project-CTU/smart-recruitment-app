@@ -9,7 +9,8 @@ import type {
   RefreshResult,
   RegisterRequest,
   RegisterResult,
-} from "@/types/auth";
+} from "@/types";
+
 
 export const authService = {
   /**

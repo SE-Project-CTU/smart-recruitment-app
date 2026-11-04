@@ -55,7 +55,7 @@ public sealed class ListApplicationsForJobQueryHandler
             validated.Skip,
             validated.PageSize,
             cancellationToken);
-        var items = rows.Select(ApplicationListItemMapper.ToResult).ToArray();
+        var items = rows.Select(ApplicationListItemMapper.ToJobApplicationResult).ToArray();
 
         return new JobApplicationsPageResult(items, validated.Page, validated.PageSize, totalItems);
     }

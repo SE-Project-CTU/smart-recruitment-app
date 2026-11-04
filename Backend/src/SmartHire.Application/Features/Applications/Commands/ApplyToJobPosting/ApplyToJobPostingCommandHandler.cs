@@ -10,7 +10,7 @@ using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Applications.Commands.ApplyToJobPosting;
 
-public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJobPostingCommand, JobApplicationResult> {
+public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJobPostingCommand, ApplyJobResult> {
     private const long MaximumCvSizeBytes = 5 * 1024 * 1024;
     private const string PdfContentType = "application/pdf";
 
@@ -36,7 +36,7 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<JobApplicationResult> Handle(
+    public async Task<ApplyJobResult> Handle(
         ApplyToJobPostingCommand request,
         CancellationToken cancellationToken) {
         var candidateId = _currentUser.UserId
@@ -103,10 +103,9 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
             throw ApplicationExceptions.DuplicateApplication();
         }
 
-        return new JobApplicationResult(
+        return new ApplyJobResult(
             application.Id,
             application.JobId,
-            application.CandidateId,
             application.CvVersionId,
             uploadedCv?.FileUrl,
             application.CoverLetter,

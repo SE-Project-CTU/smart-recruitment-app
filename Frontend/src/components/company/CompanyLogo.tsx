@@ -1,51 +1,39 @@
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("");
-}
+import { getLoremAvt } from "@/utils/helper";
 
 export interface CompanyLogoProps {
-  logoUrl: string | null;
+  logoUrl?: string | null;
   name: string;
   size?: "sm" | "md" | "lg";
 }
 
-export function CompanyLogo({
-  logoUrl,
-  name,
-  size = "md",
-}: CompanyLogoProps) {
+export function CompanyLogo({ logoUrl, name, size = "md" }: CompanyLogoProps) {
   const sizeMap = {
     sm: "size-10 text-sm",
     md: "size-14 text-base",
     lg: "size-20 text-xl",
   };
 
-  if (logoUrl) {
-    return (
-      <div
-        className={`${sizeMap[size]} shrink-0 overflow-hidden rounded-2xl border border-border bg-white`}
-      >
-        <img
-          src={logoUrl}
-          alt={name}
-          className="size-full object-contain p-1.5"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = "none";
-          }}
-        />
-      </div>
-    );
-  }
+  const fallbackSrc = getLoremAvt(name);
 
   return (
     <div
-      className={`${sizeMap[size]} flex shrink-0 items-center justify-center rounded-2xl bg-primary/8 font-semibold text-primary`}
+      className={`${sizeMap[size]} shrink-0 overflow-hidden rounded-lg border border-border bg-white`}
     >
-      {getInitials(name)}
+      <img
+        src={logoUrl || fallbackSrc}
+        alt={name}
+        className="size-full object-contain"
+        loading="lazy"
+        onError={(event) => {
+          const img = event.currentTarget;
+          if (img.src !== new URL(fallbackSrc, img.baseURI).href) {
+            img.onerror = null;
+            img.src = fallbackSrc;
+          }
+        }}
+      />
     </div>
   );
 }
+
+export default CompanyLogo;

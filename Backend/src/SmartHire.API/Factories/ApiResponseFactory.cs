@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Contracts.Responses;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
+using SmartHire.Application.Common.Validation;
 
 namespace SmartHire.Api.Factories;
 
@@ -68,7 +69,7 @@ public sealed class ApiResponseFactory(
             totalItems,
             totalPages,
             HasNextPage: page < totalPages - 1,
-            HasPreviousPage: page > 0
+            HasPreviousPage: page > PagedListQueryValidator.FirstPage
         );
         
         return new ApiResponse<IReadOnlyList<TItem>, PaginationMeta>(

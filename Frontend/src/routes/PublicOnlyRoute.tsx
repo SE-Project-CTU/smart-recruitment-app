@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { PATHS } from "@/constants/paths";
+import { LoadingScreen } from "@/components/common";
 
 interface PublicOnlyRouteProps {
   redirectTo?: string;
@@ -16,7 +17,7 @@ export const PublicOnlyRoute = ({
   if (isInitializing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <LoadingScreen />
       </div>
     );
   }

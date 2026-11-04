@@ -1,6 +1,7 @@
+import { EmptyStreet } from "@/assets/images/decoration";
 import { useState, useMemo } from "react";
 import { Search, X, BookmarkCheck } from "lucide-react";
-import { JobCard } from "@/components/JobCard";
+import { JobCard } from "@/components/common";
 import { JobDetailDrawer } from "@/components/job";
 import { MOCK_JOB_POSTINGS, type MockJobPosting } from "@/constants/mockData";
 
@@ -101,17 +102,20 @@ export default function BookmarkJobs() {
           ))}
         </div>
       ) : bookmarkedIds.size === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-primary/8">
-            <BookmarkCheck className="size-7 text-primary/50" />
-          </div>
-          <p className="text-sm font-medium text-text-main">
+        <section className="flex flex-col items-center justify-center space-y-4 py-16 text-center">
+          <img
+            src={EmptyStreet}
+            alt="Chưa có việc làm nào được lưu"
+            loading="lazy"
+            className="h-80 w-auto md:h-100"
+          />
+          <h2 className="text-base font-semibold text-text-main">
             Chưa có việc làm nào được lưu
-          </p>
-          <p className="mt-1.5 max-w-xs text-xs text-text-muted">
+          </h2>
+          <p className="max-w-xs text-xs text-text-muted">
             Khám phá các cơ hội việc làm và nhấn Bookmark để lưu lại.
           </p>
-        </div>
+        </section>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-bg">

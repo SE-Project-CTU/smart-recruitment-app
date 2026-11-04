@@ -1,6 +1,8 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Common.Pagination;
+using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Application.Features.Companies.Exceptions;
 using SmartHire.Application.Features.Companies.Mapping;
@@ -41,11 +43,15 @@ public sealed class ListJoinRequestsQueryHandler : IRequestHandler<ListJoinReque
             filterStatus = parsedStatus;
         }
 
+        var pagination = request.Pagination ?? new PaginationParams();
+        var page = PagedListQueryValidator.ValidatePage(pagination.Page);
+        var pageSize = PagedListQueryValidator.ValidatePageSize(pagination.PageSize);
+
         var (items, totalCount) = await _companyRepository.GetJoinRequestsPagedAsync(
             request.CompanyId,
             filterStatus,
-            request.Page,
-            request.PageSize,
+            page,
+            pageSize,
             cancellationToken);
 
         var results = items.Select(CompanyResultMapper.ToCompanyJoinRequestResult).ToList();

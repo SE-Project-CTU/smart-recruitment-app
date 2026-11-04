@@ -4,7 +4,7 @@ namespace SmartHire.Application.Abstractions.Persistence.ReadModels;
 
 public sealed record JobPostingDetailData(
     Guid Id,
-    Guid CreatedBy,
+    CreatorReadModel Creator,
     string Title,
     string Description,
     string Requirements,
@@ -22,10 +22,16 @@ public sealed record JobPostingDetailData(
     JobPostingStatus Status,
     CompanyReadModel Company,
     LocationReadModel Location,
-    IReadOnlyList<Guid> IndustryIds,
+    IReadOnlyList<IndustryReadModel> Industries,
     IReadOnlyList<SkillReadModel> Skills,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);
+
+public sealed record CreatorReadModel(
+    Guid Id,
+    string FullName,
+    string Email,
+    string? AvatarUrl);
 
 public sealed record CompanyReadModel(
     Guid Id,
@@ -40,5 +46,7 @@ public sealed record LocationReadModel(
     Guid? WardId,
     string? WardName,
     string? DetailedLocation);
+
+public sealed record IndustryReadModel(Guid Id, string Name);
 
 public sealed record SkillReadModel(Guid Id, string Name);

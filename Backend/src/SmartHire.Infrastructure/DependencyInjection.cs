@@ -44,6 +44,7 @@ public static class DependencyInjection {
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IPasswordHasher, AspNetPasswordHasher>();
         services.AddScoped<AdminAccountSeeder>();
+        services.AddScoped<CvDocumentFontSizeBackfiller>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
         services.AddSingleton<IAccessTokenGenerator, JwtAccessTokenGenerator>();

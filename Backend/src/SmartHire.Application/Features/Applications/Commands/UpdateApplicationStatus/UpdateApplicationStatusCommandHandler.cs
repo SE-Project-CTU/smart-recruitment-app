@@ -20,6 +20,7 @@ public sealed class UpdateApplicationStatusCommandHandler
     private readonly ICurrentUser _currentUser;
     private readonly IJobApplicationRepository _applicationRepository;
     private readonly ICompanyRepository _companyRepository;
+    private readonly IUserRepository _userRepository;
     private readonly INotificationRepository _notificationRepository;
     private readonly IBackgroundJobScheduler _backgroundJobScheduler;
     private readonly IUnitOfWork _unitOfWork;
@@ -29,6 +30,7 @@ public sealed class UpdateApplicationStatusCommandHandler
         ICurrentUser currentUser,
         IJobApplicationRepository applicationRepository,
         ICompanyRepository companyRepository,
+        IUserRepository userRepository,
         INotificationRepository notificationRepository,
         IBackgroundJobScheduler backgroundJobScheduler,
         IUnitOfWork unitOfWork,
@@ -36,6 +38,7 @@ public sealed class UpdateApplicationStatusCommandHandler
         _currentUser = currentUser;
         _applicationRepository = applicationRepository;
         _companyRepository = companyRepository;
+        _userRepository = userRepository;
         _notificationRepository = notificationRepository;
         _backgroundJobScheduler = backgroundJobScheduler;
         _unitOfWork = unitOfWork;
@@ -63,6 +66,14 @@ public sealed class UpdateApplicationStatusCommandHandler
             throw ApplicationExceptions.ApplicationManagementForbidden();
         }
 
+        var currentAccount = await _userRepository.GetCurrentAccountAsync(userId, cancellationToken);
+        var actor = new ApplicationStatusHistoryActorResult(
+            userId,
+            currentAccount?.FullName ?? string.Empty,
+            currentAccount?.Email ?? string.Empty,
+            currentAccount?.AvatarUrl,
+            currentAccount?.Roles.FirstOrDefault() ?? RoleNames.Recruiter);
+
         var now = DateTimeOffset.UtcNow;
         (UpdateApplicationStatusResult Result, Guid NotificationId) transactionResult;
         try {
@@ -79,7 +90,7 @@ public sealed class UpdateApplicationStatusCommandHandler
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 return (
-                    Result: UpdateApplicationStatusMapper.ToResult(application, history),
+                    Result: UpdateApplicationStatusMapper.ToResult(application, history, actor),
                     NotificationId: notification.Id);
             }, cancellationToken);
         }

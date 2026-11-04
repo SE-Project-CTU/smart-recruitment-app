@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -29,6 +29,9 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting> {
             .HasConversion<string>();
 
         builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.Title)
+            .HasMethod("GIN")
+            .HasOperators("gin_trgm_ops");
 
         builder.Property<NpgsqlTsVector>("SearchVector")
             .HasColumnType("tsvector")

@@ -39,7 +39,7 @@ public sealed class ListMyApplicationsQueryHandler
             validated.PageSize,
             cancellationToken);
 
-        var items = rows.Select(ApplicationListItemMapper.ToResult).ToArray();
+        var items = rows.Select(ApplicationListItemMapper.ToMyApplicationResult).ToArray();
 
         return new MyApplicationsPageResult(items, validated.Page, validated.PageSize, totalItems);
     }

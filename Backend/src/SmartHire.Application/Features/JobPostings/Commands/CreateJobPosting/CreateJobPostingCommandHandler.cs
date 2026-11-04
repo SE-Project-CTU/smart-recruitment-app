@@ -128,6 +128,9 @@ public sealed class CreateJobPostingCommandHandler
             await _jobPostingRepository.AddAsync(jobPosting, ct);
             await _unitOfWork.SaveChangesAsync(ct);
             
+            var detail = await _jobPostingRepository.GetDetailByIdAsync(jobPosting.Id, ct)
+                         ?? throw JobPostingExceptions.JobPostingNotFound(jobPosting.Id);
+            
             var followerUserIds = await _companyRepository.GetFollowerUserIdsAsync(
                 company.Id,
                 ct);
@@ -143,7 +146,7 @@ public sealed class CreateJobPostingCommandHandler
             }
             
             return (
-                Result: JobPostingMapper.ToResult(jobPosting),
+                Result: JobPostingDetailMapper.ToJobPostingResult(detail),
                 NotificationIds: notifications.Select(notification => notification.Id).ToArray());
         }, cancellationToken);
         

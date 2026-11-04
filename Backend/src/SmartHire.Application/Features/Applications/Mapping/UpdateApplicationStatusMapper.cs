@@ -6,7 +6,8 @@ namespace SmartHire.Application.Features.Applications.Mapping;
 internal static class UpdateApplicationStatusMapper {
     public static UpdateApplicationStatusResult ToResult(
         JobApplication application,
-        ApplicationStatusHistory latestHistory) => new(
+        ApplicationStatusHistory latestHistory,
+        ApplicationStatusHistoryActorResult actor) => new(
         application.Id,
         application.JobId,
         application.CandidateId,
@@ -20,7 +21,7 @@ internal static class UpdateApplicationStatusMapper {
             latestHistory.Id,
             latestHistory.ApplicationId,
             ApplicationStatusContract.ToApiValue(latestHistory.Status),
-            latestHistory.ChangedBy,
+            actor,
             latestHistory.Note,
             latestHistory.CreatedAt));
 }

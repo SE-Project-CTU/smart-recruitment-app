@@ -1,16 +1,17 @@
-import {
+﻿import {
   BookBookmark,
   Bookmark,
   BuildingComplex,
-  ChevronsUp,
   CircleQuestionMark,
   FileChartLine,
   FileText,
   Home,
   LayoutList,
+  LayoutTemplate,
   LibraryBig,
   ListCheck,
   Search,
+  Settings,
   Star,
   UserRound,
   UserRoundGroup,
@@ -36,12 +37,14 @@ export const candidateSidebarData = {
       title: "Việc làm phù hợp",
       url: PATHS.CANDIDATE.MATCHED_JOBS,
       icon: LayoutList,
+  LayoutTemplate,
       items: [],
     },
   ],
   //hồ sơ của tui
   myProfile: [
     { title: "Quản lý CV", url: PATHS.CANDIDATE.CV_MANAGEMENT, icon: FileText },
+    { title: "Mẫu CV", url: PATHS.CANDIDATE.CV_TEMPLATES, icon: LayoutTemplate },
     {
       title: "Trạng thái hồ sơ",
       url: PATHS.CANDIDATE.APPLICATION_STATUS,
@@ -81,14 +84,17 @@ export const recruiterSidebarData = {
       items: [],
     },
     {
-      title: "Quản lý JD",
+      title: "Quản lý việc làm",
       url: "#",
       icon: LibraryBig,
-      items: [],
+      items: [
+        { title: "Danh sách tin", url: PATHS.RECRUITER.JOBS },
+        { title: "Tạo tin mới", url: PATHS.RECRUITER.CREATE_JOB },
+      ],
     },
     {
       title: "Ứng viên",
-      url: "#",
+      url: PATHS.RECRUITER.CANDIDATES,
       icon: UserRoundGroup,
       items: [],
     },
@@ -97,8 +103,8 @@ export const recruiterSidebarData = {
       url: "#",
       icon: BuildingComplex,
       items: [
-        { title: "Quản lý", url: "#" },
-        { title: "Lời mời", url: "#" },
+        { title: "Quản lý", url: PATHS.RECRUITER.COMPANY_MANAGEMENT },
+        { title: "Lời mời", url: PATHS.RECRUITER.COMPANY_INVITATION },
       ],
     },
   ],
@@ -106,6 +112,7 @@ export const recruiterSidebarData = {
   setting: [
     {
       title: "Cài đặt",
+      icon: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },
@@ -115,11 +122,8 @@ export const recruiterSidebarData = {
     },
   ],
 
-  //footer
-  footer: [
-    { title: "Nâng cấp gói", url: "#", icon: ChevronsUp },
-    { title: "Trợ giúp", url: "#", icon: CircleQuestionMark },
-  ],
+  //footer (Được thay thế bằng WorkspaceSwitcher riêng cho phân hệ Recruiter)
+  footer: [],
 };
 
 export const adminSidebarData = {
@@ -151,6 +155,7 @@ export const adminSidebarData = {
   setting: [
     {
       title: "Cài đặt",
+      icons: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },

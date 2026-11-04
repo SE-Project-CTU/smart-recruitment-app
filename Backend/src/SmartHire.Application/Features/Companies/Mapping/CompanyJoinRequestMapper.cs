@@ -9,7 +9,11 @@ public static class CompanyJoinRequestMapper {
 
         CompanyJoinRequestUserSummary? userSummary = null;
         if (request.User is not null) {
-            userSummary = new CompanyJoinRequestUserSummary(request.User.Id, request.User.Email, request.User.FullName);
+            userSummary = new CompanyJoinRequestUserSummary(
+                request.User.Id,
+                request.User.Email,
+                request.User.FullName,
+                request.User.AvatarFile?.FileUrl);
         }
 
         return new CompanyJoinRequestResult(

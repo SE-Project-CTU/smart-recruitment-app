@@ -8,7 +8,12 @@ internal static class ApplicationStatusHistoryMapper {
         history.Id,
         history.ApplicationId,
         ApplicationStatusContract.ToApiValue(history.Status),
-        history.ChangedBy,
+        new ApplicationStatusHistoryActorResult(
+            history.ChangedBy.Id,
+            history.ChangedBy.FullName,
+            history.ChangedBy.Email,
+            history.ChangedBy.AvatarUrl,
+            history.ChangedBy.Role),
         history.Note,
         history.CreatedAt);
 }

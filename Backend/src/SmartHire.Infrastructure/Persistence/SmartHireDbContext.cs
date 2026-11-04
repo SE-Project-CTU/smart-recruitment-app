@@ -47,6 +47,7 @@ public sealed class SmartHireDbContext
         base.OnModelCreating(modelBuilder);
         
         modelBuilder.HasPostgresExtension("vector");
+        modelBuilder.HasPostgresExtension("pg_trgm");
         
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
