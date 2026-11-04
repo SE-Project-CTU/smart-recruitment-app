@@ -296,6 +296,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                                         transitionDuration: "0.001s",
                                       }
                                     : dragProvided.draggableProps.style),
+                                  height: "auto",
                                   fontFamily: getCvFontFamilyCss(fontFamily),
                                   lineHeight,
                                   ["--cv-font-scale" as string]: fontScale,
@@ -310,7 +311,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                           }
                           className={`group relative rounded-sm px-2 hover:ring-1 hover:ring-slate-300 ${
                             snapshot.isDragging
-                              ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
+                              ? "cv-page-container text-slate-900 z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
                               : ""
                           }`}
                         >
