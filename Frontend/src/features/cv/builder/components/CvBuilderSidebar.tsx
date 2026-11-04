@@ -118,7 +118,7 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
                           </TabsTab>
                         }
                       />
-                      <TooltipPanel side="right" sideOffset={10} className="bg-primary">
+                      <TooltipPanel side="right" sideOffset={10} className="">
                         {tab.title}
                       </TooltipPanel>
                     </Tooltip>
