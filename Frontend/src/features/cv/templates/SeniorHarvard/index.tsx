@@ -247,7 +247,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
 
   return (
     <div
-      className={`cv-page-container mx-auto w-[210mm] bg-white p-8 text-slate-900 shadow-xl print:m-0 print:p-8 print:shadow-none ${className}`}
+      className={`cv-page-container mx-auto w-[210mm] bg-white p-8 text-slate-900 shadow-xl print:m-0 print:px-8 print:py-0 print:shadow-none ${className}`}
       style={{
         fontFamily: getCvFontFamilyCss(fontFamily),
         lineHeight,

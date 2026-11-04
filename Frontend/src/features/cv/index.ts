@@ -109,4 +109,5 @@ export {
   type CvFontId,
   type CvFontOption,
 } from "./constants/fonts";
+export { CV_PRINT_PAGE_STYLE } from "./constants/print";
 

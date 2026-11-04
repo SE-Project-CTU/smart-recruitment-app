@@ -34,6 +34,7 @@ import { UnsavedChangesModal } from "./UnsavedChangesModal";
 import { CvTitleInput } from "./CvTitleInput";
 import { CvZoomControls } from "./CvZoomControls";
 import { useCvZoom } from "../hooks/useCvZoom";
+import { CV_PRINT_PAGE_STYLE } from "../../constants/print";
 import { useCvHistoryHotkeys } from "../hooks/useCvHistoryHotkeys";
 import { CvHistoryProvider, useCvHistory } from "../history";
 import { useUpdateCv } from "@/hooks/queries/useCv";
@@ -134,35 +135,7 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
       currentCvTitle ||
       methods.getValues("title") ||
       `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 0;
-      }
-      @media print {
-        html, body {
-          margin: 0 !important;
-          padding: 0 !important;
-          height: auto !important;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        .cv-zoom-viewport,
-        .print-container {
-          margin: 0 !important;
-          padding: 0 !important;
-          transform: none !important;
-          zoom: 1 !important;
-          height: auto !important;
-        }
-        .cv-page-container {
-          margin: 0 !important;
-          box-shadow: none !important;
-          transform: none !important;
-          zoom: 1 !important;
-        }
-      }
-    `,
+    pageStyle: CV_PRINT_PAGE_STYLE,
   });
 
   const handleCompleteCv = () => {
