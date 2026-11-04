@@ -2,16 +2,23 @@ import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import type { FixedSectionKey } from "../../types";
+import {
+  useCvHistory,
+  ReorderAreaSectionsCommand,
+  SetSectionVisibilityCommand,
+  MoveSectionBetweenAreasCommand,
+} from "../history";
 
 /**
  * Hook quản lý các thao tác mutation nghiệp vụ trên CV:
  * - Đổi thứ tự sections theo layout.areas
  * - Đổi visibility của section
  * - Phân bố sections vào areas
- * - Dọn dẹp dynamic style keys khi xóa item
+ * Đã tích hợp Command Pattern (CvCommandHistory) hỗ trợ Undo/Redo.
  */
 export function useCvMutations() {
   const { getValues, setValue } = useFormContext<RichTextCvEditorValues>();
+  const { executeCommand } = useCvHistory();
 
   /**
    * Thay đổi thứ tự sections trong 1 area cụ thể của layout
@@ -36,16 +43,15 @@ export function useCvMutations() {
         areas: updatedAreas,
       };
 
-      setValue("layout", updatedLayout, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      setValue("layout.areas", updatedAreas, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      const command = new ReorderAreaSectionsCommand(
+        areaId,
+        currentLayout,
+        updatedLayout,
+        setValue,
+      );
+      executeCommand(command);
     },
-    [getValues, setValue],
+    [getValues, setValue, executeCommand],
   );
 
   /**
@@ -65,12 +71,16 @@ export function useCvMutations() {
     (sectionKey: FixedSectionKey) => {
       const current = getValues(`content.sections.${sectionKey}.visible`);
       const isCurrentlyVisible = current !== false;
-      setValue(`content.sections.${sectionKey}.visible`, !isCurrentlyVisible, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+
+      const command = new SetSectionVisibilityCommand(
+        sectionKey,
+        isCurrentlyVisible,
+        !isCurrentlyVisible,
+        setValue,
+      );
+      executeCommand(command);
     },
-    [getValues, setValue],
+    [getValues, setValue, executeCommand],
   );
 
   /**
@@ -82,7 +92,6 @@ export function useCvMutations() {
       const currentLayout = getValues("layout");
       const areas = currentLayout?.areas || [];
       const updatedAreas = areas.map((area) => {
-        // Bỏ section khỏi các area khác
         const filtered = area.sections.filter((s) => s !== typedKey);
         if (area.id === targetAreaId) {
           return {
@@ -101,16 +110,14 @@ export function useCvMutations() {
         areas: updatedAreas,
       };
 
-      setValue("layout", updatedLayout, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      setValue("layout.areas", updatedAreas, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      const command = new MoveSectionBetweenAreasCommand(
+        currentLayout,
+        updatedLayout,
+        setValue,
+      );
+      executeCommand(command);
     },
-    [getValues, setValue],
+    [getValues, setValue, executeCommand],
   );
 
   /**
@@ -161,16 +168,14 @@ export function useCvMutations() {
         areas: updatedAreas,
       };
 
-      setValue("layout", updatedLayout, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      setValue("layout.areas", updatedAreas, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      const command = new MoveSectionBetweenAreasCommand(
+        currentLayout,
+        updatedLayout,
+        setValue,
+      );
+      executeCommand(command);
     },
-    [getValues, setValue, reorderAreaSections],
+    [getValues, setValue, reorderAreaSections, executeCommand],
   );
 
   return {

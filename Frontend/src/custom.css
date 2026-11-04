@@ -89,3 +89,38 @@
 .cv-text-meta {
   font-size: calc(11px * var(--cv-font-scale, 1));
 }
+
+
+/* ==========================================================================
+   CV Zoom Viewport & Print Isolation
+   ========================================================================== */
+.cv-zoom-viewport {
+  transform-origin: top center;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cv-zoom-viewport,
+  .print-container {
+    transform: none !important;
+    zoom: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  .cv-page-container {
+    transform: none !important;
+    zoom: 1 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+}

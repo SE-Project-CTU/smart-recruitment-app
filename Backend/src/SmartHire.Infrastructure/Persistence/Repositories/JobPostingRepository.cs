@@ -159,6 +159,63 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                 posting.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<JobPostingDetailData>> GetDetailsByIdsAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken) {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return Array.Empty<JobPostingDetailData>();
+
+        return await _dbContext.JobPostings
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Where(p => idList.Contains(p.Id))
+            .Select(posting => new JobPostingDetailData(
+                posting.Id,
+                new CreatorReadModel(
+                    posting.CreatedByMembership.User.Id,
+                    posting.CreatedByMembership.User.FullName,
+                    posting.CreatedByMembership.User.Email,
+                    posting.CreatedByMembership.User.AvatarFile != null
+                        ? posting.CreatedByMembership.User.AvatarFile.FileUrl
+                        : null),
+                posting.Title,
+                posting.Description,
+                posting.Requirements,
+                posting.Benefits,
+                posting.ExperienceYears,
+                posting.JobLevel,
+                posting.EducationLevel,
+                posting.Vacancies,
+                posting.WorkMode,
+                posting.JobType,
+                posting.SalaryMin,
+                posting.SalaryMax,
+                posting.SalaryNegotiable,
+                posting.Deadline,
+                posting.Status,
+                new CompanyReadModel(
+                    posting.Company.Id,
+                    posting.Company.Name,
+                    posting.Company.VerificationStatus,
+                    posting.Company.Address,
+                    posting.Company.LogoFile != null ? posting.Company.LogoFile.FileUrl : null),
+                new LocationReadModel(
+                    posting.ProvinceId,
+                    posting.Province.Name,
+                    posting.WardId,
+                    posting.Ward != null ? posting.Ward.Name : null,
+                    posting.DetailedLocation),
+                posting.JobIndustries
+                    .Select(ji => new IndustryReadModel(ji.Industry.Id, ji.Industry.Name))
+                    .ToList(),
+                posting.JobSkills
+                    .Select(js => new SkillReadModel(js.Skill.Id, js.Skill.Name))
+                    .ToList(),
+                posting.CreatedAt,
+                posting.UpdatedAt))
+            .ToListAsync(cancellationToken);
+    }
     
     public async Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken) {
         return await _dbContext.JobPostings
@@ -191,7 +248,6 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                         p.Deadline <= now)
             .ToListAsync(cancellationToken);
     }
-    
     
     public async Task<(IReadOnlyList<CompanyJobPostingData> Items, int TotalCount)> GetByCompanyIdPagedAsync(
         Guid companyId,

@@ -1,0 +1,3 @@
+namespace SmartHire.Application.Features.Ai.Jobs.CleanupExpiredAiConversations;
+
+public sealed record CleanupExpiredAiConversationsJobArgs;

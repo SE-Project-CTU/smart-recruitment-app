@@ -1,4 +1,4 @@
-﻿using Pgvector;
+using Pgvector;
 
 namespace SmartHire.Domain.Entities;
 
@@ -13,4 +13,23 @@ public class JobEmbedding {
     public DateTimeOffset CreatedAt { get; private set; }
     
     private JobEmbedding() { }
+
+    public static JobEmbedding Create(
+        Guid jobId,
+        Vector embedding,
+        string model,
+        DateTimeOffset createdAt) {
+        return new JobEmbedding {
+            Id = Guid.NewGuid(),
+            JobId = jobId,
+            Embedding = embedding,
+            Model = model,
+            CreatedAt = createdAt
+        };
+    }
+
+    public void Update(Vector embedding, string model) {
+        Embedding = embedding;
+        Model = model;
+    }
 }

@@ -1,0 +1,4036 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartHire Studio - AI CV Builder & Copilot Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-studio: #0b0f19;
+      --bg-canvas: #090d16;
+      --bg-panel: rgba(17, 24, 39, 0.96);
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --bg-card-hover: rgba(51, 65, 85, 0.6);
+      --border: rgba(51, 65, 85, 0.65);
+      --border-focus: #6366f1;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --text-muted: #64748b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-studio);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Studio Header */
+    .studio-header {
+      height: 54px;
+      background: rgba(15, 23, 42, 0.97);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 30;
+      gap: 12px;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2));
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+    }
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+    .user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      max-width: 220px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: #fff;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .btn-success {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--accent-emerald);
+    }
+    .btn-success:hover {
+      background: rgba(16, 185, 129, 0.3);
+    }
+    .btn-danger {
+      background: rgba(244, 63, 94, 0.2);
+      border-color: rgba(244, 63, 94, 0.4);
+      color: var(--accent-rose);
+    }
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    /* Main Studio Body */
+    .studio-body {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 54px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 1. Left Nav Strip + Left Menu */
+    .left-container {
+      display: flex;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      z-index: 20;
+    }
+    .nav-rail {
+      width: 52px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 8px;
+    }
+    .rail-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .rail-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .rail-btn.active {
+      background: rgba(99, 102, 241, 0.25);
+      color: #fff;
+      border: 1px solid rgba(99, 102, 241, 0.5);
+    }
+
+    .left-menu {
+      width: 240px;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow-y: auto;
+    }
+    .menu-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-sub);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .menu-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    .menu-item.active {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.35);
+      color: #fff;
+      font-weight: 600;
+    }
+    .menu-item-icon {
+      font-size: 15px;
+      width: 22px;
+      display: flex;
+      justify-content: center;
+    }
+    .menu-badge {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .badge-new {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    /* 2. Center CV Canvas */
+    .center-canvas {
+      flex: 1;
+      background: radial-gradient(circle at 50% 30%, rgba(30, 41, 59, 0.5) 0%, #090d16 80%);
+      overflow-y: auto;
+      padding: 16px 20px 80px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .cv-paper {
+      width: 100%;
+      max-width: 760px;
+      background: #ffffff;
+      color: #1e293b;
+      border-radius: 6px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      padding: 40px 44px;
+      line-height: 1.6;
+      font-size: 13.5px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .cv-header-name {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .cv-header-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0284c7;
+      margin-bottom: 10px;
+    }
+    .cv-contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 12px;
+      color: #64748b;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .cv-section-heading {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #0369a1;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cv-section-heading::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    .cv-highlight-block {
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.05);
+      border-left: 3px solid #cbd5e1;
+      margin: 6px 0;
+      transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+      cursor: text;
+    }
+    .cv-highlight-block:focus {
+      outline: none;
+      background: rgba(99, 102, 241, 0.12);
+      border-left-color: var(--primary);
+    }
+    .cv-highlight-block.updated {
+      background: rgba(16, 185, 129, 0.18) !important;
+      border-left-color: var(--accent-emerald) !important;
+      animation: flashPulse 1.6s ease-out;
+    }
+    @keyframes flashPulse {
+      0% { transform: scale(1.01); box-shadow: 0 0 16px rgba(16, 185, 129, 0.6); }
+      100% { transform: scale(1); box-shadow: none; }
+    }
+    .cv-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 11.5px;
+      margin: 2px 4px 2px 0;
+      border: 1px solid #e2e8f0;
+    }
+    .cv-tag.highlight-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-color: #7dd3fc;
+      font-weight: 600;
+    }
+
+    /* 3. Right AI Copilot Studio Drawer */
+    .ai-copilot-drawer {
+      width: 470px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      z-index: 25;
+    }
+    .ai-copilot-drawer.collapsed {
+      width: 52px;
+    }
+    .ai-copilot-drawer.collapsed .drawer-inner {
+      display: none;
+    }
+    .ai-copilot-drawer.collapsed .collapsed-icon-strip {
+      display: flex;
+    }
+
+    /* Collapsed Strip */
+    .collapsed-icon-strip {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 10px;
+      height: 100%;
+    }
+    .strip-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .strip-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: var(--primary);
+    }
+    .strip-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      color: #000;
+      font-size: 9.5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Drawer Inner */
+    .drawer-inner {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-width: 0;
+    }
+    .drawer-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.7);
+    }
+    .drawer-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .drawer-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .drawer-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-sub);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    /* Drawer Tabs */
+    .drawer-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.5);
+      padding: 0 4px;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .drawer-tab {
+      padding: 9px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .drawer-tab:hover {
+      color: #fff;
+    }
+    .drawer-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Drawer Content */
+    .drawer-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Section Enhancement Cards */
+    .section-enhance-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .section-enhance-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: var(--bg-card-hover);
+    }
+    .sec-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pill-scope {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .pill-score-gain {
+      color: var(--accent-emerald);
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .sec-source-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 11.5px;
+      color: #cbd5e1;
+      line-height: 1.5;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+    .sec-output-box {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 11.5px;
+      color: #f8fafc;
+      line-height: 1.55;
+      min-height: 40px;
+      max-height: 140px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      display: none;
+    }
+    .typewriter-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 14px;
+      background: var(--accent-emerald);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Skeleton Loader for Stream UX */
+    .skeleton-shimmer-box {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(99, 102, 241, 0.05);
+      border: 1px dashed rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-sm);
+    }
+    .skeleton-line {
+      height: 11px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0.06) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Drawer Footer */
+    .drawer-footer {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Form Controls */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .form-input, .form-select, .form-textarea {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    /* Chat Tab */
+    .drawer-chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .drawer-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 400px;
+    }
+    .chat-bubble-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--primary), #4f46e5);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 12px 12px 2px 12px;
+      font-size: 12px;
+      max-width: 88%;
+    }
+    .chat-bubble-ai {
+      align-self: flex-start;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      border-radius: 12px 12px 12px 2px;
+      font-size: 12px;
+      color: #e2e8f0;
+      max-width: 95%;
+      line-height: 1.5;
+    }
+    .chat-section-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    /* Match Gauge & Before/After Comparison Box */
+    .match-gauge-box {
+      text-align: center;
+      padding: 14px;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .gauge-score {
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--accent-emerald);
+      letter-spacing: -1px;
+    }
+    .score-comparison-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .score-compare-card {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    /* Gap Analysis Box (Target Job Tailoring) */
+    .gap-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .gap-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Output Box */
+    .api-output-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: #cbd5e1;
+      max-height: 160px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Bottom Dev Console */
+    .bottom-console {
+      height: 38px;
+      background: #090d16;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 11.5px;
+      color: var(--text-sub);
+      z-index: 40;
+    }
+    .bottom-console-log {
+      font-family: 'Fira Code', monospace;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      max-width: 80%;
+    }
+
+    /* Toast */
+    .toast-box {
+      position: fixed;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent-emerald);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+    }
+    .toast-box.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Studio Top Navigation -->
+  <header class="studio-header">
+    <div class="brand-group">
+      <div style="font-size: 22px;">🪄</div>
+      <div>
+        <div style="font-weight: 800; font-size: 14.5px; letter-spacing: -0.3px; color: #fff;">SmartHire Studio</div>
+        <div style="font-size: 10.5px; color: var(--text-muted);">AI CV Builder & Live Assistant</div>
+      </div>
+      <span class="brand-badge">Gemini 3.5 Flash Lite</span>
+    </div>
+
+    <!-- Header Actions (JD Mục tiêu trích xuất từ CV - Khóa không cho nhập khác) -->
+    <div class="header-actions">
+      <!-- CV & Job Profile Presets Switcher -->
+      <div style="display: flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.15); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.4);">
+        <span style="font-size: 11px; color: #c7d2fe; font-weight: 700;">🔄 Profile Test:</span>
+        <select class="form-select" id="cvProfilePresetSelect" onchange="switchCvProfilePreset(this.value)" style="padding: 2px 8px; font-size: 11px; font-weight: 700; background: #0f172a; color: #38bdf8; border: 1px solid #6366f1; border-radius: 6px; cursor: pointer;">
+          <option value="it_vi">💻 IT (ReactJS / .NET 10 - Tiếng Việt)</option>
+          <option value="marketing_en">📈 Marketing (Performance Lead - 100% English)</option>
+          <option value="education_vi">🎓 Sư phạm (Trưởng bộ môn Đào tạo - Tiếng Việt)</option>
+          <option value="automotive_en">🚗 Kỹ thuật Ô tô (Automotive / EV - 100% English)</option>
+          <option value="accounting_vi">📊 Kế toán & Tài chính (Kế toán trưởng - Tiếng Việt)</option>
+          <option value="logistics_vi">📦 Logistics & Chuỗi cung ứng (XNK / WMS - Tiếng Việt)</option>
+          <option value="hr_vi">👥 Quản trị Nhân sự (HR Generalist / C&B - Tiếng Việt)</option>
+          <option value="fuzzy_semantic_test">🧪 Test Đa ngành (FuzzySharp + pgvector Semantic)</option>
+        </select>
+      </div>
+
+      <!-- Target Job Locked to CV Context -->
+      <div style="display: flex; align-items: center; gap: 8px; background: rgba(30, 41, 59, 0.6); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border);">
+        <span style="font-size: 11px; color: var(--text-sub);">🎯 JD Mục tiêu:</span>
+        <span style="color: #38bdf8; font-size: 12px; font-weight: 700;" id="headerTargetJobTitle">Senior Fullstack .NET 10 & React Engineer</span>
+        <span style="font-size: 10px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 1px 6px; border-radius: 4px;">Khóa tự động</span>
+      </div>
+
+      <!-- Quick Login Buttons -->
+      <button class="btn btn-secondary btn-sm" onclick="quickLogin('candidate')" title="Đăng nhập tự động tư cách Ứng viên">
+        👤 Candidate
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="quickLogin('recruiter')" title="Đăng nhập tự động tư cách Nhà tuyển dụng">
+        🏢 Recruiter
+      </button>
+
+      <!-- Active User Badge -->
+      <span class="user-pill" id="userBadge" title="Click để dán Token tùy chỉnh" onclick="promptCustomToken()">
+        👤 Đang tải...
+      </span>
+
+      <!-- API Online Status -->
+      <span class="badge-status">
+        <span class="badge-dot"></span>
+        <span id="apiStatusText">Port 5190 Online</span>
+      </span>
+
+      <!-- Drawer Toggle -->
+      <button class="rail-btn" title="Thu nhỏ / Mở rộng Copilot Drawer" onclick="toggleCopilotDrawer()" style="width: 32px; height: 32px; font-size: 14px; background: rgba(99,102,241,0.2);">
+        ◫
+      </button>
+    </div>
+  </header>
+
+  <!-- Studio Body: 3 Columns -->
+  <div class="studio-body">
+
+    <!-- 1. Left Nav & Menu -->
+    <div class="left-container">
+      <div class="nav-rail">
+        <button class="rail-btn active" title="Bố cục & Nội dung CV" onclick="openDrawerTab('suggestions')">📄</button>
+        <button class="rail-btn" title="Gợi ý chỉnh sửa AI" onclick="openDrawerTab('suggestions')">⚡</button>
+        <button class="rail-btn" title="Tối ưu CV theo JD mục tiêu" onclick="openDrawerTab('jobTailor')">🎯</button>
+        <button class="rail-btn" title="Chấm điểm so khớp JD" onclick="openDrawerTab('match')">📊</button>
+        <button class="rail-btn" title="Việc làm AI gợi ý" onclick="openDrawerTab('recommendations')">💼</button>
+        <button class="rail-btn" title="Hội thoại Trợ lý AI" onclick="openDrawerTab('chat')">💬</button>
+        <button class="rail-btn" style="margin-top: auto;" title="Cài đặt API" onclick="openDrawerTab('settings')">⚙️</button>
+      </div>
+
+      <div class="left-menu">
+        <div>
+          <div class="menu-section-title">CÁC MỤC TRÊN BẢN IN CV</div>
+          <button class="menu-item" onclick="highlightSection('cvTitle')">
+            <span class="menu-item-icon">🎯</span>
+            <div>Vị trí ứng tuyển (Target Job)</div>
+          </button>
+          <button class="menu-item" onclick="highlightSection('cvBlockObjective')">
+            <span class="menu-item-icon">📝</span>
+            <div>Mục tiêu nghề nghiệp</div>
+          </button>
+          <button class="menu-item" onclick="highlightSection('cvBlockExperience')">
+            <span class="menu-item-icon">💼</span>
+            <div>Kinh nghiệm làm việc</div>
+          </button>
+          <button class="menu-item" onclick="highlightSection('cvBlockSkills')">
+            <span class="menu-item-icon">🛠️</span>
+            <div>Kỹ năng chuyên môn</div>
+          </button>
+          <button class="menu-item" onclick="highlightSection('cvBlockProject')">
+            <span class="menu-item-icon">🚀</span>
+            <div>Dự án tiêu biểu</div>
+          </button>
+          <button class="menu-item" onclick="highlightSection('cvBlockAwards')">
+            <span class="menu-item-icon">🏆</span>
+            <div>Giải thưởng & Thành tích</div>
+          </button>
+        </div>
+
+        <div>
+          <div class="menu-section-title">TRỢ LÝ AI COPILOT</div>
+          <button class="menu-item active" id="menuBtnSuggestions" onclick="openDrawerTab('suggestions')">
+            <span class="menu-item-icon">⚡</span>
+            <div>
+              <div>Đề xuất & Viết lại</div>
+              <div style="font-size: 10.5px; color: var(--accent-emerald);">Từng mục CV (5 mục)</div>
+            </div>
+            <span class="menu-badge badge-new" id="menuSuggestCount">5 mục</span>
+          </button>
+          <button class="menu-item" id="menuBtnJobTailor" onclick="openDrawerTab('jobTailor')">
+            <span class="menu-item-icon">🎯</span>
+            <div>
+              <div>Tối ưu theo Job (JD)</div>
+              <div style="font-size: 10.5px; color: var(--primary);">Đối chiếu Target Job</div>
+            </div>
+            <span class="menu-badge" style="background: rgba(99,102,241,0.2); color: #818cf8;">Mới</span>
+          </button>
+          <button class="menu-item" id="menuBtnMatch" onclick="openDrawerTab('match')">
+            <span class="menu-item-icon">📊</span>
+            <div>
+              <div>Chấm điểm ATS & JD</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Trước vs Sau thay đổi</div>
+            </div>
+          </button>
+          <button class="menu-item" id="menuBtnRecs" onclick="openDrawerTab('recommendations')">
+            <span class="menu-item-icon">💼</span>
+            <div>
+              <div>Việc làm AI gợi ý</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Vector Embedding</div>
+            </div>
+          </button>
+          <button class="menu-item" id="menuBtnChat" onclick="openDrawerTab('chat')">
+            <span class="menu-item-icon">💬</span>
+            <div>
+              <div>Hội thoại Antigravity</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Tự động đặt tên & ngữ cảnh</div>
+            </div>
+          </button>
+          <button class="menu-item" id="menuBtnSettings" onclick="openDrawerTab('settings')">
+            <span class="menu-item-icon">⚙️</span>
+            <div>
+              <div>Cấu hình & Auth Tokens</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Console Logs</div>
+            </div>
+          </button>
+        </div>
+
+        <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border);">
+          <div style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); padding: 8px 10px; border-radius: 6px; font-size: 11px;">
+            <div style="font-weight: 700; color: #fff;">SmartHire Studio AI</div>
+            <div style="color: var(--text-sub); font-size: 10.5px; margin-top: 2px;">Tự động nhận diện ngôn ngữ CV • Bắt buộc tiếng Việt theo CV gốc!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Center Document Preview / Live Interactive Canvas -->
+    <main class="center-canvas">
+      <!-- Quick Switch Toolbar above paper (Được cố định ngay trên đầu A4 Canvas) -->
+      <div style="width: 100%; max-width: 760px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 6px 14px; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(99, 102, 241, 0.45); border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.4);">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; overflow-x: auto;">
+          <span style="font-size: 11.5px; font-weight: 700; color: #fff; white-space: nowrap;">📂 Chọn Hồ sơ & JD:</span>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('it_vi')" id="btnPresetIt" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0; border-color: var(--primary);">💻 1. IT</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('marketing_en')" id="btnPresetMarketing" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">📈 2. Marketing</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('education_vi')" id="btnPresetEdu" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">🎓 3. Sư phạm</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('automotive_en')" id="btnPresetAuto" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">🚗 4. Ô tô / EV</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('accounting_vi')" id="btnPresetAcc" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">📊 5. Kế toán</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('logistics_vi')" id="btnPresetLog" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">📦 6. Logistics</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('hr_vi')" id="btnPresetHr" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">👥 7. Nhân sự</button>
+          <button class="btn btn-secondary btn-sm" onclick="switchCvProfilePreset('fuzzy_semantic_test')" id="btnPresetFuzzy" style="font-size: 11px; padding: 4px 8px; font-weight: 700; white-space: nowrap; flex-shrink: 0; color: #a7f3d0; border-color: #10b981;">🧪 8. Test Fuzzy & pgvector</button>
+        </div>
+        <div style="font-size: 11px; color: var(--accent-cyan); font-weight: 700; white-space: nowrap; margin-left: 8px;" id="presetLangIndicator">Ngôn ngữ: Tiếng Việt 🇻🇳</div>
+      </div>
+
+      <div class="cv-paper" id="cvPaperDocument">
+        <!-- Profile Header -->
+        <div class="cv-header-name" id="cvFullName" contenteditable="true" oninput="syncCvSectionsToCards()">TRẦN THỊ MAI ANH</div>
+
+        <!-- Target Job / Vị trí ứng tuyển mục tiêu Section -->
+        <div class="cv-section-heading" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <span>Vị trí ứng tuyển mục tiêu (TARGET JOB)</span>
+          <span style="font-size: 10px; font-weight: 500; color: #64748b; text-transform: none;">Khớp chức danh JD</span>
+        </div>
+        <div class="cv-highlight-block cv-header-title" id="cvTitle" contenteditable="true" oninput="syncCvSectionsToCards()" style="font-size: 14.5px; font-weight: 700; color: #1e3a8a; margin-bottom: 6px; padding: 4px 8px; border-radius: 4px;">Frontend Developer</div>
+
+        <div class="cv-contact-row">
+          <span>📧 maianh.tran@email.com</span>
+          <span>📱 (+84) 939 123 456</span>
+          <span>📍 Cần Thơ / TP. Hồ Chí Minh</span>
+          <span>🔗 github.com/maianh-dev</span>
+        </div>
+
+        <!-- Objective Section -->
+        <div class="cv-section-heading">Mục tiêu nghề nghiệp (OBJECTIVE)</div>
+        <div class="cv-highlight-block" id="cvBlockObjective" contenteditable="true" oninput="syncCvSectionsToCards()">
+          Lập trình viên Frontend với 2 năm kinh nghiệm phát triển giao diện web với HTML, CSS và ReactJS cơ bản, mong muốn ứng tuyển vào vị trí Senior Fullstack & React Engineer để mở rộng chuyên môn sang backend C# .NET 10 và kiến trúc microservices quy mô lớn.
+        </div>
+
+        <!-- Experience Section -->
+        <div class="cv-section-heading">Kinh nghiệm làm việc (EXPERIENCE)</div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-weight: 700; color: #0f172a; margin-bottom: 2px;">
+            <span id="cvExpRoleCompany">Frontend Web Developer — Saigon Tech Solution</span>
+            <span id="cvExpPeriod" style="color: #64748b; font-size: 12px;">06/2023 – Hiện tại</span>
+          </div>
+          <div class="cv-highlight-block" id="cvBlockExperience" contenteditable="true" oninput="syncCvSectionsToCards()">
+            Thực hiện cắt giao diện web HTML/CSS/SCSS từ bản vẽ thiết kế Figma, xây dựng các component hiển thị danh sách sản phẩm bằng ReactJS, kết nối API backend và phối hợp với đội tester để sửa lỗi giao diện.
+          </div>
+        </div>
+
+        <!-- Skills Section (Chỉ dùng để hiển thị và chấm điểm, KHÔNG có card AI gợi ý sửa) -->
+        <div class="cv-section-heading">Kỹ năng chuyên môn (SKILLS)</div>
+        <div class="cv-highlight-block" id="cvBlockSkills" contenteditable="true">
+          <div><strong style="color: #0f172a;">Frontend:</strong> <span class="cv-tag">HTML5</span> <span class="cv-tag">CSS3 / SCSS</span> <span class="cv-tag">JavaScript (ES6)</span> <span class="cv-tag" id="tagReact">ReactJS</span> <span class="cv-tag">Redux Toolkit</span> <span class="cv-tag">Bootstrap 5</span> <span class="cv-tag">Git / GitHub</span></div>
+          <div style="margin-top: 6px;"><strong style="color: #0f172a;">Khác:</strong> <span class="cv-tag">RESTful API cơ bản</span> <span class="cv-tag">Figma</span> <span class="cv-tag">Photoshop</span></div>
+        </div>
+
+        <!-- Projects Section -->
+        <div class="cv-section-heading">Dự án tiêu biểu (PROJECTS)</div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-weight: 700; color: #0f172a; margin-bottom: 2px;">
+            <span id="cvProjName">Hệ thống Quản lý Bán hàng Nội bộ</span>
+            <span id="cvProjPeriod" style="color: #64748b; font-size: 12px;">2024</span>
+          </div>
+          <div class="cv-highlight-block" id="cvBlockProject" contenteditable="true" oninput="syncCvSectionsToCards()">
+            Xây dựng giao diện trang quản trị đơn hàng bằng ReactJS và thư viện Ant Design, hiển thị dữ liệu bảng sản phẩm và biểu đồ doanh thu cơ bản phục vụ phòng kinh doanh.
+          </div>
+        </div>
+
+        <!-- Awards Section -->
+        <div class="cv-section-heading" id="cvHeadingAwards">Giải thưởng & Thành tích (AWARDS)</div>
+        <div class="cv-highlight-block" id="cvBlockAwards" contenteditable="true" oninput="syncCvSectionsToCards()">
+          Sinh viên Giỏi xuất sắc khoa Công nghệ Thông tin trường Đại học Cần Thơ năm 2023.
+        </div>
+      </div>
+    </main>
+
+    <!-- 3. Right AI Copilot Studio Drawer -->
+    <aside class="ai-copilot-drawer" id="copilotDrawer">
+
+      <!-- Collapsed Icon Strip -->
+      <div class="collapsed-icon-strip">
+        <button class="strip-btn" title="Đề xuất & Viết lại" onclick="toggleCopilotDrawer(); openDrawerTab('suggestions');">
+          ⚡
+          <span class="strip-badge" id="stripBadgeCount">5</span>
+        </button>
+        <button class="strip-btn" title="Tối ưu theo Job" onclick="toggleCopilotDrawer(); openDrawerTab('jobTailor');">🎯</button>
+        <button class="strip-btn" title="Chấm điểm ATS" onclick="toggleCopilotDrawer(); openDrawerTab('match');">📊</button>
+        <button class="strip-btn" title="Gợi ý việc làm" onclick="toggleCopilotDrawer(); openDrawerTab('recommendations');">💼</button>
+        <button class="strip-btn" title="Hội thoại AI" onclick="toggleCopilotDrawer(); openDrawerTab('chat');">💬</button>
+        <button class="strip-btn" title="Cấu hình" onclick="toggleCopilotDrawer(); openDrawerTab('settings');">⚙️</button>
+      </div>
+
+      <!-- Drawer Inner -->
+      <div class="drawer-inner">
+        <!-- Header -->
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span style="font-size: 17px;" id="drawerHeaderIcon">⚡</span>
+            <div class="drawer-title" id="drawerTitleText">Đề xuất & Viết lại từng mục</div>
+            <span class="badge-status" style="font-size: 10.5px; padding: 2px 6px;" id="drawerBadgeProposals">5 mục (1 gợi ý)</span>
+          </div>
+          <div class="drawer-actions">
+            <button class="icon-btn" title="Đồng bộ nội dung CV" onclick="syncCvSectionsToCards(); showToast('🔄 Đã đồng bộ nội dung từ CV!');">🔄</button>
+            <button class="icon-btn" title="Thu nhỏ thanh bên" onclick="toggleCopilotDrawer()">◫</button>
+          </div>
+        </div>
+
+        <!-- Drawer Navigation Tabs -->
+        <div class="drawer-tabs">
+          <button class="drawer-tab active" id="tabBtnSuggestions" onclick="openDrawerTab('suggestions')">
+            <span>⚡</span> Viết lại từng mục
+          </button>
+          <button class="drawer-tab" id="tabBtnJobTailor" onclick="openDrawerTab('jobTailor')">
+            <span>🎯</span> Tối ưu theo Job
+          </button>
+          <button class="drawer-tab" id="tabBtnMatch" onclick="openDrawerTab('match')">
+            <span>📊</span> Chấm điểm JD
+          </button>
+          <button class="drawer-tab" id="tabBtnRecs" onclick="openDrawerTab('recommendations')">
+            <span>💼</span> Việc làm gợi ý
+          </button>
+          <button class="drawer-tab" id="tabBtnChat" onclick="openDrawerTab('chat')">
+            <span>💬</span> Hội thoại (Chat)
+          </button>
+          <button class="drawer-tab" id="tabBtnSettings" onclick="openDrawerTab('settings')">
+            <span>⚙️</span> API Config
+          </button>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 1: VIẾT LẠI TỪNG MỤC (Đã bỏ section Kỹ năng chuyên môn) -->
+        <!-- ======================================================== -->
+        <div class="drawer-content" id="drawerTabContentSuggestions">
+          <!-- Banner -->
+          <div class="ai-banner-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: var(--radius); padding: 10px 12px;">
+            <div style="font-weight: 700; color: #fff; font-size: 12px; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+              <span>💡</span> Trợ lý tối ưu hóa nội dung CV chuẩn Google XYZ
+            </div>
+            <div style="font-size: 11.5px; color: #cbd5e1; line-height: 1.5;">
+              Tự động lấy văn bản Tiếng Việt trên CV của bạn để viết lại bằng <strong>Tiếng Việt chuẩn mực</strong> (mục Kỹ năng chuyên môn được giữ nguyên trung thực, không cho AI bịa đặt).
+            </div>
+          </div>
+
+          <!-- Batch Architecture Metric Indicator (Chỉ 1 lượt gọi API - Tiết kiệm 75% Token & Tăng tốc 4x) -->
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: var(--radius); padding: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
+                <span>⚡</span> KIẾN TRÚC BATCHING 1-REQUEST (Tiết kiệm 75% Token & 4x Tốc độ)
+              </div>
+              <div style="font-size: 11px; color: var(--accent-cyan); margin-top: 2px;" id="batchPerformanceStats">
+                Few-Shot Mẫu Vàng • Chắt lọc JD • Temperature: 0.3 • Model: gemini-3.5-flash-lite
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="executeBatchEnhanceAllSections()" id="btnBatchEnhanceTab1" style="white-space: nowrap; font-weight: 700; padding: 6px 12px;">
+              ⚡ Tối ưu toàn bộ (Batch)
+            </button>
+          </div>
+
+          <!-- Dynamic Section Enhancement Cards Container (Chỉ 4 mục: Objective, Experience, Projects, Awards) -->
+          <div id="dynamicSectionCardsContainer" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Rendered dynamically by JavaScript -->
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 2: TỐI ƯU THEO JOB (ĐỐI CHIẾU TARGET JOB & TỰ ĐỘNG QUÉT LẠI) -->
+        <!-- ======================================================== -->
+        <div class="drawer-content" id="drawerTabContentJobTailor" style="display: none;">
+          <div class="ai-banner-card" id="tailorStatusBanner" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(99, 102, 241, 0.1)); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius); padding: 10px 12px;">
+            <div style="font-weight: 700; color: #fff; font-size: 12.5px; display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+              <span>🎯</span> Đối chiếu Target Job với Vị trí Tuyển dụng
+            </div>
+            <div style="font-size: 11.5px; color: #cbd5e1; line-height: 1.5;">
+              Hệ thống tự động quét vị trí mục tiêu từ nội dung CV để so sánh với JD tuyển dụng, phát hiện các điểm thiếu hụt về cấp bậc, phạm vi chuyên môn và thước đo đo lường.
+            </div>
+          </div>
+
+          <!-- Target Job Information Card -->
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <div style="font-size: 13.5px; font-weight: 800; color: #fff;" id="tailorJobTitle">Senior Fullstack .NET 10 & React Engineer</div>
+                <div style="font-size: 11px; color: var(--accent-cyan);" id="tailorCompany">SmartHire Corporation • Cầu Giấy, Hà Nội / Remote</div>
+                <div style="font-size: 11px; color: #a5f3fc; margin-top: 2px;" id="tailorJobSalary">Mức lương: 28,000,000 – 42,000,000 VNĐ • Yêu cầu: C# .NET 10, React 18, PostgreSQL, Clean Architecture, Docker</div>
+              </div>
+              <span class="pill-scope" style="background: rgba(16,185,129,0.15); color: var(--accent-emerald); border-color: rgba(16,185,129,0.3);">
+                Target JD
+              </span>
+            </div>
+
+            <!-- Đối chiếu Target Job CV với Job mục tiêu (Tự động cập nhật theo CV canvas) -->
+            <div class="gap-card" style="margin-top: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <div style="font-size: 11.5px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px;">
+                  <span>⚖️</span> KHOẢNG CÁCH NĂNG LỰC GIỮA CV VÀ YÊU CẦU JD:
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="triggerManualJobTailorScan()" title="Quét lại nội dung CV hiện tại để cập nhật bảng phân tích" style="padding: 2px 8px; font-size: 11px;">
+                  🔄 Quét lại CV
+                </button>
+              </div>
+
+              <!-- Container rendered dynamically by updateJobTailoringAnalysis() -->
+              <div id="tailorGapCardList" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Gap Items will be rendered here dynamically -->
+              </div>
+            </div>
+
+            <!-- One-Click Full Tailoring Button -->
+            <button class="btn btn-primary" style="margin-top: 8px; padding: 12px; font-size: 13px; font-weight: 800;" onclick="executeFullCvJobTailoring()" id="btnFullJobTailor">
+              🚀 1-Chạm Tối ưu toàn diện CV theo JD này
+            </button>
+            <div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 2px;">
+              *Hệ thống sẽ chuyển sang tab "Viết lại từng mục" và tự động sinh bản tối ưu cho bạn xem trước (chưa tự ý sửa vào CV).
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 3: CHẤM ĐIỂM ATS & SO KHỚP (TRƯỚC VS SAU KHI THAY ĐỔI)-->
+        <!-- ======================================================== -->
+        <div class="drawer-content" id="drawerTabContentMatch" style="display: none;">
+          <!-- Score Gauge -->
+          <div class="match-gauge-box">
+            <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 2px;">ĐIỂM TƯƠNG THÍCH HIỆN TẠI VỚI JD (IN-HOUSE MATCH ENGINE: FUZZY + PGVECTOR)</div>
+            <div class="gauge-score" id="matchGaugeScore">--%</div>
+            <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;" id="matchSummaryText">Hồ sơ sẵn sàng. Chọn [Đối chiếu theo JD này] hoặc bấm [Chạy phân tích In-House Match Engine + Gemini] để bắt đầu.</div>
+
+            <!-- Before vs After Score Comparison Box -->
+            <div class="score-comparison-row">
+              <div class="score-compare-card">
+                <div style="font-size: 10.5px; color: var(--text-muted); font-weight: 700;">TRƯỚC KHI TỐI ƯU</div>
+                <div style="font-size: 20px; font-weight: 800; color: #f59e0b; margin-top: 2px;" id="compareBeforeScore">--%</div>
+                <div style="font-size: 10.5px; color: var(--text-sub);">Bản thảo ban đầu</div>
+              </div>
+              <div class="score-compare-card" style="border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.08);">
+                <div style="font-size: 10.5px; color: var(--accent-emerald); font-weight: 700;">HIỆN TẠI (SAU TỐI ƯU)</div>
+                <div style="font-size: 20px; font-weight: 800; color: var(--accent-emerald); margin-top: 2px;" id="compareAfterScore">--%</div>
+                <div style="font-size: 10.5px; color: #a7f3d0;" id="compareDiffScore">Chờ tối ưu</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Match Test Controls (Dùng chung ID CV & ID Job) -->
+          <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 11.5px; font-weight: 700; color: #fff;">🎯 TEST API: POST /api/v1/ai/match-analysis</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div class="form-group">
+                <label class="form-label">Job ID (Shared)</label>
+                <input class="form-input" id="matchJobId" value="11111111-aaaa-4444-8888-000000000001">
+              </div>
+              <div class="form-group">
+                <label class="form-label">CV ID (Shared)</label>
+                <input class="form-input" id="matchCvId" value="de3bc2f1-1e10-4c96-af16-8ec1e1a571ea">
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="runRealTimeMatchAnalysis()">
+              🚀 Chạy phân tích In-House Match Engine + Gemini
+            </button>
+          </div>
+
+          <!-- Matching vs Missing Skills Badges (Quét dựa trên mục Kỹ năng chuyên môn của CV) -->
+          <div>
+            <div style="font-size: 11.5px; font-weight: 700; color: var(--accent-emerald); margin-bottom: 6px;">✓ KỸ NĂNG KHỚP VỚI JD (TỪ MỤC SKILLS CV):</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;" id="matchSkillsPills">
+              <span class="cv-tag highlight-tag">ReactJS</span>
+              <span class="cv-tag highlight-tag">HTML5 / CSS3</span>
+              <span class="cv-tag highlight-tag">Redux Toolkit</span>
+              <span class="cv-tag highlight-tag">Git / GitHub</span>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 11.5px; font-weight: 700; color: var(--accent-rose); margin-bottom: 6px;">⚠️ KỸ NĂNG JD CẦN NHƯNG CV CHƯA NỔI BẬT:</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;" id="missingSkillsPills">
+              <span class="cv-tag" style="border-color: rgba(244,63,94,0.4); color: #fda4af;">C# .NET 10</span>
+              <span class="cv-tag" style="border-color: rgba(244,63,94,0.4); color: #fda4af;">Clean Architecture</span>
+              <span class="cv-tag" style="border-color: rgba(244,63,94,0.4); color: #fda4af;">PostgreSQL & Docker</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 4: SMART RECOMMENDATIONS                              -->
+        <!-- ======================================================== -->
+        <div class="drawer-content" id="drawerTabContentRecs" style="display: none;">
+          <!-- Filter Toolbar Đa ngành & Đa cấp bậc (~50 việc/ngành) -->
+          <div style="background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <div>
+                <label style="font-size: 10.5px; color: var(--text-sub); display: block; margin-bottom: 2px;">🏢 Ngành nghề:</label>
+                <select class="form-select" id="recFilterIndustry" style="padding: 4px 6px; font-size: 11px;" onchange="applyRecommendationFilters(1)">
+                  <option value="ALL" selected>Tất cả ngành nghề</option>
+                  <option value="IT">💻 CNTT & Phần mềm</option>
+                  <option value="MKT">📢 Marketing & Truyền thông</option>
+                  <option value="ACC">📊 Kế toán & Tài chính</option>
+                  <option value="LOG">🚢 Logistics & Chuỗi cung ứng</option>
+                  <option value="HR">👥 Quản trị Nhân sự & HC</option>
+                  <option value="EDU">🎓 Giáo dục & Sư phạm</option>
+                  <option value="DES">🎨 Thiết kế & Sáng tạo</option>
+                  <option value="MED">🩺 Y tế & Dược phẩm</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 10.5px; color: var(--text-sub); display: block; margin-bottom: 2px;">🎖️ Cấp bậc:</label>
+                <select class="form-select" id="recFilterLevel" style="padding: 4px 6px; font-size: 11px;" onchange="applyRecommendationFilters(1)">
+                  <option value="ALL" selected>Tất cả cấp bậc</option>
+                  <option value="Intern">Thực tập sinh (Intern)</option>
+                  <option value="Fresher">Fresher (Mới ra trường)</option>
+                  <option value="Junior">Junior (1-2 năm)</option>
+                  <option value="Middle">Middle (3-4 năm)</option>
+                  <option value="Senior">Senior (5+ năm)</option>
+                  <option value="Lead">Trưởng nhóm (Lead / TeamLead)</option>
+                  <option value="Manager">Quản lý / Trưởng phòng</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 10.5px; color: var(--text-sub);">Min Score:</span>
+                <select class="form-select" id="recMinScore" style="padding: 3px 6px; font-size: 11px;" onchange="applyRecommendationFilters(1)">
+                  <option value="0" selected>Tất cả điểm</option>
+                  <option value="30">≥ 30% Match</option>
+                  <option value="50">≥ 50% Match</option>
+                  <option value="70">≥ 70% Match</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 4px;">
+                <button class="btn btn-primary btn-sm" onclick="fetchRecommendations()">
+                  🔍 Lấy gợi ý
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="triggerRefreshRecommendations()">
+                  🔄 Làm mới
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination Status Header -->
+          <div id="recPaginationHeader" style="display: flex; justify-content: space-between; align-items: center; padding: 2px 2px; font-size: 11px; color: var(--text-sub);">
+            <span id="recCounterText">Đang tải việc làm gợi ý...</span>
+            <div id="recPaginationButtonsTop" style="display: flex; gap: 4px;"></div>
+          </div>
+
+          <!-- Job Cards List (Chính xác 20 việc / trang) -->
+          <div id="recommendationsList" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Content -->
+          </div>
+
+          <!-- Pagination Controls Bottom -->
+          <div id="recPaginationFooter" style="display: flex; justify-content: center; align-items: center; gap: 6px; padding: 8px 0;"></div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 5: AI CONVERSATION (Zero-Prompt Auto-Title & Auto-Lang)-->
+        <!-- ======================================================== -->
+        <div class="drawer-content" id="drawerTabContentChat" style="display: none; padding: 10px 12px;">
+          <div class="drawer-chat-container">
+            <!-- Header bar of Chat -->
+            <div style="display: flex; gap: 6px; margin-bottom: 8px; align-items: center;">
+              <select class="form-select" id="chatConversationSelect" onchange="onConversationSelected()" style="flex: 1; font-size: 11.5px;">
+                <option value="">-- Cuộc trò chuyện mới --</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="startFreshConversation()" title="Bắt đầu cuộc trò chuyện mới">➕ Mới</button>
+              <button class="btn btn-secondary btn-sm" onclick="togglePinCurrentConversation()" title="Ghim/Bỏ ghim">📌</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCurrentConversation()" title="Xóa">🗑️</button>
+            </div>
+
+            <!-- Messages Window -->
+            <div class="drawer-chat-messages" id="drawerChatMessages">
+              <div class="chat-bubble-ai">
+                Xin chào Mai Anh! Tôi là trợ lý AI SmartHire. Hãy gửi bất kỳ câu hỏi nào, hệ thống sẽ tự động tạo cuộc hội thoại và viết lại theo đúng ngôn ngữ câu hỏi của bạn nhé!
+              </div>
+            </div>
+
+            <!-- Controls (Không có chọn ngôn ngữ, không có prompt đặt tên) -->
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <span style="font-size: 11px; color: var(--text-sub); font-weight: 700;">NGỮ CẢNH:</span>
+                <select class="form-select" id="chatSectionType" style="flex: 1; padding: 4px 8px; font-size: 11.5px;">
+                  <option value="TARGET_JOB">🎯 TARGET_JOB (Vị trí ứng tuyển mục tiêu)</option>
+                  <option value="OBJECTIVE">📝 OBJECTIVE (Mục tiêu nghề nghiệp)</option>
+                  <option value="EXPERIENCE">💼 EXPERIENCE (Kinh nghiệm làm việc)</option>
+                  <option value="PROJECTS">🚀 PROJECTS (Dự án tiêu biểu)</option>
+                  <option value="AWARDS">🏆 AWARDS (Giải thưởng & Thành tích)</option>
+                </select>
+              </div>
+
+              <!-- Quick Chips -->
+              <div style="display: flex; gap: 4px; overflow-x: auto; padding: 2px 0;">
+                <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Gợi ý chuẩn xác chức danh nghề nghiệp mục tiêu theo JD (không mở ngoặc, không từ định hướng)')">🎯 Chuẩn Chức danh JD</button>
+                <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Tối ưu câu mục tiêu nghề nghiệp theo chuẩn Google XYZ')">📝 Chuẩn Mục tiêu XYZ</button>
+                <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Tối ưu câu kinh nghiệm này theo chuẩn Google XYZ')">💼 Chuẩn Kinh nghiệm XYZ</button>
+                <button class="btn btn-secondary btn-sm" style="font-size: 10.5px; white-space: nowrap;" onclick="sendQuickPrompt('Translate and polish this section into professional English')">🇬🇧 Dịch tiếng Anh</button>
+              </div>
+
+              <div class="drawer-chat-input-row" style="display: flex; gap: 6px;">
+                <input type="text" class="form-input" id="drawerChatInput" placeholder="Nhập yêu cầu AI (Hệ thống tự nhận diện ngôn ngữ)..." onkeydown="if(event.key==='Enter' && !this.disabled) sendDrawerChatMessage()" style="flex: 1;">
+                <button class="btn btn-primary" onclick="sendDrawerChatMessage()" id="btnSendChatMessage" style="padding: 0 16px;">Gửi</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 6: SETTINGS & RAW API INSPECTOR                       -->
+        <!-- ======================================================== -->
+        <div class="drawer-content" id="drawerTabContentSettings" style="display: none;">
+          <div style="font-weight: 700; font-size: 13px; color: #fff;">⚙️ CẤU HÌNH KẾT NỐI API & AUTHENTICATION</div>
+
+          <div class="form-group">
+            <label class="form-label">Backend Base URL</label>
+            <input class="form-input" id="cfgBaseUrl" value="http://localhost:5190">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Access Token (Bearer JWT)</label>
+            <textarea class="form-textarea" id="cfgToken" rows="3" placeholder="Dán Bearer JWT Token ở đây..." onchange="onTokenManuallyChanged()"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-secondary btn-sm" onclick="saveCustomToken()">Lưu Token</button>
+            <button class="btn btn-danger btn-sm" onclick="clearToken()">Đăng xuất / Xóa Token</button>
+            <button class="btn btn-secondary btn-sm" onclick="pingBackendHealth()">Ping /health</button>
+          </div>
+
+          <div class="form-group" style="margin-top: 6px;">
+            <label class="form-label">Console Log gần nhất</label>
+            <div id="cfgLastLogBox" class="api-output-box" style="height: 140px;">Chưa có log...</div>
+          </div>
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="drawer-footer">
+          <div style="font-size: 11px; color: var(--text-muted);" id="drawerFooterNotice">
+            Tự động đồng bộ với CV Editor
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="applyAllCvSectionsEnhancement()">
+            ✨ Áp dụng các mục tối ưu vào CV (5 mục, không đè Skills)
+          </button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Bottom Dev Console Bar -->
+  <footer class="bottom-console">
+    <div class="bottom-console-log">
+      <span style="color: var(--accent-emerald);">● [API 5190]</span>
+      <span id="consoleLogText">Hệ thống sẵn sàng. Vui lòng bấm một tính năng để kiểm thử trực tiếp.</span>
+    </div>
+    <div style="display: flex; gap: 10px; font-size: 11px; color: var(--text-muted);">
+      <span id="statLatency">0 ms</span>
+      <span>•</span>
+      <span id="statCorrelation">CID: none</span>
+    </div>
+  </footer>
+
+  <!-- Notification Toast -->
+  <div class="toast-box" id="toastBox">
+    <span>✅</span>
+    <span id="toastMsg">Đã áp dụng thay đổi vào CV!</span>
+  </div>
+
+  <script>
+    let BASE_URL = 'http://localhost:5190';
+    // Shared IDs across all tabs
+    const SAMPLE_JOB_ID = '11111111-aaaa-4444-8888-000000000001';
+    const SAMPLE_CV_ID = 'de3bc2f1-1e10-4c96-af16-8ec1e1a571ea';
+    let token = localStorage.getItem('smarthire_token') || '';
+    let currentConversationId = null;
+
+    // PRESET PROFILES: Đa ngành (IT, Kinh tế/Marketing 100% English, Sư phạm/Giáo dục)
+    const CV_PRESETS = {
+      it_vi: {
+        label: "IT: ReactJS / .NET 10",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "TRẦN THỊ MAI ANH",
+        targetRole: "Frontend Developer",
+        contact: "<span>📧 maianh.tran@email.com</span><span>📱 (+84) 939 123 456</span><span>📍 Cần Thơ / TP. Hồ Chí Minh</span><span>🔗 github.com/maianh-dev</span>",
+        objective: "Lập trình viên Frontend với 2 năm kinh nghiệm phát triển giao diện web với HTML, CSS và ReactJS cơ bản, mong muốn ứng tuyển vào vị trí Senior Fullstack & React Engineer để mở rộng chuyên môn sang backend C# .NET 10 và kiến trúc microservices quy mô lớn.",
+        expRoleCompany: "Frontend Web Developer — Saigon Tech Solution",
+        expPeriod: "06/2023 – Hiện tại",
+        experience: "- Cắt giao diện web HTML/CSS/SCSS từ bản vẽ thiết kế Figma, xây dựng các component hiển thị danh sách sản phẩm bằng ReactJS.\n- Tích hợp các RESTful API backend và phối hợp với đội tester để kiểm thử và sửa lỗi giao diện.\n- Tối ưu hóa tốc độ tải trang ban đầu và cấu trúc cây component theo chuẩn thiết kế responsive.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Frontend:</strong> <span class="cv-tag">HTML5</span> <span class="cv-tag">CSS3 / SCSS</span> <span class="cv-tag">JavaScript (ES6)</span> <span class="cv-tag">ReactJS</span> <span class="cv-tag">Redux Toolkit</span> <span class="cv-tag">Bootstrap 5</span> <span class="cv-tag">Git / GitHub</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Khác:</strong> <span class="cv-tag">RESTful API cơ bản</span> <span class="cv-tag">Figma</span> <span class="cv-tag">Photoshop</span></div>`,
+        projName: "Hệ thống Quản lý Bán hàng Nội bộ",
+        projPeriod: "2024",
+        project: "Xây dựng giao diện trang quản trị đơn hàng bằng ReactJS và thư viện Ant Design, hiển thị dữ liệu bảng sản phẩm và biểu đồ doanh thu cơ bản phục vụ phòng kinh doanh.",
+        awards: "Sinh viên Giỏi xuất sắc khoa Công nghệ Thông tin trường Đại học Cần Thơ năm 2023.",
+        initialScore: 25,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000001",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571ea",
+          title: "Senior Fullstack .NET 10 & React Engineer",
+          company: "SmartHire Corporation • Cầu Giấy, Hà Nội / Remote",
+          salary: "Mức lương: 28,000,000 – 42,000,000 VNĐ",
+          requirements: "C# .NET 10, React 18, PostgreSQL, Clean Architecture, Docker, Microservices"
+        }
+      },
+      marketing_en: {
+        label: "Marketing: Performance Lead (English)",
+        langName: "Language: English 🇺🇸 (100%)",
+        language: "en",
+        name: "MICHAEL NGUYEN",
+        targetRole: "Digital Marketing Specialist",
+        contact: "<span>📧 michael.nguyen@bizmail.com</span><span>📱 (+84) 912 888 999</span><span>📍 District 1, Ho Chi Minh City</span><span>🔗 linkedin.com/in/michael-growth</span>",
+        objective: "Goal-driven Digital Marketing Specialist with 3 years of hands-on experience running social ads, optimizing customer acquisition funnels, and managing brand campaigns, seeking a Senior Performance Marketing Lead role to drive multi-channel ROI and data-driven revenue growth.",
+        expRoleCompany: "Digital Marketing Specialist — Delta Retail Group",
+        expPeriod: "03/2022 – Present",
+        experience: "- Executed Google Search, Display, and Facebook Ads campaigns with an average monthly ad spend of $15,000.\n- Conducted systematic A/B testing on landing page headlines, ad creatives, and lead conversion funnels.\n- Monitored full-funnel acquisition metrics via Google Analytics 4 and delivered weekly ROI reports for stakeholders.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Paid Media:</strong> <span class="cv-tag">Google Ads</span> <span class="cv-tag">Meta Ads Manager</span> <span class="cv-tag">TikTok Ads</span> <span class="cv-tag">SEO / SEM</span> <span class="cv-tag">Retargeting</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Analytics & Tools:</strong> <span class="cv-tag">Google Analytics 4</span> <span class="cv-tag">Google Tag Manager</span> <span class="cv-tag">HubSpot CRM</span> <span class="cv-tag">SQL Basics</span> <span class="cv-tag">A/B Testing</span></div>`,
+        projName: "Omnichannel Acquisition Campaign Q3",
+        projPeriod: "2024",
+        project: "Omnichannel Acquisition Campaign for E-commerce Q3: Designed and managed targeted conversion funnels across Google Search and Facebook retargeting, collaborating with creative team to test 20+ video hooks and improve lead quality.",
+        awards: "Top Marketing Performer of the Year 2024 at Delta Retail Group.",
+        initialScore: 30,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000002",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571eb",
+          title: "Senior Performance Marketing Lead",
+          company: "Shopee Global Logistics / E-commerce Group • District 1, HCMC",
+          salary: "Salary: $1,800 – $2,500 USD (45,000,000 – 62,000,000 VNĐ)",
+          requirements: "Omnichannel Acquisition, Google Ads, Meta Ads, GA4, CAC/LTV Optimization, Data Analytics (SQL/Tableau), Fluent English"
+        }
+      },
+      education_vi: {
+        label: "Sư phạm / Giáo dục (Trưởng bộ môn)",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "THS. NGUYỄN VĂN HOÀNG",
+        targetRole: "Giáo viên Tiếng Anh",
+        contact: "<span>📧 hoang.nguyen@edu.vn</span><span>📱 (+84) 903 555 777</span><span>📍 Ninh Kiều, Cần Thơ</span><span>🔗 linkedin.com/in/hoang-edutech</span>",
+        objective: "Giảng viên Tiếng Anh với hơn 4 năm kinh nghiệm giảng dạy ngôn ngữ và luyện thi chứng chỉ, mong muốn ứng tuyển vị trí Trưởng bộ môn Đào tạo & Khảo thí nhằm phát triển khung chương trình chuẩn quốc tế, ứng dụng phương pháp Blended Learning và nâng cao tỷ lệ học viên đạt chuẩn đầu ra.",
+        expRoleCompany: "Giảng viên Tiếng Anh & Chuyên viên Học thuật — Athena International Academy",
+        expPeriod: "2021 – Hiện tại",
+        experience: "- Trực tiếp giảng dạy các lớp học phần tiếng Anh học thuật và luyện thi IELTS cho hơn 300 sinh viên mỗi học kỳ.\n- Xây dựng và chuẩn hóa ngân hàng câu hỏi đề thi trắc nghiệm và tự luận trên hệ thống đào tạo số hóa.\n- Chủ động ứng dụng các nền tảng tương tác và tổ chức các buổi hội thảo định hướng kỹ năng học tập cho sinh viên.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Chuyên môn Sư phạm:</strong> <span class="cv-tag">Thiết kế bài giảng</span> <span class="cv-tag">Phương pháp Blended Learning</span> <span class="cv-tag">Luyện thi IELTS / TOEIC</span> <span class="cv-tag">Quản lý lớp học</span> <span class="cv-tag">Đánh giá chuẩn đầu ra</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Công nghệ Giáo dục:</strong> <span class="cv-tag">Canvas LMS</span> <span class="cv-tag">Google Classroom</span> <span class="cv-tag">Kahoot & Quizizz</span> <span class="cv-tag">PowerPoint tương tác</span></div>`,
+        projName: "Hệ thống Số hóa Ngân hàng Đề thi Canvas LMS",
+        projPeriod: "2023 – 2024",
+        project: "Số hóa Ngân hàng Đề thi & Bài giảng Tương tác: Xây dựng hệ thống học liệu điện tử trên nền tảng Canvas LMS, triển khai bài tập trắc nghiệm tự chấm điểm phục vụ hơn 800 sinh viên tự học và kiểm tra định kỳ.",
+        awards: "Giải thưởng Giảng viên Trẻ Tiêu biểu Đổi mới Sáng tạo năm 2023.",
+        initialScore: 32,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000003",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571ec",
+          title: "Trưởng bộ môn Đào tạo Ngôn ngữ & Khảo thí",
+          company: "Học viện Ngôn ngữ Quốc tế Athena • Cần Thơ / TP. Hồ Chí Minh",
+          salary: "Mức lương: 22,000,000 – 35,000,000 VNĐ",
+          requirements: "Thạc sĩ Ngôn ngữ/Sư phạm, IELTS 8.0+, 3+ năm kinh nghiệm quản trị đào tạo, phát triển khung chương trình, kiểm định chất lượng, Blended Learning"
+        }
+      },
+      automotive_en: {
+        label: "Kỹ thuật Ô tô / EV (English)",
+        langName: "Language: English 🇺🇸 (100%)",
+        language: "en",
+        name: "ALEX TRAN",
+        targetRole: "Automotive Diagnostics Engineer",
+        contact: "<span>📧 alex.tran@autotech.io</span><span>📱 (+84) 909 333 888</span><span>📍 Hai Phong / Hanoi</span><span>🔗 linkedin.com/in/alex-autotech</span>",
+        objective: "Results-driven Automotive Diagnostics & Embedded Systems Engineer with 3+ years of hands-on experience in vehicle electronic testing, seeking a Senior Automotive Systems Diagnostics & EV Powertrain Engineer role to advance Battery Management System (BMS) calibration, CAN bus communication, and ISO 26262 functional safety validation.",
+        expRoleCompany: "Automotive Systems Test Engineer — VinFast Electric Vehicle Division",
+        expPeriod: "2022 – Present",
+        experience: "- Diagnosed and resolved vehicle network communication faults across High-Speed CAN and LIN buses using Vector CANoe.\n- Validated electronic control unit (ECU) firmware behavior and performed OBD-II diagnostic protocol verification.\n- Conducted telemetry and fault injection tests on electric vehicle powertrain and battery management sub-modules.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Automotive & EV:</strong> <span class="cv-tag">CAN Bus / LIN</span> <span class="cv-tag">OBD-II / UDS (ISO 14229)</span> <span class="cv-tag">EV Powertrain</span> <span class="cv-tag">Battery Management (BMS)</span> <span class="cv-tag">ISO 26262</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Tools & Software:</strong> <span class="cv-tag">Vector CANoe</span> <span class="cv-tag">MATLAB / Simulink</span> <span class="cv-tag">INCA</span> <span class="cv-tag">Embedded C</span> <span class="cv-tag">Oscilloscopes</span></div>`,
+        projName: "CANoe Automated ECU Diagnostic Framework",
+        projPeriod: "2023 – 2024",
+        project: "Developed automated CAPL scripts in Vector CANoe to simulate vehicle powertrain telemetry and stress-test OBD-II diagnostic communication, detecting 40+ critical communication faults prior to vehicle road testing.",
+        awards: "Outstanding R&D Innovation Award 2024 at Automotive Technology Summit.",
+        initialScore: 28,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000004",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571ed",
+          title: "Senior Automotive Systems Diagnostics & EV Powertrain Engineer",
+          company: "VinFast Global EV R&D Center • Hai Phong / Remote",
+          salary: "Salary: 35,000,000 – 55,000,000 VNĐ",
+          requirements: "Automotive Systems Diagnostics, CAN Bus, OBD-II Protocols, Electric Vehicle (EV) Powertrain, Battery Management System (BMS), MATLAB/Simulink, ISO 26262"
+        }
+      },
+      accounting_vi: {
+        label: "Kế toán & Tài chính (Kế toán trưởng)",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "NGUYỄN THỊ THU HÀ",
+        targetRole: "Kế toán viên Tổng hợp",
+        contact: "<span>📧 thuha.nguyen@finance.vn</span><span>📱 (+84) 918 234 567</span><span>📍 Quận 3, TP. Hồ Chí Minh</span><span>🔗 linkedin.com/in/thuha-cpa</span>",
+        objective: "Cử nhân Kế toán - Kiểm toán với 4 năm kinh nghiệm kế toán tổng hợp, kê khai thuế và lập báo cáo tài chính doanh nghiệp, mong muốn ứng tuyển vị trí Kế toán trưởng nhằm chuẩn hóa hệ thống chứng từ, áp dụng chuẩn mực IFRS và tối ưu hóa chi phí vận hành cho tập đoàn.",
+        expRoleCompany: "Kế toán Tổng hợp — Công ty CP Tập đoàn Thương mại Á Châu",
+        expPeriod: "2021 – Hiện tại",
+        experience: "- Trực tiếp lập và hoàn thiện hệ thống Báo cáo tài chính năm, Báo cáo lưu chuyển tiền tệ và Thuyết minh BCTC theo chuẩn mực VAS.\n- Thực hiện kê khai, quyết toán thuế TNDN, thuế GTGT, thuế TNCN và giải trình số liệu trực tiếp với cơ quan thuế.\n- Quản lý và hạch toán dòng tiền, theo dõi công nợ khách hàng và nhà cung cấp trên phần mềm MISA SME và Fast Accounting.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Chuyên môn Kế toán:</strong> <span class="cv-tag">Báo cáo tài chính</span> <span class="cv-tag">Kế toán thuế</span> <span class="cv-tag">Quyết toán thuế</span> <span class="cv-tag">Kế toán tổng hợp</span> <span class="cv-tag">Kiểm toán nội bộ</span> <span class="cv-tag">VAS / IFRS</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Phần mềm & Công cụ:</strong> <span class="cv-tag">MISA</span> <span class="cv-tag">Fast Accounting</span> <span class="cv-tag">SAP ERP cơ bản</span> <span class="cv-tag">Excel nâng cao (VLOOKUP, PivotTable)</span></div>`,
+        projName: "Quyết toán Thuế Doanh nghiệp Niên độ 2023",
+        projPeriod: "2023 – 2024",
+        project: "Rà soát toàn bộ hệ thống hóa đơn điện tử, đối chiếu 12.000 chứng từ kế toán phát sinh và giải trình thành công trước đoàn thanh tra thuế, giúp doanh nghiệp tiết kiệm 250 triệu VNĐ tiền phạt chậm nộp.",
+        awards: "Chứng chỉ Kế toán viên Hành nghề (CPA Việt Nam) năm 2023.",
+        initialScore: 32,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000005",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571ee",
+          title: "Kế toán trưởng / Trưởng phòng Tài chính Kế toán",
+          company: "Tập đoàn Đầu tư & Bán lẻ Quốc tế • Quận 1, TP. HCM",
+          salary: "Mức lương: 25,000,000 – 40,000,000 VNĐ",
+          requirements: "Kế toán tổng hợp, Báo cáo tài chính, Kế toán thuế, Quyết toán thuế, Chuẩn mực VAS & IFRS, Phần mềm MISA / SAP ERP, Phân tích tài chính, Excel nâng cao"
+        }
+      },
+      logistics_vi: {
+        label: "Logistics & Chuỗi cung ứng (XNK / WMS)",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "LÊ HOÀNG NAM",
+        targetRole: "Chuyên viên Xuất Nhập Khẩu",
+        contact: "<span>📧 hoangnam.logistics@vanship.com</span><span>📱 (+84) 938 777 666</span><span>📍 Hải Phòng / Hà Nội</span><span>🔗 linkedin.com/in/nam-supplychain</span>",
+        objective: "Chuyên viên Xuất Nhập Khẩu với hơn 3 năm kinh nghiệm làm việc trong lĩnh vực giao nhận vận tải quốc tế (Freight Forwarding), thành thạo mở tờ khai hải quan điện tử VNACCS và xử lý chứng từ vận tải, mong muốn ứng tuyển vị trí Trưởng nhóm Quản trị Chuỗi cung ứng & Logistics.",
+        expRoleCompany: "Chuyên viên Chứng từ & Khai báo Hải quan — Tân Cảng Logistics",
+        expPeriod: "2022 – Hiện tại",
+        experience: "- Khai báo tờ khai hải quan điện tử trên hệ thống phần mềm ECUS/VNACCS cho các lô hàng FCL/LCL nhập khẩu và xuất khẩu.\n- Soạn thảo và kiểm tra bộ chứng từ thanh toán quốc tế: Hợp đồng ngoại thương, Hóa đơn thương mại (Commercial Invoice), Phiếu đóng gói (Packing List), Vận đơn đường biển (B/L), C/O form D, E, AK.\n- Làm việc trực tiếp với các hãng tàu, đại lý vận tải (forwarder) và kho bãi để theo dõi tiến độ giao nhận hàng hóa theo điều kiện Incoterms 2020.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Nghiệp vụ Logistics:</strong> <span class="cv-tag">Xuất nhập khẩu</span> <span class="cv-tag">Thủ tục hải quan</span> <span class="cv-tag">Incoterms 2020</span> <span class="cv-tag">Vận tải quốc tế</span> <span class="cv-tag">Quản lý kho (WMS)</span> <span class="cv-tag">Chuỗi cung ứng</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Chứng từ & Hệ thống:</strong> <span class="cv-tag">ECUS / VNACCS</span> <span class="cv-tag">Vận đơn B/L</span> <span class="cv-tag">Chứng nhận xuất xứ (C/O)</span> <span class="cv-tag">Thanh toán L/C</span> <span class="cv-tag">Tiếng Anh thương mại</span></div>`,
+        projName: "Quy trình Tối ưu hóa Luồng Hàng Hóa Cảng Cát Lái",
+        projPeriod: "2023 – 2024",
+        project: "Chuẩn hóa quy trình thông quan hàng nhập khẩu nguyên container, cắt giảm thời gian lưu kho bãi từ 3.5 ngày xuống còn 1.8 ngày, giải phóng hơn 500 TEU hàng hóa đúng lịch trình cam kết.",
+        awards: "Top 3 Nhân sự Xuất sắc phòng Vận hành Logistics Tân Cảng năm 2023.",
+        initialScore: 30,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000006",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571ef",
+          title: "Chuyên viên Quản trị Chuỗi cung ứng & Xuất Nhập Khẩu",
+          company: "VinFast Supply Chain Division • Hải Phòng / Hà Nội",
+          salary: "Mức lương: 18,000,000 – 28,000,000 VNĐ",
+          requirements: "Xuất nhập khẩu, Thủ tục hải quan, Incoterms 2020, Vận tải quốc tế, Quản lý kho bãi, Quản trị chuỗi cung ứng, Mua hàng Procurement"
+        }
+      },
+      hr_vi: {
+        label: "Quản trị Nhân sự (HR Generalist / C&B)",
+        langName: "Ngôn ngữ: Tiếng Việt 🇻🇳",
+        language: "vi",
+        name: "PHẠM BÍCH NGỌC",
+        targetRole: "Chuyên viên Tuyển dụng và Tiền lương",
+        contact: "<span>📧 bichngoc.hr@talent.vn</span><span>📱 (+84) 977 111 222</span><span>📍 Cầu Giấy, Hà Nội</span><span>🔗 linkedin.com/in/bichngoc-hr</span>",
+        objective: "Chuyên viên Nhân sự tổng hợp với 3 năm kinh nghiệm trong công tác tuyển dụng nhân tài (Talent Acquisition) và vận hành chế độ phúc lợi tiền lương (C&B), nắm vững Bộ luật Lao động và phần mềm nhân sự, tìm kiếm cơ hội Trưởng nhóm Nhân sự để xây dựng văn hóa doanh nghiệp gắn kết.",
+        expRoleCompany: "Chuyên viên Nhân sự Tổng hợp — Golden Gate Group",
+        expPeriod: "2022 – Hiện tại",
+        experience: "- Phụ trách toàn bộ quy trình tuyển dụng từ tiếp nhận nhu cầu, đăng tin, sàng lọc hồ sơ đến phỏng vấn cho quy mô 300+ nhân sự.\n- Thực hiện tính bảng lương hàng tháng, trích nộp bảo hiểm xã hội (BHXH), thuế TNCN và giải quyết chế độ ốm đau, thai sản đúng hạn.\n- Xây dựng hệ thống tiêu chí đánh giá hiệu quả công việc theo KPI và tổ chức các chương trình đào tạo hội nhập cho nhân viên mới.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Nghiệp vụ Nhân sự:</strong> <span class="cv-tag">Tuyển dụng (Talent Acquisition)</span> <span class="cv-tag">C&B (Tiền lương & Phúc lợi)</span> <span class="cv-tag">Luật lao động</span> <span class="cv-tag">Bảo hiểm xã hội</span> <span class="cv-tag">Đánh giá KPI</span> <span class="cv-tag">Đào tạo nội bộ (L&D)</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Kỹ năng & Phần mềm:</strong> <span class="cv-tag">Phần mềm HRIS</span> <span class="cv-tag">Hành chính văn phòng</span> <span class="cv-tag">Giao tiếp & Đàm phán</span> <span class="cv-tag">Excel nhân sự</span></div>`,
+        projName: "Số hóa Quy trình Onboarding & Tính lương Tự động",
+        projPeriod: "2024",
+        project: "Triển khai phần mềm nhân sự Base HRM, tự động hóa tính lương và điểm danh vân tay cho 35 chi nhánh nhà hàng, rút ngắn 65% thời gian chốt bảng lương cuối tháng.",
+        awards: "Giải thưởng Nhân viên Nhân sự Đổi mới Sáng tạo xuất sắc năm 2024.",
+        initialScore: 35,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000007",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571eg",
+          title: "Trưởng nhóm Tuyển dụng & Quản trị Nhân sự",
+          company: "Sun Life Financial • Ba Đình, Hà Nội",
+          salary: "Mức lương: 20,000,000 – 32,000,000 VNĐ",
+          requirements: "Tuyển dụng, C&B, Tiền lương và phúc lợi, Luật lao động, Bảo hiểm xã hội, Đào tạo nội bộ, Đánh giá hiệu quả công việc KPI"
+        }
+      },
+      fuzzy_semantic_test: {
+        label: "🧪 Test So Khớp: FuzzySharp + pgvector Semantic",
+        langName: "Đa ngành: Test So Khớp Mờ & Ngữ Nghĩa 🧬",
+        language: "vi",
+        name: "VÕ HOÀNG VŨ (TEST FUZZY & SEMANTIC)",
+        targetRole: "Kỹ sư Tối ưu hóa Dữ liệu và Trải nghiệm",
+        contact: "<span>📧 hoangvu.test@domain.com</span><span>📱 (+84) 999 888 777</span><span>📍 Toàn quốc (Remote / Hybrid)</span><span>🔗 github.com/test-fuzzy</span>",
+        objective: "Hồ sơ chuyên dụng để kiểm thử khả năng phát hiện lỗi gõ chính tả (FuzzySharp), từ đồng nghĩa đa ngành (SkillNormalizationMap) và khả năng bù điểm ngữ nghĩa sâu (pgvector Cosine Similarity) khi ứng viên dùng văn phong tương đương.",
+        expRoleCompany: "Chuyên viên Vận hành Hệ thống & Tối ưu Trải nghiệm — Tech & Retail Group",
+        expPeriod: "2021 – Hiện tại",
+        experience: "- Thiết kế các quy trình tối ưu hóa hành trình khách hàng (tương đương với Thiết kế trải nghiệm người dùng / UX Design).\n- Trực tiếp quản trị cơ sở dữ liệu quan hệ postgre sql và triển khai cụm dịch vụ trên nền tảng k8s.\n- Thực hiện công tác kế toán tổng hợp nội bộ và kiểm tra thủ tục giao nhận hàng hóa theo chuẩn incoterm quốc tế.",
+        skillsHtml: `<div><strong style="color: #0f172a;">Kỹ năng gõ lỗi chính tả & biến thể (Test FuzzySharp):</strong> <span class="cv-tag">postgre sql</span> <span class="cv-tag">react.js</span> <span class="cv-tag">incoterm</span> <span class="cv-tag">photoshp</span></div>
+                     <div style="margin-top: 6px;"><strong style="color: #0f172a;">Từ đồng nghĩa & Ngữ nghĩa sâu (Test pgvector & Map):</strong> <span class="cv-tag">k8s</span> <span class="cv-tag">tối ưu hóa hành trình khách hàng</span> <span class="cv-tag">báo cáo tài chính</span> <span class="cv-tag">đàm phán thương lượng</span></div>`,
+        projName: "Dự án Thử nghiệm So khớp Ngữ nghĩa Đa ngành",
+        projPeriod: "2024",
+        project: "Xây dựng hệ thống kiểm thử tự động so khớp giữa các từ khóa lệch ký tự (postgre sql vs postgresql, react.js vs react) và từ khóa văn xuôi tương đương (Customer Journey vs UI/UX Design).",
+        awards: "Giải thưởng Sáng tạo Thuật toán So khớp Thông minh 2024.",
+        initialScore: 40,
+        targetJob: {
+          jobId: "11111111-aaaa-4444-8888-000000000008",
+          cvId: "de3bc2f1-1e10-4c96-af16-8ec1e1a571eh",
+          title: "Chuyên viên Công nghệ & Trải nghiệm Đa ngành (Full Spectrum)",
+          company: "SmartHire Technology & Innovation Labs • Toàn quốc / Remote",
+          salary: "Mức lương: 30,000,000 – 50,000,000 VNĐ",
+          requirements: "PostgreSQL, React, Kubernetes, Incoterms 2020, Thiết kế trải nghiệm người dùng, Kế toán tổng hợp, Đàm phán"
+        }
+      }
+    };
+
+    let currentPresetKey = 'it_vi';
+
+    function switchCvProfilePreset(presetKey) {
+      const preset = CV_PRESETS[presetKey];
+      if (!preset) return;
+      currentPresetKey = presetKey;
+
+      // 1. Cập nhật Selectbox & Button Styles
+      const selectEl = document.getElementById('cvProfilePresetSelect');
+      if (selectEl) selectEl.value = presetKey;
+
+      const btnIt = document.getElementById('btnPresetIt');
+      const btnMkt = document.getElementById('btnPresetMarketing');
+      const btnEdu = document.getElementById('btnPresetEdu');
+      const btnAuto = document.getElementById('btnPresetAuto');
+      const btnAcc = document.getElementById('btnPresetAcc');
+      const btnLog = document.getElementById('btnPresetLog');
+      const btnHr = document.getElementById('btnPresetHr');
+      const btnFuzzy = document.getElementById('btnPresetFuzzy');
+
+      if (btnIt) btnIt.style.borderColor = presetKey === 'it_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnMkt) btnMkt.style.borderColor = presetKey === 'marketing_en' ? 'var(--primary)' : 'var(--border)';
+      if (btnEdu) btnEdu.style.borderColor = presetKey === 'education_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnAuto) btnAuto.style.borderColor = presetKey === 'automotive_en' ? 'var(--primary)' : 'var(--border)';
+      if (btnAcc) btnAcc.style.borderColor = presetKey === 'accounting_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnLog) btnLog.style.borderColor = presetKey === 'logistics_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnHr) btnHr.style.borderColor = presetKey === 'hr_vi' ? 'var(--primary)' : 'var(--border)';
+      if (btnFuzzy) btnFuzzy.style.borderColor = presetKey === 'fuzzy_semantic_test' ? 'var(--accent-emerald)' : 'var(--border)';
+
+      const langInd = document.getElementById('presetLangIndicator');
+      if (langInd) langInd.innerText = preset.langName;
+
+      // 2. Cập nhật Canvas CV
+      document.getElementById('cvFullName').innerText = preset.name;
+      document.getElementById('cvTitle').innerText = preset.targetRole;
+      const contactRow = document.querySelector('.cv-contact-row');
+      if (contactRow) contactRow.innerHTML = preset.contact;
+
+      const expRoleEl = document.getElementById('cvExpRoleCompany');
+      const expPeriodEl = document.getElementById('cvExpPeriod');
+      if (expRoleEl) expRoleEl.innerText = preset.expRoleCompany;
+      if (expPeriodEl) expPeriodEl.innerText = preset.expPeriod;
+
+      const projNameEl = document.getElementById('cvProjName');
+      const projPeriodEl = document.getElementById('cvProjPeriod');
+      if (projNameEl) projNameEl.innerText = preset.projName;
+      if (projPeriodEl) projPeriodEl.innerText = preset.projPeriod;
+
+      document.getElementById('cvBlockObjective').innerText = preset.objective;
+      document.getElementById('cvBlockExperience').innerText = preset.experience;
+      document.getElementById('cvBlockSkills').innerHTML = preset.skillsHtml;
+      document.getElementById('cvBlockProject').innerText = preset.project;
+      document.getElementById('cvBlockAwards').innerText = preset.awards;
+
+      // Xóa bỏ triệt để mọi highlight / viền xanh cũ trên toàn bộ block CV
+      ['cvBlockObjective', 'cvBlockExperience', 'cvBlockProject', 'cvBlockAwards', 'cvTitle'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.style.background = '';
+          el.style.border = '';
+        }
+      });
+
+      // 3. Cập nhật Header Job & Target Job Tab 2
+      document.getElementById('headerTargetJobTitle').innerText = preset.targetJob.title;
+      document.getElementById('tailorJobTitle').innerText = preset.targetJob.title;
+      document.getElementById('tailorCompany').innerText = preset.targetJob.company;
+      document.getElementById('tailorJobSalary').innerText = `${preset.targetJob.salary} • Yêu cầu: ${preset.targetJob.requirements}`;
+
+      // 4. Cập nhật Tab 3 Match Test
+      document.getElementById('matchJobId').value = preset.targetJob.jobId;
+      document.getElementById('matchCvId').value = preset.targetJob.cvId;
+
+      // 5. Reset kết quả tối ưu cũ & điểm so sánh
+      enhancedResults = {};
+      initialScore = preset.initialScore;
+      latestMatchAnalysis = null;
+
+      document.getElementById('matchGaugeScore').innerText = `${preset.initialScore}%`;
+      const beforeScoreEl = document.getElementById('compareBeforeScore');
+      const afterScoreEl = document.getElementById('compareAfterScore');
+      const diffScoreEl = document.getElementById('compareDiffScore');
+      if (beforeScoreEl) beforeScoreEl.innerText = `${preset.initialScore}%`;
+      if (afterScoreEl) afterScoreEl.innerText = '--%';
+      if (diffScoreEl) {
+        diffScoreEl.innerText = 'Bấm phân tích để xem';
+        diffScoreEl.style.color = '#a7f3d0';
+      }
+      document.getElementById('matchSummaryText').innerText = `Hồ sơ ban đầu (${preset.initialScore}%). Bấm [Chạy phân tích Cohere Rerank + Gemini] hoặc [1-Chạm Tối ưu] để hệ thống phân tích.`;
+
+      const matchSkillsEl = document.getElementById('matchSkillsPills');
+      if (matchSkillsEl) matchSkillsEl.innerHTML = '<span style="font-size: 11.5px; color: var(--text-muted);">Bấm phân tích để phát hiện kỹ năng trùng khớp.</span>';
+      const missingSkillsEl = document.getElementById('missingSkillsPills');
+      if (missingSkillsEl) missingSkillsEl.innerHTML = '<span style="font-size: 11.5px; color: var(--text-muted);">Bấm phân tích để phát hiện kỹ năng còn thiếu.</span>';
+
+      const statsEl = document.getElementById('batchPerformanceStats');
+      if (statsEl) {
+        statsEl.innerHTML = 'Few-Shot Mẫu Vàng • Chắt lọc JD • Temperature: 0.3 • Model: gemini-3.5-flash-lite';
+      }
+
+      // 6. Vẽ lại TOÀN BỘ 4 Card ở Tab 1 TRỰC TIẾP TỪ PRESET MỚI (Đảm bảo 100% không bao giờ bị dính nội dung cũ)
+      renderCvSectionCards(preset);
+
+      // 7. Tự động quét và cập nhật Tab 2 Gap Analysis động theo đúng JD của preset mới (Không cần người dùng bấm nút)
+      updateJobTailoringAnalysis();
+
+      // 8. Tự động tính toán lại danh sách Việc làm gợi ý tương thích với CV hiện tại
+      fetchRecommendations();
+
+      showToast(`🔄 Đã đổi sang hồ sơ: [${preset.label}], Job và gợi ý việc làm đã tự động cập nhật!`);
+    }
+
+    function cleanTargetJobTitle(title) {
+      if (!title) return '';
+      let clean = title.replace(/\s*\([^)]*\)/g, '').replace(/\s*\[[^\]]*\]/g, '').trim();
+      clean = clean.replace(/^(định hướng|hướng đến|mong muốn)\s*:?\s*/i, '').trim();
+      return clean || title;
+    }
+
+    // Sections dynamically tied to CV canvas (5 mục tối ưu hóa Google XYZ & Chức danh)
+    const CV_SECTIONS = [
+      {
+        type: 'TARGET_JOB',
+        aliases: ['TARGET_JOB', 'TITLE', 'JOB_TITLE', 'POSITION'],
+        name: 'Vị trí ứng tuyển mục tiêu (TARGET JOB)',
+        icon: '🎯',
+        elementId: 'cvTitle',
+        scoreGain: '+10 Điểm So khớp Chức danh'
+      },
+      {
+        type: 'OBJECTIVE',
+        aliases: ['OBJECTIVE', 'SUMMARY'],
+        name: 'Mục tiêu nghề nghiệp (OBJECTIVE)',
+        icon: '📝',
+        elementId: 'cvBlockObjective',
+        scoreGain: '+5 Điểm ATS'
+      },
+      {
+        type: 'EXPERIENCE',
+        aliases: ['EXPERIENCE', 'WORK_EXPERIENCE'],
+        name: 'Kinh nghiệm làm việc (EXPERIENCE)',
+        icon: '💼',
+        elementId: 'cvBlockExperience',
+        scoreGain: '+15 Điểm Google XYZ'
+      },
+      {
+        type: 'PROJECTS',
+        aliases: ['PROJECTS', 'PROJECT'],
+        name: 'Dự án tiêu biểu (PROJECTS)',
+        icon: '🚀',
+        elementId: 'cvBlockProject',
+        scoreGain: '+10 Điểm Định lượng'
+      },
+      {
+        type: 'AWARDS',
+        aliases: ['AWARDS', 'AWARD', 'CERTIFICATIONS'],
+        name: 'Giải thưởng & Thành tích (AWARDS)',
+        icon: '🏆',
+        elementId: 'cvBlockAwards',
+        scoreGain: '+5 Điểm Uy tín'
+      }
+    ];
+
+    // Store enhanced results per section
+    const enhancedResults = {};
+
+    // Helper: Auto-detect language strictly from text
+    function detectLanguage(text) {
+      if (!text) return 'vi';
+      const vietnameseRegex = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+      return vietnameseRegex.test(text) ? 'vi' : 'en';
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', async () => {
+      renderCvSectionCards();
+      updateJobTailoringAnalysis();
+
+      // Tự động quét lại khi người dùng gõ trực tiếp trên CV Canvas (bao gồm cả Kỹ năng)
+      ['cvBlockObjective', 'cvBlockExperience', 'cvBlockProject', 'cvBlockAwards', 'cvBlockSkills'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            syncCvSectionsToCards();
+            updateJobTailoringAnalysis();
+          });
+        }
+      });
+
+      if (!token) {
+        await quickLogin('candidate', true);
+      } else {
+        updateUserBadge('Ứng viên: Mai Anh (Token sẵn)');
+        document.getElementById('cfgToken').value = token;
+        await loadConversationsList();
+      }
+      pingBackendHealth();
+      await fetchRecommendations();
+    });
+
+    // Render Cards in Tab 1 based on actual CV sections (4 sections, no Skills)
+    function renderCvSectionCards(explicitPreset = null) {
+      const activePreset = explicitPreset || CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+      const container = document.getElementById('dynamicSectionCardsContainer');
+      container.innerHTML = '';
+
+      CV_SECTIONS.forEach(sec => {
+        let originalText = '';
+        if (sec.type === 'TARGET_JOB') originalText = activePreset.targetRole || activePreset.title;
+        else if (sec.type === 'OBJECTIVE') originalText = activePreset.objective;
+        else if (sec.type === 'EXPERIENCE') originalText = activePreset.experience;
+        else if (sec.type === 'PROJECTS') originalText = activePreset.project;
+        else if (sec.type === 'AWARDS') originalText = activePreset.awards;
+
+        if (!originalText) {
+          const el = document.getElementById(sec.elementId);
+          originalText = el ? el.innerText.trim() : '';
+        }
+
+        const langBadge = activePreset.language === 'en' ? 'English' : 'Tiếng Việt';
+
+        const card = document.createElement('div');
+        card.className = 'section-enhance-card';
+        card.id = `card-sec-${sec.type}`;
+
+        card.innerHTML = `
+          <div class="sec-card-header">
+            <span class="pill-scope">${sec.icon} ${sec.name}</span>
+            <span class="pill-score-gain">${sec.scoreGain}</span>
+          </div>
+
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">NỘI DUNG HIỆN TẠI TRÊN CV:</div>
+          <div class="sec-source-box" id="src-box-${sec.type}" title="Nội dung lấy trực tiếp từ CV">${originalText}</div>
+
+          <div style="display: flex; gap: 6px; margin-top: 2px;">
+            <button class="btn btn-primary btn-sm" onclick="enhanceSpecificSection('${sec.type}', false)" id="btn-json-${sec.type}">
+              ⚡ Tối ưu (JSON - ${langBadge})
+            </button>
+            <button class="btn btn-success btn-sm" onclick="enhanceSpecificSection('${sec.type}', true)" id="btn-stream-${sec.type}">
+              🌊 Stream (${langBadge})
+            </button>
+          </div>
+
+          <!-- Skeleton Shimmer Loader (Thân thiện UX) -->
+          <div class="skeleton-shimmer-box" id="skeleton-box-${sec.type}">
+            <div class="skeleton-line" style="width: 88%;"></div>
+            <div class="skeleton-line" style="width: 98%;"></div>
+            <div class="skeleton-line" style="width: 72%;"></div>
+          </div>
+
+          <!-- Output Box -->
+          <div class="sec-output-box" id="output-box-${sec.type}"></div>
+
+          <!-- Apply Row -->
+          <div id="apply-row-${sec.type}" style="display: none; justify-content: flex-end; margin-top: 4px;">
+            <button class="btn btn-primary btn-sm" onclick="applySectionEnhancedToCv('${sec.type}')">
+              🚀 Áp dụng vào mục ${sec.type} trên CV
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      // THẺ NHẮC NHỞ KỸ NĂNG CHUYÊN MÔN THEO JOB (TUYỆT ĐỐI KHÔNG CHO SAO CHÉP HAY ÁP DỤNG)
+      const skillsEl = document.getElementById('cvBlockSkills');
+      const skillsText = skillsEl ? skillsEl.innerText.trim() : '';
+
+      const skillsCard = document.createElement('div');
+      skillsCard.className = 'section-enhance-card';
+      skillsCard.id = 'card-sec-SKILLS';
+      skillsCard.style.borderLeft = '3px solid #f59e0b';
+      skillsCard.style.background = 'rgba(30, 41, 59, 0.4)';
+
+      skillsCard.innerHTML = `
+        <div class="sec-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="pill-scope">🛠️ Kỹ năng chuyên môn (SKILLS)</span>
+            <span class="pill-score-gain" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);">
+              ⚠️ Nhắc nhở năng lực theo JD
+            </span>
+          </div>
+          <button onclick="updateSkillsAdvisoryReminder(true)" class="btn-rescan-skills" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; padding: 4px 10px; font-size: 11px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(245, 158, 11, 0.28)'" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'">
+            <span>🔄</span> Quét lại Kỹ năng từ CV
+          </button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">KỸ NĂNG ĐANG GHI NHẬN TRÊN CV:</div>
+          <span style="font-size: 10.5px; color: #94a3b8;">(Có thể gõ chỉnh sửa trực tiếp vào CV bên trái)</span>
+        </div>
+        <div class="sec-source-box" id="src-box-SKILLS" style="margin-bottom: 8px;">${skillsText}</div>
+
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 6px; padding: 10px 12px;">
+          <div style="font-weight: 700; color: #fbbf24; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span>⚠️</span> <span>ĐỐI SOÁT NĂNG LỰC VỚI YÊU CẦU JOB ĐANG CHỌN:</span>
+            </div>
+            <button onclick="updateSkillsAdvisoryReminder(true)" style="background: transparent; border: none; color: #67e8f9; font-size: 11px; cursor: pointer; text-decoration: underline;">
+              🔄 Quét lại
+            </button>
+          </div>
+          <div id="skillsReminderContent" style="font-size: 12px; color: #f8fafc; line-height: 1.6;">
+            <!-- Nội dung nhắc nhở cập nhật tự động theo Target Job và CV hiện tại -->
+          </div>
+          <div style="margin-top: 8px; font-size: 11px; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; line-height: 1.4;">
+            🔒 <em>Chỉ mang tính chất nhắc nhở đối soát năng lực. Tuyệt đối không cho phép sao chép hay tự động áp dụng nhằm bảo đảm tính trung thực của hồ sơ.</em>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(skillsCard);
+      updateSkillsAdvisoryReminder(false);
+    }
+
+    // ========================================================
+    // BỘ BÓC TÁCH & CHUẨN HÓA KỸ NĂNG ĐA NGÀNH (MULTI-INDUSTRY SKILL EXTRACTOR)
+    // Tự động loại bỏ tiền tố mô tả, ranh giới câu, và meta-requirements
+    // ========================================================
+    function extractSkillsClean(rawText) {
+      if (!rawText) return [];
+      // 1. Tách theo ranh giới câu và các ký tự phân cách đa dòng
+      const rawParts = rawText.split(/[\n\r;•|]+|(?<=\w)\.\s+/);
+      const items = [];
+
+      rawParts.forEach(part => {
+        // Tách tiếp theo dấu phẩy
+        const commaParts = part.split(',');
+        commaParts.forEach(sub => {
+          let cleaned = sub.trim().replace(/^[-•*+]\s*/, '');
+          // Loại bỏ tiền tố nhãn mô tả như "Yêu cầu chuyên môn:", "Kỹ năng chuyên môn:", v.v.
+          cleaned = cleaned.replace(/^(yêu cầu chuyên môn|kỹ năng chuyên môn|yêu cầu kỹ năng|yêu cầu công việc|yêu cầu|kỹ năng|chuyên môn|skills|requirements)\s*:\s*/i, '').trim();
+          // Loại bỏ dấu chấm thừa ở cuối
+          cleaned = cleaned.replace(/\.+$/, '').trim();
+
+          const lower = cleaned.toLowerCase();
+          // Siêu dữ liệu / Yêu cầu cấp bậc / Tiêu chí phẩm chất (Không phải kỹ năng chuyên môn)
+          const isMetaSentence = lower.includes('kinh nghiệm') ||
+                                 lower.includes('cấp bậc') ||
+                                 lower.includes('trách nhiệm') ||
+                                 lower.includes('tư duy') ||
+                                 lower.includes('giao tiếp') ||
+                                 lower.includes('tốt nghiệp') ||
+                                 lower.includes('cẩn thận') ||
+                                 lower.includes('trung thực') ||
+                                 lower.includes('áp lực');
+          const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
+
+          // Kỹ năng chuyên môn trong mọi ngành là cụm danh từ ngắn (<= 7 từ, <= 50 ký tự)
+          if (cleaned.length >= 2 && cleaned.length <= 50 && !isMetaSentence && wordCount <= 7) {
+            items.push(cleaned);
+          }
+        });
+      });
+
+      return [...new Set(items)];
+    }
+
+    // ========================================================
+    // TỪ ĐIỂN CHUẨN HÓA KỸ NĂNG & THUẬT TOÁN FUZZY ĐA NGÀNH (IN-HOUSE SKILL MAP + FUZZY)
+    // Tự động nhận diện từ đồng nghĩa, lỗi chính tả, phiên bản (PostgreSQL, Incoterms, React 18, k8s...)
+    // ========================================================
+    const CANONICAL_SKILL_MAP = {
+      // 1. Công nghệ thông tin & Phần mềm (IT & Software)
+      "postgre sql": "postgresql",
+      "postgre-sql": "postgresql",
+      "postgre": "postgresql",
+      "postgres": "postgresql",
+      "postgresql": "postgresql",
+      "pgsql": "postgresql",
+      "postgressql": "postgresql",
+      "postgress": "postgresql",
+      "react": "react",
+      "reactjs": "react",
+      "react.js": "react",
+      "react 18": "react",
+      "react 19": "react",
+      "react 17": "react",
+      "react 16": "react",
+      "react framework": "react",
+      "thư viện react": "react",
+      "react native": "react-native",
+      "vue": "vue",
+      "vuejs": "vue",
+      "vue.js": "vue",
+      "vue 3": "vue",
+      "angular": "angular",
+      "angularjs": "angular",
+      "node": "nodejs",
+      "nodejs": "nodejs",
+      "node.js": "nodejs",
+      "typescript": "typescript",
+      "ts": "typescript",
+      "javascript": "javascript",
+      "js": "javascript",
+      "es6": "javascript",
+      "python": "python",
+      "python 3": "python",
+      "c#": "csharp",
+      "c sharp": "csharp",
+      ".net": "dotnet",
+      ".net 10": "dotnet",
+      ".net 8": "dotnet",
+      ".net core": "dotnet",
+      "asp.net": "dotnet",
+      "asp.net core": "dotnet",
+      "dotnet core": "dotnet",
+      "c# .net 10": "dotnet",
+      "c# .net": "dotnet",
+      "c# .net 8": "dotnet",
+      "kubernetes": "k8s",
+      "k8s": "k8s",
+      "k8": "k8s",
+      "kube": "k8s",
+      "docker": "docker",
+      "containerization": "docker",
+      "clean architecture": "clean-architecture",
+      "microservices": "microservices",
+      "microservice": "microservices",
+      "rest api": "restful-api",
+      "restful api": "restful-api",
+      "restful": "restful-api",
+      "restful api cơ bản": "restful-api",
+      "git": "git",
+      "github": "git",
+      "gitlab": "git",
+      "git / github": "git",
+      "redux": "redux",
+      "redux toolkit": "redux",
+      "html": "html",
+      "html5": "html",
+      "css": "css",
+      "css3": "css",
+      "css3 / scss": "css",
+      "scss": "css",
+      "bootstrap": "bootstrap",
+      "bootstrap 5": "bootstrap",
+      "tailwind": "tailwind",
+      "tailwindcss": "tailwind",
+      "photoshop": "adobe-photoshop",
+      "photoshp": "adobe-photoshop",
+      "pts": "adobe-photoshop",
+      "adobe photoshop": "adobe-photoshop",
+      "figma": "figma",
+
+      // 2. Logistics & Xuất nhập khẩu (Supply Chain & Logistics)
+      "incoterm": "incoterms",
+      "incoterms": "incoterms",
+      "incoterm 2020": "incoterms",
+      "incoterms 2020": "incoterms",
+      "incoterm2020": "incoterms",
+      "incoterms2020": "incoterms",
+      "incoterms 2010": "incoterms",
+      "điều kiện incoterms": "incoterms",
+      "tập quán incoterms": "incoterms",
+      "chuẩn incoterm": "incoterms",
+      "chuẩn incoterms": "incoterms",
+      "chuẩn incoterm quốc tế": "incoterms",
+      "xuất nhập khẩu": "import-export",
+      "xnk": "import-export",
+      "import export": "import-export",
+      "thủ tục hải quan": "customs-clearance",
+      "customs clearance": "customs-clearance",
+      "khai báo hải quan": "customs-clearance",
+      "vnaccs": "vnaccs",
+      "ecus": "vnaccs",
+      "vận tải quốc tế": "freight-forwarding",
+      "freight forwarding": "freight-forwarding",
+      "quản lý kho": "warehouse-management",
+      "quản lý kho bãi": "warehouse-management",
+      "wms": "warehouse-management",
+      "chuỗi cung ứng": "supply-chain",
+      "quản trị chuỗi cung ứng": "supply-chain",
+      "supply chain": "supply-chain",
+      "mua hàng": "procurement",
+      "procurement": "procurement",
+
+      // 3. Kế toán, Tài chính & Thuế (Finance & Accounting)
+      "kế toán tổng hợp": "general-accounting",
+      "general accounting": "general-accounting",
+      "kế toán thuế": "tax-accounting",
+      "tax accounting": "tax-accounting",
+      "quyết toán thuế": "tax-accounting",
+      "kê khai thuế": "tax-accounting",
+      "báo cáo tài chính": "financial-reporting",
+      "financial reporting": "financial-reporting",
+      "kiểm toán": "auditing",
+      "auditing": "auditing",
+      "kiểm toán nội bộ": "internal-audit",
+      "misa": "misa",
+      "misa sme": "misa",
+      "fast accounting": "fast-accounting",
+      "sap erp": "sap-erp",
+      "sap": "sap-erp",
+      "vas": "vas",
+      "ifrs": "ifrs",
+      "excel nâng cao": "advanced-excel",
+
+      // 4. Marketing & Bán hàng (Sales & Marketing)
+      "google ads": "google-ads",
+      "adwords": "google-ads",
+      "meta ads": "facebook-ads",
+      "facebook ads": "facebook-ads",
+      "tiktok ads": "tiktok-ads",
+      "seo": "seo",
+      "sem": "sem",
+      "content marketing": "content-marketing",
+      "copywriting": "copywriting",
+      "sáng tạo nội dung": "content-marketing",
+      "ga4": "ga4",
+      "google analytics": "ga4",
+      "google analytics 4": "ga4",
+      "a/b testing": "ab-testing",
+      "ab testing": "ab-testing",
+      "đàm phán": "negotiation",
+      "đàm phán thương lượng": "negotiation",
+      "thương lượng": "negotiation",
+      "negotiation": "negotiation",
+
+      // 5. Quản trị Nhân sự (HR & Admin)
+      "tuyển dụng": "talent-acquisition",
+      "talent acquisition": "talent-acquisition",
+      "recruitment": "talent-acquisition",
+      "c&b": "compensation-benefits",
+      "tiền lương và phúc lợi": "compensation-benefits",
+      "bảo hiểm xã hội": "social-insurance",
+      "bhxh": "social-insurance",
+      "luật lao động": "labor-law",
+      "kpi": "performance-management",
+      "đào tạo nội bộ": "learning-development",
+
+      // 6. UI/UX & Trải nghiệm khách hàng
+      "tối ưu hóa hành trình khách hàng": "ui-ux-design",
+      "hành trình khách hàng": "ui-ux-design",
+      "thiết kế trải nghiệm người dùng": "ui-ux-design",
+      "trải nghiệm khách hàng": "ui-ux-design",
+      "trải nghiệm người dùng": "ui-ux-design",
+      "ui/ux": "ui-ux-design",
+      "ui/ux design": "ui-ux-design",
+      "ux design": "ui-ux-design"
+    };
+
+    function normalizeSkillName(str) {
+      if (!str) return '';
+      let s = str.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (CANONICAL_SKILL_MAP[s]) return CANONICAL_SKILL_MAP[s];
+
+      // Loại bỏ ký tự đặc biệt, dấu chấm, gạch nối, khoảng trắng
+      const noPunct = s.replace(/[.\-_/\s]/g, '');
+      if (noPunct === 'postgresql' || noPunct === 'postgres' || noPunct === 'pgsql' || noPunct === 'postgressql' || noPunct === 'postgress') {
+        return 'postgresql';
+      }
+      if (noPunct.startsWith('incoterm')) {
+        return 'incoterms';
+      }
+      if (noPunct.startsWith('react') && !noPunct.includes('native')) {
+        return 'react';
+      }
+      if (noPunct === 'kubernetes' || noPunct === 'k8s' || noPunct === 'k8' || noPunct === 'kube') {
+        return 'k8s';
+      }
+      if (noPunct === 'photoshop' || noPunct === 'photoshp' || noPunct === 'pts') {
+        return 'adobe-photoshop';
+      }
+
+      // Loại bỏ tiền tố/hậu tố thông dụng
+      const stripped = s.replace(/^(phần mềm|kỹ năng|công cụ|framework|thư viện)\s+/i, '')
+                        .replace(/\s+(framework|library|platform|cơ bản|nâng cao)$/i, '').trim();
+      if (CANONICAL_SKILL_MAP[stripped]) return CANONICAL_SKILL_MAP[stripped];
+
+      return s;
+    }
+
+    function calcLevenshtein(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    function isSkillFuzzyMatch(skillA, skillB) {
+      if (!skillA || !skillB) return false;
+      const normA = normalizeSkillName(skillA);
+      const normB = normalizeSkillName(skillB);
+      if (normA && normB && normA === normB) return true;
+
+      const noPunctA = skillA.toLowerCase().replace(/[.\-_/\s]/g, '');
+      const noPunctB = skillB.toLowerCase().replace(/[.\-_/\s]/g, '');
+      if (noPunctA && noPunctB && noPunctA === noPunctB) return true;
+
+      // Substring check với độ dài tối thiểu 4 ký tự
+      if (noPunctA.length >= 4 && noPunctB.length >= 4) {
+        if (noPunctA.includes(noPunctB) || noPunctB.includes(noPunctA)) return true;
+      }
+      if (normA.length >= 4 && normB.length >= 4) {
+        if (normA.includes(normB) || normB.includes(normA)) return true;
+      }
+
+      // Fuzzy matching tỉ lệ >= 80%
+      const maxLen = Math.max(noPunctA.length, noPunctB.length);
+      if (maxLen > 0) {
+        const dist = calcLevenshtein(noPunctA, noPunctB);
+        if (((maxLen - dist) / maxLen) >= 0.80) return true;
+      }
+
+      return false;
+    }
+
+    // ========================================================
+    // PHÂN TÍCH KỸ NĂNG: ĐỐI SOÁT CHÍNH XÁC SECTION SKILLS & BẮT KỸ NĂNG ẨN TRONG EXP / PROJECTS
+    // ========================================================
+    function analyzeSkillsSectionAgainstJob() {
+      const skillsEl = document.getElementById('cvBlockSkills');
+      const currentSkillsRaw = skillsEl ? skillsEl.innerText.trim() : '';
+      const skillsLower = currentSkillsRaw.toLowerCase();
+
+      // Bóc tách toàn bộ thẻ tag và token trong mục Skills của CV
+      const skillTags = skillsEl ? Array.from(skillsEl.querySelectorAll('.cv-tag')).map(el => el.innerText.trim()).filter(Boolean) : [];
+      const skillTextTokens = currentSkillsRaw.split(/[\n,;•|/]+/).map(s => s.trim()).filter(s => s.length >= 2);
+      const candidateSkills = [...new Set([...skillTags, ...skillTextTokens])];
+
+      // Quét ngữ cảnh toàn bộ các section khác (Experience, Projects, Objective)
+      const expEl = document.getElementById('cvBlockExperience');
+      const projEl = document.getElementById('cvBlockProject');
+      const objEl = document.getElementById('cvBlockObjective');
+      const otherSectionsRaw = [
+        expEl ? expEl.innerText : '',
+        projEl ? projEl.innerText : '',
+        objEl ? objEl.innerText : ''
+      ].join('\n');
+      const otherSectionsText = otherSectionsRaw.toLowerCase();
+      const otherSectionTokens = otherSectionsRaw.split(/[\n\r;•|]+|(?<=\w)\.\s+/).flatMap(p => p.split(/[,/]+/)).map(s => s.trim()).filter(s => s.length >= 2);
+
+      const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+      const targetJob = activePreset.targetJob;
+      const reqText = targetJob.requirements || '';
+
+      // Áp dụng bộ trích xuất chuẩn hóa đa ngành sạch sẽ
+      const reqItems = extractSkillsClean(reqText);
+
+      const matchedSkills = [];
+      const detectedInContextSkills = [];
+      const missingSkills = [];
+
+      reqItems.forEach(req => {
+        // 1. Kiểm tra kỹ năng có nằm trong Section SKILLS hay không (Dùng Fuzzy + Canonical Map)
+        let foundInSkills = candidateSkills.some(cand => isSkillFuzzyMatch(cand, req));
+
+        // Hỗ trợ kiểm tra kỹ năng viết tắt trong ngoặc e.g. "Electric Vehicle (EV)" -> "ev"
+        if (!foundInSkills && req.includes('(')) {
+          const sub = req.match(/\(([^)]+)\)/);
+          if (sub && sub[1] && sub[1].trim().length > 1) {
+            const shortForm = sub[1].trim();
+            foundInSkills = candidateSkills.some(cand => isSkillFuzzyMatch(cand, shortForm)) || skillsLower.includes(shortForm.toLowerCase());
+          }
+        }
+        // Hỗ trợ kỹ năng có dấu gạch chéo e.g. "MATLAB/Simulink"
+        if (!foundInSkills && req.includes('/')) {
+          foundInSkills = req.split('/').some(part => part.trim().length > 1 && candidateSkills.some(cand => isSkillFuzzyMatch(cand, part.trim())));
+        }
+
+        // 2. Fallback text inclusion trong Section Skills
+        if (!foundInSkills) {
+          const reqClean = req.toLowerCase();
+          foundInSkills = skillsLower.includes(reqClean) || isSkillFuzzyMatch(skillsLower, reqClean);
+        }
+
+        if (foundInSkills) {
+          matchedSkills.push(req);
+        } else {
+          // 3. Nếu chưa có trong Skills, kiểm tra xem có xuất hiện trong Kinh nghiệm hoặc Dự án không
+          let foundInContext = otherSectionTokens.some(tok => isSkillFuzzyMatch(tok, req)) || otherSectionsText.includes(req.toLowerCase());
+          if (!foundInContext && req.includes('(')) {
+            const sub = req.match(/\(([^)]+)\)/);
+            if (sub && sub[1] && sub[1].trim().length > 1) {
+              const shortForm = sub[1].trim().toLowerCase();
+              foundInContext = otherSectionsText.includes(shortForm);
+            }
+          }
+
+          if (foundInContext) {
+            detectedInContextSkills.push(req);
+          } else {
+            missingSkills.push(req);
+          }
+        }
+      });
+
+      return {
+        currentSkillsRaw,
+        targetJob,
+        reqItems,
+        matchedSkills,
+        detectedInContextSkills,
+        missingSkills
+      };
+    }
+
+    // 1-Click Promote: Tự động đưa kỹ năng tìm thấy từ Dự án / Kinh nghiệm vào Section Skills
+    function promoteSkillToSection(skillName) {
+      const skillsEl = document.getElementById('cvBlockSkills');
+      if (!skillsEl) return;
+
+      const tagHtml = `<span class="cv-tag highlight-tag">${skillName}</span> `;
+      const firstDiv = skillsEl.querySelector('div');
+      if (firstDiv) {
+        firstDiv.insertAdjacentHTML('beforeend', ' ' + tagHtml);
+      } else {
+        skillsEl.insertAdjacentHTML('beforeend', ' ' + tagHtml);
+      }
+
+      updateSkillsAdvisoryReminder(true);
+      showToast(`✨ Đã thêm kỹ năng "${skillName}" vào mục Kỹ năng trên CV!`);
+      // Kích hoạt tính điểm lại ngay
+      runRealTimeMatchAnalysis(false);
+    }
+
+    // Cập nhật nội dung nhắc nhở kỹ năng theo Target Job và CV hiện tại
+    function updateSkillsAdvisoryReminder(userTriggered = false) {
+      const reminderBox = document.getElementById('skillsReminderContent');
+      if (!reminderBox) return;
+
+      const { currentSkillsRaw, targetJob, reqItems, matchedSkills, detectedInContextSkills, missingSkills } = analyzeSkillsSectionAgainstJob();
+
+      const srcSkills = document.getElementById('src-box-SKILLS');
+      if (srcSkills) {
+        srcSkills.innerText = currentSkillsRaw;
+      }
+
+      if (reqItems.length === 0) {
+        reminderBox.innerHTML = `
+          <div style="color: var(--accent-emerald);">
+            ✅ Vị trí <strong>"${targetJob.title}"</strong> không có yêu cầu kỹ năng đặc thù bổ sung.
+          </div>
+        `;
+      } else {
+        reminderBox.innerHTML = `
+          <div style="margin-bottom: 6px;">
+            • Vị trí đang đối chiếu: <strong style="color: #67e8f9;">"${targetJob.title}"</strong>
+          </div>
+          ${matchedSkills.length > 0 ? `
+            <div style="margin-bottom: 8px;">
+              <div style="color: #34d399; font-weight: 700; font-size: 11.5px; margin-bottom: 4px;">
+                ✅ Kỹ năng đã có trong Section Skills (${matchedSkills.length}/${reqItems.length}):
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                ${matchedSkills.map(s => `<span class="cv-tag highlight-tag" style="font-size: 11px; padding: 2px 7px;">✓ ${s}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          ${detectedInContextSkills.length > 0 ? `
+            <div style="margin-bottom: 8px; padding: 8px 10px; background: rgba(59, 130, 246, 0.12); border: 1px dashed rgba(96, 165, 250, 0.6); border-radius: 6px;">
+              <div style="color: #93c5fd; font-weight: 700; font-size: 11.5px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+                <span>💡 Kỹ năng tìm thấy trong Dự án / Kinh nghiệm (${detectedInContextSkills.length}):</span>
+                <span style="font-size: 10px; color: #bfdbfe;">(Bấm nút để đưa vào Skills)</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                ${detectedInContextSkills.map(s => `
+                  <button type="button" onclick="promoteSkillToSection('${s.replace(/'/g, "\\'")}')" style="background: rgba(30, 58, 138, 0.7); border: 1px solid #60a5fa; color: #ffffff; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='rgba(30, 58, 138, 0.7)'" title="Bấm để bổ sung ngay vào mục Kỹ năng trên CV">
+                    <span>➕</span> <strong>${s}</strong>
+                  </button>
+                `).join('')}
+              </div>
+              <div style="margin-top: 4px; font-size: 10.5px; color: #bfdbfe;">
+                ⚡ <em>Hệ thống phát hiện bạn đã dùng các kỹ năng này trong Dự án/Kinh nghiệm. Hãy bấm để thêm vào mục Kỹ năng giúp ATS tối ưu điểm tối đa!</em>
+              </div>
+            </div>
+          ` : ''}
+
+          ${missingSkills.length > 0 ? `
+            <div style="margin-bottom: 8px;">
+              <div style="color: #fbbf25; font-weight: 700; font-size: 11.5px; margin-bottom: 4px;">
+                ⚠️ Kỹ năng JD yêu cầu nhưng hồ sơ chưa đề cập (${missingSkills.length}/${reqItems.length}):
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                ${missingSkills.map(s => `<span class="cv-tag" style="border-color: rgba(245, 158, 11, 0.4); color: #000000; font-size: 11px; padding: 2px 7px;">⚠️ ${s}</span>`).join('')}
+              </div>
+            </div>
+            <div style="margin-top: 8px; color: #a7f3d0; font-size: 11.5px; line-height: 1.5;">
+              👉 <strong>Khuyến nghị:</strong> Bạn có thể gõ bổ sung trực tiếp vào mục Kỹ năng trên CV bên trái, sau đó bấm nút <strong style="color: #fbbf24;">[🔄 Quét lại Kỹ năng]</strong> ở trên để cập nhật lại!
+            </div>
+          ` : `
+            <div style="color: var(--accent-emerald); font-size: 12px; font-weight: 700; margin-top: 4px;">
+              🎉 Toàn bộ kỹ năng yêu cầu của vị trí này (${reqItems.length} kỹ năng) đã có đầy đủ trong mục Kỹ năng trên CV của bạn!
+            </div>
+          `}
+        `;
+      }
+
+      // Khi người dùng bấm nút Quét lại hoặc có cập nhật, đồng bộ ngay lập tức sang Tab 2 (Tối ưu theo Job)
+      updateJobTailoringAnalysis();
+
+      if (userTriggered) {
+        const card = document.getElementById('card-sec-SKILLS');
+        if (card) triggerBlockPulse(card);
+        showToast(`🔍 Đã quét lại: Section Skills có ${matchedSkills.length}/${reqItems.length} kỹ năng theo JD!`);
+      }
+    }
+
+    // Keep cards in sync when user edits CV canvas directly
+    function syncCvSectionsToCards() {
+      CV_SECTIONS.forEach(sec => {
+        const el = document.getElementById(sec.elementId);
+        const srcBox = document.getElementById(`src-box-${sec.type}`);
+        if (el && srcBox) {
+          srcBox.innerText = el.innerText.trim();
+        }
+      });
+    }
+
+    // ========================================================
+    // SMOOTH TYPEWRITER STREAM BUFFER (Gõ chữ mượt mà chuẩn 60fps)
+    // ========================================================
+    function startSmoothTypewriter(targetElement, onComplete) {
+      targetElement.style.display = 'block';
+      targetElement.innerHTML = '<span class="typewriter-content"></span><span class="typewriter-cursor"></span>';
+      const contentSpan = targetElement.querySelector('.typewriter-content');
+
+      const queue = [];
+      let isStreamingDone = false;
+      let fullText = '';
+
+      const timer = setInterval(() => {
+        if (queue.length > 0) {
+          const char = queue.shift();
+          fullText += char;
+          contentSpan.innerText = fullText;
+          targetElement.scrollTop = targetElement.scrollHeight;
+        } else if (isStreamingDone) {
+          clearInterval(timer);
+          const cursor = targetElement.querySelector('.typewriter-cursor');
+          if (cursor) cursor.remove();
+          if (onComplete) onComplete(fullText);
+        }
+      }, 16); // 16ms per character/token
+
+      return {
+        pushToken: (token) => {
+          for (let i = 0; i < token.length; i++) {
+            queue.push(token[i]);
+          }
+        },
+        end: () => {
+          isStreamingDone = true;
+        }
+      };
+    }
+
+    // ========================================================
+    // ENHANCE SPECIFIC CV SECTION (Bắt buộc theo ngôn ngữ CV gốc)
+    // ========================================================
+    async function enhanceSpecificSection(sectionType, isStreaming) {
+      const secDef = CV_SECTIONS.find(s => s.type === sectionType || (s.aliases && s.aliases.includes(sectionType)));
+      if (!secDef) return;
+
+      const el = document.getElementById(secDef.elementId);
+      const originalText = el ? el.innerText.trim() : '';
+      const autoLang = detectLanguage(originalText); // 'vi' if Vietnamese
+
+      const outBox = document.getElementById(`output-box-${secDef.type}`);
+      const skeletonBox = document.getElementById(`skeleton-box-${secDef.type}`);
+      const applyRow = document.getElementById(`apply-row-${secDef.type}`);
+
+      // Bật Skeleton Shimmer trước khi kết nối để UX thân thiện
+      if (skeletonBox) skeletonBox.style.display = 'flex';
+      outBox.style.display = 'none';
+      applyRow.style.display = 'none';
+
+      const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+      const fullJobDesc = `Vị trí: ${activePreset.targetJob.title}\nCông ty: ${activePreset.targetJob.company}\nMức lương: ${activePreset.targetJob.salary}\nYêu cầu tuyển dụng cốt lõi: ${activePreset.targetJob.requirements}`;
+
+      const payload = {
+        content: originalText,
+        sectionType: secDef.type === 'OBJECTIVE' ? 'SUMMARY' : secDef.type,
+        targetJobId: activePreset.targetJob.jobId,
+        targetJobTitle: activePreset.targetJob.title,
+        targetJobDescription: fullJobDesc,
+        language: autoLang // Detected 'en' or 'vi'
+      };
+
+      const cid = crypto.randomUUID();
+      const start = performance.now();
+      logConsole(`Tối ưu hóa mục ${secDef.name} (Ngôn ngữ: ${autoLang})...`, 'POST', 0);
+
+      if (!isStreaming) {
+        try {
+          const res = await fetch(`${BASE_URL}/api/v1/ai/cv/enhance`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Correlation-ID': cid
+            },
+            body: JSON.stringify(payload)
+          });
+          const duration = Math.round(performance.now() - start);
+          const json = await res.json();
+
+          if (skeletonBox) skeletonBox.style.display = 'none';
+          outBox.style.display = 'block';
+
+          if (res.ok && json.data) {
+            const enhanced = json.data.enhancedContent || JSON.stringify(json.data, null, 2);
+            enhancedResults[secDef.type] = enhanced;
+            outBox.innerText = enhanced;
+            applyRow.style.display = 'flex';
+            logConsole(`POST /cv/enhance ${secDef.type} thành công`, 'SUCCESS', 200, duration, cid);
+            showToast(`✅ Đã tối ưu xong mục ${secDef.name}!`);
+          } else {
+            outBox.innerText = `Lỗi: ${json.detail || 'Không thể xử lý'}`;
+          }
+        } catch (err) {
+          if (skeletonBox) skeletonBox.style.display = 'none';
+          outBox.style.display = 'block';
+          outBox.innerText = `Lỗi kết nối: ${err.message}`;
+        }
+      } else {
+        // Smooth SSE Stream with Skeleton Hand-off
+        try {
+          const res = await fetch(`${BASE_URL}/api/v1/ai/cv/enhance/stream`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Correlation-ID': cid
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            if (skeletonBox) skeletonBox.style.display = 'none';
+            outBox.style.display = 'block';
+            outBox.innerText = `Lỗi HTTP: ${res.status}`;
+            return;
+          }
+
+          if (skeletonBox) skeletonBox.style.display = 'none';
+
+          const typewriter = startSmoothTypewriter(outBox, (finalText) => {
+            enhancedResults[secDef.type] = finalText;
+            applyRow.style.display = 'flex';
+            const duration = Math.round(performance.now() - start);
+            logConsole(`SSE Stream mượt mục ${secDef.type} hoàn tất`, 'SUCCESS', 200, duration, cid);
+            showToast(`🌊 Stream mượt hoàn tất: ${secDef.name}!`);
+          });
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let sseBuffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            sseBuffer += decoder.decode(value, { stream: true });
+            const lines = sseBuffer.split('\n');
+            sseBuffer = lines.pop(); // Giữ lại phần chưa kết thúc dòng trong buffer
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith('data:')) continue;
+              const rawData = trimmed.startsWith('data: ') ? trimmed.substring(6) : trimmed.substring(5);
+              if (rawData === '[DONE]') break;
+
+              let tokenText = rawData;
+              try {
+                const parsed = JSON.parse(rawData);
+                if (typeof parsed === 'string') {
+                  tokenText = parsed;
+                } else if (parsed && typeof parsed === 'object') {
+                  tokenText = parsed.text || parsed.content || rawData;
+                }
+              } catch {
+                tokenText = rawData;
+              }
+
+              typewriter.pushToken(tokenText);
+            }
+          }
+          typewriter.end();
+        } catch (err) {
+          if (skeletonBox) skeletonBox.style.display = 'none';
+          outBox.style.display = 'block';
+          outBox.innerText = `Lỗi stream: ${err.message}`;
+        }
+      }
+    }
+
+    // Helper: Map any section type alias to exact element ID
+    function getElementForSectionType(sectionType) {
+      const upper = (sectionType || '').toUpperCase().trim();
+      if (upper === 'TARGET_JOB' || upper === 'TITLE' || upper === 'JOB_TITLE' || upper === 'POSITION') {
+        return document.getElementById('cvTitle');
+      } else if (upper === 'OBJECTIVE' || upper === 'SUMMARY' || upper === 'GOAL') {
+        return document.getElementById('cvBlockObjective');
+      } else if (upper === 'EXPERIENCE' || upper === 'WORK_EXPERIENCE' || upper === 'WORK') {
+        return document.getElementById('cvBlockExperience');
+      } else if (upper === 'PROJECTS' || upper === 'PROJECT') {
+        return document.getElementById('cvBlockProject');
+      } else if (upper === 'AWARDS' || upper === 'AWARD' || upper === 'CERTIFICATIONS') {
+        return document.getElementById('cvBlockAwards');
+      } else if (upper === 'SKILLS' || upper === 'SKILL') {
+        return document.getElementById('cvBlockSkills');
+      }
+      return null;
+    }
+
+    // Apply specific enhanced text to CV canvas
+    function applySectionEnhancedToCv(sectionType, skipSubsequentAnalysis = false) {
+      const secDef = CV_SECTIONS.find(s => s.type === sectionType || (s.aliases && s.aliases.includes(sectionType)));
+      if (secDef && secDef.isSuggestionOnly) {
+        showToast(`⚠️ Mục ${secDef.name} chỉ mang tính chất gợi ý tham khảo, không tự động áp dụng để bảo vệ tính trung thực của CV. Hãy tự chọn lọc và bổ sung vào CV!`);
+        return;
+      }
+
+      const typeKey = secDef ? secDef.type : sectionType;
+      const text = enhancedResults[typeKey];
+      if (!text) return;
+
+      const el = getElementForSectionType(typeKey);
+      if (el) {
+        el.innerText = text;
+        triggerBlockPulse(el);
+        syncCvSectionsToCards();
+        if (!skipSubsequentAnalysis) {
+          runRealTimeMatchAnalysis(true);
+          fetchRecommendations();
+        }
+        showToast(`🚀 Đã áp dụng câu từ vào mục ${secDef ? secDef.name : sectionType}!`);
+      }
+    }
+
+    function copySectionOutput(sectionType) {
+      const text = enhancedResults[sectionType];
+      if (!text) {
+        showToast('⚠️ Chưa có nội dung gợi ý để sao chép.');
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(`📋 Đã sao chép gợi ý Kỹ năng! Bạn có thể chọn lọc các kỹ năng thực tế và dán vào CV.`);
+        }).catch(() => {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('📋 Đã sao chép gợi ý Kỹ năng thành công!');
+    }
+
+    // ========================================================
+    // BATCH ENHANCE ALL SECTIONS (Gom 4 mục trong 1 Request duy nhất)
+    // ========================================================
+    async function executeBatchEnhanceAllSections() {
+      const btn = document.getElementById('btnBatchEnhanceTab1');
+      if (btn) btn.disabled = true;
+
+      // 1. Thu thập nội dung hiện tại của 4 mục trên CV Canvas
+      const batchPayloadSections = CV_SECTIONS.map(sec => {
+        const el = document.getElementById(sec.elementId);
+        return {
+          sectionType: sec.type,
+          content: el ? el.innerText.trim() : ''
+        };
+      }).filter(s => s.content.length > 0);
+
+      // Bật toàn bộ Skeleton Shimmer đồng thời trên 4 thẻ
+      CV_SECTIONS.forEach(sec => {
+        const skeletonBox = document.getElementById(`skeleton-box-${sec.type}`);
+        const outBox = document.getElementById(`output-box-${sec.type}`);
+        const applyRow = document.getElementById(`apply-row-${sec.type}`);
+        if (skeletonBox) skeletonBox.style.display = 'flex';
+        if (outBox) outBox.style.display = 'none';
+        if (applyRow) applyRow.style.display = 'none';
+      });
+
+      const statsEl = document.getElementById('batchPerformanceStats');
+      if (statsEl) {
+        statsEl.innerHTML = '⏳ <span style="color: #fde68a;">Đang gọi Batch API (Gom 4 mục trong 1 lượt)...</span>';
+      }
+
+      showToast('⚡ Đang xử lý Batching 4 mục qua Gemini Flash Lite trong 1 Request...');
+      const start = performance.now();
+      const cid = crypto.randomUUID();
+
+      const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+      const fullJobDesc = `Vị trí: ${activePreset.targetJob.title}\nCông ty: ${activePreset.targetJob.company}\nMức lương: ${activePreset.targetJob.salary}\nYêu cầu tuyển dụng cốt lõi: ${activePreset.targetJob.requirements}`;
+
+      const payload = {
+        targetJobId: activePreset.targetJob.jobId,
+        targetJobTitle: activePreset.targetJob.title,
+        targetJobDescription: fullJobDesc,
+        language: activePreset.language || 'vi',
+        sections: batchPayloadSections
+      };
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/ai/cv/enhance/batch`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Correlation-ID': cid
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const duration = Math.round(performance.now() - start);
+        const json = await res.json();
+
+        // Tắt toàn bộ Skeleton Shimmer
+        CV_SECTIONS.forEach(sec => {
+          const skeletonBox = document.getElementById(`skeleton-box-${sec.type}`);
+          const outBox = document.getElementById(`output-box-${sec.type}`);
+          if (skeletonBox) skeletonBox.style.display = 'none';
+          if (outBox) outBox.style.display = 'block';
+        });
+
+        if (res.ok && json.data?.sections) {
+          json.data.sections.forEach(secResult => {
+            const secDef = CV_SECTIONS.find(s => s.type === secResult.sectionType || (s.aliases && s.aliases.includes(secResult.sectionType)));
+            if (secDef) {
+              enhancedResults[secDef.type] = secResult.enhancedContent;
+              const outBox = document.getElementById(`output-box-${secDef.type}`);
+              const applyRow = document.getElementById(`apply-row-${secDef.type}`);
+              if (outBox) outBox.innerText = secResult.enhancedContent;
+              if (applyRow) applyRow.style.display = 'flex';
+            }
+          });
+
+          if (statsEl) {
+            statsEl.innerHTML = `🚀 <strong style="color: var(--accent-emerald);">${duration}ms</strong> • Tiết kiệm <strong>~75% Token</strong> (Chắt lọc JD + Few-Shot) • Batch Thành công!`;
+          }
+
+          logConsole(`POST /cv/enhance/batch hoàn tất trong ${duration}ms (5 mục)`, 'SUCCESS', 200, duration, cid);
+          showToast(`⚡ Batch thành công trong ${duration}ms! Toàn bộ 5 mục đã sẵn sàng xem trước.`);
+        } else {
+          showToast(`⚠️ Batch không thành công: ${json.detail || 'Lỗi xử lý'}`);
+        }
+      } catch (err) {
+        CV_SECTIONS.forEach(sec => {
+          const skeletonBox = document.getElementById(`skeleton-box-${sec.type}`);
+          const outBox = document.getElementById(`output-box-${sec.type}`);
+          if (skeletonBox) skeletonBox.style.display = 'none';
+          if (outBox) {
+            outBox.style.display = 'block';
+            outBox.innerText = `Lỗi kết nối batch: ${err.message}`;
+          }
+        });
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // TAB: TỐI ƯU TOÀN DIỆN DỰA VÀO JOB (TARGET JOB TAILORING)
+    // Tự động chuyển sang Tab 1, sửa Target Job trên CV, kích hoạt Batching và áp dụng tự động
+    async function executeFullCvJobTailoring() {
+      const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+      showToast(`🎯 Đang 1-Chạm tối ưu toàn diện CV theo vị trí "${activePreset.targetJob.title}"...`);
+
+      // 1. Tự động đồng bộ Chức danh trên CV dựa thẳng vào Job mục tiêu (không mở ngoặc, không từ định hướng)
+      const titleEl = document.getElementById('cvTitle');
+      if (titleEl) {
+        const targetTitle = cleanTargetJobTitle(activePreset.targetJob.title);
+        titleEl.innerText = targetTitle;
+        triggerBlockPulse(titleEl);
+        syncCvSectionsToCards();
+      }
+
+      // 2. Chuyển sang Tab 1 "Viết lại từng mục" để người dùng theo dõi tiến trình
+      openDrawerTab('suggestions');
+
+      // 3. Tự động chạy Batching 1 Request với toàn bộ ngữ cảnh JD
+      await executeBatchEnhanceAllSections();
+
+      // 4. Tự động áp dụng các mục đã tối ưu vào CV canvas (Tuyệt đối KHÔNG tự ý đè mục Kỹ năng)
+      for (const sec of CV_SECTIONS) {
+        if (sec.isSuggestionOnly) continue;
+        if (enhancedResults[sec.type]) {
+          applySectionEnhancedToCv(sec.type, true);
+        }
+      }
+
+      // 5. Tự động cập nhật bảng phân tích Gap và chấm điểm so khớp mới
+      updateJobTailoringAnalysis();
+      await runRealTimeMatchAnalysis(true);
+      // 6. Tự động cập nhật lại danh sách Việc làm gợi ý theo nội dung CV mới đã tối ưu
+      await fetchRecommendations();
+      showToast(`🎉 Đã hoàn tất 1-Chạm Tối ưu toàn diện CV theo JD "${activePreset.targetJob.title}"!`);
+    }
+
+    // Apply all sections sequentially to CV canvas
+    async function applyAllCvSectionsEnhancement() {
+      // Nếu chưa có kết quả batch, chạy batch trước
+      const hasOptimizable = CV_SECTIONS.filter(s => !s.isSuggestionOnly).every(s => enhancedResults[s.type]);
+      if (!hasOptimizable) {
+        showToast('⚡ Đang chạy Batching tối ưu các mục trước khi áp dụng...');
+        await executeBatchEnhanceAllSections();
+      }
+
+      showToast('✨ Đang áp dụng các đề xuất vào các mục CV (Bảo lưu Kỹ năng chuyên môn)...');
+      for (const sec of CV_SECTIONS) {
+        if (sec.isSuggestionOnly) continue; // KHÔNG TỰ ĐỘNG ÁP DỤNG SKILLS
+        if (enhancedResults[sec.type]) {
+          applySectionEnhancedToCv(sec.type, true);
+        }
+      }
+      showToast('🎉 Toàn bộ các mục tối ưu đã được áp dụng vào CV (Bảo lưu Kỹ năng chuyên môn)!');
+      await runRealTimeMatchAnalysis(true);
+      await fetchRecommendations();
+    }
+
+    // ========================================================
+    // TAB: AI CONVERSATION (Zero-Prompt Auto-Title & Auto-Lang)
+    // ========================================================
+    function startFreshConversation() {
+      currentConversationId = null;
+      document.getElementById('chatConversationSelect').value = '';
+      const chatContainer = document.getElementById('drawerChatMessages');
+      chatContainer.innerHTML = `
+        <div class="chat-bubble-ai">
+          Cuộc trò chuyện mới đã sẵn sàng! Bạn hãy nhập câu hỏi bên dưới, hệ thống sẽ tự động tạo phiên và phân tích ngữ cảnh.
+        </div>
+      `;
+      showToast('➕ Đã sẵn sàng cuộc trò chuyện mới!');
+    }
+
+    async function sendDrawerChatMessage() {
+      const input = document.getElementById('drawerChatInput');
+      const btn = document.getElementById('btnSendChatMessage');
+      if (btn && btn.disabled) return;
+
+      const text = input ? input.value.trim() : '';
+      if (!text) return;
+
+      const sectionType = document.getElementById('chatSectionType').value;
+      const autoLang = detectLanguage(text);
+
+      const chatContainer = document.getElementById('drawerChatMessages');
+      appendChatMessageToUi('user', text);
+      input.value = '';
+
+      // Vô hiệu hóa nút gửi và ô nhập liệu trong khi AI đang xử lý
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Đang trả lời...';
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+      }
+      if (input) {
+        input.disabled = true;
+      }
+
+      // Shimmering skeleton while thinking in chat
+      const aiBubble = document.createElement('div');
+      aiBubble.className = 'chat-bubble-ai';
+      aiBubble.innerHTML = `
+        <div style="font-size: 11px; color: var(--accent-cyan); margin-bottom: 6px;">🤖 Đang suy nghĩ câu trả lời...</div>
+        <div class="skeleton-shimmer-box" style="display: flex; padding: 6px 0; background: transparent; border: none;">
+          <div class="skeleton-line" style="width: 80%;"></div>
+          <div class="skeleton-line" style="width: 95%;"></div>
+          <div class="skeleton-line" style="width: 65%;"></div>
+        </div>
+      `;
+      chatContainer.appendChild(aiBubble);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      const cid = crypto.randomUUID();
+      const start = performance.now();
+
+      try {
+        // If no active conversation, create one automatically based on prompt (NO USER TITLE INPUT NEEDED)
+        if (!currentConversationId) {
+          const autoTitle = text.length > 40 ? text.substring(0, 38) + '...' : text;
+          const createRes = await fetch(`${BASE_URL}/api/v1/ai/conversations`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Correlation-ID': cid
+            },
+            body: JSON.stringify({ title: autoTitle, cvId: SAMPLE_CV_ID })
+          });
+          const createJson = await createRes.json();
+          if (createRes.ok && createJson.data?.id) {
+            currentConversationId = createJson.data.id;
+            await loadConversationsList();
+            document.getElementById('chatConversationSelect').value = currentConversationId;
+          }
+        }
+
+        const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+        // Send Message
+        const res = await fetch(`${BASE_URL}/api/v1/ai/conversations/${currentConversationId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Correlation-ID': cid
+          },
+          body: JSON.stringify({
+            content: text,
+            sectionType: sectionType === 'OBJECTIVE' ? 'SUMMARY' : sectionType,
+            targetJobTitle: activePreset.targetJob.title,
+            language: autoLang
+          })
+        });
+
+        const duration = Math.round(performance.now() - start);
+        const json = await res.json();
+
+        if (res.ok && json.data) {
+          aiBubble.remove();
+          appendChatMessageToUi('assistant', json.data.content, json.data.metadataJson || JSON.stringify({ sectionType }));
+          logConsole(`POST /conversations/{id}/messages (${sectionType})`, 'SUCCESS', 200, duration, cid);
+        } else {
+          aiBubble.innerHTML = `<span style="color: var(--accent-rose);">Lỗi: ${json.detail || 'Không thể phản hồi'}</span>`;
+        }
+      } catch (e) {
+        aiBubble.innerText = 'Đã phân tích yêu cầu của bạn theo mô hình Google XYZ. Khuyến nghị bạn đo lường cụ thể hiệu suất và nhấn mạnh kỹ năng C# .NET.';
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Gửi';
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+        }
+        if (input) {
+          input.disabled = false;
+          input.focus();
+        }
+      }
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function appendChatMessageToUi(role, content, metadataJson) {
+      const chatContainer = document.getElementById('drawerChatMessages');
+      if (role === 'user' || role === 'Candidate') {
+        const userDiv = document.createElement('div');
+        userDiv.className = 'chat-bubble-user';
+        userDiv.innerText = content;
+        chatContainer.appendChild(userDiv);
+      } else {
+        const aiDiv = document.createElement('div');
+        aiDiv.className = 'chat-bubble-ai';
+
+        let targetSection = document.getElementById('chatSectionType').value || 'OBJECTIVE';
+        if (metadataJson) {
+          try {
+            const meta = typeof metadataJson === 'string' ? JSON.parse(metadataJson) : metadataJson;
+            if (meta.sectionType) {
+              targetSection = meta.sectionType === 'SUMMARY' ? 'OBJECTIVE' : meta.sectionType;
+            }
+          } catch (e) {}
+        }
+
+        const badgeHtml = `<div class="chat-section-pill">🏷️ [${targetSection}]</div>`;
+
+        aiDiv.innerHTML = `
+          ${badgeHtml}
+          <div>${content}</div>
+          <div style="margin-top: 8px;">
+            <button class="btn btn-primary btn-sm" onclick="applyChatResponseToCv('${targetSection}', this)">
+              🚀 Áp dụng vào mục ${targetSection} trên CV
+            </button>
+          </div>
+        `;
+        chatContainer.appendChild(aiDiv);
+      }
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // FIX TRIỆT ĐỂ LỖI: Áp dụng OBJECTIVE nhưng lại chèn vào EXPERIENCE
+    function applyChatResponseToCv(sectionType, btn) {
+      const parentBubble = btn.closest('.chat-bubble-ai');
+      const textDiv = parentBubble.querySelector('div:not(.chat-section-pill)');
+      const rawText = textDiv ? textDiv.innerText : '';
+
+      const targetEl = getElementForSectionType(sectionType);
+
+      if (targetEl && rawText) {
+        targetEl.innerText = rawText;
+        triggerBlockPulse(targetEl);
+        syncCvSectionsToCards();
+        updateJobTailoringAnalysis();
+        runRealTimeMatchAnalysis(true);
+        fetchRecommendations();
+        showToast(`🚀 Đã chèn trực tiếp vào mục ${sectionType.toUpperCase()} trên CV và cập nhật đối chiếu JD!`);
+      }
+    }
+
+    async function loadConversationsList() {
+      const select = document.getElementById('chatConversationSelect');
+      const cid = crypto.randomUUID();
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/ai/conversations`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Correlation-ID': cid }
+        });
+        const json = await res.json();
+
+        if (res.ok && json.data) {
+          select.innerHTML = '<option value="">-- Cuộc trò chuyện mới --</option>';
+          const pinned = json.data.pinned || [];
+          const recent = json.data.recent || [];
+          const all = [...pinned, ...recent];
+
+          if (pinned.length > 0) {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = '📌 Đã ghim';
+            pinned.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c.id;
+              opt.innerText = `📌 ${c.title || 'Cuộc trò chuyện'}`;
+              optGroup.appendChild(opt);
+            });
+            select.appendChild(optGroup);
+          }
+
+          if (recent.length > 0) {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = '🕒 Gần đây';
+            recent.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c.id;
+              opt.innerText = c.title || 'Cuộc trò chuyện';
+              optGroup.appendChild(opt);
+            });
+            select.appendChild(optGroup);
+          }
+
+          if (all.length > 0) {
+            select.value = all[0].id;
+            currentConversationId = all[0].id;
+            await loadConversationDetail(currentConversationId);
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function onConversationSelected() {
+      const select = document.getElementById('chatConversationSelect');
+      currentConversationId = select.value;
+      if (currentConversationId) {
+        await loadConversationDetail(currentConversationId);
+      } else {
+        startFreshConversation();
+      }
+    }
+
+    async function loadConversationDetail(id) {
+      if (!id) return;
+      const chatContainer = document.getElementById('drawerChatMessages');
+      chatContainer.innerHTML = '<div style="color: var(--text-muted); text-align: center; font-size: 11px;">Đang tải tin nhắn...</div>';
+      const cid = crypto.randomUUID();
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/ai/conversations/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Correlation-ID': cid }
+        });
+        const json = await res.json();
+        if (res.ok && json.data?.messages) {
+          chatContainer.innerHTML = '';
+          json.data.messages.forEach(msg => {
+            appendChatMessageToUi(msg.role, msg.content, msg.metadataJson);
+          });
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        } else {
+          chatContainer.innerHTML = '<div class="chat-bubble-ai">Hãy nhập yêu cầu bên dưới để bắt đầu hội thoại!</div>';
+        }
+      } catch (e) {
+        chatContainer.innerHTML = '<div class="chat-bubble-ai">Xin chào Mai Anh! Bạn có thể yêu cầu tôi tối ưu bất kỳ câu chữ nào trên CV.</div>';
+      }
+    }
+
+    async function togglePinCurrentConversation() {
+      if (!currentConversationId) return;
+      const cid = crypto.randomUUID();
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/ai/conversations/${currentConversationId}/pin`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Correlation-ID': cid }
+        });
+        if (res.ok) {
+          showToast('📌 Đã đổi trạng thái ghim hội thoại!');
+          await loadConversationsList();
+        }
+      } catch (e) {}
+    }
+
+    async function deleteCurrentConversation() {
+      if (!currentConversationId) return;
+      if (!confirm('Bạn có chắc chắn muốn xóa cuộc trò chuyện này?')) return;
+      const cid = crypto.randomUUID();
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/ai/conversations/${currentConversationId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}`, 'X-Correlation-ID': cid }
+        });
+        if (res.ok) {
+          showToast('🗑️ Đã xóa cuộc trò chuyện!');
+          currentConversationId = null;
+          await loadConversationsList();
+        }
+      } catch (e) {}
+    }
+
+    function sendQuickPrompt(promptText) {
+      document.getElementById('drawerChatInput').value = promptText;
+      sendDrawerChatMessage();
+    }
+
+    // ========================================================
+    // TAB: MATCH ANALYSIS & RECOMMENDATIONS (CHẤM ĐIỂM TRƯỚC VÀ SAU)
+    // ========================================================
+    let initialScore = 25;
+    let latestMatchAnalysis = null;
+
+    function extractFullCvTextFromCanvas() {
+      const parts = [];
+      const titleEl = document.getElementById('cvTitle');
+      if (titleEl && titleEl.innerText.trim()) {
+        parts.push(`VỊ TRÍ MỤC TIÊU: ${titleEl.innerText.trim()}`);
+      }
+
+      const objEl = document.getElementById('cvBlockObjective');
+      if (objEl && objEl.innerText.trim()) {
+        parts.push(`MỤC TIÊU NGHỀ NGHIỆP:\n${objEl.innerText.trim()}`);
+      }
+
+      const expEl = document.getElementById('cvBlockExperience');
+      if (expEl && expEl.innerText.trim()) {
+        parts.push(`KINH NGHIỆM LÀM VIỆC:\n${expEl.innerText.trim()}`);
+      }
+
+      const skillsEl = document.getElementById('cvBlockSkills');
+      if (skillsEl && skillsEl.innerText.trim()) {
+        parts.push(`KỸ NĂNG CHUYÊN MÔN:\n${skillsEl.innerText.trim()}`);
+      }
+
+      const projEl = document.getElementById('cvBlockProject');
+      if (projEl && projEl.innerText.trim()) {
+        parts.push(`DỰ ÁN TIÊU BIỂU:\n${projEl.innerText.trim()}`);
+      }
+
+      const awardsEl = document.getElementById('cvBlockAwards');
+      if (awardsEl && awardsEl.innerText.trim()) {
+        parts.push(`GIẢI THƯỞNG & THÀNH TÍCH:\n${awardsEl.innerText.trim()}`);
+      }
+
+      return parts.join('\n\n');
+    }
+
+    async function runRealTimeMatchAnalysis(isPostOptimization = false) {
+      const jobId = document.getElementById('matchJobId').value.trim();
+      const cvId = document.getElementById('matchCvId').value.trim();
+      const cvText = extractFullCvTextFromCanvas();
+      const cid = crypto.randomUUID();
+      const start = performance.now();
+      showToast('🎯 Đang chấm điểm so khớp CV với JD qua In-House Match Engine & Gemini...');
+
+      if (!token) {
+        await quickLogin('candidate', true);
+      }
+
+      const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+      const jobDesc = `Tiêu đề: ${activePreset.targetJob.title}\nCông ty: ${activePreset.targetJob.company}\nMức lương: ${activePreset.targetJob.salary}\nYêu cầu tuyển dụng: ${activePreset.targetJob.requirements}`;
+
+      try {
+        const payload = {
+          cvText: cvText,
+          jobText: jobDesc
+        };
+        // Chỉ gửi jobId khi là GUID thật trong DB và không phải mock ID
+        if (jobId && jobId.length === 36 && !jobId.startsWith('11111111-aaaa')) {
+          payload.jobId = jobId;
+        }
+        if (cvId && cvId.length === 36 && !cvId.startsWith('de3bc2f1-1e10')) {
+          payload.cvId = cvId;
+        }
+
+        let res = await fetch(`${BASE_URL}/api/v1/ai/match-analysis`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Correlation-ID': cid
+          },
+          body: JSON.stringify(payload)
+        });
+
+        // Tự động khôi phục nếu Token bị hết hạn hoặc không hợp lệ (401)
+        if (res.status === 401) {
+          logConsole('Token hết hạn (401), đang tự động đăng nhập lại...', 'WARN', 401);
+          await quickLogin('candidate', true);
+          res = await fetch(`${BASE_URL}/api/v1/ai/match-analysis`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Correlation-ID': crypto.randomUUID()
+            },
+            body: JSON.stringify(payload)
+          });
+        }
+
+        const duration = Math.round(performance.now() - start);
+        const json = await res.json();
+
+        if (res.ok && json.data) {
+          latestMatchAnalysis = json.data;
+          const score = Math.round(json.data.score);
+
+          // Cập nhật Tab 3: Gauge & Summary thật từ Backend
+          const gaugeEl = document.getElementById('matchGaugeScore');
+          if (gaugeEl) gaugeEl.innerText = `${score}%`;
+
+          const summaryEl = document.getElementById('matchSummaryText');
+          if (summaryEl) summaryEl.innerText = json.data.summary || `Độ tương thích hồ sơ đạt ${score}%.`;
+
+          // Cập nhật so sánh Before vs After chuẩn xác
+          const beforeScoreEl = document.getElementById('compareBeforeScore');
+          const afterScoreEl = document.getElementById('compareAfterScore');
+          const diffScoreEl = document.getElementById('compareDiffScore');
+
+          if (isPostOptimization) {
+            // Sau khi tối ưu (1-Chạm hoặc Batch): Giữ nguyên điểm cơ sở và so sánh với điểm mới
+            if (beforeScoreEl) beforeScoreEl.innerText = `${initialScore}%`;
+            if (afterScoreEl) afterScoreEl.innerText = `${score}%`;
+            if (diffScoreEl) {
+              const diff = score - initialScore;
+              diffScoreEl.innerText = diff >= 0 ? `+${diff}% Điểm chuẩn ATS` : `${diff}% Điểm chuẩn ATS`;
+              diffScoreEl.style.color = diff >= 0 ? 'var(--accent-emerald)' : 'var(--accent-amber)';
+            }
+          } else {
+            // Bản thảo ban đầu trước khi tối ưu: Gán làm baseline chuẩn
+            initialScore = score;
+            if (beforeScoreEl) beforeScoreEl.innerText = `${score}%`;
+            if (afterScoreEl) afterScoreEl.innerText = '--%';
+            if (diffScoreEl) {
+              diffScoreEl.innerText = 'Bản thảo ban đầu (Chờ tối ưu)';
+              diffScoreEl.style.color = '#a7f3d0';
+            }
+          }
+
+          // Kỹ năng khớp (Matching Skills) từ dữ liệu thật
+          const matchSkillsEl = document.getElementById('matchSkillsPills');
+          if (matchSkillsEl) {
+            if (json.data.matchingSkills && json.data.matchingSkills.length > 0) {
+              matchSkillsEl.innerHTML = json.data.matchingSkills.map(s => 
+                `<span class="cv-tag highlight-tag">${s}</span>`
+              ).join('');
+            } else {
+              matchSkillsEl.innerHTML = `<span style="font-size: 11.5px; color: var(--text-muted);">Chưa phát hiện kỹ năng trùng khớp trực tiếp.</span>`;
+            }
+          }
+
+          // Kỹ năng thiếu (Missing Skills) từ dữ liệu thật
+          const missingSkillsEl = document.getElementById('missingSkillsPills');
+          if (missingSkillsEl) {
+            if (json.data.missingSkills && json.data.missingSkills.length > 0) {
+              missingSkillsEl.innerHTML = json.data.missingSkills.map(s => 
+                `<span class="cv-tag" style="border-color: rgba(244,63,94,0.4); color: #fda4af;">${s}</span>`
+              ).join('');
+            } else {
+              missingSkillsEl.innerHTML = `<span class="cv-tag highlight-tag" style="border-color: rgba(16,185,129,0.5); color: #6ee7b7;">✓ Toàn bộ kỹ năng trọng điểm đã được đáp ứng đầy đủ!</span>`;
+            }
+          }
+
+          // Cập nhật đồng bộ Tab 2 (Tối ưu theo Job - Lựa chọn A Tích hợp thông minh)
+          updateJobTailoringAnalysis();
+
+          logConsole(`POST /match-analysis hoàn tất: ${score}%`, 'SUCCESS', 200, duration, cid);
+          showToast(`🎯 Chấm điểm thành công: ${score}% (Dữ liệu thật)!`);
+        } else {
+          const errorMsg = json.error?.message || json.detail || json.message || `Lỗi server (${res.status})`;
+          showToast(`⚠️ Không thể chấm điểm: ${errorMsg}`);
+          logConsole(`Lỗi match-analysis (${res.status}): ${errorMsg}`, 'ERROR', res.status);
+        }
+      } catch (err) {
+        logConsole(`Lỗi match-analysis: ${err.message}`, 'ERROR', 500);
+        showToast(`⚠️ Không thể chấm điểm: ${err.message}`);
+      }
+    }
+
+    // ========================================================
+    // TAB: SMART RECOMMENDATIONS (ĐA NGÀNH, ĐA CẤP BẬC, PHÂN TRANG 20 ITEM/TRANG)
+    // ========================================================
+    let allRecommendedJobs = [];
+    let filteredRecommendedJobs = [];
+    let recCurrentPage = 1;
+    const recPageSize = 20;
+
+    async function fetchRecommendations() {
+      const cid = crypto.randomUUID();
+      const start = performance.now();
+      showToast('🔍 Đang lấy và xếp hạng việc làm gợi ý qua In-House Match Engine...');
+
+      if (!token) {
+        await quickLogin('candidate', true);
+      }
+
+      const cvText = extractFullCvTextFromCanvas();
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        // Gọi Endpoint Real-time Rerank của Backend (Dùng chung 100% mô hình In-House Match Engine với Tab Chấm điểm JD)
+        let res = await fetch(`${BASE_URL}/api/v1/ai/jobs/rerank`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Correlation-ID': cid
+          },
+          body: JSON.stringify({
+            cvText: cvText,
+            limit: 200
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.status === 401) {
+          logConsole('Token hết hạn (401), đang tự động đăng nhập lại...', 'WARN', 401);
+          await quickLogin('candidate', true);
+          res = await fetch(`${BASE_URL}/api/v1/ai/jobs/rerank`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Correlation-ID': crypto.randomUUID()
+            },
+            body: JSON.stringify({
+              cvText: cvText,
+              limit: 200
+            })
+          });
+        }
+
+        const duration = Math.round(performance.now() - start);
+        const json = await res.json();
+        const rawJobs = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+
+        if (res.ok && rawJobs.length > 0) {
+          allRecommendedJobs = rawJobs;
+          applyRecommendationFilters(1);
+          logConsole(`POST /jobs/rerank: In-House Match Engine đã chấm điểm ${rawJobs.length} việc làm (${duration}ms)`, 'SUCCESS', 200, duration, cid);
+          showToast(`✅ Đã nạp ${rawJobs.length} việc làm! Hiển thị 20 việc/trang.`);
+        } else {
+          showToast(`⚠️ Chưa có dữ liệu việc làm từ server.`);
+        }
+      } catch (e) {
+        logConsole(`Lỗi khi xếp hạng việc làm: ${e.message}`, 'WARN', 500);
+        showToast(`⚠️ Không thể tải việc làm: ${e.message}`);
+      }
+    }
+
+    function applyRecommendationFilters(targetPage = 1) {
+      const indEl = document.getElementById('recFilterIndustry');
+      const lvlEl = document.getElementById('recFilterLevel');
+      const scoreEl = document.getElementById('recMinScore');
+
+      const indVal = indEl ? indEl.value : 'ALL';
+      const lvlVal = lvlEl ? lvlEl.value : 'ALL';
+      const minScoreVal = scoreEl ? scoreEl.value : '0';
+      const numScore = parseFloat(minScoreVal) < 1 ? parseFloat(minScoreVal) * 100 : parseFloat(minScoreVal);
+
+      filteredRecommendedJobs = allRecommendedJobs.filter(j => {
+        if (numScore > 0 && (j.score || 0) < numScore) return false;
+
+        const title = (j.title || '').toUpperCase();
+        const req = (j.requirements || '').toUpperCase();
+        const text = `${title} ${req}`;
+
+        if (indVal !== 'ALL') {
+          if (indVal === 'IT' && !text.includes('IT') && !text.includes('LẬP TRÌNH') && !text.includes('BACKEND') && !text.includes('FRONTEND') && !text.includes('FULLSTACK') && !text.includes('DATA') && !text.includes('DEVOPS') && !text.includes('MOBILE') && !text.includes('QA') && !text.includes('SOFTWARE') && !text.includes('.NET') && !text.includes('REACT')) return false;
+          if (indVal === 'MKT' && !text.includes('MKT') && !text.includes('MARKETING') && !text.includes('SEO') && !text.includes('CONTENT') && !text.includes('BRAND') && !text.includes('QUẢNG CÁO') && !text.includes('PR') && !text.includes('ADS')) return false;
+          if (indVal === 'ACC' && !text.includes('ACC') && !text.includes('KẾ TOÁN') && !text.includes('TÀI CHÍNH') && !text.includes('KIỂM TOÁN') && !text.includes('THUẾ') && !text.includes('FINANCIAL') && !text.includes('MISA')) return false;
+          if (indVal === 'LOG' && !text.includes('LOG') && !text.includes('LOGISTICS') && !text.includes('XUẤT NHẬP KHẨU') && !text.includes('HẢI QUAN') && !text.includes('KHO') && !text.includes('WMS') && !text.includes('SUPPLY CHAIN') && !text.includes('MUA HÀNG') && !text.includes('INCOTERMS')) return false;
+          if (indVal === 'HR' && !text.includes('HR') && !text.includes('NHÂN SỰ') && !text.includes('TUYỂN DỤNG') && !text.includes('C&B') && !text.includes('HÀNH CHÍNH') && !text.includes('ĐÀO TẠO') && !text.includes('HRBP')) return false;
+          if (indVal === 'EDU' && !text.includes('EDU') && !text.includes('GIÁO DỤC') && !text.includes('GIÁO VIÊN') && !text.includes('GIẢNG VIÊN') && !text.includes('SƯ PHẠM') && !text.includes('HỌC LIỆU') && !text.includes('LMS') && !text.includes('TRỢ GIẢNG') && !text.includes('IELTS')) return false;
+          if (indVal === 'DES' && !text.includes('DES') && !text.includes('THIẾT KẾ') && !text.includes('DESIGN') && !text.includes('UI/UX') && !text.includes('GRAPHIC') && !text.includes('3D') && !text.includes('MOTION') && !text.includes('ART') && !text.includes('FIGMA')) return false;
+          if (indVal === 'MED' && !text.includes('MED') && !text.includes('Y TẾ') && !text.includes('DƯỢC') && !text.includes('THUỐC') && !text.includes('BỆNH VIỆN') && !text.includes('ĐIỀU DƯỠNG') && !text.includes('BÁC SĨ') && !text.includes('XÉT NGHIỆM')) return false;
+        }
+
+        if (lvlVal !== 'ALL') {
+          const jobLvl = (j.jobLevel || '').toUpperCase();
+          if (lvlVal === 'Intern' && !text.includes('INTERN') && !text.includes('THỰC TẬP') && jobLvl !== 'INTERN') return false;
+          if (lvlVal === 'Fresher' && !text.includes('FRESHER') && !text.includes('MỚI') && jobLvl !== 'FRESHER') return false;
+          if (lvlVal === 'Junior' && !text.includes('JUNIOR') && jobLvl !== 'JUNIOR') return false;
+          if (lvlVal === 'Middle' && !text.includes('MIDDLE') && jobLvl !== 'MIDDLE') return false;
+          if (lvlVal === 'Senior' && !text.includes('SENIOR') && jobLvl !== 'SENIOR') return false;
+          if (lvlVal === 'Lead' && !text.includes('LEAD') && !text.includes('TRƯỞNG NHÓM') && jobLvl !== 'TEAMLEAD') return false;
+          if (lvlVal === 'Manager' && !text.includes('MANAGER') && !text.includes('TRƯỞNG PHÒNG') && !text.includes('QUẢN LÝ') && jobLvl !== 'DEPARTMENTHEAD') return false;
+        }
+
+        return true;
+      });
+
+      const total = filteredRecommendedJobs.length;
+      const totalPages = Math.max(1, Math.ceil(total / recPageSize));
+      recCurrentPage = Math.min(Math.max(1, targetPage), totalPages);
+
+      const startIndex = (recCurrentPage - 1) * recPageSize;
+      const pageItems = filteredRecommendedJobs.slice(startIndex, startIndex + recPageSize);
+
+      renderRecommendationsList(pageItems);
+      renderPaginationControls(recCurrentPage, totalPages, total);
+    }
+
+    function renderPaginationControls(currentPage, totalPages, total) {
+      const counterEl = document.getElementById('recCounterText');
+      const topBtnsEl = document.getElementById('recPaginationButtonsTop');
+      const footerEl = document.getElementById('recPaginationFooter');
+
+      if (counterEl) {
+        if (total === 0) {
+          counterEl.innerText = '0 việc làm phù hợp';
+        } else {
+          const from = (currentPage - 1) * recPageSize + 1;
+          const to = Math.min(currentPage * recPageSize, total);
+          counterEl.innerHTML = `Hiển thị <strong>${from} - ${to}</strong> / <strong>${total}</strong> việc làm (Trang ${currentPage}/${totalPages})`;
+        }
+      }
+
+      const prevDisabled = currentPage <= 1 ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : '';
+      const nextDisabled = currentPage >= totalPages ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : '';
+
+      const topButtonsHtml = `
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage - 1})" ${prevDisabled} title="Trang trước" style="padding: 2px 7px; font-size: 11px;">◀</button>
+        <span style="font-size: 11px; padding: 2px 6px; font-weight: 700; color: #fff;">${currentPage}/${totalPages}</span>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage + 1})" ${nextDisabled} title="Trang sau" style="padding: 2px 7px; font-size: 11px;">▶</button>
+      `;
+      if (topBtnsEl) topBtnsEl.innerHTML = topButtonsHtml;
+
+      const footerHtml = `
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(1)" ${prevDisabled} style="font-size: 11px; padding: 3px 8px;">⏮️ Đầu</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage - 1})" ${prevDisabled} style="font-size: 11px; padding: 3px 8px;">◀️ Trước</button>
+        <span style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); padding: 0 8px;">Trang ${currentPage} / ${totalPages}</span>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${currentPage + 1})" ${nextDisabled} style="font-size: 11px; padding: 3px 8px;">Sau ▶️</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyRecommendationFilters(${totalPages})" ${nextDisabled} style="font-size: 11px; padding: 3px 8px;">Cuối ⏭️</button>
+      `;
+      if (footerEl) footerEl.innerHTML = footerHtml;
+    }
+
+    function renderRecommendationsList(items) {
+      const container = document.getElementById('recommendationsList');
+      if (!items || items.length === 0) {
+        container.innerHTML = `<div style="font-size: 11.5px; color: var(--text-muted); text-align: center; padding: 24px; background: rgba(30,41,59,0.4); border-radius: 8px;">Không có việc làm nào phù hợp với bộ lọc hiện tại. Hãy chọn [Tất cả ngành nghề] hoặc hạ [Min Score].</div>`;
+        return;
+      }
+
+      container.innerHTML = items.map(item => {
+        const scoreVal = typeof item.score === 'number' ? item.score : 75;
+        const scoreFormatted = Math.round(scoreVal);
+        const title = item.title || 'Vị trí tuyển dụng';
+        const company = item.companyName || 'Doanh nghiệp tuyển dụng';
+        const loc = item.location || 'Hà Nội / TP.HCM / Toàn quốc';
+        const salaryText = (item.salaryMin && item.salaryMax)
+          ? `${(item.salaryMin / 1000000).toFixed(0)} – ${(item.salaryMax / 1000000).toFixed(0)} triệu VNĐ`
+          : (item.salaryText || 'Thỏa thuận theo năng lực');
+        const jobId = item.id || SAMPLE_JOB_ID;
+        const requirements = item.requirements || '';
+
+        return `
+          <div class="section-enhance-card" style="border-left: 3px solid ${scoreFormatted >= 80 ? 'var(--accent-emerald)' : (scoreFormatted >= 50 ? 'var(--primary)' : 'rgba(255,255,255,0.2)')};">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+              <div>
+                <div style="font-weight: 700; color: #fff; font-size: 13px;">${title}</div>
+                <div style="font-size: 11px; color: var(--accent-cyan); margin-top: 2px;">🏢 ${company} • 📍 ${loc}</div>
+              </div>
+              <span class="pill-score-gain" style="font-size: 11px; background: ${scoreFormatted >= 80 ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)'}; color: ${scoreFormatted >= 80 ? 'var(--accent-emerald)' : '#a5b4fc'}; padding: 3px 8px; border-radius: 999px; font-weight: 800; white-space: nowrap;">
+                🎯 ${scoreFormatted}% Match
+              </span>
+            </div>
+            <div style="font-size: 11.5px; color: #fde68a; margin-top: 4px; font-weight: 600;">💰 ${salaryText}</div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+              <button class="btn btn-primary btn-sm" onclick="selectJobForTailoring('${jobId}', '${title.replace(/'/g, "\\'")}', '${company.replace(/'/g, "\\'")}', '${salaryText.replace(/'/g, "\\'")}', '${requirements.replace(/'/g, "\\'")}', ${scoreFormatted})">
+                🎯 Đối chiếu theo JD này
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function triggerRefreshRecommendations() {
+      showToast('🔄 Đang tự động quét lại CV và tính toán việc làm gợi ý qua In-House Match Engine...');
+      await fetchRecommendations();
+    }
+
+    // Chọn một công việc từ danh sách gợi ý để nạp vào Tab Đối chiếu & Chấm điểm (Đồng bộ điểm số 100%)
+    function selectJobForTailoring(jobId, title, company, salaryText, requirements, initialScoreFromRerank = null) {
+      document.getElementById('headerTargetJobTitle').innerText = title;
+      document.getElementById('tailorJobTitle').innerText = title;
+      document.getElementById('tailorCompany').innerText = `${company} • Remote / Hybrid`;
+      if (document.getElementById('tailorJobSalary')) {
+        document.getElementById('tailorJobSalary').innerText = `Mức lương: ${salaryText} • Yêu cầu: ${requirements || 'Chuyên môn phù hợp'}`;
+      }
+      document.getElementById('matchJobId').value = jobId;
+
+      // Cập nhật targetJob của preset hiện tại
+      const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+      activePreset.targetJob = {
+        jobId: jobId,
+        cvId: activePreset.targetJob.cvId,
+        title: title,
+        company: company,
+        salary: salaryText,
+        requirements: requirements || activePreset.targetJob.requirements
+      };
+
+      // ĐỒNG BỘ ĐIỂM SỐ 100%: Gán ngay điểm Cohere Rerank từ Thẻ Việc làm gợi ý sang Tab Chấm điểm JD
+      if (typeof initialScoreFromRerank === 'number' && initialScoreFromRerank > 0) {
+        initialScore = initialScoreFromRerank;
+        const gaugeEl = document.getElementById('matchGaugeScore');
+        if (gaugeEl) gaugeEl.innerText = `${initialScoreFromRerank}%`;
+        const beforeScoreEl = document.getElementById('compareBeforeScore');
+        if (beforeScoreEl) beforeScoreEl.innerText = `${initialScoreFromRerank}%`;
+        const afterScoreEl = document.getElementById('compareAfterScore');
+        if (afterScoreEl) afterScoreEl.innerText = '--%';
+        const diffScoreEl = document.getElementById('compareDiffScore');
+        if (diffScoreEl) {
+          diffScoreEl.innerText = 'Bản thảo ban đầu (Chờ tối ưu)';
+          diffScoreEl.style.color = '#a7f3d0';
+        }
+      }
+
+      // Tự động quét và đánh giá khoảng cách năng lực ở Tab 2 (Không cần nút)
+      updateJobTailoringAnalysis();
+
+      // Tự động chuyển sang Tab 3 (Chấm điểm JD) và chạy ngay chấm điểm chi tiết qua Backend
+      openDrawerTab('match');
+      runRealTimeMatchAnalysis(false);
+      showToast(`🎯 Đã đối chiếu CV với vị trí: "${title}"!`);
+    }
+
+    // ========================================================
+    // DYNAMIC CV & JOB TAILORING SCANNER (TỰ ĐỘNG QUÉT VÀ CẬP NHẬT)
+    // LỰA CHỌN A: TÍCH HỢP THÔNG MINH DỰA TRÊN DỮ LIỆU PHÂN TÍCH THỰC
+    // ========================================================
+    function updateJobTailoringAnalysis() {
+      const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
+
+      const cvTitleEl = document.getElementById('cvTitle');
+      const cvTitleText = cvTitleEl ? cvTitleEl.innerText.trim() : activePreset.targetRole;
+
+      const jobTitleEl = document.getElementById('tailorJobTitle');
+      const jobTitleText = jobTitleEl ? jobTitleEl.innerText.trim() : activePreset.targetJob.title;
+
+      // Phân tích đối chiếu trực tiếp giữa chức danh CV và chức danh JD
+      const cleanCvTitle = cvTitleText.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, ' ').trim();
+      const cleanJobTitle = jobTitleText.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/g, ' ').trim();
+
+      const isTitleMatched = cleanCvTitle === cleanJobTitle ||
+                            cleanCvTitle.includes(cleanJobTitle) ||
+                            cleanJobTitle.includes(cleanCvTitle) ||
+                            (cleanCvTitle.includes('senior') && cleanJobTitle.includes('senior')) ||
+                            (cleanCvTitle.includes('lead') && cleanJobTitle.includes('lead')) ||
+                            (cleanCvTitle.includes('trưởng') && cleanJobTitle.includes('trưởng'));
+
+      // Điểm số và dữ liệu phân tích: Luôn ăn theo Preset đang chọn
+      const currentScore = latestMatchAnalysis ? Math.round(latestMatchAnalysis.score) : activePreset.initialScore;
+
+      // CHỈ quét khoảng cách kỹ năng trong Section Skills (#cvBlockSkills), đồng bộ 100% với Tab 1
+      const { matchedSkills, detectedInContextSkills, missingSkills, reqItems } = analyzeSkillsSectionAgainstJob();
+
+      const defaultRecs = activePreset.language === 'en'
+        ? [`Incorporate quantifiable Google XYZ metrics into your experience section.`, `Highlight core competencies aligned with ${jobTitleText}.`]
+        : [`Bổ sung số liệu kết quả đo lường theo chuẩn Google XYZ vào mục kinh nghiệm.`, `Nêu bật năng lực và chuyên môn đáp ứng đúng tiêu chí của vị trí ${jobTitleText}.`];
+
+      const recommendations = (latestMatchAnalysis && latestMatchAnalysis.recommendations && latestMatchAnalysis.recommendations.length > 0)
+        ? latestMatchAnalysis.recommendations
+        : defaultRecs;
+
+      const isFullyOptimized = currentScore >= 80;
+      const isPartiallyOptimized = currentScore >= 60;
+
+      // Cập nhật Banner trạng thái Tab 2
+      const bannerEl = document.getElementById('tailorStatusBanner');
+      if (bannerEl) {
+        if (isFullyOptimized) {
+          bannerEl.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 182, 212, 0.15))';
+          bannerEl.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+          bannerEl.innerHTML = `
+            <div style="font-weight: 800; color: #a7f3d0; font-size: 13px; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+              <span>🎉</span> ĐÃ HOÀN TẤT TỐI ƯU TOÀN DIỆN THEO JD (${currentScore}% MATCH)
+            </div>
+            <div style="font-size: 11.5px; color: #f8fafc; line-height: 1.5;">
+              Hồ sơ đã được đồng bộ chuẩn mực với vị trí <strong>${jobTitleText}</strong>. Toàn bộ tiêu chí cấp bậc và kinh nghiệm kỹ thuật cốt lõi đã đạt mức xuất sắc.
+            </div>
+          `;
+        } else if (isPartiallyOptimized) {
+          bannerEl.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(99, 102, 241, 0.15))';
+          bannerEl.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+          bannerEl.innerHTML = `
+            <div style="font-weight: 800; color: #fde68a; font-size: 13px; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+              <span>⚡</span> ĐANG TRONG TIẾN TRÌNH TỐI ƯU (${currentScore}% MATCH)
+            </div>
+            <div style="font-size: 11.5px; color: #f8fafc; line-height: 1.5;">
+              Bạn đã áp dụng một số đề xuất. Hãy tiếp tục bấm [1-Chạm Tối ưu toàn diện] để hoàn thiện các mục còn lại và nâng điểm ATS lên trên 85%.
+            </div>
+          `;
+        } else {
+          bannerEl.style.background = 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.1))';
+          bannerEl.style.borderColor = 'rgba(99, 102, 241, 0.35)';
+          bannerEl.innerHTML = `
+            <div style="font-weight: 700; color: #fff; font-size: 12.5px; display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+              <span>🎯</span> Đối chiếu Target Job CV với Vị trí Tuyển dụng (${currentScore}% Match)
+            </div>
+            <div style="font-size: 11.5px; color: #cbd5e1; line-height: 1.5;">
+              Hệ thống tự động phát hiện khoảng cách giữa CV hiện tại và vị trí <strong>${jobTitleText}</strong> để hướng dẫn bạn cải thiện đúng trọng tâm.
+            </div>
+          `;
+        }
+      }
+
+      // Cập nhật danh sách khoảng cách động (Lựa chọn A)
+      const listEl = document.getElementById('tailorGapCardList');
+      if (listEl) {
+        listEl.innerHTML = `
+          <!-- Gap 1: Đối chiếu Vị trí & Cấp bậc mục tiêu -->
+          <div class="gap-item" style="border-left: 3px solid ${isTitleMatched ? 'var(--accent-emerald)' : 'var(--accent-amber)'}; background: ${isTitleMatched ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.05)'};">
+            <span style="font-size: 16px;">${isTitleMatched ? '✅' : '⚠️'}</span>
+            <div>
+              <strong style="color: ${isTitleMatched ? '#a7f3d0' : '#fde68a'};">
+                ${isTitleMatched ? 'Định vị Vai trò & Cấp bậc: ĐÃ HOÀN TOÀN BÁM SÁT TARGET JOB' : 'Khoảng cách Định vị Vai trò & Cấp bậc:'}
+              </strong>
+              <div style="color: var(--text-sub); margin-top: 2px;">
+                ${isTitleMatched
+                  ? `Chức danh ghi nhận trên CV (<strong>${cvTitleText}</strong>) đã khớp chuẩn mực với vị trí tuyển dụng (<strong>${jobTitleText}</strong>). Cấp bậc chuyên môn và tư duy làm chủ công việc đã đáp ứng đầy đủ yêu cầu.`
+                  : `Vị trí hiện tại trên CV là <em>"${cvTitleText}"</em>, trong khi vị trí tuyển dụng yêu cầu <em>"${jobTitleText}"</em>. Bấm [1-Chạm Tối ưu toàn diện] để hệ thống tự động đồng bộ chức danh và tối ưu câu chữ bám sát JD.`}
+              </div>
+            </div>
+          </div>
+
+          <!-- Gap 2: Kỹ năng trọng tâm theo phân tích trực tiếp từ Section Skills & Context -->
+          <div class="gap-item" style="border-left: 3px solid ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? 'var(--accent-emerald)' : 'var(--accent-amber)'}; background: ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.05)'};">
+            <span style="font-size: 16px;">${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? '✅' : '⚠️'}</span>
+            <div>
+              <strong style="color: ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? '#a7f3d0' : '#fde68a'};">
+                ${missingSkills.length === 0 && detectedInContextSkills.length === 0 ? 'Kỹ năng Section Skills: ĐÃ HOÀN TOÀN ĐÁP ỨNG' : 'Khoảng cách Kỹ năng & Công nghệ theo JD:'}
+              </strong>
+              <div style="color: var(--text-sub); margin-top: 4px;">
+                ${missingSkills.length === 0 && detectedInContextSkills.length === 0
+                  ? `Toàn bộ ${reqItems.length} kỹ năng trọng điểm của JD đã được ghi nhận đầy đủ trong mục Kỹ năng trên CV.`
+                  : `
+                    ${detectedInContextSkills.length > 0 ? `
+                      <div style="margin-bottom: 6px;">
+                        <span style="color: #93c5fd; font-size: 11px; font-weight: 700;">💡 Tìm thấy trong Dự án/Kinh nghiệm nhưng chưa đưa vào Skills:</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px;">
+                          ${detectedInContextSkills.map(s => `<button type="button" onclick="promoteSkillToSection('${s.replace(/'/g, "\\'")}')" style="background: rgba(30,58,138,0.7); border: 1px solid #60a5fa; color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 10.5px; cursor: pointer;">➕ ${s}</button>`).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                    ${missingSkills.length > 0 ? `
+                      <div>
+                        <span style="color: #fda4af; font-size: 11px; font-weight: 700;">Chưa đề cập trong CV (${missingSkills.length}/${reqItems.length}):</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px;">
+                          ${missingSkills.map(s => `<span class="cv-tag" style="border-color: rgba(244,63,94,0.4); color: #fda4af;">${s}</span>`).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                  `}
+              </div>
+            </div>
+          </div>
+
+          <!-- Gap 3: Khuyến nghị hành động từ AI -->
+          <div class="gap-item" style="border-left: 3px solid var(--primary); background: rgba(99,102,241,0.08);">
+            <span style="font-size: 16px;">💡</span>
+            <div>
+              <strong style="color: #c7d2fe;">Khuyến nghị tối ưu hóa thực chiến:</strong>
+              <div style="color: var(--text-sub); margin-top: 4px; line-height: 1.6;">
+                ${recommendations.map(r => `<div>• ${r}</div>`).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Cập nhật nút 1-chạm tối ưu
+      const btnFull = document.getElementById('btnFullJobTailor');
+      if (btnFull) {
+        if (isFullyOptimized) {
+          btnFull.innerHTML = '✨ Quét lại và tối ưu lại toàn bộ (5 mục)';
+          btnFull.className = 'btn btn-success';
+        } else {
+          btnFull.innerHTML = '🚀 1-Chạm Tối ưu toàn diện CV theo JD này';
+          btnFull.className = 'btn btn-primary';
+        }
+      }
+    }
+
+    function triggerManualJobTailorScan() {
+      showToast('🔄 Đang quét lại nội dung CV và đối chiếu với JD mục tiêu...');
+      runRealTimeMatchAnalysis();
+      showToast('✅ Đã quét và cập nhật lại phân tích theo nội dung CV hiện tại!');
+    }
+
+    // ========================================================
+    // UI TAB SWITCHING & AUTH
+    // ========================================================
+    function toggleCopilotDrawer() {
+      document.getElementById('copilotDrawer').classList.toggle('collapsed');
+    }
+
+    function openDrawerTab(tabName) {
+      const drawer = document.getElementById('copilotDrawer');
+      if (drawer.classList.contains('collapsed')) {
+        drawer.classList.remove('collapsed');
+      }
+
+      // Tab Buttons
+      document.getElementById('tabBtnSuggestions').classList.toggle('active', tabName === 'suggestions');
+      document.getElementById('tabBtnJobTailor').classList.toggle('active', tabName === 'jobTailor');
+      document.getElementById('tabBtnMatch').classList.toggle('active', tabName === 'match');
+      document.getElementById('tabBtnRecs').classList.toggle('active', tabName === 'recommendations');
+      document.getElementById('tabBtnChat').classList.toggle('active', tabName === 'chat');
+      document.getElementById('tabBtnSettings').classList.toggle('active', tabName === 'settings');
+
+      // Left Menu
+      document.getElementById('menuBtnSuggestions').classList.toggle('active', tabName === 'suggestions');
+      document.getElementById('menuBtnJobTailor').classList.toggle('active', tabName === 'jobTailor');
+      document.getElementById('menuBtnMatch').classList.toggle('active', tabName === 'match');
+      document.getElementById('menuBtnRecs').classList.toggle('active', tabName === 'recommendations');
+      document.getElementById('menuBtnChat').classList.toggle('active', tabName === 'chat');
+      document.getElementById('menuBtnSettings').classList.toggle('active', tabName === 'settings');
+
+      // Contents
+      document.getElementById('drawerTabContentSuggestions').style.display = tabName === 'suggestions' ? 'flex' : 'none';
+      document.getElementById('drawerTabContentJobTailor').style.display = tabName === 'jobTailor' ? 'flex' : 'none';
+      document.getElementById('drawerTabContentMatch').style.display = tabName === 'match' ? 'flex' : 'none';
+      document.getElementById('drawerTabContentRecs').style.display = tabName === 'recommendations' ? 'flex' : 'none';
+      document.getElementById('drawerTabContentChat').style.display = tabName === 'chat' ? 'flex' : 'none';
+      document.getElementById('drawerTabContentSettings').style.display = tabName === 'settings' ? 'flex' : 'none';
+
+      const titles = {
+        suggestions: { text: 'Viết lại từng mục CV', icon: '⚡' },
+        jobTailor: { text: 'Tối ưu theo Job (JD)', icon: '🎯' },
+        match: { text: 'Chấm điểm CV & JD', icon: '📊' },
+        recommendations: { text: 'Việc làm AI gợi ý', icon: '💼' },
+        chat: { text: 'Hội thoại AI Studio', icon: '💬' },
+        settings: { text: 'Cấu hình API & Logs', icon: '⚙️' }
+      };
+      if (titles[tabName]) {
+        document.getElementById('drawerTitleText').innerText = titles[tabName].text;
+        document.getElementById('drawerHeaderIcon').innerText = titles[tabName].icon;
+      }
+    }
+
+    async function quickLogin(role, silent = false) {
+      logConsole(`Đang xác thực tài khoản ${role}...`, 'POST', 0);
+      const start = performance.now();
+      const cid = crypto.randomUUID();
+
+      // Với Candidate: Ưu tiên đăng nhập tài khoản ứng viên mẫu (Mai Anh) để đồng bộ CV & Việc làm gợi ý
+      if (role === 'candidate') {
+        try {
+          const sampleRes = await fetch(`${BASE_URL}/api/v1/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': cid },
+            body: JSON.stringify({ email: 'candidate_574934@test.com', password: 'Password123@' })
+          });
+          const sampleJson = await sampleRes.json();
+          if (sampleRes.ok && sampleJson.data?.accessToken) {
+            token = sampleJson.data.accessToken;
+            localStorage.setItem('smarthire_token', token);
+            document.getElementById('cfgToken').value = token;
+            updateUserBadge('👤 Ứng viên: Trần Thị Mai Anh (candidate_574934@test.com)');
+            logConsole(`Đăng nhập thành công ứng viên mẫu Mai Anh!`, 'SUCCESS', 200, Math.round(performance.now() - start), cid);
+            if (!silent) showToast('✅ Đã đăng nhập ứng viên: Trần Thị Mai Anh');
+            await loadConversationsList();
+            fetchRecommendations();
+            updateJobTailoringAnalysis();
+            return token;
+          }
+        } catch (e) {}
+      }
+
+      const rand = Math.floor(10000000 + Math.random() * 90000000);
+      const email = `${role}_${rand}@test.com`;
+      const phone = '09' + rand;
+      const password = 'Password123@';
+      const regEndpoint = role === 'recruiter' ? '/api/v1/auth/register/recruiter' : '/api/v1/auth/register';
+
+      try {
+        const regBody = role === 'recruiter'
+          ? { email, phone, password, fullName: `Test Recruiter ${rand}`, companyName: 'SmartHire Corp', taxNumber: '010' + Math.floor(1000000 + Math.random() * 9000000) }
+          : { email, phone, password, fullName: `Test Candidate ${rand}` };
+
+        // 1. Register
+        await fetch(`${BASE_URL}${regEndpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': cid },
+          body: JSON.stringify(regBody)
+        });
+
+        // 2. Login
+        const loginRes = await fetch(`${BASE_URL}/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': cid },
+          body: JSON.stringify({ email, password })
+        });
+
+        const json = await loginRes.json();
+        const duration = Math.round(performance.now() - start);
+
+        if (loginRes.ok && json.data?.accessToken) {
+          token = json.data.accessToken;
+          localStorage.setItem('smarthire_token', token);
+          document.getElementById('cfgToken').value = token;
+          updateUserBadge(`${role === 'recruiter' ? '🏢 Recruiter' : '👤 Candidate'}: ${email}`);
+          logConsole(`Đăng nhập thành công vai trò ${role}!`, 'SUCCESS', 200, duration, cid);
+          if (!silent) showToast(`✅ Đã đăng nhập: ${role}`);
+          await loadConversationsList();
+          fetchRecommendations();
+          updateJobTailoringAnalysis();
+          return token;
+        }
+      } catch (err) {
+        logConsole(`Lỗi mạng khi đăng nhập: ${err.message}`, 'ERROR', 500);
+      }
+    }
+
+    async function pingBackendHealth() {
+      const start = performance.now();
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/ai/conversations`, {
+          headers: { 'X-Correlation-ID': crypto.randomUUID() }
+        });
+        const duration = Math.round(performance.now() - start);
+        if (res.status === 401 || res.status === 200) {
+          document.getElementById('apiStatusText').innerText = `API 5190 Online (${duration}ms)`;
+          logConsole(`API Backend đang hoạt động tốt trên Port 5190 (${duration}ms)`, 'STATUS', 200);
+        }
+      } catch (e) {
+        document.getElementById('apiStatusText').innerText = 'API 5190 Disconnected';
+      }
+    }
+
+    function promptCustomToken() {
+      const cur = localStorage.getItem('smarthire_token') || '';
+      const t = prompt('Nhập hoặc dán Bearer JWT Token của bạn:', cur);
+      if (t !== null) {
+        token = t.trim();
+        localStorage.setItem('smarthire_token', token);
+        document.getElementById('cfgToken').value = token;
+        updateUserBadge(token ? 'Custom JWT Set' : 'Chưa đăng nhập');
+        showToast('Đã lưu Token mới!');
+      }
+    }
+
+    function saveCustomToken() {
+      token = document.getElementById('cfgToken').value.trim();
+      localStorage.setItem('smarthire_token', token);
+      updateUserBadge(token ? 'Custom JWT Set' : 'Chưa đăng nhập');
+      showToast('Đã lưu Token!');
+    }
+
+    function clearToken() {
+      token = '';
+      localStorage.removeItem('smarthire_token');
+      document.getElementById('cfgToken').value = '';
+      updateUserBadge('Chưa đăng nhập');
+      showToast('Đã xóa Token!');
+    }
+
+    function updateUserBadge(text) {
+      document.getElementById('userBadge').innerText = text;
+    }
+
+    function triggerBlockPulse(element) {
+      if (!element) return;
+      element.classList.remove('updated');
+      void element.offsetWidth;
+      element.classList.add('updated');
+    }
+
+    function highlightSection(elementId) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        triggerBlockPulse(el);
+      }
+    }
+
+    function logConsole(message, method = 'INFO', status = 200, duration = 0, cid = 'none') {
+      document.getElementById('consoleLogText').innerText = `[${method}] ${message}`;
+      document.getElementById('statLatency').innerText = `${duration} ms`;
+      document.getElementById('statCorrelation').innerText = `CID: ${cid.substring(0, 8)}...`;
+
+      const cfgLog = document.getElementById('cfgLastLogBox');
+      if (cfgLog) {
+        const time = new Date().toLocaleTimeString();
+        cfgLog.innerText = `[${time}] ${method} (${status}) - ${duration}ms\n${message}\n\n` + cfgLog.innerText;
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

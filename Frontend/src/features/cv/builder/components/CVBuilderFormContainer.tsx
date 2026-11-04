@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useReactToPrint } from "react-to-print";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useBlocker } from "react-router-dom";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -13,6 +13,8 @@ import {
   Eye,
   Loader2,
   SlidersHorizontal,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/toast";
@@ -24,11 +26,17 @@ import {
   type RichTextCvEditorValues,
 } from "../schema/richTextCvSchema";
 import { buildRichTextCvInitialValues } from "../utils/richTextInitialValues";
-import { extractTiptapPlainText } from "../utils/tiptapJson";
+import { extractTiptapPlainText, sanitizeCvContent } from "../utils/tiptapJson";
 import { CvBuilderSidebar } from "./CvBuilderSidebar";
 import CvBuilderWorkspace from "./CvBuilderWorkspace";
 import { CvPreviewModal } from "./CvPreviewModal";
+import { UnsavedChangesModal } from "./UnsavedChangesModal";
 import { CvTitleInput } from "./CvTitleInput";
+import { CvZoomControls } from "./CvZoomControls";
+import { useCvZoom } from "../hooks/useCvZoom";
+import { CV_PRINT_PAGE_STYLE } from "../../constants/print";
+import { useCvHistoryHotkeys } from "../hooks/useCvHistoryHotkeys";
+import { CvHistoryProvider, useCvHistory } from "../history";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -42,10 +50,11 @@ interface CVBuilderFormContainerProps {
   cvId?: string;
 }
 
-export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
+const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
   initialData,
   cvId,
 }) => {
+  const { undo, redo, canUndo, canRedo, clearHistory } = useCvHistory();
   const [currentCvTitle, setCurrentCvTitle] = useState(initialData.title);
   const [prevInitialTitle, setPrevInitialTitle] = useState(initialData.title);
   if (prevInitialTitle !== initialData.title) {
@@ -59,7 +68,18 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<RichTextCvEditorValues | null>(null);
   const cvPrintRef = useRef<HTMLDivElement>(null);
+  const workspaceScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const {
+    zoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    setZoom,
+    canZoomIn,
+    canZoomOut,
+  } = useCvZoom({ containerRef: workspaceScrollRef });
 
   const { mutateAsync: updateCv, isPending: isUpdatingCv } = useUpdateCv();
 
@@ -67,12 +87,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
     console.log("[CVBuilder] isLocked state changed:", isLocked);
   }, [isLocked]);
 
-  // Khởi tạo React Hook Form từ initialData nhận được
-  const methods = useForm<RichTextCvEditorValues>({
-    resolver: zodResolver(richTextCvEditorSchema),
-    defaultValues: buildRichTextCvInitialValues(initialData),
-    mode: "onSubmit",
-  });
+  const methods = useFormContext<RichTextCvEditorValues>();
 
   const {
     handleSubmit,
@@ -88,18 +103,54 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   const isBusy = isUpdatingCv || isSaving || isSubmitting;
   const canSave = isDirty && !isBusy;
 
+  // Chặn điều hướng nội bộ khi có thay đổi chưa lưu
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && !isBusy && currentLocation.pathname !== nextLocation.pathname,
+  );
+
+  // Cảnh báo người dùng khi reload (F5) hoặc đóng tab trình duyệt
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty && !isBusy) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty, isBusy]);
+
+  // Quản lý hotkeys Undo / Redo (Ctrl+Z, Cmd+Z, Ctrl+Y, Ctrl+Shift+Z, Cmd+Shift+Z)
+  useCvHistoryHotkeys({
+    isLocked,
+    isPreviewOpen: isPreviewOpen || blocker.state === "blocked",
+  });
+
   const handleDownloadPdf = useReactToPrint({
     contentRef: cvPrintRef,
     documentTitle:
       currentCvTitle ||
       methods.getValues("title") ||
       `SmartHire_CV_${extractTiptapPlainText(methods.getValues("content.profile.fullName")) || "Candidate"}`,
+    pageStyle: CV_PRINT_PAGE_STYLE,
   });
 
   const handleCompleteCv = () => {
     void handleSubmit(
       async (data) => {
         if (!cvId) return;
+
+        // Chuẩn hóa toàn bộ content (loại bỏ attribute rỗng/khoảng trắng) trước khi gửi API
+        const sanitizedContent = sanitizeCvContent(
+          data.content as unknown as RichTextCVContentDocument,
+        );
+        console.log("[CVBuilder] Submitting CV data for save (sanitized):", {
+          ...data,
+          content: sanitizedContent,
+        });
 
         setIsSaving(true);
         try {
@@ -140,7 +191,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             id: cvId,
             payload: {
               title: currentCvTitle.trim() || data.title?.trim() || initialData.title,
-              content: data.content as unknown as RichTextCVContentDocument,
+              content: sanitizedContent,
               layout: data.layout as unknown as CVLayoutDocument,
               language: data.language,
               isPublic: data.isPublic,
@@ -148,8 +199,9 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             },
           });
 
-          // 4. Đồng bộ lại form để isDirty trở về false
+          // 4. Đồng bộ lại form để isDirty trở về false và dọn sạch lịch sử undo/redo
           reset(data);
+          clearHistory();
 
           // 5. Điều hướng tới trang lưu thành công
           navigate(`${PATHS.CANDIDATE.SAVE_CV_SUCCESS}?id=${cvId}`);
@@ -190,8 +242,7 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
   };
 
   return (
-    <FormProvider {...methods}>
-      <div className="flex h-screen max-h-screen flex-col overflow-hidden bg-slate-100">
+    <div className="flex h-screen max-h-screen flex-col overflow-hidden bg-slate-100">
         {/* ================= 1. TOP NAVBAR (CỐ ĐỊNH Ở TRÊN CÙNG) ================= */}
         <header className="no-print shrink-0 z-40 flex h-14 items-center justify-between border-b border-border bg-surface px-6 shadow-xs">
           <div className="flex items-center gap-3">
@@ -226,6 +277,30 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
                 >
                   <SlidersHorizontal className="h-4 w-4 text-primary" />
                 </button>
+
+                {/* Cụm Undo / Redo */}
+                <div className="flex items-center gap-1 border-r border-border pr-2 mr-1">
+                  <button
+                    type="button"
+                    onClick={undo}
+                    disabled={!canUndo}
+                    aria-label="Hoàn tác (Undo)"
+                    title="Hoàn tác (Ctrl+Z)"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={redo}
+                    disabled={!canRedo}
+                    aria-label="Làm lại (Redo)"
+                    title="Làm lại (Ctrl+Y / Ctrl+Shift+Z)"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Redo2 className="h-4 w-4" />
+                  </button>
+                </div>
 
                 <button
                   key="btn-preview-cv"
@@ -312,7 +387,10 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             </div>
 
             {/* ITEM 2: CV WORKSPACE (ELEMENT DUY NHẤT CÓ SCROLL CHO TRANG CV) */}
-            <div className="flex flex-1 flex-col h-full overflow-y-auto overflow-x-auto min-w-0">
+            <div
+              ref={workspaceScrollRef}
+              className="relative flex flex-1 flex-col h-full overflow-y-auto overflow-x-auto min-w-0"
+            >
               {/* Banner hiển thị lỗi validation nếu có */}
               {Object.keys(errors).length > 0 && !isLocked && (
                 <div className="no-print mx-auto mt-4 flex w-full max-w-[210mm] shrink-0 items-center gap-3 rounded-lg border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error">
@@ -329,8 +407,24 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
               )}
 
               {/* TRANG GIẤY A4 WYSIWYG WORKSPACE */}
-              <CvBuilderWorkspace contentRef={cvPrintRef} isReadOnly={isLocked} />
+              <CvBuilderWorkspace
+                contentRef={cvPrintRef}
+                isReadOnly={isLocked}
+                zoom={zoom}
+              />
+
+              {/* FLOATING ZOOM CONTROLS (NÚT ZOOM Ở BÊN DƯỚI GÓC PHẢI PAGE) */}
+              <CvZoomControls
+                zoom={zoom}
+                onZoomIn={zoomIn}
+                onZoomOut={zoomOut}
+                onResetZoom={resetZoom}
+                onZoomChange={setZoom}
+                canZoomIn={canZoomIn}
+                canZoomOut={canZoomOut}
+              />
             </div>
+
           </div>
         </form>
 
@@ -344,7 +438,29 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = ({
             title={previewData.title}
           />
         )}
+
+        {/* ================= 5. MODAL CẢNH BÁO THAY ĐỔI CHƯA LƯU KHI THOÁT TRANG ================= */}
+        <UnsavedChangesModal
+          isOpen={blocker.state === "blocked"}
+          onStay={() => blocker.reset?.()}
+          onLeave={() => blocker.proceed?.()}
+        />
       </div>
+  );
+};
+
+export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = (props) => {
+  const methods = useForm<RichTextCvEditorValues>({
+    resolver: zodResolver(richTextCvEditorSchema),
+    defaultValues: buildRichTextCvInitialValues(props.initialData),
+    mode: "onSubmit",
+  });
+
+  return (
+    <FormProvider {...methods}>
+      <CvHistoryProvider>
+        <CVBuilderFormContent {...props} />
+      </CvHistoryProvider>
     </FormProvider>
   );
 };

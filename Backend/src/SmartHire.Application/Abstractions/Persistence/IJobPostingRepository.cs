@@ -16,6 +16,8 @@ public interface IJobPostingRepository
 
     Task<JobPostingDetailData?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<JobPostingDetailData>> GetDetailsByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
+
     Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<JobPosting?> GetForApplicationByIdAsync(Guid id, CancellationToken cancellationToken);

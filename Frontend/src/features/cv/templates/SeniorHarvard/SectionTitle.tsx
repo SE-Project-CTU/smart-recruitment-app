@@ -15,14 +15,14 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
   title,
   fieldName,
   placeholder,
-  primaryColor = "#0F172A",
+  primaryColor: _primaryColor = "#0F172A",
   isReadOnly = false,
   renderField,
 }) => (
-  <div className="mb-2 mt-4">
-    <h3
-      className="cv-section-header cv-text-section-header font-bold uppercase tracking-wider text-slate-900 border-b pb-0.5"
-      style={{ borderColor: primaryColor, color: primaryColor }}
+  <div className="mt-4 mb-2">
+    <h3 
+      className="cv-section-header cv-text-section-header border-b pb-0.5 font-bold tracking-wider text-slate-900 uppercase"
+      style={{ borderColor: _primaryColor, color: _primaryColor }}
     >
       {renderField({
         name: fieldName,

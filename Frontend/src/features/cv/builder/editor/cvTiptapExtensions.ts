@@ -196,7 +196,10 @@ const CvListStyle = Extension.create({
 });
 
 export const cvTiptapExtensions = [
-  StarterKit.configure({ trailingNode: false }),
+  StarterKit.configure({
+    trailingNode: false,
+    undoRedo: false,
+  }),
   CvDocFontSize,
   TextStyle,
   Color,

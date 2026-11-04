@@ -13,12 +13,14 @@ interface CvBuilderWorkspaceProps {
   contentRef?: Ref<HTMLDivElement>;
   className?: string;
   isReadOnly?: boolean;
+  zoom?: number;
 }
 
 export default function CvBuilderWorkspace({
   contentRef,
   className = "",
   isReadOnly = false,
+  zoom = 1.0,
 }: CvBuilderWorkspaceProps) {
   const { control, getValues } = useFormContext<RichTextCvEditorValues>();
 
@@ -27,7 +29,7 @@ export default function CvBuilderWorkspace({
     control,
     name: "content.metadata.templateCode",
   });
-  useWatch({
+  const watchedDefaultStyle = useWatch({
     control,
     name: "content.metadata.defaultStyle",
   });
@@ -39,7 +41,7 @@ export default function CvBuilderWorkspace({
     control,
     name: "layout.areas",
   });
-  useWatch({
+  const watchedAvatarUrl = useWatch({
     control,
     name: "content.profile.avatarUrl",
   });
@@ -135,6 +137,14 @@ export default function CvBuilderWorkspace({
 
     return {
       ...raw,
+      metadata: {
+        ...raw.metadata,
+        defaultStyle: watchedDefaultStyle ?? raw.metadata?.defaultStyle,
+      },
+      profile: {
+        ...raw.profile,
+        avatarUrl: watchedAvatarUrl ?? raw.profile?.avatarUrl,
+      },
       sections: {
         ...raw.sections,
         objective: raw.sections.objective
@@ -166,7 +176,7 @@ export default function CvBuilderWorkspace({
           : raw.sections.additionalInfo,
       },
     };
-  }, [watchedVisibility, getValues]);
+  }, [watchedVisibility, watchedDefaultStyle, watchedAvatarUrl, getValues]);
 
   const layoutValidation = useMemo(() => {
     return validateCvLayout(currentLayout, templateCode);
@@ -178,9 +188,20 @@ export default function CvBuilderWorkspace({
 
   return (
     <main
-      className={`flex flex-1 justify-center overflow-x-auto bg-slate-100 px-4 py-8 ${className}`}
+      className={`flex flex-1 flex-col items-center overflow-x-auto bg-slate-100 px-4 py-8 min-h-full ${className}`}
     >
-      <div ref={contentRef} className="print-container">
+      <div
+        className="cv-zoom-viewport flex justify-center min-w-fit shrink-0"
+        style={{
+          transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+          transformOrigin: "top center",
+          marginBottom:
+            zoom > 1
+              ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
+              : "2rem",
+        }}
+      >
+        <div ref={contentRef} className="print-container">
         {!layoutValidation.isValid ? (
           <div className="mx-auto min-h-[200px] w-[210mm] rounded-xl border-2 border-dashed border-rose-300 bg-rose-50/80 p-8 text-rose-900 shadow-md">
             <h3 className="text-lg font-bold text-rose-700">
@@ -217,7 +238,10 @@ export default function CvBuilderWorkspace({
             />
           )
         )}
+        </div>
       </div>
+      {/* Spacer đệm dưới cùng đảm bảo thanh cuộn luôn có khoảng trống tối thiểu 2rem dưới đáy CV */}
+      <div className="no-print h-4 w-full shrink-0" aria-hidden="true" />
     </main>
   );
 }
