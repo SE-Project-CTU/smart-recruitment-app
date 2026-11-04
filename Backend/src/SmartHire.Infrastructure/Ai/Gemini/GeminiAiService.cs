@@ -31,6 +31,22 @@ public sealed class GeminiAiService : IGeminiAiService {
         _logger = logger;
     }
 
+    private HttpRequestMessage CreateGeminiRequest(HttpMethod method, string url, object? payload = null) {
+        var req = new HttpRequestMessage(method, url);
+        if (!string.IsNullOrWhiteSpace(_options.ApiKey)) {
+            req.Headers.Add("x-goog-api-key", _options.ApiKey);
+        }
+        if (payload != null) {
+            req.Content = JsonContent.Create(payload, options: JsonOptions);
+        }
+        return req;
+    }
+
+    private async Task<HttpResponseMessage> SendGeminiJsonAsync<T>(string url, T payload, CancellationToken cancellationToken) {
+        using var req = CreateGeminiRequest(HttpMethod.Post, url, payload);
+        return await _httpClient.SendAsync(req, cancellationToken);
+    }
+
     private static string NormalizeModelName(string? model) {
         if (string.IsNullOrWhiteSpace(model)) return "gemini-3.5-flash-lite";
         return model.Trim();
@@ -60,7 +76,7 @@ public sealed class GeminiAiService : IGeminiAiService {
 
         try {
             var model = NormalizeModelName(_options.Model);
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_options.ApiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
             var systemPrompt = GeminiPrompts.BuildCvEnhancePrompt(request);
 
@@ -79,7 +95,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync(url, payload, JsonOptions, cts.Token);
+            var response = await SendGeminiJsonAsync(url, payload, cts.Token);
             if (!response.IsSuccessStatusCode) {
                 var errorText = await response.Content.ReadAsStringAsync(cts.Token);
                 
@@ -93,8 +109,8 @@ public sealed class GeminiAiService : IGeminiAiService {
                 if (response.StatusCode == HttpStatusCode.NotFound &&
                     (errorText.Contains("no longer available", StringComparison.OrdinalIgnoreCase) || errorText.Contains("NOT_FOUND", StringComparison.OrdinalIgnoreCase))) {
                     _logger.LogWarning("Gemini model '{Model}' returned 404 Not Found. Attempting fallback to '{FallbackModel}'.", model, DefaultActiveFallbackModel);
-                    var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:generateContent?key={_options.ApiKey}";
-                    response = await _httpClient.PostAsJsonAsync(fallbackUrl, payload, JsonOptions, cts.Token);
+                    var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:generateContent";
+                    response = await SendGeminiJsonAsync(fallbackUrl, payload, cts.Token);
 
                     if (!response.IsSuccessStatusCode) {
                         errorText = await response.Content.ReadAsStringAsync(cts.Token);
@@ -150,7 +166,7 @@ public sealed class GeminiAiService : IGeminiAiService {
 
         try {
             var model = NormalizeModelName(_options.Model);
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_options.ApiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
             var systemPrompt = GeminiPrompts.BuildCvBatchEnhancePrompt(request);
 
@@ -169,7 +185,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync(url, payload, JsonOptions, cts.Token);
+            var response = await SendGeminiJsonAsync(url, payload, cts.Token);
             if (!response.IsSuccessStatusCode) {
                 var errorText = await response.Content.ReadAsStringAsync(cts.Token);
 
@@ -180,8 +196,8 @@ public sealed class GeminiAiService : IGeminiAiService {
 
                 if (response.StatusCode == HttpStatusCode.NotFound &&
                     (errorText.Contains("no longer available", StringComparison.OrdinalIgnoreCase) || errorText.Contains("NOT_FOUND", StringComparison.OrdinalIgnoreCase))) {
-                    var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:generateContent?key={_options.ApiKey}";
-                    response = await _httpClient.PostAsJsonAsync(fallbackUrl, payload, JsonOptions, cts.Token);
+                    var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:generateContent";
+                    response = await SendGeminiJsonAsync(fallbackUrl, payload, cts.Token);
 
                     if (!response.IsSuccessStatusCode) {
                         return GeminiPrompts.CreateFallbackBatchEnhancement(request);
@@ -239,7 +255,7 @@ public sealed class GeminiAiService : IGeminiAiService {
         }
 
         var model = NormalizeModelName(_options.Model);
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse&key={_options.ApiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse";
 
         var prompt = GeminiPrompts.BuildCvEnhanceStreamPrompt(request);
 
@@ -254,9 +270,7 @@ public sealed class GeminiAiService : IGeminiAiService {
             }
         };
 
-        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url) {
-            Content = JsonContent.Create(payload)
-        };
+        using var requestMessage = CreateGeminiRequest(HttpMethod.Post, url, payload);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds));
@@ -280,10 +294,8 @@ public sealed class GeminiAiService : IGeminiAiService {
 
         // Nếu 404 trên model, thử fallback sang model khả dụng
         if (response != null && !response.IsSuccessStatusCode && response.StatusCode == HttpStatusCode.NotFound) {
-            var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:streamGenerateContent?alt=sse&key={_options.ApiKey}";
-            using var fallbackReq = new HttpRequestMessage(HttpMethod.Post, fallbackUrl) {
-                Content = JsonContent.Create(payload)
-            };
+            var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:streamGenerateContent?alt=sse";
+            using var fallbackReq = CreateGeminiRequest(HttpMethod.Post, fallbackUrl, payload);
             try {
                 response = await _httpClient.SendAsync(fallbackReq, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             } catch {
@@ -356,7 +368,7 @@ public sealed class GeminiAiService : IGeminiAiService {
         cts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds));
 
         try {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_options.EmbeddingModel}:embedContent?key={_options.ApiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_options.EmbeddingModel}:embedContent";
 
             var payload = new {
                 model = $"models/{_options.EmbeddingModel}",
@@ -365,7 +377,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync(url, payload, JsonOptions, cts.Token);
+            var response = await SendGeminiJsonAsync(url, payload, cts.Token);
             if (!response.IsSuccessStatusCode) {
                 var err = await response.Content.ReadAsStringAsync(cts.Token);
                 if (IsQuotaExceeded(response.StatusCode, err)) {
@@ -400,7 +412,7 @@ public sealed class GeminiAiService : IGeminiAiService {
 
         try {
             var model = NormalizeModelName(_options.Model);
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_options.ApiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
             var prompt = GeminiPrompts.BuildMatchAnalysisPrompt(cvText, jobText, score);
 
@@ -416,7 +428,7 @@ public sealed class GeminiAiService : IGeminiAiService {
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync(url, payload, JsonOptions, cts.Token);
+            var response = await SendGeminiJsonAsync(url, payload, cts.Token);
             if (!response.IsSuccessStatusCode) {
                 var errorText = await response.Content.ReadAsStringAsync(cts.Token);
                 if (IsQuotaExceeded(response.StatusCode, errorText)) {
@@ -426,8 +438,8 @@ public sealed class GeminiAiService : IGeminiAiService {
 
                 if (response.StatusCode == HttpStatusCode.NotFound &&
                     (errorText.Contains("no longer available", StringComparison.OrdinalIgnoreCase) || errorText.Contains("NOT_FOUND", StringComparison.OrdinalIgnoreCase))) {
-                    var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:generateContent?key={_options.ApiKey}";
-                    response = await _httpClient.PostAsJsonAsync(fallbackUrl, payload, JsonOptions, cts.Token);
+                    var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{DefaultActiveFallbackModel}:generateContent";
+                    response = await SendGeminiJsonAsync(fallbackUrl, payload, cts.Token);
                     if (!response.IsSuccessStatusCode) {
                         return GeminiPrompts.CreateFallbackMatchAnalysis(score);
                     }

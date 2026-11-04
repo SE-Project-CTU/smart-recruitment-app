@@ -22,6 +22,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
     private readonly ICvVersionRepository _cvVersionRepository;
     private readonly IMediaFileRepository _mediaFileRepository;
     private readonly IAiMatchResultRepository _aiMatchResultRepository;
+    private readonly ICvEmbeddingRepository _cvEmbeddingRepository;
+    private readonly IJobEmbeddingRepository _jobEmbeddingRepository;
     private readonly ISmartHireMatchEngine _matchEngine;
     private readonly IUnitOfWork _unitOfWork;
 
@@ -32,6 +34,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         ICvVersionRepository cvVersionRepository,
         IMediaFileRepository mediaFileRepository,
         IAiMatchResultRepository aiMatchResultRepository,
+        ICvEmbeddingRepository cvEmbeddingRepository,
+        IJobEmbeddingRepository jobEmbeddingRepository,
         ISmartHireMatchEngine matchEngine,
         IUnitOfWork unitOfWork) {
         _currentUser = currentUser;
@@ -40,6 +44,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         _cvVersionRepository = cvVersionRepository;
         _mediaFileRepository = mediaFileRepository;
         _aiMatchResultRepository = aiMatchResultRepository;
+        _cvEmbeddingRepository = cvEmbeddingRepository;
+        _jobEmbeddingRepository = jobEmbeddingRepository;
         _matchEngine = matchEngine;
         _unitOfWork = unitOfWork;
     }
@@ -105,12 +111,28 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
                 if (request.CvVersionId is Guid cvVerId && cvVersion?.Content is not null) {
                     var jobDetail = await _jobPostingRepository.GetDetailByIdAsync(jobPostingId, ct);
                     if (jobDetail is not null) {
-                        var matchResult = _matchEngine.Evaluate(cvVersion.Content, jobDetail);
+                        decimal? semanticVectorSimilarity = null;
+                        try {
+                            var cvEmb = await _cvEmbeddingRepository.GetByCvVersionIdAsync(cvVerId, ct);
+                            var jobEmb = await _jobEmbeddingRepository.GetByJobIdAsync(jobPostingId, ct);
+                            if (cvEmb?.Embedding != null && jobEmb?.Embedding != null) {
+                                semanticVectorSimilarity = TryComputeCosineSimilarity(cvEmb.Embedding, jobEmb.Embedding);
+                            }
+                        } catch {
+                            // Graceful degradation: nếu chưa có vector, Match Engine vẫn chạy chuẩn xác theo Lexical + Fuzzy
+                        }
+
+                        var matchResult = _matchEngine.Evaluate(
+                            cvVersion.Content,
+                            jobDetail,
+                            semanticVectorSimilarity: semanticVectorSimilarity);
+
                         var analysisJson = JsonSerializer.Serialize(new {
                             matchResult.Score,
                             matchResult.Breakdown,
                             matchResult.MatchingSkills,
-                            matchResult.MissingSkills
+                            matchResult.MissingSkills,
+                            matchResult.Summary
                         });
                         var aiMatchResult = AiMatchResult.Create(
                             application.Id,
@@ -143,5 +165,20 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
             "SUBMITTED",
             application.AppliedAt,
             application.UpdatedAt);
+    }
+
+    private static decimal? TryComputeCosineSimilarity(Pgvector.Vector v1, Pgvector.Vector v2) {
+        var a = v1.ToArray();
+        var b = v2.ToArray();
+        if (a.Length != b.Length || a.Length == 0) return null;
+        double dot = 0, normA = 0, normB = 0;
+        for (int i = 0; i < a.Length; i++) {
+            dot += a[i] * b[i];
+            normA += a[i] * a[i];
+            normB += b[i] * b[i];
+        }
+        double denom = Math.Sqrt(normA) * Math.Sqrt(normB);
+        if (denom <= 0) return null;
+        return (decimal)Math.Clamp(dot / denom, 0.0, 1.0);
     }
 }

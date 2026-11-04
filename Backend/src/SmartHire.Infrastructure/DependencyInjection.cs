@@ -40,6 +40,7 @@ public static class DependencyInjection {
                         npgsql.MigrationsAssembly("SmartHire.Infrastructure");
                     })
                 .UseSnakeCaseNamingConvention()
+                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
         );
         
         services.AddScoped<IUserRepository, UserRepository>();

@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Pgvector.EntityFrameworkCore;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Configurations;
@@ -13,7 +14,7 @@ public class JobEmbeddingConfiguration : IEntityTypeConfiguration<JobEmbedding> 
             .ValueGeneratedOnAdd();
         
         builder.Property(x => x.Embedding)
-            .HasColumnType("vector")
+            .HasColumnType("vector(768)")
             .IsRequired();
         
         builder.Property(x => x.Model)
@@ -30,5 +31,9 @@ public class JobEmbeddingConfiguration : IEntityTypeConfiguration<JobEmbedding> 
         
         builder.HasIndex(x => x.JobId)
             .IsUnique();
+
+        builder.HasIndex(x => x.Embedding)
+            .HasMethod("hnsw")
+            .HasOperators("vector_cosine_ops");
     }
 }

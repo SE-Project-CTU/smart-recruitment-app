@@ -70,7 +70,15 @@ public sealed class EnhanceCvCommandHandler : IRequestHandler<EnhanceCvCommand, 
     }
 
     private static string BuildCacheKey(EnhanceCvCommand request, string resolvedLanguage) {
-        var rawKey = $"{request.CvVersionId?.ToString() ?? request.CvId?.ToString() ?? request.Content?.Trim()}|{request.TargetJobId?.ToString() ?? request.TargetJobTitle?.Trim()}|{request.SectionType?.Trim()}|{resolvedLanguage}";
+        var contentPart = !string.IsNullOrWhiteSpace(request.Content)
+            ? request.Content.Trim()
+            : (request.CvVersionId?.ToString() ?? request.CvId?.ToString() ?? string.Empty);
+
+        var targetPart = !string.IsNullOrWhiteSpace(request.TargetJobTitle)
+            ? request.TargetJobTitle.Trim()
+            : (request.TargetJobId?.ToString() ?? string.Empty);
+
+        var rawKey = $"{contentPart}|{targetPart}|{request.SectionType?.Trim()}|{resolvedLanguage}";
         using var sha = SHA256.Create();
         var bytes = Encoding.UTF8.GetBytes(rawKey);
         var hash = sha.ComputeHash(bytes);
