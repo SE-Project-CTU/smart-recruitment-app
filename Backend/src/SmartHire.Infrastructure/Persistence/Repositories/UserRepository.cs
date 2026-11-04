@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
+using SmartHire.Application.Features.Admin.Users.DTOs;
 using SmartHire.Domain.Entities;
+using SmartHire.Domain.Enums;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
 
@@ -72,6 +74,16 @@ public sealed class UserRepository : IUserRepository {
             cancellationToken
         );
     }
+
+    public Task<User?> GetByIdWithRolesAsync(Guid userId, CancellationToken cancellationToken) {
+        return _dbContext.Users
+            .Include(user => user.UserRoles)
+            .ThenInclude(userRole => userRole.Role)
+            .SingleOrDefaultAsync(
+                user => user.Id == userId,
+                cancellationToken
+            );
+    }
     
     public Task<bool> PhoneExistsForOtherUserAsync(
         string normalizedPhone,
@@ -83,5 +95,60 @@ public sealed class UserRepository : IUserRepository {
                     user.Phone == normalizedPhone,
             cancellationToken
         );
+    }
+
+    public async Task<(IReadOnlyList<AdminUserItemDto> Items, int TotalCount)> GetAdminUsersPagedAsync(
+        string? search,
+        string? role,
+        UserStatus? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken
+    ) {
+        var query = _dbContext.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var s = search.Trim().ToLower();
+            query = query.Where(u =>
+                u.Email.ToLower().Contains(s) ||
+                u.FullName.ToLower().Contains(s) ||
+                (u.Phone != null && u.Phone.Contains(s)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(role)) {
+            var r = role.Trim().ToLower();
+            query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name.ToLower() == r));
+        }
+
+        if (status.HasValue) {
+            query = query.Where(u => u.Status == status.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new AdminUserItemDto(
+                u.Id,
+                u.Email,
+                u.FullName,
+                u.Phone,
+                u.AvatarFile != null ? u.AvatarFile.FileUrl : null,
+                u.Status.ToString().ToUpperInvariant(),
+                u.UserRoles.Select(ur => ur.Role.Name).ToList(),
+                u.CreatedAt,
+                u.UpdatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public Task<int> CountActiveAdminsAsync(CancellationToken cancellationToken) {
+        return _dbContext.Users
+            .Where(u => u.Status == UserStatus.Active && u.UserRoles.Any(ur => ur.Role.Name == "Admin"))
+            .CountAsync(cancellationToken);
     }
 }
