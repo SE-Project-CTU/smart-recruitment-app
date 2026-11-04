@@ -1,0 +1,11 @@
+version: v1.25.0
+
+ignore:
+  SNYK-JS-URIJS-19963963:
+    - "*":
+        reason: >-
+          Dependency dev-only qua ESLint/Ajv; hiện chưa có bản vá.
+          Đánh giá lại khi ngoại lệ hết hạn.
+        expires: 2027-02-04T00:00:00.000Z
+
+patch: {}
