@@ -8,10 +8,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useCvTemplateDetail } from "@/hooks/queries/useCv";
-import {
-  CvPreviewWorkspace,
-  normalizeCvContentFontSizes,
-} from "@/features/cv";
+import { CvPreviewWorkspace, normalizeCvContentFontSizes } from "@/features/cv";
 import type { CVTemplateItemData } from "@/components/common/CVTemplateCard";
 
 export interface PreviewTemplateModalProps {
@@ -55,8 +52,9 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
   // Chuẩn hóa dữ liệu content từ defaultContent của template
   const templateContent = useMemo(() => {
     if (!templateDetail?.defaultContent) return null;
-    const content = structuredClone(templateDetail.defaultContent);
-    normalizeCvContentFontSizes(content);
+    const content = normalizeCvContentFontSizes(
+      structuredClone(templateDetail.defaultContent),
+    );
     return content;
   }, [templateDetail]);
 
@@ -110,7 +108,8 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
                 Không thể tải mẫu CV
               </h3>
               <p className="mt-1 text-xs text-text-muted">
-                Đã xảy ra lỗi trong quá trình lấy thông tin chi tiết mẫu giao diện.
+                Đã xảy ra lỗi trong quá trình lấy thông tin chi tiết mẫu giao
+                diện.
               </p>
               <div className="mt-5 flex items-center gap-2">
                 <button
@@ -131,22 +130,29 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
             </div>
           )}
 
-          {!isLoading && !isError && templateContent && templateDetail?.defaultLayout && (
-            <div className="h-max">
-              <CvPreviewWorkspace
-                content={templateContent}
-                layout={templateDetail.defaultLayout}
-                className="bg-transparent! p-0!"
-              />
-            </div>
-          )}
+          {!isLoading &&
+            !isError &&
+            templateContent &&
+            templateDetail?.defaultLayout && (
+              <div className="h-max">
+                <CvPreviewWorkspace
+                  content={templateContent}
+                  layout={templateDetail.defaultLayout}
+                  className="bg-transparent! p-0!"
+                />
+              </div>
+            )}
 
-          {!isLoading && !isError && (!templateContent || !templateDetail?.defaultLayout) && (
-            <div className="my-auto flex flex-col items-center justify-center text-center text-sm text-text-muted">
-              <Eye className="size-8 text-text-muted/60" />
-              <p className="mt-2">Không tìm thấy nội dung mẫu giao diện này.</p>
-            </div>
-          )}
+          {!isLoading &&
+            !isError &&
+            (!templateContent || !templateDetail?.defaultLayout) && (
+              <div className="my-auto flex flex-col items-center justify-center text-center text-sm text-text-muted">
+                <Eye className="size-8 text-text-muted/60" />
+                <p className="mt-2">
+                  Không tìm thấy nội dung mẫu giao diện này.
+                </p>
+              </div>
+            )}
         </div>
       </DialogContent>
     </Dialog>
