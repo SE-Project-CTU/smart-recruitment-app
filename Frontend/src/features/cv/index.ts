@@ -94,6 +94,7 @@ export {
   createEmptyTiptapDocument,
   createBulletListDocument,
   sanitizeTiptapDocument,
+  sanitizeCvContent,
   normalizeCvContentFontSizes,
   extractTiptapPlainText,
 } from "./builder/utils/tiptapJson";

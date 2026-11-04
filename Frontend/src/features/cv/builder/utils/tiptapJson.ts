@@ -84,33 +84,112 @@ function removeNullAttributes<T extends { attrs?: Record<string, unknown> }>(
   return { ...value, attrs };
 }
 
-function sanitizeMark(mark: CvTiptapMark): CvTiptapMark {
-  if (mark.type === "link" && mark.attrs) {
-    const { href, target } = mark.attrs;
-    const sanitizedAttrs: Record<string, CvTiptapAttributeValue> = { href };
-    if (target) sanitizedAttrs.target = target;
+function sanitizeMark(mark: CvTiptapMark): CvTiptapMark | null {
+  if (mark.type === "textStyle") {
+    if (!mark.attrs) return null;
+    const cleanedAttrs: Record<string, CvTiptapAttributeValue> = {};
+    for (const [key, val] of Object.entries(mark.attrs)) {
+      if (val === null || val === undefined) continue;
+      // Bỏ các giá trị rỗng hoặc chỉ có khoảng trắng ở color, fontFamily, fontSize...
+      if (typeof val === "string" && val.trim() === "") continue;
+      cleanedAttrs[key] = val as CvTiptapAttributeValue;
+    }
+    // Nếu mark không còn attr hợp lệ thì bỏ cả mark
+    if (Object.keys(cleanedAttrs).length === 0) {
+      return null;
+    }
     return {
-      type: "link",
-      attrs: sanitizedAttrs,
+      type: "textStyle",
+      attrs: cleanedAttrs,
     };
   }
+
+  if (mark.type === "link") {
+    if (!mark.attrs) return null;
+    const href = mark.attrs.href;
+    // Bỏ cả mark nếu href rỗng hoặc chỉ có khoảng trắng
+    if (href === null || href === undefined) return null;
+    if (typeof href === "string" && href.trim() === "") return null;
+
+    const cleanedAttrs: Record<string, CvTiptapAttributeValue> = {
+      href: href as CvTiptapAttributeValue,
+    };
+
+    // Bỏ target nếu rỗng hoặc chỉ có khoảng trắng
+    const target = mark.attrs.target;
+    if (target !== null && target !== undefined) {
+      if (typeof target !== "string" || target.trim() !== "") {
+        cleanedAttrs.target = target as CvTiptapAttributeValue;
+      }
+    }
+
+    return {
+      type: "link",
+      attrs: cleanedAttrs,
+    };
+  }
+
   return removeNullAttributes(mark);
 }
 
-export function sanitizeTiptapNode(node: CvTiptapNode): CvTiptapNode {
-  const sanitized = removeNullAttributes({
-    ...node,
-    ...(node.marks ? { marks: node.marks.map(sanitizeMark) } : {}),
-    ...(node.content ? { content: node.content.map(sanitizeTiptapNode) } : {}),
-  });
+function sanitizeNodeAttrs(
+  _nodeType: string,
+  attrs?: Record<string, unknown>,
+): Record<string, CvTiptapAttributeValue> | undefined {
+  if (!attrs) return undefined;
 
-  if (sanitized.marks) {
-    sanitized.marks = sanitized.marks.filter(
-      (mark) => !mark.attrs || Object.keys(mark.attrs).length > 0,
-    );
+  const cleaned: Record<string, CvTiptapAttributeValue> = {};
+
+  for (const [key, val] of Object.entries(attrs)) {
+    if (val === null || val === undefined) continue;
+
+    // Bỏ textAlign khi giá trị rỗng hoặc chỉ có khoảng trắng
+    if (key === "textAlign" && typeof val === "string" && val.trim() === "") {
+      continue;
+    }
+
+    // Bỏ listStyleType khi giá trị rỗng hoặc chỉ có khoảng trắng
+    if (
+      key === "listStyleType" &&
+      typeof val === "string" &&
+      val.trim() === ""
+    ) {
+      continue;
+    }
+
+    cleaned[key] = val as CvTiptapAttributeValue;
   }
 
-  return sanitized;
+  if (Object.keys(cleaned).length === 0) {
+    return undefined;
+  }
+
+  return cleaned;
+}
+
+export function sanitizeTiptapNode(node: CvTiptapNode): CvTiptapNode {
+  const cleanedAttrs = sanitizeNodeAttrs(
+    node.type,
+    node.attrs as Record<string, unknown>,
+  );
+
+  const sanitizedMarks = node.marks
+    ?.map(sanitizeMark)
+    .filter((mark): mark is CvTiptapMark => mark !== null);
+
+  const sanitizedContent = node.content?.map(sanitizeTiptapNode);
+
+  const result: CvTiptapNode = {
+    type: node.type,
+    ...(cleanedAttrs ? { attrs: cleanedAttrs } : {}),
+    ...(node.text !== undefined ? { text: node.text } : {}),
+    ...(sanitizedMarks && sanitizedMarks.length > 0
+      ? { marks: sanitizedMarks }
+      : {}),
+    ...(sanitizedContent ? { content: sanitizedContent } : {}),
+  };
+
+  return result;
 }
 
 export function sanitizeTiptapDocument(
@@ -139,111 +218,117 @@ export function extractTiptapPlainText(node: CvTiptapNode): string {
 }
 
 /**
- * Chuẩn hóa toàn bộ document trong CV content, đảm bảo mọi field rich text
- * đều có attrs.fontSize theo đúng quy định schema trước khi đưa vào editor hoặc lưu.
+ * Chuẩn hóa toàn bộ document trong RichTextCVContentDocument:
+ * - Đảm bảo mọi document đều có attrs.fontSize theo chuẩn.
+ * - Loại bỏ các attribute rỗng hoặc chỉ có khoảng trắng:
+ *   + textStyle: color, fontFamily, fontSize (bỏ cả mark nếu không còn attr)
+ *   + paragraph/list: textAlign, listStyleType
+ *   + link: target rỗng (bỏ cả mark nếu href rỗng)
+ * - Xử lý cả dữ liệu đã nạp nhưng chưa chỉnh sửa trong phiên hiện tại.
  */
-export function normalizeCvContentFontSizes(
+export function sanitizeCvContent(
   content: RichTextCVContentDocument,
 ): RichTextCVContentDocument {
   if (!content) return content;
 
-  const ensureDocFontSize = (
+  const cloned = structuredClone(content);
+
+  const sanitizeDoc = (
     doc: CvTiptapDocument | undefined,
     defaultSize: number,
   ): CvTiptapDocument => {
     if (!doc) return createEmptyTiptapDocument(defaultSize);
-    const fontSize =
-      typeof doc.attrs?.fontSize === "number"
-        ? doc.attrs.fontSize
-        : Number(doc.attrs?.fontSize) || defaultSize;
-    return {
-      ...doc,
-      type: "doc",
-      attrs: {
-        ...(doc.attrs ?? {}),
-        fontSize,
-      },
-    };
+    return sanitizeTiptapDocument(doc, defaultSize);
   };
 
-  const { profile, sections } = content;
+  const { profile, sections } = cloned;
 
   if (profile) {
-    profile.fullName = ensureDocFontSize(profile.fullName, 24);
-    profile.title = ensureDocFontSize(profile.title, 15);
-    profile.email = ensureDocFontSize(profile.email, 12);
-    profile.phone = ensureDocFontSize(profile.phone, 12);
-    profile.dob = ensureDocFontSize(profile.dob, 12);
-    profile.address = ensureDocFontSize(profile.address, 12);
-    profile.website = ensureDocFontSize(profile.website, 12);
-    profile.socialLink = ensureDocFontSize(profile.socialLink, 12);
+    profile.fullName = sanitizeDoc(profile.fullName, 24);
+    profile.title = sanitizeDoc(profile.title, 15);
+    profile.email = sanitizeDoc(profile.email, 12);
+    profile.phone = sanitizeDoc(profile.phone, 12);
+    profile.dob = sanitizeDoc(profile.dob, 12);
+    profile.address = sanitizeDoc(profile.address, 12);
+    profile.website = sanitizeDoc(profile.website, 12);
+    profile.socialLink = sanitizeDoc(profile.socialLink, 12);
   }
 
   if (sections) {
     if (sections.objective) {
-      sections.objective.title = ensureDocFontSize(sections.objective.title, 14);
-      sections.objective.content = ensureDocFontSize(sections.objective.content, 13);
+      sections.objective.title = sanitizeDoc(sections.objective.title, 14);
+      sections.objective.content = sanitizeDoc(sections.objective.content, 13);
     }
     if (sections.interests) {
-      sections.interests.title = ensureDocFontSize(sections.interests.title, 14);
-      sections.interests.content = ensureDocFontSize(sections.interests.content, 13);
+      sections.interests.title = sanitizeDoc(sections.interests.title, 14);
+      sections.interests.content = sanitizeDoc(sections.interests.content, 13);
     }
     if (sections.additionalInfo) {
-      sections.additionalInfo.title = ensureDocFontSize(sections.additionalInfo.title, 14);
-      sections.additionalInfo.content = ensureDocFontSize(sections.additionalInfo.content, 13);
+      sections.additionalInfo.title = sanitizeDoc(sections.additionalInfo.title, 14);
+      sections.additionalInfo.content = sanitizeDoc(sections.additionalInfo.content, 13);
     }
     if (sections.experience) {
-      sections.experience.title = ensureDocFontSize(sections.experience.title, 14);
+      sections.experience.title = sanitizeDoc(sections.experience.title, 14);
       sections.experience.items?.forEach((item) => {
-        item.company = ensureDocFontSize(item.company, 13);
-        item.position = ensureDocFontSize(item.position, 13);
-        item.startDate = ensureDocFontSize(item.startDate, 12);
-        item.endDate = ensureDocFontSize(item.endDate, 12);
-        item.description = ensureDocFontSize(item.description, 12);
+        item.company = sanitizeDoc(item.company, 13);
+        item.position = sanitizeDoc(item.position, 13);
+        item.startDate = sanitizeDoc(item.startDate, 12);
+        item.endDate = sanitizeDoc(item.endDate, 12);
+        item.description = sanitizeDoc(item.description, 12);
       });
     }
     if (sections.education) {
-      sections.education.title = ensureDocFontSize(sections.education.title, 14);
+      sections.education.title = sanitizeDoc(sections.education.title, 14);
       sections.education.items?.forEach((item) => {
-        item.school = ensureDocFontSize(item.school, 13);
-        item.title = ensureDocFontSize(item.title, 13);
-        item.start = ensureDocFontSize(item.start, 12);
-        item.end = ensureDocFontSize(item.end, 12);
-        item.details = ensureDocFontSize(item.details, 12);
+        item.school = sanitizeDoc(item.school, 13);
+        item.title = sanitizeDoc(item.title, 13);
+        item.start = sanitizeDoc(item.start, 12);
+        item.end = sanitizeDoc(item.end, 12);
+        item.details = sanitizeDoc(item.details, 12);
       });
     }
     if (sections.skills) {
-      sections.skills.title = ensureDocFontSize(sections.skills.title, 14);
+      sections.skills.title = sanitizeDoc(sections.skills.title, 14);
       sections.skills.items?.forEach((item) => {
-        item.name = ensureDocFontSize(item.name, 13);
-        item.description = ensureDocFontSize(item.description, 12);
+        item.name = sanitizeDoc(item.name, 13);
+        item.description = sanitizeDoc(item.description, 12);
       });
     }
     if (sections.projects) {
-      sections.projects.title = ensureDocFontSize(sections.projects.title, 14);
+      sections.projects.title = sanitizeDoc(sections.projects.title, 14);
       sections.projects.items?.forEach((item) => {
-        item.projectName = ensureDocFontSize(item.projectName, 13);
-        item.role = ensureDocFontSize(item.role, 13);
-        item.start = ensureDocFontSize(item.start, 12);
-        item.end = ensureDocFontSize(item.end, 12);
-        item.description = ensureDocFontSize(item.description, 12);
+        item.projectName = sanitizeDoc(item.projectName, 13);
+        item.role = sanitizeDoc(item.role, 13);
+        item.start = sanitizeDoc(item.start, 12);
+        item.end = sanitizeDoc(item.end, 12);
+        item.description = sanitizeDoc(item.description, 12);
       });
     }
     if (sections.certifications) {
-      sections.certifications.title = ensureDocFontSize(sections.certifications.title, 14);
+      sections.certifications.title = sanitizeDoc(sections.certifications.title, 14);
       sections.certifications.items?.forEach((item) => {
-        item.name = ensureDocFontSize(item.name, 13);
-        item.issueDate = ensureDocFontSize(item.issueDate, 12);
+        item.name = sanitizeDoc(item.name, 13);
+        item.issueDate = sanitizeDoc(item.issueDate, 12);
       });
     }
     if (sections.awards) {
-      sections.awards.title = ensureDocFontSize(sections.awards.title, 14);
+      sections.awards.title = sanitizeDoc(sections.awards.title, 14);
       sections.awards.items?.forEach((item) => {
-        item.awardName = ensureDocFontSize(item.awardName, 13);
-        item.date = ensureDocFontSize(item.date, 12);
+        item.awardName = sanitizeDoc(item.awardName, 13);
+        item.date = sanitizeDoc(item.date, 12);
       });
     }
   }
 
-  return content;
+  return cloned;
+}
+
+/**
+ * Giữ nguyên hàm normalizeCvContentFontSizes để tương thích với các module đang import,
+ * đồng thời áp dụng luôn quy trình sanitize toàn diện qua sanitizeCvContent.
+ */
+export function normalizeCvContentFontSizes(
+  content: RichTextCVContentDocument,
+): RichTextCVContentDocument {
+  return sanitizeCvContent(content);
 }

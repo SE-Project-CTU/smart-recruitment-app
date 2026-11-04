@@ -26,7 +26,7 @@ import {
   type RichTextCvEditorValues,
 } from "../schema/richTextCvSchema";
 import { buildRichTextCvInitialValues } from "../utils/richTextInitialValues";
-import { extractTiptapPlainText } from "../utils/tiptapJson";
+import { extractTiptapPlainText, sanitizeCvContent } from "../utils/tiptapJson";
 import { CvBuilderSidebar } from "./CvBuilderSidebar";
 import CvBuilderWorkspace from "./CvBuilderWorkspace";
 import { CvPreviewModal } from "./CvPreviewModal";
@@ -170,9 +170,14 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
       async (data) => {
         if (!cvId) return;
 
-        console.log("[CVBuilder] Submitting CV data for save:", data);
-
-        return
+        // Chuẩn hóa toàn bộ content (loại bỏ attribute rỗng/khoảng trắng) trước khi gửi API
+        const sanitizedContent = sanitizeCvContent(
+          data.content as unknown as RichTextCVContentDocument,
+        );
+        console.log("[CVBuilder] Submitting CV data for save (sanitized):", {
+          ...data,
+          content: sanitizedContent,
+        });
 
         setIsSaving(true);
         try {
@@ -213,7 +218,7 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
             id: cvId,
             payload: {
               title: currentCvTitle.trim() || data.title?.trim() || initialData.title,
-              content: data.content as unknown as RichTextCVContentDocument,
+              content: sanitizedContent,
               layout: data.layout as unknown as CVLayoutDocument,
               language: data.language,
               isPublic: data.isPublic,
