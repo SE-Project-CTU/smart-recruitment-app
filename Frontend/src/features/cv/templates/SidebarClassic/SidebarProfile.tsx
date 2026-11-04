@@ -134,7 +134,7 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
       <div className="w-full mb-5">
         <h1
           className="w-full text-2xl font-bold tracking-tight leading-snug"
-          style={{ color: primaryColor }}
+          // style={{ color: "var(--cv-primary-1, " + primaryColor + ")" }}
         >
           {renderField({
             name: "content.profile.fullName",
@@ -226,7 +226,7 @@ export const SidebarProfile = React.memo<SidebarProfileProps>(({
       <div className="w-full mb-3">
         <div
           className="w-full py-1.5 px-3 text-center text-xs font-bold uppercase tracking-wider text-white"
-          style={{ backgroundColor: primaryColor }}
+          style={{ backgroundColor: "var(--cv-primary-1, " + primaryColor + ")" }}
         >
           THÔNG TIN CÁ NHÂN
         </div>

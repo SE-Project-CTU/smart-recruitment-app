@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useCvDetail } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
-import { CvPreviewWorkspace } from "@/features/cv";
+import { CvPreviewWorkspace, CV_PRINT_PAGE_STYLE } from "@/features/cv";
 import { getTimeAgo } from "@/utils/helper";
 
 export interface CandidateCvPreviewViewProps {
@@ -40,6 +40,7 @@ export const CandidateCvPreviewView: React.FC<CandidateCvPreviewViewProps> = ({
 
   const handleDownloadPdf = useReactToPrint({
     contentRef: printRef,
+    pageStyle: CV_PRINT_PAGE_STYLE,
     documentTitle: cvData?.title
       ? `SmartHire_CV_${cvData.title}`
       : "SmartHire_CV",

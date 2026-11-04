@@ -1,4 +1,8 @@
-import type { RichTextCVDetail, CVLayoutDocument, CvTemplateCode } from "@/types/cv";
+import type {
+  RichTextCVDetail,
+  CVLayoutDocument,
+  CvTemplateCode,
+} from "@/types/cv";
 import { getCvTemplateMetadata } from "../../templates/templateMetadata";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import { normalizeCvContentFontSizes } from "./tiptapJson";
@@ -30,8 +34,7 @@ export function ensureValidLayout(
 export function buildRichTextCvInitialValues(
   detail: RichTextCVDetail,
 ): RichTextCvEditorValues {
-  const content = structuredClone(detail.content);
-  normalizeCvContentFontSizes(content);
+  const content = normalizeCvContentFontSizes(structuredClone(detail.content));
 
   const templateCode = detail.content?.metadata?.templateCode;
   const layout = ensureValidLayout(detail.layout, templateCode);

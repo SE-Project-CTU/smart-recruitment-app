@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { CV_FONT_OPTIONS, DEFAULT_CV_FONT_ID } from "../../../constants/fonts";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
+import { useCvHistory, ChangeDesignSettingCommand } from "../../history";
 
 /**
  * FontFamilySection:
@@ -16,6 +17,7 @@ import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
  */
 export const FontFamilySection: React.FC = () => {
   const { setValue, control } = useFormContext<RichTextCvEditorValues>();
+  const { executeCommand } = useCvHistory();
 
   const fontFamily =
     useWatch({
@@ -31,11 +33,15 @@ export const FontFamilySection: React.FC = () => {
       <Select
         value={fontFamily}
         onValueChange={(val) => {
-          if (val) {
-            setValue("content.metadata.defaultStyle.fontFamily", val, {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
+          if (val && val !== fontFamily) {
+            const command = new ChangeDesignSettingCommand(
+              "fontFamily",
+              "content.metadata.defaultStyle.fontFamily",
+              fontFamily,
+              val,
+              setValue,
+            );
+            executeCommand(command);
           }
         }}
       >

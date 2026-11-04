@@ -200,8 +200,8 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
     const { profile, sections, metadata } = content;
     const globalStyles = metadata?.defaultStyle;
 
-    // Màu tiêu đề chủ đạo: mặc định là đen/xám than (#262626) như trong ảnh mẫu
     const primaryColor = globalStyles?.primaryColors?.[0] || "#262626";
+    const sidebarBgColor = globalStyles?.primaryColors?.[1] || "#EBECEE";
     const fontFamily = globalStyles?.fontFamily || DEFAULT_CV_FONT_ID;
     const lineHeight = globalStyles?.lineHeight || 1.5;
     const fontScale = globalStyles?.fontScale ?? 1.0;
@@ -246,12 +246,14 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
 
     return (
       <div
-        className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white text-slate-900 shadow-xl print:m-0 print:shadow-none flex ${className}`}
+        className={`cv-page-container mx-auto w-[210mm] bg-white text-slate-900 shadow-xl print:m-0 print:shadow-none flex ${className}`}
         style={{
           fontFamily: getCvFontFamilyCss(fontFamily),
           lineHeight,
           ["--cv-font-scale" as string]: fontScale,
           ["--cv-line-height" as string]: lineHeight,
+          ["--cv-primary-1" as string]: `var(--cv-preview-primary-1, ${primaryColor})`,
+          ["--cv-primary-2" as string]: `var(--cv-preview-primary-2, ${sidebarBgColor})`,
         }}
       >
         {canDrag ? (
@@ -262,7 +264,7 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
             onDragEnd={handleDragEnd}
           >
             {/* Cột Sidebar bên trái: Chiều rộng 39%, nền xám (#EBECEE) */}
-            <aside className="w-[39%] bg-[#EBECEE] px-6 py-8 shrink-0 flex flex-col">
+            <aside className="w-[39%] px-6 py-8 shrink-0 flex flex-col" style={{ backgroundColor: "var(--cv-primary-2, " + sidebarBgColor + ")" }}>
               <SidebarProfile
                 profile={profile}
                 primaryColor={primaryColor}
@@ -305,7 +307,7 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
           </DragDropContext>
         ) : (
           <>
-            <aside className="w-[39%] bg-[#EBECEE] px-6 py-8 shrink-0 flex flex-col">
+            <aside className="w-[39%] px-6 py-8 shrink-0 flex flex-col" style={{ backgroundColor: "var(--cv-primary-2, " + sidebarBgColor + ")" }}>
               <SidebarProfile
                 profile={profile}
                 primaryColor={primaryColor}

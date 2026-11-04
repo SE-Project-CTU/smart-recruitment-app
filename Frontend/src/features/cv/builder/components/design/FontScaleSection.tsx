@@ -1,14 +1,8 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
-import { FONT_SCALE_OPTIONS } from "./designConstants";
+import { useCvHistory, ChangeDesignSettingCommand } from "../../history";
 
 /**
  * FontScaleSection:
@@ -16,6 +10,7 @@ import { FONT_SCALE_OPTIONS } from "./designConstants";
  */
 export const FontScaleSection: React.FC = () => {
   const { setValue, control } = useFormContext<RichTextCvEditorValues>();
+  const { executeCommand } = useCvHistory();
 
   const fontScale =
     useWatch({
@@ -23,33 +18,72 @@ export const FontScaleSection: React.FC = () => {
       name: "content.metadata.defaultStyle.fontScale",
     }) ?? 1.0;
 
+  const startScaleRef = useRef(fontScale);
+  const isDraggingRef = useRef(false);
+
+  useEffect(() => {
+    if (!isDraggingRef.current) {
+      startScaleRef.current = fontScale;
+    }
+  }, [fontScale]);
+
+  const handleValueChange = (val: number | readonly number[]) => {
+    const nextVal = Array.isArray(val) ? val[0] : val;
+    if (typeof nextVal === "number") {
+      isDraggingRef.current = true;
+      setValue(
+        "content.metadata.defaultStyle.fontScale",
+        Number(nextVal.toFixed(1)),
+        {
+          shouldDirty: true,
+          shouldValidate: false,
+        },
+      );
+    }
+  };
+
+  const handleValueCommitted = (val: number | readonly number[]) => {
+    isDraggingRef.current = false;
+    const finalVal = Array.isArray(val) ? val[0] : val;
+    if (typeof finalVal === "number") {
+      const formattedFinal = Number(finalVal.toFixed(1));
+      if (formattedFinal !== startScaleRef.current) {
+        const command = new ChangeDesignSettingCommand(
+          "fontScale",
+          "content.metadata.defaultStyle.fontScale",
+          startScaleRef.current,
+          formattedFinal,
+          setValue,
+        );
+        executeCommand(command);
+        startScaleRef.current = formattedFinal;
+      }
+    }
+  };
+
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-semibold tracking-wider text-text-main uppercase">
-        Tỉ lệ cỡ chữ
-      </label>
-      <Select
-        value={String(fontScale)}
-        onValueChange={(val) => {
-          if (val) {
-            setValue("content.metadata.defaultStyle.fontScale", Number(val), {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
-          }
-        }}
-      >
-        <SelectTrigger className="h-9 w-full bg-surface text-xs">
-          <SelectValue placeholder="Chọn tỉ lệ font" />
-        </SelectTrigger>
-        <SelectContent>
-          {FONT_SCALE_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={String(opt.value)}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold tracking-wider text-text-main uppercase">
+          Tỉ lệ cỡ chữ
+        </label>
+        <span className="rounded border border-border bg-bg px-1.5 py-0.5 font-mono text-xs font-medium text-text-main">
+          {Math.round(fontScale * 100)}%
+        </span>
+      </div>
+      <Slider
+        value={[fontScale]}
+        min={0.5}
+        max={2.0}
+        step={0.1}
+        onValueChange={handleValueChange}
+        onValueCommitted={handleValueCommitted}
+        className="cursor-pointer py-1.5 [&_[data-slot=slider-range]]:h-full [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:w-full [&_[data-slot=slider-track]]:bg-border"
+      />
+      <div className="flex justify-between text-[10px] text-text-muted">
+        <span>Nhỏ</span>
+        <span>Lớn</span>
+      </div>
     </div>
   );
 };

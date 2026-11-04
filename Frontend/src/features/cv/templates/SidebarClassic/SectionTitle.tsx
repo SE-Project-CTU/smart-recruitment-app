@@ -25,7 +25,7 @@ export const SidebarSectionTitle: React.FC<SectionTitleProps> = ({
   <div className="mb-3 mt-5">
     <div
       className="w-full py-1.5 px-3 text-center text-xs font-bold uppercase tracking-wider text-white"
-      style={{ backgroundColor: primaryColor }}
+      style={{ backgroundColor: "var(--cv-primary-1, " + primaryColor + ")" }}
     >
       {renderField({
         name: fieldName,
@@ -49,7 +49,7 @@ export const MainSectionTitle: React.FC<SectionTitleProps> = ({
   <div className="mb-3 mt-5 first:mt-0">
     <div
       className="w-full py-1.5 px-3 text-left text-xs font-bold uppercase tracking-wider text-white"
-      style={{ backgroundColor: primaryColor }}
+      style={{ backgroundColor: "var(--cv-primary-1, " + primaryColor + ")" }}
     >
       {renderField({
         name: fieldName,
