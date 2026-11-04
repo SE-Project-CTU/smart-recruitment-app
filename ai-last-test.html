@@ -2045,14 +2045,280 @@
                                  lower.includes('áp lực');
           const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
 
-          // Kỹ năng chuyên môn trong mọi ngành là cụm danh từ ngắn (<= 5 từ)
-          if (cleaned.length >= 2 && cleaned.length <= 45 && !isMetaSentence && wordCount <= 5) {
+          // Kỹ năng chuyên môn trong mọi ngành là cụm danh từ ngắn (<= 7 từ, <= 50 ký tự)
+          if (cleaned.length >= 2 && cleaned.length <= 50 && !isMetaSentence && wordCount <= 7) {
             items.push(cleaned);
           }
         });
       });
 
       return [...new Set(items)];
+    }
+
+    // ========================================================
+    // TỪ ĐIỂN CHUẨN HÓA KỸ NĂNG & THUẬT TOÁN FUZZY ĐA NGÀNH (IN-HOUSE SKILL MAP + FUZZY)
+    // Tự động nhận diện từ đồng nghĩa, lỗi chính tả, phiên bản (PostgreSQL, Incoterms, React 18, k8s...)
+    // ========================================================
+    const CANONICAL_SKILL_MAP = {
+      // 1. Công nghệ thông tin & Phần mềm (IT & Software)
+      "postgre sql": "postgresql",
+      "postgre-sql": "postgresql",
+      "postgre": "postgresql",
+      "postgres": "postgresql",
+      "postgresql": "postgresql",
+      "pgsql": "postgresql",
+      "postgressql": "postgresql",
+      "postgress": "postgresql",
+      "react": "react",
+      "reactjs": "react",
+      "react.js": "react",
+      "react 18": "react",
+      "react 19": "react",
+      "react 17": "react",
+      "react 16": "react",
+      "react framework": "react",
+      "thư viện react": "react",
+      "react native": "react-native",
+      "vue": "vue",
+      "vuejs": "vue",
+      "vue.js": "vue",
+      "vue 3": "vue",
+      "angular": "angular",
+      "angularjs": "angular",
+      "node": "nodejs",
+      "nodejs": "nodejs",
+      "node.js": "nodejs",
+      "typescript": "typescript",
+      "ts": "typescript",
+      "javascript": "javascript",
+      "js": "javascript",
+      "es6": "javascript",
+      "python": "python",
+      "python 3": "python",
+      "c#": "csharp",
+      "c sharp": "csharp",
+      ".net": "dotnet",
+      ".net 10": "dotnet",
+      ".net 8": "dotnet",
+      ".net core": "dotnet",
+      "asp.net": "dotnet",
+      "asp.net core": "dotnet",
+      "dotnet core": "dotnet",
+      "c# .net 10": "dotnet",
+      "c# .net": "dotnet",
+      "c# .net 8": "dotnet",
+      "kubernetes": "k8s",
+      "k8s": "k8s",
+      "k8": "k8s",
+      "kube": "k8s",
+      "docker": "docker",
+      "containerization": "docker",
+      "clean architecture": "clean-architecture",
+      "microservices": "microservices",
+      "microservice": "microservices",
+      "rest api": "restful-api",
+      "restful api": "restful-api",
+      "restful": "restful-api",
+      "restful api cơ bản": "restful-api",
+      "git": "git",
+      "github": "git",
+      "gitlab": "git",
+      "git / github": "git",
+      "redux": "redux",
+      "redux toolkit": "redux",
+      "html": "html",
+      "html5": "html",
+      "css": "css",
+      "css3": "css",
+      "css3 / scss": "css",
+      "scss": "css",
+      "bootstrap": "bootstrap",
+      "bootstrap 5": "bootstrap",
+      "tailwind": "tailwind",
+      "tailwindcss": "tailwind",
+      "photoshop": "adobe-photoshop",
+      "photoshp": "adobe-photoshop",
+      "pts": "adobe-photoshop",
+      "adobe photoshop": "adobe-photoshop",
+      "figma": "figma",
+
+      // 2. Logistics & Xuất nhập khẩu (Supply Chain & Logistics)
+      "incoterm": "incoterms",
+      "incoterms": "incoterms",
+      "incoterm 2020": "incoterms",
+      "incoterms 2020": "incoterms",
+      "incoterm2020": "incoterms",
+      "incoterms2020": "incoterms",
+      "incoterms 2010": "incoterms",
+      "điều kiện incoterms": "incoterms",
+      "tập quán incoterms": "incoterms",
+      "chuẩn incoterm": "incoterms",
+      "chuẩn incoterms": "incoterms",
+      "chuẩn incoterm quốc tế": "incoterms",
+      "xuất nhập khẩu": "import-export",
+      "xnk": "import-export",
+      "import export": "import-export",
+      "thủ tục hải quan": "customs-clearance",
+      "customs clearance": "customs-clearance",
+      "khai báo hải quan": "customs-clearance",
+      "vnaccs": "vnaccs",
+      "ecus": "vnaccs",
+      "vận tải quốc tế": "freight-forwarding",
+      "freight forwarding": "freight-forwarding",
+      "quản lý kho": "warehouse-management",
+      "quản lý kho bãi": "warehouse-management",
+      "wms": "warehouse-management",
+      "chuỗi cung ứng": "supply-chain",
+      "quản trị chuỗi cung ứng": "supply-chain",
+      "supply chain": "supply-chain",
+      "mua hàng": "procurement",
+      "procurement": "procurement",
+
+      // 3. Kế toán, Tài chính & Thuế (Finance & Accounting)
+      "kế toán tổng hợp": "general-accounting",
+      "general accounting": "general-accounting",
+      "kế toán thuế": "tax-accounting",
+      "tax accounting": "tax-accounting",
+      "quyết toán thuế": "tax-accounting",
+      "kê khai thuế": "tax-accounting",
+      "báo cáo tài chính": "financial-reporting",
+      "financial reporting": "financial-reporting",
+      "kiểm toán": "auditing",
+      "auditing": "auditing",
+      "kiểm toán nội bộ": "internal-audit",
+      "misa": "misa",
+      "misa sme": "misa",
+      "fast accounting": "fast-accounting",
+      "sap erp": "sap-erp",
+      "sap": "sap-erp",
+      "vas": "vas",
+      "ifrs": "ifrs",
+      "excel nâng cao": "advanced-excel",
+
+      // 4. Marketing & Bán hàng (Sales & Marketing)
+      "google ads": "google-ads",
+      "adwords": "google-ads",
+      "meta ads": "facebook-ads",
+      "facebook ads": "facebook-ads",
+      "tiktok ads": "tiktok-ads",
+      "seo": "seo",
+      "sem": "sem",
+      "content marketing": "content-marketing",
+      "copywriting": "copywriting",
+      "sáng tạo nội dung": "content-marketing",
+      "ga4": "ga4",
+      "google analytics": "ga4",
+      "google analytics 4": "ga4",
+      "a/b testing": "ab-testing",
+      "ab testing": "ab-testing",
+      "đàm phán": "negotiation",
+      "đàm phán thương lượng": "negotiation",
+      "thương lượng": "negotiation",
+      "negotiation": "negotiation",
+
+      // 5. Quản trị Nhân sự (HR & Admin)
+      "tuyển dụng": "talent-acquisition",
+      "talent acquisition": "talent-acquisition",
+      "recruitment": "talent-acquisition",
+      "c&b": "compensation-benefits",
+      "tiền lương và phúc lợi": "compensation-benefits",
+      "bảo hiểm xã hội": "social-insurance",
+      "bhxh": "social-insurance",
+      "luật lao động": "labor-law",
+      "kpi": "performance-management",
+      "đào tạo nội bộ": "learning-development",
+
+      // 6. UI/UX & Trải nghiệm khách hàng
+      "tối ưu hóa hành trình khách hàng": "ui-ux-design",
+      "hành trình khách hàng": "ui-ux-design",
+      "thiết kế trải nghiệm người dùng": "ui-ux-design",
+      "trải nghiệm khách hàng": "ui-ux-design",
+      "trải nghiệm người dùng": "ui-ux-design",
+      "ui/ux": "ui-ux-design",
+      "ui/ux design": "ui-ux-design",
+      "ux design": "ui-ux-design"
+    };
+
+    function normalizeSkillName(str) {
+      if (!str) return '';
+      let s = str.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (CANONICAL_SKILL_MAP[s]) return CANONICAL_SKILL_MAP[s];
+
+      // Loại bỏ ký tự đặc biệt, dấu chấm, gạch nối, khoảng trắng
+      const noPunct = s.replace(/[.\-_/\s]/g, '');
+      if (noPunct === 'postgresql' || noPunct === 'postgres' || noPunct === 'pgsql' || noPunct === 'postgressql' || noPunct === 'postgress') {
+        return 'postgresql';
+      }
+      if (noPunct.startsWith('incoterm')) {
+        return 'incoterms';
+      }
+      if (noPunct.startsWith('react') && !noPunct.includes('native')) {
+        return 'react';
+      }
+      if (noPunct === 'kubernetes' || noPunct === 'k8s' || noPunct === 'k8' || noPunct === 'kube') {
+        return 'k8s';
+      }
+      if (noPunct === 'photoshop' || noPunct === 'photoshp' || noPunct === 'pts') {
+        return 'adobe-photoshop';
+      }
+
+      // Loại bỏ tiền tố/hậu tố thông dụng
+      const stripped = s.replace(/^(phần mềm|kỹ năng|công cụ|framework|thư viện)\s+/i, '')
+                        .replace(/\s+(framework|library|platform|cơ bản|nâng cao)$/i, '').trim();
+      if (CANONICAL_SKILL_MAP[stripped]) return CANONICAL_SKILL_MAP[stripped];
+
+      return s;
+    }
+
+    function calcLevenshtein(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    function isSkillFuzzyMatch(skillA, skillB) {
+      if (!skillA || !skillB) return false;
+      const normA = normalizeSkillName(skillA);
+      const normB = normalizeSkillName(skillB);
+      if (normA && normB && normA === normB) return true;
+
+      const noPunctA = skillA.toLowerCase().replace(/[.\-_/\s]/g, '');
+      const noPunctB = skillB.toLowerCase().replace(/[.\-_/\s]/g, '');
+      if (noPunctA && noPunctB && noPunctA === noPunctB) return true;
+
+      // Substring check với độ dài tối thiểu 4 ký tự
+      if (noPunctA.length >= 4 && noPunctB.length >= 4) {
+        if (noPunctA.includes(noPunctB) || noPunctB.includes(noPunctA)) return true;
+      }
+      if (normA.length >= 4 && normB.length >= 4) {
+        if (normA.includes(normB) || normB.includes(normA)) return true;
+      }
+
+      // Fuzzy matching tỉ lệ >= 80%
+      const maxLen = Math.max(noPunctA.length, noPunctB.length);
+      if (maxLen > 0) {
+        const dist = calcLevenshtein(noPunctA, noPunctB);
+        if (((maxLen - dist) / maxLen) >= 0.80) return true;
+      }
+
+      return false;
     }
 
     // ========================================================
@@ -2063,15 +2329,22 @@
       const currentSkillsRaw = skillsEl ? skillsEl.innerText.trim() : '';
       const skillsLower = currentSkillsRaw.toLowerCase();
 
+      // Bóc tách toàn bộ thẻ tag và token trong mục Skills của CV
+      const skillTags = skillsEl ? Array.from(skillsEl.querySelectorAll('.cv-tag')).map(el => el.innerText.trim()).filter(Boolean) : [];
+      const skillTextTokens = currentSkillsRaw.split(/[\n,;•|/]+/).map(s => s.trim()).filter(s => s.length >= 2);
+      const candidateSkills = [...new Set([...skillTags, ...skillTextTokens])];
+
       // Quét ngữ cảnh toàn bộ các section khác (Experience, Projects, Objective)
       const expEl = document.getElementById('cvBlockExperience');
       const projEl = document.getElementById('cvBlockProject');
       const objEl = document.getElementById('cvBlockObjective');
-      const otherSectionsText = [
+      const otherSectionsRaw = [
         expEl ? expEl.innerText : '',
         projEl ? projEl.innerText : '',
         objEl ? objEl.innerText : ''
-      ].join(' ').toLowerCase();
+      ].join('\n');
+      const otherSectionsText = otherSectionsRaw.toLowerCase();
+      const otherSectionTokens = otherSectionsRaw.split(/[\n\r;•|]+|(?<=\w)\.\s+/).flatMap(p => p.split(/[,/]+/)).map(s => s.trim()).filter(s => s.length >= 2);
 
       const activePreset = CV_PRESETS[currentPresetKey] || CV_PRESETS.it_vi;
       const targetJob = activePreset.targetJob;
@@ -2085,32 +2358,41 @@
       const missingSkills = [];
 
       reqItems.forEach(req => {
-        const reqClean = req.toLowerCase();
-        let foundInSkills = skillsLower.includes(reqClean);
+        // 1. Kiểm tra kỹ năng có nằm trong Section SKILLS hay không (Dùng Fuzzy + Canonical Map)
+        let foundInSkills = candidateSkills.some(cand => isSkillFuzzyMatch(cand, req));
 
         // Hỗ trợ kiểm tra kỹ năng viết tắt trong ngoặc e.g. "Electric Vehicle (EV)" -> "ev"
         if (!foundInSkills && req.includes('(')) {
           const sub = req.match(/\(([^)]+)\)/);
           if (sub && sub[1] && sub[1].trim().length > 1) {
-            foundInSkills = skillsLower.includes(sub[1].trim().toLowerCase());
+            const shortForm = sub[1].trim();
+            foundInSkills = candidateSkills.some(cand => isSkillFuzzyMatch(cand, shortForm)) || skillsLower.includes(shortForm.toLowerCase());
           }
         }
         // Hỗ trợ kỹ năng có dấu gạch chéo e.g. "MATLAB/Simulink"
         if (!foundInSkills && req.includes('/')) {
-          foundInSkills = req.split('/').some(part => part.trim().length > 1 && skillsLower.includes(part.trim().toLowerCase()));
+          foundInSkills = req.split('/').some(part => part.trim().length > 1 && candidateSkills.some(cand => isSkillFuzzyMatch(cand, part.trim())));
+        }
+
+        // 2. Fallback text inclusion trong Section Skills
+        if (!foundInSkills) {
+          const reqClean = req.toLowerCase();
+          foundInSkills = skillsLower.includes(reqClean) || isSkillFuzzyMatch(skillsLower, reqClean);
         }
 
         if (foundInSkills) {
           matchedSkills.push(req);
         } else {
-          // Kiểm tra xem kỹ năng này có xuất hiện trong Kinh nghiệm hoặc Dự án không
-          let foundInContext = otherSectionsText.includes(reqClean);
+          // 3. Nếu chưa có trong Skills, kiểm tra xem có xuất hiện trong Kinh nghiệm hoặc Dự án không
+          let foundInContext = otherSectionTokens.some(tok => isSkillFuzzyMatch(tok, req)) || otherSectionsText.includes(req.toLowerCase());
           if (!foundInContext && req.includes('(')) {
             const sub = req.match(/\(([^)]+)\)/);
             if (sub && sub[1] && sub[1].trim().length > 1) {
-              foundInContext = otherSectionsText.includes(sub[1].trim().toLowerCase());
+              const shortForm = sub[1].trim().toLowerCase();
+              foundInContext = otherSectionsText.includes(shortForm);
             }
           }
+
           if (foundInContext) {
             detectedInContextSkills.push(req);
           } else {

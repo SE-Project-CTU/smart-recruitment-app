@@ -47,8 +47,16 @@ public static class SkillNormalizationMap {
         ["containerization"] = "docker",
         ["kubernetes"] = "k8s",
         ["k8s"] = "k8s",
+        ["k8"] = "k8s",
+        ["kube"] = "k8s",
         ["postgres"] = "postgresql",
         ["postgresql"] = "postgresql",
+        ["postgre sql"] = "postgresql",
+        ["postgre-sql"] = "postgresql",
+        ["postgre"] = "postgresql",
+        ["pgsql"] = "postgresql",
+        ["postgressql"] = "postgresql",
+        ["postgress"] = "postgresql",
         ["mysql"] = "mysql",
         ["sql server"] = "mssql",
         ["mssql"] = "mssql",
@@ -197,8 +205,13 @@ public static class SkillNormalizationMap {
         ["thủ tục hải quan"] = "customs-clearance",
         ["customs clearance"] = "customs-clearance",
         ["khai báo hải quan"] = "customs-clearance",
+        ["incoterm"] = "incoterms",
         ["incoterms"] = "incoterms",
+        ["incoterm 2020"] = "incoterms",
         ["incoterms 2020"] = "incoterms",
+        ["incoterm2020"] = "incoterms",
+        ["incoterms2020"] = "incoterms",
+        ["điều kiện incoterms"] = "incoterms",
         ["vận tải quốc tế"] = "freight-forwarding",
         ["freight forwarding"] = "freight-forwarding",
         ["quản lý kho"] = "warehouse-management",
@@ -323,6 +336,24 @@ public static class SkillNormalizationMap {
             return canonical;
         }
 
+        // Loại bỏ ký tự phân cách, dấu chấm, gạch nối, khoảng trắng để bắt các biến thể gõ
+        var noPunct = Regex.Replace(cleaned, @"[.\-_/\s]", "");
+        if (noPunct == "postgresql" || noPunct == "postgres" || noPunct == "pgsql" || noPunct == "postgressql" || noPunct == "postgress") {
+            return "postgresql";
+        }
+        if (noPunct.StartsWith("incoterm")) {
+            return "incoterms";
+        }
+        if (noPunct.StartsWith("react") && !noPunct.Contains("native")) {
+            return "react";
+        }
+        if (noPunct == "kubernetes" || noPunct == "k8s" || noPunct == "k8" || noPunct == "kube") {
+            return "k8s";
+        }
+        if (noPunct == "photoshop" || noPunct == "photoshp" || noPunct == "pts") {
+            return "adobe-photoshop";
+        }
+
         // Loại bỏ tiền tố/hậu tố thông dụng
         var stripped = cleaned
             .Replace("framework", "")
@@ -339,7 +370,7 @@ public static class SkillNormalizationMap {
         return cleaned;
     }
 
-    public static bool IsMatch(string candidateSkill, string targetSkill, int fuzzyThreshold = 88) {
+    public static bool IsMatch(string candidateSkill, string targetSkill, int fuzzyThreshold = 80) {
         if (string.IsNullOrWhiteSpace(candidateSkill) || string.IsNullOrWhiteSpace(targetSkill)) {
             return false;
         }
@@ -350,6 +381,18 @@ public static class SkillNormalizationMap {
         // Khớp chính xác Canonical/Normalized (Fast-Path O(1))
         if (string.Equals(normCandidate, normTarget, StringComparison.OrdinalIgnoreCase)) {
             return true;
+        }
+
+        // Kiểm tra sau khi loại bỏ dấu phân cách (bắt lệch ký tự vd "postgre sql" vs "postgresql")
+        var noPunctCand = Regex.Replace(candidateSkill.ToLowerInvariant(), @"[.\-_/\s]", "");
+        var noPunctTgt = Regex.Replace(targetSkill.ToLowerInvariant(), @"[.\-_/\s]", "");
+        if (noPunctCand == noPunctTgt) {
+            return true;
+        }
+        if (noPunctCand.Length >= 4 && noPunctTgt.Length >= 4) {
+            if (noPunctCand.Contains(noPunctTgt) || noPunctTgt.Contains(noPunctCand)) {
+                return true;
+            }
         }
 
         // Kiểm tra chuỗi chứa nhau với độ dài an toàn >= 4 ký tự
