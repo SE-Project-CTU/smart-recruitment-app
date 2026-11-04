@@ -4,6 +4,10 @@ import { Slider } from "@/components/ui/slider";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
 import { useCvHistory, ChangeDesignSettingCommand } from "../../history";
 
+const LINE_HEIGHT_MIN = 1.0;
+const LINE_HEIGHT_MAX = 2.0;
+const LINE_HEIGHT_STEP = 0.05;
+
 /**
  * LineHeightSection:
  * Khu vực điều chỉnh Khoảng cách dòng (Line height) cho CV
@@ -68,21 +72,21 @@ export const LineHeightSection: React.FC = () => {
           Khoảng cách dòng
         </label>
         <span className="rounded border border-border bg-bg px-1.5 py-0.5 font-mono text-xs font-medium text-text-main">
-          {lineHeight.toFixed(2)}x
+          {lineHeight.toFixed(1)}x
         </span>
       </div>
       <Slider
         value={[lineHeight]}
-        min={1.0}
-        max={2.0}
-        step={0.05}
+        min={LINE_HEIGHT_MIN}
+        max={LINE_HEIGHT_MAX}
+        step={LINE_HEIGHT_STEP}
         onValueChange={handleValueChange}
         onValueCommitted={handleValueCommitted}
         className="cursor-pointer py-1.5 [&_[data-slot=slider-range]]:h-full [&_[data-slot=slider-range]]:bg-primary [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:w-full [&_[data-slot=slider-track]]:bg-border"
       />
       <div className="flex justify-between text-[10px] text-text-muted">
-        <span>1.2</span>
-        <span>2.0</span>
+        <span>{LINE_HEIGHT_MIN.toFixed(1)}</span>
+        <span>{LINE_HEIGHT_MAX.toFixed(1)}</span>
       </div>
     </div>
   );
