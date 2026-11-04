@@ -28,24 +28,6 @@ public static class AdminExceptions {
         "Job posting not found.",
         [new AppErrorDetail("jobPostingId", ErrorDetailReasons.NotFound, $"Job posting with ID '{jobPostingId}' does not exist.")]);
 
-    public static AppException RoleNotFound(Guid roleId) => new(
-        AppErrorKind.NotFound,
-        AdminErrorCodes.RoleNotFound,
-        "Role not found.",
-        [new AppErrorDetail("roleId", ErrorDetailReasons.NotFound, $"Role with ID '{roleId}' does not exist.")]);
-
-    public static AppException PermissionNotFound(Guid permissionId) => new(
-        AppErrorKind.NotFound,
-        AdminErrorCodes.PermissionNotFound,
-        "Permission not found.",
-        [new AppErrorDetail("permissionId", ErrorDetailReasons.NotFound, $"Permission with ID '{permissionId}' does not exist.")]);
-
-    public static AppException PermissionCodeAlreadyExists(string code) => new(
-        AppErrorKind.Conflict,
-        AdminErrorCodes.PermissionCodeAlreadyExists,
-        $"Permission code '{code}' already exists.",
-        [new AppErrorDetail("code", ErrorDetailReasons.AlreadyExists, $"Permission code '{code}' is already registered.")]);
-
     public static AppException Validation(string message, IEnumerable<AppErrorDetail>? details = null) => new(
         AppErrorKind.Validation,
         CommonErrorCodes.ValidationError,
