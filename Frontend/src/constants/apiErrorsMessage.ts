@@ -1,12 +1,15 @@
-﻿export const API_ERROR_MESSAGES: Record<string, string> = {
+export const API_ERROR_MESSAGES: Record<string, string> = {
   CORRELATION_ID_REQUIRED: "Thiếu mã định danh yêu cầu. Vui lòng thử lại.",
   CORRELATION_ID_INVALID:
     "Mã định danh yêu cầu không hợp lệ. Vui lòng thử lại.",
   INTERNAL_SERVER_ERROR: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau.",
   INVALID_PAGE_NUMBER: "Số trang không hợp lệ.",
   INVALID_PAGE_SIZE: "Kích thước trang không hợp lệ.",
-  VALIDATION_ERROR: "Thông tin đăng ký chưa hợp lệ. Vui lòng kiểm tra lại.",
+  INVALID_SEARCH_QUERY: "Tiêu chí tìm kiếm không hợp lệ.",
+  VALIDATION_ERROR: "Thông tin nhập vào chưa hợp lệ. Vui lòng kiểm tra lại.",
   INVALID_REQUEST_BODY: "Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra lại.",
+  AUTHENTICATION_REQUIRED: "Vui lòng đăng nhập để thực hiện thao tác này.",
+  ACCESS_FORBIDDEN: "Bạn không có quyền truy cập tài nguyên này.",
   AUTH_EMAIL_ALREADY_EXISTS: "Email này đã được sử dụng.",
   AUTH_PHONE_ALREADY_EXISTS: "Số điện thoại này đã được sử dụng.",
   AUTH_CANDIDATE_ROLE_NOT_FOUND:
@@ -32,6 +35,7 @@
   MEDIA_FILE_FORBIDDEN: "Bạn không có quyền truy cập tệp này.",
   MEDIA_FILE_STORAGE_ERROR: "Không thể lưu tệp. Vui lòng thử lại.",
   MEDIA_FILE_DELETE_STORAGE_ERROR: "Không thể xóa tệp. Vui lòng thử lại.",
+  MEDIA_FILE_IN_USE: "Tệp phương tiện đang được sử dụng và không thể xóa.",
   COMPANY_NOT_FOUND: "Không tìm thấy thông tin doanh nghiệp.",
   COMPANY_TAX_CODE_ALREADY_EXISTS:
     "Mã số thuế này đã được đăng ký trên hệ thống.",
@@ -64,6 +68,8 @@
   USER_NOT_FOUND: "Không tìm thấy tài khoản người dùng tương ứng.",
   COMPANY_LOGO_ALREADY_IN_USE:
     "Logo này đã được gán cho một doanh nghiệp khác.",
+  MAX_OWNED_COMPANIES_REACHED:
+    "Bạn đã đạt giới hạn tối đa số doanh nghiệp được sở hữu.",
   INVITEE_ROLE_REQUIRED:
     "Tài khoản được mời phải có vai trò Nhà tuyển dụng (Recruiter).",
   INVALID_JOB_POSTING_DATA:
@@ -110,6 +116,43 @@
     "Chuyển đổi trạng thái đơn ứng tuyển không hợp lệ theo quy trình.",
   APPLICATION_STATUS_CONFLICT:
     "Trạng thái đơn ứng tuyển đã có sự thay đổi. Vui lòng tải lại trang.",
+  // Notification Error Codes
+  NOTIFICATION_NOT_FOUND: "Không tìm thấy thông báo.",
+  NOTIFICATION_FORBIDDEN: "Bạn không có quyền truy cập thông báo này.",
+
+  // Admin Error Codes
+  ADMIN_USER_NOT_FOUND: "Không tìm thấy tài khoản người dùng tương ứng.",
+  ADMIN_CANNOT_LOCK_LAST_ADMIN:
+    "Không thể khóa tài khoản Quản trị viên (Admin) duy nhất còn hoạt động trong hệ thống.",
+  ADMIN_COMPANY_NOT_FOUND: "Không tìm thấy thông tin doanh nghiệp.",
+  ADMIN_COMPANY_ALREADY_VERIFIED:
+    "Doanh nghiệp đã ở trạng thái xét duyệt này trước đó.",
+  ADMIN_INVALID_STATUS_TRANSITION:
+    "Chuyển đổi trạng thái xét duyệt doanh nghiệp không hợp lệ.",
+  ADMIN_REASON_REQUIRED: "Vui lòng nhập lý do từ chối.",
+  ADMIN_JOB_POSTING_NOT_FOUND: "Không tìm thấy tin tuyển dụng.",
+  ADMIN_COMPANY_NOT_VERIFIED_FOR_JOB_APPROVAL:
+    "Doanh nghiệp liên kết bắt buộc phải được xác thực trước khi phê duyệt tin tuyển dụng.",
+  ADMIN_JOB_ALREADY_MODERATED:
+    "Tin tuyển dụng không ở trạng thái chờ duyệt (PendingReview) để kiểm duyệt.",
+  ADMIN_INDUSTRY_GROUP_NOT_FOUND: "Không tìm thấy nhóm ngành tương ứng.",
+  ADMIN_INDUSTRY_GROUP_NAME_ALREADY_EXISTS:
+    "Tên nhóm ngành này đã tồn tại trên hệ thống.",
+  ADMIN_INDUSTRY_NOT_FOUND: "Không tìm thấy ngành nghề tương ứng.",
+  ADMIN_INDUSTRY_NAME_ALREADY_EXISTS:
+    "Tên ngành nghề này đã tồn tại trên hệ thống.",
+  ADMIN_PROVINCE_NOT_FOUND: "Không tìm thấy Tỉnh/Thành phố tương ứng.",
+  ADMIN_PROVINCE_NAME_ALREADY_EXISTS:
+    "Tên Tỉnh/Thành phố này đã tồn tại trên hệ thống.",
+  ADMIN_WARD_NOT_FOUND: "Không tìm thấy Phường/Xã tương ứng.",
+  ADMIN_WARD_NAME_ALREADY_EXISTS:
+    "Tên Phường/Xã này đã tồn tại trong Tỉnh/Thành phố đã chọn.",
+  ADMIN_SKILL_NOT_FOUND: "Không tìm thấy kỹ năng tương ứng.",
+  ADMIN_SKILL_NAME_ALREADY_EXISTS:
+    "Tên kỹ năng này đã tồn tại trên hệ thống.",
+  ADMIN_CV_TEMPLATE_NOT_FOUND: "Không tìm thấy mẫu CV tiêu chuẩn.",
+  ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS:
+    "Mã định danh (code) của mẫu CV này đã tồn tại.",
 };
 
 export const FIELD_LABELS: Record<string, string> = {
@@ -119,7 +162,7 @@ export const FIELD_LABELS: Record<string, string> = {
   fullName: "họ và tên",
   currentPassword: "mật khẩu hiện tại",
   newPassword: "mật khẩu mới",
-  name: "tên doanh nghiệp",
+  name: "tên",
   taxCode: "mã số thuế",
   address: "địa chỉ trụ sở chính",
   website: "website",
@@ -128,6 +171,7 @@ export const FIELD_LABELS: Record<string, string> = {
   companyId: "doanh nghiệp",
   provinceId: "tỉnh/thành phố",
   wardId: "phường/xã",
+  groupId: "nhóm ngành",
   detailedLocation: "địa chỉ cụ thể",
   experienceYears: "số năm kinh nghiệm",
   jobLevel: "cấp bậc",
@@ -146,6 +190,11 @@ export const FIELD_LABELS: Record<string, string> = {
   templateId: "mẫu CV",
   cvVersionId: "phiên bản CV",
   uploadedCvFileId: "tệp CV tải lên",
+  thumbnailFileId: "ảnh xem trước",
+  rejectionReason: "lý do từ chối",
+  code: "mã định danh",
+  isCentrallyGoverned: "trực thuộc trung ương",
+  isCommune: "xã/thị trấn",
 };
 
 export const HTTP_STATUS_MESSAGES: Record<number, string> = {

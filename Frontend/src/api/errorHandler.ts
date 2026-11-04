@@ -228,6 +228,29 @@ export const getApiFieldErrors = (error: unknown): Record<string, string> => {
       result.industryIds = API_ERROR_MESSAGES.INDUSTRY_NOT_FOUND;
     } else if (code === "SKILL_NOT_FOUND" && !result.skillIds) {
       result.skillIds = API_ERROR_MESSAGES.SKILL_NOT_FOUND;
+    } else if (code === "ADMIN_CANNOT_LOCK_LAST_ADMIN" && !result.userId) {
+      result.userId = API_ERROR_MESSAGES.ADMIN_CANNOT_LOCK_LAST_ADMIN;
+    } else if (
+      code === "ADMIN_COMPANY_NOT_VERIFIED_FOR_JOB_APPROVAL" &&
+      !result.companyId
+    ) {
+      result.companyId =
+        API_ERROR_MESSAGES.ADMIN_COMPANY_NOT_VERIFIED_FOR_JOB_APPROVAL;
+    } else if (
+      code === "ADMIN_INDUSTRY_GROUP_NAME_ALREADY_EXISTS" &&
+      !result.name
+    ) {
+      result.name = API_ERROR_MESSAGES.ADMIN_INDUSTRY_GROUP_NAME_ALREADY_EXISTS;
+    } else if (code === "ADMIN_INDUSTRY_NAME_ALREADY_EXISTS" && !result.name) {
+      result.name = API_ERROR_MESSAGES.ADMIN_INDUSTRY_NAME_ALREADY_EXISTS;
+    } else if (code === "ADMIN_PROVINCE_NAME_ALREADY_EXISTS" && !result.name) {
+      result.name = API_ERROR_MESSAGES.ADMIN_PROVINCE_NAME_ALREADY_EXISTS;
+    } else if (code === "ADMIN_WARD_NAME_ALREADY_EXISTS" && !result.name) {
+      result.name = API_ERROR_MESSAGES.ADMIN_WARD_NAME_ALREADY_EXISTS;
+    } else if (code === "ADMIN_SKILL_NAME_ALREADY_EXISTS" && !result.name) {
+      result.name = API_ERROR_MESSAGES.ADMIN_SKILL_NAME_ALREADY_EXISTS;
+    } else if (code === "ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS" && !result.code) {
+      result.code = API_ERROR_MESSAGES.ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS;
     }
   }
 
