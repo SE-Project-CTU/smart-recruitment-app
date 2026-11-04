@@ -109,7 +109,8 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
         JobPostingDetailData job,
         decimal? semanticVectorSimilarity = null) {
         var simulatedDoc = BuildSimulatedDocumentFromText(cvText);
-        return Evaluate(simulatedDoc, job, rawCvSkillsText: cvText, semanticVectorSimilarity: semanticVectorSimilarity);
+        var rawSkillsText = ExtractSkillsBlock(cvText);
+        return Evaluate(simulatedDoc, job, rawCvSkillsText: rawSkillsText, semanticVectorSimilarity: semanticVectorSimilarity);
     }
 
     public IReadOnlyList<MatchEngineResult> EvaluateBatch(
@@ -143,7 +144,8 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
         }
 
         var simulatedDoc = BuildSimulatedDocumentFromText(cvText);
-        return EvaluateBatch(simulatedDoc, jobs, rawCvSkillsText: cvText, semanticVectorSimilarities: semanticVectorSimilarities);
+        var rawSkillsText = ExtractSkillsBlock(cvText);
+        return EvaluateBatch(simulatedDoc, jobs, rawCvSkillsText: rawSkillsText, semanticVectorSimilarities: semanticVectorSimilarities);
     }
 
     public static string ExtractSkillsBlock(string cvText) {
