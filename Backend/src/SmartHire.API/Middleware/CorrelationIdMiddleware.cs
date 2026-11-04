@@ -23,10 +23,14 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next) {
             await next(context);
             return;
         }
-        
+
         var rawValue = context.Request.Headers[HeaderName].ToString();
-        
-        if (!Guid.TryParse(rawValue, out var correlationId)) {
+        var isHealthCheck = string.Equals(
+            context.Request.Path.Value?.TrimEnd('/'),
+            "/api/v1/health",
+            StringComparison.OrdinalIgnoreCase);
+
+        if (!Guid.TryParse(rawValue, out var correlationId) && !isHealthCheck) {
             var code = string.IsNullOrWhiteSpace(rawValue)
                 ? CommonErrorCodes.CorrelationIdRequired
                 : CommonErrorCodes.CorrelationIdInvalid;
@@ -41,7 +45,11 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next) {
                 message
             );
         }
-        
+
+        if (correlationId == Guid.Empty) {
+            correlationId = Guid.NewGuid();
+        }
+
         var formattedId = correlationId.ToString("D");
         
         context.Items[ItemKey] = formattedId;
