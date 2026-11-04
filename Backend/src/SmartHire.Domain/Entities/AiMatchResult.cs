@@ -11,4 +11,25 @@ public class AiMatchResult {
     public DateTimeOffset CreatedAt { get; private set; }
 
     private AiMatchResult() { }
+
+    public static AiMatchResult Create(
+        Guid applicationId,
+        Guid cvVersionId,
+        decimal score,
+        string analysis,
+        DateTimeOffset createdAt) {
+        return new AiMatchResult {
+            Id = Guid.NewGuid(),
+            ApplicationId = applicationId,
+            CvVersionId = cvVersionId,
+            Score = score,
+            Analysis = analysis,
+            CreatedAt = createdAt
+        };
+    }
+
+    public void Update(decimal score, string analysis) {
+        Score = score;
+        Analysis = analysis;
+    }
 }

@@ -67,6 +67,26 @@ public sealed class CvVersionRepository : ICvVersionRepository {
                 cancellationToken);
     }
 
+    public Task<CvVersion?> GetByVersionIdAsync(
+        Guid versionId,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                version => version.Id == versionId,
+                cancellationToken);
+    }
+
+    public Task<CvVersion?> GetLatestByCvIdAsync(
+        Guid cvId,
+        CancellationToken cancellationToken) {
+        return _dbContext.CvVersions
+            .AsNoTracking()
+            .Where(version => version.CvId == cvId)
+            .OrderByDescending(version => version.VersionNumber)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public Task<bool> IsOwnedByCandidateAsync(
         Guid versionId,
         Guid candidateId,

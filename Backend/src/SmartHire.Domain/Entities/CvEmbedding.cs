@@ -11,4 +11,23 @@ public class CvEmbedding {
     public DateTimeOffset CreatedAt { get; private set; }
 
     private CvEmbedding() { }
+
+    public static CvEmbedding Create(
+        Guid cvVersionId,
+        Vector embedding,
+        string model,
+        DateTimeOffset createdAt) {
+        return new CvEmbedding {
+            Id = Guid.NewGuid(),
+            CvVersionId = cvVersionId,
+            Embedding = embedding,
+            Model = model,
+            CreatedAt = createdAt
+        };
+    }
+
+    public void Update(Vector embedding, string model) {
+        Embedding = embedding;
+        Model = model;
+    }
 }
