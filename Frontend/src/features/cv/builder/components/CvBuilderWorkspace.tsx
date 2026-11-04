@@ -188,14 +188,17 @@ export default function CvBuilderWorkspace({
 
   return (
     <main
-      className={`flex flex-1 justify-center overflow-x-auto bg-slate-100 px-4 py-8 ${className}`}
+      className={`flex flex-1 flex-col items-center overflow-x-auto bg-slate-100 px-4 py-8 min-h-full ${className}`}
     >
       <div
-        className="cv-zoom-viewport flex justify-center min-w-fit"
+        className="cv-zoom-viewport flex justify-center min-w-fit shrink-0"
         style={{
           transform: zoom !== 1 ? `scale(${zoom})` : undefined,
           transformOrigin: "top center",
-          marginBottom: zoom > 1 ? `calc((297mm + 4rem) * ${zoom - 1})` : undefined,
+          marginBottom:
+            zoom > 1
+              ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
+              : "2rem",
         }}
       >
         <div ref={contentRef} className="print-container">
@@ -237,6 +240,8 @@ export default function CvBuilderWorkspace({
         )}
         </div>
       </div>
+      {/* Spacer đệm dưới cùng đảm bảo thanh cuộn luôn có khoảng trống tối thiểu 2rem dưới đáy CV */}
+      <div className="no-print h-4 w-full shrink-0" aria-hidden="true" />
     </main>
   );
 }

@@ -140,18 +140,26 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
         margin: 0;
       }
       @media print {
-        body {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          height: auto !important;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
-          transform: none !important;
-          zoom: 1 !important;
         }
         .cv-zoom-viewport,
-        .print-container,
-        .cv-page-container {
+        .print-container {
+          margin: 0 !important;
+          padding: 0 !important;
           transform: none !important;
           zoom: 1 !important;
+          height: auto !important;
+        }
+        .cv-page-container {
           margin: 0 !important;
+          box-shadow: none !important;
+          transform: none !important;
+          zoom: 1 !important;
         }
       }
     `,
@@ -161,6 +169,10 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
     void handleSubmit(
       async (data) => {
         if (!cvId) return;
+
+        console.log("[CVBuilder] Submitting CV data for save:", data);
+
+        return
 
         setIsSaving(true);
         try {

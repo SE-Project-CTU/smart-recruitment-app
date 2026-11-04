@@ -247,7 +247,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
 
   return (
     <div
-      className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white p-8 text-slate-900 shadow-xl print:m-0 print:p-8 print:shadow-none ${className}`}
+      className={`cv-page-container mx-auto w-[210mm] bg-white p-8 text-slate-900 shadow-xl print:m-0 print:p-8 print:shadow-none ${className}`}
       style={{
         fontFamily: getCvFontFamilyCss(fontFamily),
         lineHeight,
@@ -308,7 +308,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                                   }
                                 : dragProvided.draggableProps.style
                           }
-                          className={`group relative rounded-sm px-2 py-1 hover:ring-1 hover:ring-slate-300 ${
+                          className={`group relative rounded-sm px-2 hover:ring-1 hover:ring-slate-300 ${
                             snapshot.isDragging
                               ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
                               : ""
@@ -346,7 +346,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
       ) : (
         <div className="space-y-2">
           {visibleSections.map((sectionKey) => (
-            <div key={sectionKey} className="relative rounded-sm px-2 py-1">
+            <div key={sectionKey} className="relative rounded-sm px-2">
               {renderSectionContent(sectionKey)}
             </div>
           ))}

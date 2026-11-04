@@ -100,11 +100,27 @@
 }
 
 @media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .cv-zoom-viewport,
-  .print-container,
+  .print-container {
+    transform: none !important;
+    zoom: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
   .cv-page-container {
     transform: none !important;
     zoom: 1 !important;
     margin: 0 !important;
+    box-shadow: none !important;
   }
 }

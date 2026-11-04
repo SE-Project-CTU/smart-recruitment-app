@@ -246,7 +246,7 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
 
     return (
       <div
-        className={`cv-page-container mx-auto min-h-[297mm] w-[210mm] bg-white text-slate-900 shadow-xl print:m-0 print:shadow-none flex ${className}`}
+        className={`cv-page-container mx-auto w-[210mm] bg-white text-slate-900 shadow-xl print:m-0 print:shadow-none flex ${className}`}
         style={{
           fontFamily: getCvFontFamilyCss(fontFamily),
           lineHeight,
