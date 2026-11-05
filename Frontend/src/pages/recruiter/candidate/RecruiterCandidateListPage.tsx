@@ -24,6 +24,7 @@ import {
 import { useCompanyStore } from "@/stores";
 import type { JobPostingItem } from "@/types/job";
 import {
+  APPLICATION_STATUS_CONFIG,
   resolveCandidateProfile,
   type RecruiterCandidateApplicationItem,
   type UpdateJobApplicationStatus,
@@ -609,7 +610,7 @@ export function RecruiterCandidateListPage() {
             <DialogTitle>Xác nhận thay đổi trạng thái</DialogTitle>
             <DialogDescription>
               {pendingChange
-                ? `Chuyển hồ sơ của ứng viên ${resolveCandidateProfile(pendingChange.app).name} sang trạng thái "${pendingChange.toStatus}".`
+                ? `Chuyển hồ sơ của ứng viên ${resolveCandidateProfile(pendingChange.app).name} sang trạng thái "${APPLICATION_STATUS_CONFIG[pendingChange.toStatus]?.label || pendingChange.toStatus}".`
                 : ""}
             </DialogDescription>
           </DialogHeader>

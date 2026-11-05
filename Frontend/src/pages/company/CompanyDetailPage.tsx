@@ -115,7 +115,7 @@ export function CompanyDetailPage() {
         </div>
 
         {/* Hero Banner Skeleton */}
-        <div className="overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-xs">
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface p-6">
           <div className="h-44 w-full animate-pulse rounded-2xl bg-slate-200 sm:h-56" />
           <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="-mt-14 size-24 animate-pulse rounded-2xl border-4 border-surface bg-slate-300 sm:size-28" />

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Persistence.ReadModels;
+using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Admin.Users.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -148,7 +149,7 @@ public sealed class UserRepository : IUserRepository {
 
     public Task<int> CountActiveAdminsAsync(CancellationToken cancellationToken) {
         return _dbContext.Users
-            .Where(u => u.Status == UserStatus.Active && u.UserRoles.Any(ur => ur.Role.Name == "Admin"))
+            .Where(u => u.Status == UserStatus.Active && u.UserRoles.Any(ur => ur.Role.Name == RoleNames.Admin))
             .CountAsync(cancellationToken);
     }
 }

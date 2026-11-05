@@ -426,7 +426,7 @@ export function extractJobDisplayData(job: AnyJob) {
 
   const isCompanyVerified = Boolean(
     ("verificationStatus" in (job.company || {}) &&
-      (job.company as { verificationStatus?: string })?.verificationStatus ===
+      (job.company as { verificationStatus?: string })?.verificationStatus?.toUpperCase() ===
         "VERIFIED") ||
     ("isVerified" in (job.company || {}) &&
       Boolean((job.company as { isVerified?: boolean })?.isVerified)),

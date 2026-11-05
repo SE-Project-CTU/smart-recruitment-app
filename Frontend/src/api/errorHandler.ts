@@ -30,6 +30,12 @@ const getValidationMessages = (value: unknown): string[] => {
       return [];
     }
 
+    const field = getString(item, "field", "Field", "target", "Target");
+    const reason = getString(item, "reason", "Reason");
+    if (field) {
+      return [getValidationMessage(field, reason)];
+    }
+
     const message = getString(
       item,
       "message",
@@ -41,13 +47,7 @@ const getValidationMessages = (value: unknown): string[] => {
       return [message];
     }
 
-    const field = getString(item, "field", "Field", "target", "Target");
-    const reason = getString(item, "reason", "Reason");
-    if (!field) {
-      return ["Thông tin nhập vào chưa hợp lệ. Vui lòng kiểm tra lại."];
-    }
-
-    return [getValidationMessage(field, reason)];
+    return ["Thông tin nhập vào chưa hợp lệ. Vui lòng kiểm tra lại."];
   });
 };
 
@@ -120,15 +120,29 @@ export const getApiErrorMessage = (
       getString(errorBody, "message", "Message") ??
       getString(payload, "message", "Message");
 
+    const GENERIC_VALIDATION_CODES = new Set([
+      "VALIDATION_ERROR",
+      "INVALID_REQUEST_BODY",
+      "INVALID_JOB_POSTING_DATA",
+      "INVALID_COMPANY_DATA",
+    ]);
+
+    const validationMessages = getValidationMessages(
+      errorBody.details ?? errorBody.Details,
+    );
+    const isGenericValidation =
+      code != null && GENERIC_VALIDATION_CODES.has(code);
+
     // 1. Ưu tiên mã lỗi đã được dịch nghĩa chuẩn theo nghiệp vụ
-    if (code && API_ERROR_MESSAGES[code]) {
+    if (
+      code &&
+      API_ERROR_MESSAGES[code] &&
+      !(isGenericValidation && validationMessages.length > 0)
+    ) {
       return API_ERROR_MESSAGES[code];
     }
 
     // 2. Chi tiết lỗi từ details array
-    const validationMessages = getValidationMessages(
-      errorBody.details ?? errorBody.Details,
-    );
     if (validationMessages.length > 0) {
       return validationMessages.join(" ");
     }

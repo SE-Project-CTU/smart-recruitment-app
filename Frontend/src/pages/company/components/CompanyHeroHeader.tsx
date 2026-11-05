@@ -57,7 +57,8 @@ export function CompanyHeroHeader({
       ),
     );
 
-  const isVerified = company.verificationStatus === "Verified";
+  const isVerified =
+    company.verificationStatus?.toUpperCase() === "VERIFIED";
 
   // Kiểm tra nếu recruiter này đã là thành viên chính thức
   const isCompanyMember =
@@ -66,7 +67,7 @@ export function CompanyHeroHeader({
   const [isHoveredFollow, setIsHoveredFollow] = useState(false);
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-surface shadow-xs">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-surface">
       <div className="relative h-44 w-full bg-linear-to-r from-slate-900 via-primary/85 to-primary sm:h-56">
         <Grainient timeSpeed={1.5} />
       </div>

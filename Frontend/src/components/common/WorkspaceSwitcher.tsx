@@ -189,10 +189,10 @@ export function WorkspaceSwitcher() {
             {!isCollapsed && (
               <div className="flex min-w-0 flex-1 flex-col text-left">
                 <div className="flex items-center gap-1.5">
-                  <span className="truncate text-xs font-bold text-text-main">
+                  <span className="truncate text-xs font-semibold text-text-main">
                     {currentCompany?.name || "Chọn doanh nghiệp"}
                   </span>
-                  {currentCompany?.verificationStatus === "Verified" && (
+                  {currentCompany?.verificationStatus?.toUpperCase() === "VERIFIED" && (
                     <ShieldCheck className="size-3.5 shrink-0 text-emerald-600" />
                   )}
                 </div>

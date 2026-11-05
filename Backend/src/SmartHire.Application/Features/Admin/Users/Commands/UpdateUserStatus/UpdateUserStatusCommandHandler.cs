@@ -65,7 +65,6 @@ public sealed class UpdateUserStatusCommandHandler
                 user.Unlock(now);
             }
 
-            await _userRepository.SaveChangeAsync(ct);
             await _unitOfWork.SaveChangesAsync(ct);
 
             return new UpdateUserStatusResult(

@@ -117,9 +117,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     });
   };
 
-  const handleShareClick = () => {
+  const handleShareClick = async () => {
     try {
-      navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(window.location.href);
       toast.success({ description: "Đã sao chép liên kết tin tuyển dụng." });
     } catch {
       toast.warning({ description: "Không thể sao chép liên kết." });
@@ -191,7 +191,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                           </a>
                         }
                       />
-                      <TooltipPanel>Xem trang công ty (mở tab mới)</TooltipPanel>
+                      <TooltipPanel>
+                        Xem trang công ty (mở tab mới)
+                      </TooltipPanel>
                     </Tooltip>
                   )}
                 </div>
