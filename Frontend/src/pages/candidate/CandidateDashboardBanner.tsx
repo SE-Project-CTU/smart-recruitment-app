@@ -24,6 +24,7 @@ import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
 import { useMyApplications } from "@/hooks/queries/useApplication";
 import { useMyCvs } from "@/hooks/queries/useCv";
+import { useMyBookmarkedJobs } from "@/hooks/queries/useJob";
 import { PATHS } from "@/constants/paths";
 import { getTimeAgo } from "@/utils/helper";
 import { Button, GradientGridBackground } from "@/components/common";
@@ -150,18 +151,12 @@ export function CandidateDashboardBanner() {
     (app) => app.status !== "REJECTED" && app.status !== "WITHDRAWN",
   ).length;
 
-  const bookmarkedJobsCount = (() => {
-    try {
-      const stored = localStorage.getItem("candidate_bookmarked_jobs");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.length;
-      }
-    } catch {
-      return 4;
-    }
-    return 4;
-  })();
+  const { data: bookmarkedJobsData } = useMyBookmarkedJobs({
+    page: 1,
+    pageSize: 1,
+  });
+
+  const bookmarkedJobsCount = bookmarkedJobsData?.meta.totalItems ?? 0;
 
   const currentDateStr = dayjs().format("dddd, DD [tháng] MM");
   const formattedDate =

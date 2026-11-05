@@ -3,6 +3,8 @@ import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type {
   ApiPagedResponse,
   ApiResponse,
+  BookmarkJobResult,
+  BookmarkedJobResult,
   CreateJobPostingPayload,
   JobPostingDetailResult,
   JobPostingResult,
@@ -124,5 +126,43 @@ export const jobService = {
       ...(note?.trim() ? { note: note.trim() } : {}),
     });
     return response.data;
+  },
+
+  async bookmarkJob(jobId: string): Promise<BookmarkJobResult> {
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<BookmarkJobResult>
+    >(API_ENDPOINTS.JOB_POSTING.BOOKMARK(jobId));
+    return response.data;
+  },
+
+  async unbookmarkJob(jobId: string): Promise<void> {
+    await axiosClient.delete(API_ENDPOINTS.JOB_POSTING.UNBOOKMARK(jobId));
+  },
+
+  async getMyBookmarkedJobs(params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<{
+    items: BookmarkedJobResult[];
+    meta: PaginationMeta;
+  }> {
+    const response = await axiosClient.get<
+      never,
+      ApiPagedResponse<BookmarkedJobResult>
+    >(API_ENDPOINTS.JOB_POSTING.MY_BOOKMARKED_JOBS, { params });
+
+    return {
+      items: response.data || [],
+      meta: {
+        page: response.meta?.page ?? 1,
+        pageSize: response.meta?.pageSize ?? 20,
+        totalItems: response.meta?.totalItems ?? 0,
+        totalPages: response.meta?.totalPages ?? 1,
+        hasNextPage: response.meta?.hasNextPage ?? false,
+        hasPreviousPage: response.meta?.hasPreviousPage ?? false,
+      },
+    };
   },
 };

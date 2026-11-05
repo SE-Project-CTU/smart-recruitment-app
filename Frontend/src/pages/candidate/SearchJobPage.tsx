@@ -19,7 +19,15 @@ import {
 } from "@/components/LocationCombobox";
 import { JobDetailDrawer } from "@/components/job";
 import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
-import { useJobPostings, useJobPostingDetail } from "@/hooks/queries/useJob";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  useJobPostings,
+  useJobPostingDetail,
+  useMyBookmarkedJobs,
+  useBookmarkJob,
+  useUnbookmarkJob,
+} from "@/hooks/queries/useJob";
+import { toast } from "@/hooks/use-toast";
 import type { JobPostingSearchItem } from "@/types/job";
 import {
   isSalaryNegotiable,
@@ -68,9 +76,20 @@ export default function SearchJobPage() {
     null,
   );
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
-  const [bookmarkedJobIds, setBookmarkedJobIds] = useState<Set<string>>(
-    new Set(),
+
+  const { user } = useAuthStore();
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+
+  const { data: bookmarkedData } = useMyBookmarkedJobs(
+    { pageSize: 100 },
+    { enabled: Boolean(isCandidate) },
   );
+  const bookmarkMutation = useBookmarkJob();
+  const unbookmarkMutation = useUnbookmarkJob();
+
+  const bookmarkedJobIds = useMemo(() => {
+    return new Set((bookmarkedData?.items || []).map((j) => j.id));
+  }, [bookmarkedData?.items]);
 
   const { openApplyModal } = useApplyJobModalStore();
 
@@ -306,12 +325,18 @@ export default function SearchJobPage() {
   };
 
   const handleToggleBookmark = (jobId: string) => {
-    setBookmarkedJobIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(jobId)) next.delete(jobId);
-      else next.add(jobId);
-      return next;
-    });
+    if (!isCandidate) {
+      toast.warning({
+        description:
+          "Vui lòng đăng nhập với tài khoản Ứng viên để lưu tin tuyển dụng.",
+      });
+      return;
+    }
+    if (bookmarkedJobIds.has(jobId)) {
+      unbookmarkMutation.mutate(jobId);
+    } else {
+      bookmarkMutation.mutate(jobId);
+    }
   };
 
   const handleApply = (jobId: string) => {

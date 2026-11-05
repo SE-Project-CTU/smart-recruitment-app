@@ -345,3 +345,80 @@ export const useUpdateApplicationStatus = (jobId?: string) => {
     },
   });
 };
+
+/**
+ * Hook Query: Danh sách tin tuyển dụng đã lưu của Candidate (API 15c)
+ */
+export const useMyBookmarkedJobs = (
+  params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
+  return useQuery({
+    queryKey: ["job-postings", "bookmarked", params],
+    queryFn: () => jobService.getMyBookmarkedJobs(params),
+    enabled: options?.enabled ?? true,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
+ * Hook Mutation: Lưu tin tuyển dụng (API 15a)
+ */
+export const useBookmarkJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (jobId: string) => jobService.bookmarkJob(jobId),
+    onSuccess: (_, jobId) => {
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "bookmarked"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "detail", jobId],
+      });
+      toast.success({
+        description: "Đã lưu tin tuyển dụng vào danh sách quan tâm",
+      });
+    },
+    onError: (err: unknown) => {
+      const message = getApiErrorMessage(
+        err,
+        "Không thể lưu tin tuyển dụng",
+      );
+      toast.warning({ description: message });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Bỏ lưu tin tuyển dụng (API 15b)
+ */
+export const useUnbookmarkJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (jobId: string) => jobService.unbookmarkJob(jobId),
+    onSuccess: (_, jobId) => {
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "bookmarked"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "detail", jobId],
+      });
+      toast.success({
+        description: "Đã bỏ lưu tin tuyển dụng khỏi danh sách quan tâm",
+      });
+    },
+    onError: (err: unknown) => {
+      const message = getApiErrorMessage(
+        err,
+        "Không thể bỏ lưu tin tuyển dụng",
+      );
+      toast.warning({ description: message });
+    },
+  });
+};

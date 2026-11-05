@@ -1,4 +1,4 @@
-﻿export const API_ERROR_MESSAGES: Record<string, string> = {
+export const API_ERROR_MESSAGES: Record<string, string> = {
   CORRELATION_ID_REQUIRED: "Thiếu mã định danh yêu cầu. Vui lòng thử lại.",
   CORRELATION_ID_INVALID:
     "Mã định danh yêu cầu không hợp lệ. Vui lòng thử lại.",
@@ -79,6 +79,9 @@
   INDUSTRY_NOT_FOUND: "Ngành nghề được chọn không hợp lệ.",
   SKILL_NOT_FOUND: "Kỹ năng được chọn không hợp lệ.",
   INVALID_JOB_POSTING_SEARCH: "Tiêu chí tìm kiếm tin tuyển dụng không hợp lệ.",
+  JOB_ALREADY_BOOKMARKED: "Tin tuyển dụng này đã được lưu vào danh sách quan tâm của bạn.",
+  JOB_BOOKMARK_NOT_FOUND: "Tin tuyển dụng chưa được lưu trong danh sách quan tâm.",
+  CANNOT_BOOKMARK_UNPUBLISHED_JOB: "Chỉ có thể lưu các tin tuyển dụng đang công khai.",
   // CV Error Codes
   CV_CANDIDATE_ROLE_REQUIRED: "Chỉ ứng viên mới có quyền quản lý hồ sơ CV.",
   CV_NOT_FOUND: "Không tìm thấy hồ sơ CV.",
