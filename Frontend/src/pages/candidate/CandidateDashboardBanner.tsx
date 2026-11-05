@@ -26,7 +26,7 @@ import { useMyApplications } from "@/hooks/queries/useApplication";
 import { useMyCvs } from "@/hooks/queries/useCv";
 import { useMyBookmarkedJobs } from "@/hooks/queries/useJob";
 import { PATHS } from "@/constants/paths";
-import { getTimeAgo } from "@/utils/helper";
+import { getTimeAgo, getTimeOfDayGreeting } from "@/utils/helper";
 import { Button, GradientGridBackground } from "@/components/common";
 import {
   getJobLevelLabel,
@@ -162,10 +162,6 @@ export function CandidateDashboardBanner() {
   const formattedDate =
     currentDateStr.charAt(0).toUpperCase() + currentDateStr.slice(1);
 
-  const dayOfWeekStr = dayjs().format("dddd");
-  const formattedDayOfWeek =
-    dayOfWeekStr.charAt(0).toUpperCase() + dayOfWeekStr.slice(1);
-
   const statusTheme = getApplicationStatusTheme(latestApplication?.status);
 
   return (
@@ -193,7 +189,7 @@ export function CandidateDashboardBanner() {
           {/* Khối lời chào */}
           <div className="space-y-1.5">
             <h1 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
-              {formattedDayOfWeek} tốt lành, {userName}!
+              {getTimeOfDayGreeting(userName)}
             </h1>
             <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
               Hôm nay có nhiều cơ hội việc làm mới phù hợp với định hướng nghề
