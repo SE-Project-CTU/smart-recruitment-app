@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Save,
@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import Button from "@/components/common/Button";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
+import { ImageUploadDialog } from "@/components/common/ImageUploadDialog";
+import { useImageCropUpload } from "@/components/common/useImageCropUpload";
 import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { useUpdateCompany } from "@/hooks/queries/useCompany";
@@ -23,7 +25,6 @@ export function CompanySettingsTab() {
     useOutletContext<CompanyOutletContext>();
   const navigate = useNavigate();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync: updateCompany, isPending: isLoading } =
     useUpdateCompany();
   const { mutateAsync: uploadImage, isPending: isUploadingLogo } =
@@ -94,52 +95,55 @@ export function CompanySettingsTab() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogoFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const media = await uploadImage(file);
-      setLogoPreview(media.fileUrl);
+  const logoCropFlow = useImageCropUpload({
+    maxFileSizeBytes: 5 * 1024 * 1024,
+    onUpload: async (croppedFile: File) => {
+      try {
+        const media = await uploadImage(croppedFile);
+        setLogoPreview(media.fileUrl);
+        setFormData((prev) => ({
+          ...prev,
+          logoUrl: media.fileUrl,
+          logoFileId: media.id,
+        }));
+        toast.add({
+          type: "success",
+          title: "Đã tải logo lên",
+          description:
+            "Nhớ nhấn 'Lưu thay đổi' ở cuối trang để hoàn tất cập nhật.",
+        });
+        return true;
+      } catch (err: unknown) {
+        toast.add({
+          type: "error",
+          title: "Tải ảnh thất bại",
+          description: getApiErrorMessage(
+            err,
+            "Tải ảnh logo thất bại. Vui lòng kiểm tra định dạng và kích thước ảnh.",
+          ),
+        });
+        return false;
+      }
+    },
+    onRemove: async () => {
+      setLogoPreview(null);
       setFormData((prev) => ({
         ...prev,
-        logoUrl: media.fileUrl,
-        logoFileId: media.id,
+        logoUrl: null,
+        logoFileId: null,
       }));
       toast.add({
-        type: "success",
-        title: "Đã tải logo lên",
+        type: "info",
+        title: "Đã gỡ logo",
         description:
           "Nhớ nhấn 'Lưu thay đổi' ở cuối trang để hoàn tất cập nhật.",
       });
-    } catch (err: unknown) {
-      toast.add({
-        type: "error",
-        title: "Tải ảnh thất bại",
-        description: getApiErrorMessage(
-          err,
-          "Tải ảnh logo thất bại. Vui lòng kiểm tra định dạng và kích thước ảnh.",
-        ),
-      });
-    } finally {
-      e.target.value = "";
-    }
-  };
+      return true;
+    },
+  });
 
   const handleRemoveLogo = () => {
-    setLogoPreview(null);
-    setFormData((prev) => ({
-      ...prev,
-      logoUrl: null,
-      logoFileId: null,
-    }));
-    toast.add({
-      type: "info",
-      title: "Đã gỡ logo",
-      description: "Nhớ nhấn 'Lưu thay đổi' ở cuối trang để hoàn tất cập nhật.",
-    });
+    logoCropFlow.removeImage();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -225,19 +229,12 @@ export function CompanySettingsTab() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5 pt-1">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleLogoFileChange}
-                  accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
-                />
                 <Button
                   type="button"
                   variant="secondary"
                   icon={isUploadingLogo ? Loader2 : Upload}
                   disabled={isUploadingLogo}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={logoCropFlow.open}
                   className="px-3! py-1.5! text-xs!"
                 >
                   {isUploadingLogo
@@ -401,6 +398,17 @@ export function CompanySettingsTab() {
           </Button>
         </div>
       </form>
+
+      <ImageUploadDialog
+        flow={logoCropFlow}
+        currentImageUrl={logoPreview}
+        imageAlt={formData.name || company.name}
+        title="Logo doanh nghiệp"
+        description="Chọn và căn chỉnh logo của doanh nghiệp."
+        aspectRatio={1}
+        shape="square"
+        maxOutputDimension={512}
+      />
     </div>
   );
 }
