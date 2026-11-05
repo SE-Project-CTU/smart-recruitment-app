@@ -20,6 +20,7 @@ public sealed class SmartHireDbContext
     public DbSet<CompanyInvitation> CompanyInvitations => Set<CompanyInvitation>();
     public DbSet<CompanyJoinRequest> CompanyJoinRequests => Set<CompanyJoinRequest>();
     public DbSet<CompanyFollow> CompanyFollows => Set<CompanyFollow>();
+    public DbSet<JobBookmark> JobBookmarks => Set<JobBookmark>();
     public DbSet<Province> Provinces => Set<Province>();
     public DbSet<Ward> Wards => Set<Ward>();
     public DbSet<IndustryGroup> IndustryGroups => Set<IndustryGroup>();

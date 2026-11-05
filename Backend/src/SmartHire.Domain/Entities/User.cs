@@ -1,4 +1,4 @@
-﻿using SmartHire.Domain.Enums;
+using SmartHire.Domain.Enums;
 
 namespace SmartHire.Domain.Entities;
 
@@ -35,6 +35,9 @@ public class User {
     
     public ICollection<Cv> Cvs { get; private set; }
         = new List<Cv>();
+    
+    public ICollection<JobBookmark> JobBookmarks { get; private set; }
+        = new List<JobBookmark>();
     
     public ICollection<JobApplication> Applications { get; private set; } = new List<JobApplication>();
     
