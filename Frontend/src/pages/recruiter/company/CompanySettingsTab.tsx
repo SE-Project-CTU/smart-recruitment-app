@@ -17,6 +17,7 @@ import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { useUpdateCompany } from "@/hooks/queries/useCompany";
 import { useUploadImage } from "@/hooks/queries/useMedia";
+import { useCompanyStore } from "@/stores/companyStore";
 import type { CompanyOutletContext } from "./CompanyDetailLayout";
 import type { UpdateCompanyPayload } from "@/types/company";
 
@@ -162,8 +163,11 @@ export function CompanySettingsTab() {
     }
 
     try {
-      await updateCompany({ id: company.id, payload: formData });
+      const updated = await updateCompany({ id: company.id, payload: formData });
       await refreshCompany();
+      if (updated) {
+        useCompanyStore.getState().setActiveCompany(updated);
+      }
       toast.add({
         type: "success",
         title: "Thành công",

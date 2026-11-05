@@ -6,10 +6,12 @@ import {
 } from "@tanstack/react-query";
 import { companyService } from "@/services/companyService";
 import { useAuthStore } from "@/stores/authStore";
+import { useCompanyStore } from "@/stores/companyStore";
 import type {
   CreateCompanyPayload,
   InviteRecruiterPayload,
   ReviewJoinRequestPayload,
+  SubmitJoinRequestPayload,
   UpdateCompanyPayload,
   CompanyApplicationFilterParams,
 } from "@/types/company";
@@ -31,10 +33,13 @@ export const useMyCompanies = () => {
  * Hook Query: Lấy thông tin chi tiết một công ty theo ID
  */
 export const useCompanyDetail = (companyId?: string) => {
+  const isInitializing = useAuthStore((state) => state.isInitializing);
+  const user = useAuthStore((state) => state.user);
+
   return useQuery({
-    queryKey: ["companies", "detail", companyId],
+    queryKey: ["companies", "detail", companyId, user?.id ?? "anonymous"],
     queryFn: () => companyService.getCompanyDetail(companyId!),
-    enabled: Boolean(companyId),
+    enabled: Boolean(companyId) && !isInitializing,
     staleTime: 2 * 60 * 1000,
   });
 };
@@ -106,11 +111,19 @@ export const useUpdateCompany = () => {
     }) => companyService.updateCompany(id, payload),
     onSuccess: (updatedCompany) => {
       // Cập nhật cache chi tiết và danh sách
+      queryClient.invalidateQueries({ queryKey: ["companies", "detail"] });
       queryClient.setQueryData(
         ["companies", "detail", updatedCompany.id],
         updatedCompany,
       );
       queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
+      queryClient.invalidateQueries({ queryKey: ["companies", "public"] });
+
+      // Nếu công ty vừa cập nhật là activeCompany hiện tại, cập nhật ngay lập tức vào companyStore
+      const activeId = useCompanyStore.getState().activeCompanyId;
+      if (activeId === updatedCompany.id) {
+        useCompanyStore.getState().setActiveCompany(updatedCompany);
+      }
     },
   });
 };
@@ -132,6 +145,31 @@ export const useInviteMember = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["companies", "members", variables.companyId],
+      });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Gửi yêu cầu gia nhập công ty (API 9 - Recruiter)
+ */
+export const useSubmitJoinRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      companyId,
+      payload,
+    }: {
+      companyId: string;
+      payload?: SubmitJoinRequestPayload;
+    }) => companyService.submitJoinRequest(companyId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "detail", variables.companyId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "join-requests", variables.companyId],
       });
     },
   });
@@ -381,11 +419,14 @@ export const useLeaveCompany = () => {
 /**
  * Hook Query: Danh sách công ty mà Candidate đang theo dõi
  */
-export const useMyFollowedCompanies = (params?: {
-  search?: string;
-  page?: number;
-  pageSize?: number;
-}) => {
+export const useMyFollowedCompanies = (
+  params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: [
       "companies",
@@ -396,6 +437,7 @@ export const useMyFollowedCompanies = (params?: {
     ],
     queryFn: () => companyService.getMyFollowedCompanies(params),
     staleTime: 60 * 1000,
+    enabled: options?.enabled ?? true,
   });
 };
 

@@ -115,6 +115,8 @@ export function CandidateTable({
               <div className="flex max-w-56 min-w-36 flex-col gap-0.5">
                 <Link
                   to={jobUrl}
+                  target="_blank"
+                  rel="noreferrer"
                   className="group inline-flex items-center gap-1 truncate text-xs font-bold text-slate-800 transition-colors hover:text-primary sm:text-sm"
                   title={app.jobTitle}
                 >

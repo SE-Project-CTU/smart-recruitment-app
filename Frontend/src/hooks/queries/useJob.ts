@@ -51,6 +51,25 @@ export const useCompanyJobPostings = (
 };
 
 /**
+ * Hook Query: Danh sách tin tuyển dụng công khai đang mở của công ty (Public/Candidate view)
+ */
+export const useCompanyActivePublicJobs = (
+  companyId?: string | null,
+  params?: Omit<SearchJobPostingsRequest, "companyId">,
+) => {
+  return useQuery({
+    queryKey: ["job-postings", "public-company", companyId, params],
+    queryFn: () =>
+      jobService.searchJobPostings({
+        companyId: companyId || undefined,
+        ...params,
+      }),
+    enabled: Boolean(companyId),
+    staleTime: 60 * 1000,
+  });
+};
+
+/**
  * Hook Query: Danh sách tin tuyển dụng cho Recruiter từ các công ty của họ (API 15)
  * Hỗ trợ truyền danh sách ID công ty để lấy dữ liệu đồng thời (Promise.all)
  */

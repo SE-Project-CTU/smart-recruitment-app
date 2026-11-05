@@ -83,7 +83,7 @@ const getApplicationStatusTheme = (status?: string): ApplicationStatusTheme => {
         iconBg: "bg-purple-100 text-purple-700",
         iconColor: "text-purple-700",
         icon: Gift,
-        description: "Bạn đã nhận được lời mời làm việc (Offer)",
+        description: "Bạn đã nhận được lời mời làm việc",
       };
     case "HIRED":
     case "ACCEPTED":

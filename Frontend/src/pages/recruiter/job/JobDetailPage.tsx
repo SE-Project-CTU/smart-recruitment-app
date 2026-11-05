@@ -264,7 +264,7 @@ export function JobDetailPage() {
               <div className="flex items-center">
                 {job.companyId || job.company?.id ? (
                   <Link
-                    to={PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", String(job.companyId || job.company?.id))}
+                    to={PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", String(job.companyId || job.company?.id))} target="_blank" rel="noreferrer"
                     className="group inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
                   >
                     <span className="truncate">{compName}</span>

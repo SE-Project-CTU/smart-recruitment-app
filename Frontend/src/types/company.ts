@@ -27,6 +27,8 @@ export interface CompanyItem {
   createdAt: string;
   updatedAt: string;
   membership?: CompanyMembershipSummary | null;
+  isFollowed?: boolean | null;
+  hasPendingJoinRequest?: boolean;
 }
 
 export interface CompanyMemberUser {
@@ -138,6 +140,10 @@ export interface CompanyJoinRequestItem {
   status: CompanyJoinRequestStatus;
   createdAt: string;
   user?: CompanyJoinRequestUser | null;
+}
+
+export interface SubmitJoinRequestPayload {
+  message?: string;
 }
 
 export interface ReviewJoinRequestPayload {

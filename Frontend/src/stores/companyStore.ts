@@ -84,8 +84,22 @@ export const useCompanyStore = create<CompanyStoreState>((set, get) => ({
     const newId = company?.id ?? null;
     const currentUserId = getCurrentAuthUserId();
 
-    // Chặn re-render không cần thiết nếu ID không thay đổi và object đã có
-    if (currentId === newId && get().activeCompany?.id === newId) {
+    const prev = get().activeCompany;
+
+    // Chặn re-render nếu cùng instance hoặc các trường định danh & thông tin cốt lõi không thay đổi
+    if (currentId === newId && prev === company) {
+      return;
+    }
+
+    if (
+      currentId === newId &&
+      prev?.id === newId &&
+      prev?.name === company?.name &&
+      prev?.logoUrl === company?.logoUrl &&
+      prev?.logoFileId === company?.logoFileId &&
+      prev?.verificationStatus === company?.verificationStatus &&
+      prev?.membership?.role === company?.membership?.role
+    ) {
       return;
     }
 

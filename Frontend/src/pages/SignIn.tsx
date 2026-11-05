@@ -139,7 +139,7 @@ function SignIn() {
               {errorMessage ? (
                 <div className="flex items-center gap-1.5 text-xs font-medium text-status-error animate-in fade-in duration-150">
                   <AlertCircle size={14} className="shrink-0" />
-                  <span className="truncate">{errorMessage}</span>
+                  <span>{errorMessage}</span>
                 </div>
               ) : null}
             </div>

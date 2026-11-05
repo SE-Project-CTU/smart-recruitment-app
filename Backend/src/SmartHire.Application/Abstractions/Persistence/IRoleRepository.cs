@@ -1,4 +1,4 @@
-﻿using SmartHire.Domain.Entities;
+using SmartHire.Domain.Entities;
 
 namespace SmartHire.Application.Abstractions.Persistence;
 

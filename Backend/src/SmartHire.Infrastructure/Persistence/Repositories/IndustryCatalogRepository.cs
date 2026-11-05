@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Features.Admin.Catalogs.DTOs;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -116,5 +117,144 @@ public sealed class IndustryCatalogRepository : IIndustryCatalogRepository
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
+    }
+
+    // Admin methods
+    public async Task<(IReadOnlyList<AdminIndustryGroupDto> Items, int TotalCount)> GetAdminIndustryGroupsPagedAsync(
+        string? search,
+        bool? isActive,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.IndustryGroups.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var pattern = $"%{search.Trim()}%";
+            query = query.Where(g => EF.Functions.ILike(g.Name, pattern));
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(g => g.IsActive == isActive.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(g => g.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(g => new AdminIndustryGroupDto(
+                g.Id,
+                g.Name,
+                g.IsActive,
+                g.Industries.Count
+            ))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public Task<IndustryGroup?> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.IndustryGroups.SingleOrDefaultAsync(g => g.Id == id, cancellationToken);
+    }
+
+    public Task<bool> GroupNameExistsAsync(string name, Guid? excludeId, CancellationToken cancellationToken)
+    {
+        var trimmed = name.Trim();
+        var query = _dbContext.IndustryGroups.Where(g => EF.Functions.ILike(g.Name, trimmed));
+        if (excludeId.HasValue)
+        {
+            query = query.Where(g => g.Id != excludeId.Value);
+        }
+        return query.AnyAsync(cancellationToken);
+    }
+
+    public async Task AddGroupAsync(IndustryGroup group, CancellationToken cancellationToken)
+    {
+        await _dbContext.IndustryGroups.AddAsync(group, cancellationToken);
+    }
+
+    public Task<bool> HasLinkedIndustriesAsync(Guid groupId, CancellationToken cancellationToken)
+    {
+        return _dbContext.Industries.AnyAsync(i => i.GroupId == groupId, cancellationToken);
+    }
+
+    public Task<int> GetIndustriesCountByGroupIdAsync(Guid groupId, CancellationToken cancellationToken)
+    {
+        return _dbContext.Industries.CountAsync(i => i.GroupId == groupId, cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<AdminIndustryDto> Items, int TotalCount)> GetAdminIndustriesPagedAsync(
+        Guid? groupId,
+        string? search,
+        bool? isActive,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.Industries.AsNoTracking();
+
+        if (groupId.HasValue)
+        {
+            query = query.Where(i => i.GroupId == groupId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var pattern = $"%{search.Trim()}%";
+            query = query.Where(i => EF.Functions.ILike(i.Name, pattern));
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(i => i.IsActive == isActive.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(i => i.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(i => new AdminIndustryDto(
+                i.Id,
+                i.GroupId,
+                i.Group.Name,
+                i.Name,
+                i.IsActive
+            ))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public Task<Industry?> GetIndustryByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.Industries.SingleOrDefaultAsync(i => i.Id == id, cancellationToken);
+    }
+
+    public Task<bool> IndustryNameExistsAsync(string name, Guid? excludeId, CancellationToken cancellationToken)
+    {
+        var trimmed = name.Trim();
+        var query = _dbContext.Industries.Where(i => EF.Functions.ILike(i.Name, trimmed));
+        if (excludeId.HasValue)
+        {
+            query = query.Where(i => i.Id != excludeId.Value);
+        }
+        return query.AnyAsync(cancellationToken);
+    }
+
+    public async Task AddIndustryAsync(Industry industry, CancellationToken cancellationToken)
+    {
+        await _dbContext.Industries.AddAsync(industry, cancellationToken);
+    }
+
+    public Task<bool> HasLinkedJobPostingsForIndustryAsync(Guid industryId, CancellationToken cancellationToken)
+    {
+        return _dbContext.JobIndustries.AnyAsync(ji => ji.IndustryId == industryId, cancellationToken);
     }
 }
