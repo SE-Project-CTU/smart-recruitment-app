@@ -329,8 +329,7 @@ export default function SearchJobPage() {
   const handleToggleBookmark = (jobId: string) => {
     if (!isCandidate) {
       toast.warning({
-        description:
-          "Vui lòng đăng nhập với tài khoản Ứng viên để lưu tin tuyển dụng.",
+        description: "Bạn không có quyền thực hiện thao tác này!",
       });
       return;
     }
