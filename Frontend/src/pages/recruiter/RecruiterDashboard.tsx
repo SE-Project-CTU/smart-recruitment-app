@@ -484,13 +484,11 @@ export default function RecruiterDashboard() {
             {activeCompany && (
               <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-white/70 p-4 backdrop-blur-xs sm:flex-row sm:items-center">
                 <div className="flex items-center gap-3">
-                  <div className="size-11 shrink-0 overflow-hidden rounded-lg border border-border bg-white">
-                    <CompanyLogo
-                      name={activeCompany.name}
-                      logoUrl={activeCompany.logoUrl}
-                      size="sm"
-                    />
-                  </div>
+                  <CompanyLogo
+                    name={activeCompany.name}
+                    logoUrl={activeCompany.logoUrl}
+                    size="sm"
+                  />
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
