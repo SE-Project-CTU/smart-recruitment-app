@@ -234,7 +234,7 @@ export function SkillSelect({
                       className={cn(
                         "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs capitalize transition-all select-none",
                         isSelected
-                          ? "bg-secondary-light font-medium shadow-xs"
+                          ? "bg-secondary-light"
                           : "border-border bg-bg font-normal text-text-main hover:border-border hover:bg-surface",
                       )}
                     >
