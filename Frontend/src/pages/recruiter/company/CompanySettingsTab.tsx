@@ -61,40 +61,6 @@ export function CompanySettingsTab() {
     setLogoPreview(company.logoUrl ?? null);
   }
 
-  // Role Guard: Nếu không phải Owner, từ chối quyền truy cập
-  if (!isOwner) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-surface p-8 text-center sm:py-16">
-        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-          <ShieldAlert className="size-7" />
-        </div>
-        <h2 className="text-base font-bold text-text-main sm:text-lg">
-          Quyền truy cập bị giới hạn
-        </h2>
-        <p className="mt-1.5 max-w-md text-xs leading-relaxed text-text-muted">
-          Chỉ <strong>Chủ sở hữu (Owner)</strong> của doanh nghiệp mới có quyền
-          chỉnh sửa thông tin công ty. Bạn hiện đang là Thành viên (HR) thông
-          thường.
-        </p>
-        <button
-          onClick={() => navigate("../overview")}
-          type="button"
-          className="hover:bg-primary-hover mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
-        >
-          <ArrowLeft className="size-4" />
-          Về trang Tổng quan
-        </button>
-      </div>
-    );
-  }
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const logoCropFlow = useImageCropUpload({
     maxFileSizeBytes: 5 * 1024 * 1024,
     onUpload: async (croppedFile: File) => {
@@ -141,6 +107,40 @@ export function CompanySettingsTab() {
       return true;
     },
   });
+
+  // Role Guard: Nếu không phải Owner, từ chối quyền truy cập
+  if (!isOwner) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-surface p-8 text-center sm:py-16">
+        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+          <ShieldAlert className="size-7" />
+        </div>
+        <h2 className="text-base font-bold text-text-main sm:text-lg">
+          Quyền truy cập bị giới hạn
+        </h2>
+        <p className="mt-1.5 max-w-md text-xs leading-relaxed text-text-muted">
+          Chỉ <strong>Chủ sở hữu (Owner)</strong> của doanh nghiệp mới có quyền
+          chỉnh sửa thông tin công ty. Bạn hiện đang là Thành viên (HR) thông
+          thường.
+        </p>
+        <button
+          onClick={() => navigate("../overview")}
+          type="button"
+          className="hover:bg-primary-hover mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
+        >
+          <ArrowLeft className="size-4" />
+          Về trang Tổng quan
+        </button>
+      </div>
+    );
+  }
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleRemoveLogo = () => {
     logoCropFlow.removeImage();

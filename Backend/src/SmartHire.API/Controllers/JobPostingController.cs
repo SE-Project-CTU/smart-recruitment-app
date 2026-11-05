@@ -284,6 +284,6 @@ public sealed class JobPostingController : ControllerBase {
             new ListMyBookmarkedJobsQuery(search, pagination),
             cancellationToken);
 
-        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
+        return Ok(_responseFactory.PagedOneBased(items, pagination.Page, pagination.PageSize, totalCount));
     }
 }

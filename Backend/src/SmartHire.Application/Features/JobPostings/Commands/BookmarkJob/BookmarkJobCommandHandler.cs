@@ -1,6 +1,7 @@
 using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
+using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.JobPostings.DTOs;
 using SmartHire.Application.Features.JobPostings.Exceptions;
 using SmartHire.Domain.Entities;
@@ -33,7 +34,12 @@ public sealed class BookmarkJobCommandHandler : IRequestHandler<BookmarkJobComma
             throw JobPostingExceptions.JobPostingNotFound(request.JobPostingId);
         }
 
-        if (jobPosting.Status != JobPostingStatus.Published) {
+        var now = DateTimeOffset.UtcNow;
+        var isEligible = jobPosting.Status == JobPostingStatus.Published
+                         && jobPosting.Company.VerificationStatus == CompanyVerificationStatus.Verified
+                         && (jobPosting.Deadline == null || jobPosting.Deadline > now);
+
+        if (!isEligible) {
             throw JobPostingExceptions.CannotBookmarkUnpublishedJob();
         }
 
@@ -42,11 +48,16 @@ public sealed class BookmarkJobCommandHandler : IRequestHandler<BookmarkJobComma
             throw JobPostingExceptions.JobAlreadyBookmarked();
         }
 
-        var now = DateTimeOffset.UtcNow;
         var bookmark = JobBookmark.Create(userId, request.JobPostingId, now);
 
-        await _jobBookmarkRepository.AddAsync(bookmark, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        try {
+            await _jobBookmarkRepository.AddAsync(bookmark, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (PersistenceUniqueConstraintViolationException ex) when (
+            ex.ConstraintName?.Contains("job_bookmarks", StringComparison.OrdinalIgnoreCase) == true) {
+            throw JobPostingExceptions.JobAlreadyBookmarked();
+        }
 
         return new BookmarkJobResult(request.JobPostingId, true, now);
     }

@@ -23,7 +23,7 @@ import { useAuthStore } from "@/stores/authStore";
 import {
   useJobPostings,
   useJobPostingDetail,
-  useMyBookmarkedJobs,
+  useMyAllBookmarkedJobIds,
   useBookmarkJob,
   useUnbookmarkJob,
 } from "@/hooks/queries/useJob";
@@ -80,16 +80,15 @@ export default function SearchJobPage() {
   const { user } = useAuthStore();
   const isCandidate = Boolean(user?.roles?.includes("Candidate"));
 
-  const { data: bookmarkedData } = useMyBookmarkedJobs(
-    { pageSize: 100 },
-    { enabled: Boolean(isCandidate) },
-  );
+  const { data: allBookmarkedIds } = useMyAllBookmarkedJobIds({
+    enabled: Boolean(isCandidate),
+  });
   const bookmarkMutation = useBookmarkJob();
   const unbookmarkMutation = useUnbookmarkJob();
 
   const bookmarkedJobIds = useMemo(() => {
-    return new Set((bookmarkedData?.items || []).map((j) => j.id));
-  }, [bookmarkedData?.items]);
+    return allBookmarkedIds || new Set<string>();
+  }, [allBookmarkedIds]);
 
   const { openApplyModal } = useApplyJobModalStore();
 
@@ -333,7 +332,12 @@ export default function SearchJobPage() {
       });
       return;
     }
-    if (bookmarkedJobIds.has(jobId)) {
+    const isCurrentlyBookmarked =
+      jobDetail?.id === jobId && jobDetail.isBookmarked !== undefined
+        ? jobDetail.isBookmarked
+        : bookmarkedJobIds.has(jobId);
+
+    if (isCurrentlyBookmarked) {
       unbookmarkMutation.mutate(jobId);
     } else {
       bookmarkMutation.mutate(jobId);
@@ -616,7 +620,11 @@ export default function SearchJobPage() {
         open={isDetailDrawerOpen}
         onClose={() => setIsDetailDrawerOpen(false)}
         isBookmarked={
-          selectedJob ? bookmarkedJobIds.has(selectedJob.id) : false
+          jobDetail?.isBookmarked !== undefined
+            ? jobDetail.isBookmarked
+            : selectedJob
+              ? bookmarkedJobIds.has(selectedJob.id)
+              : false
         }
         onToggleBookmark={handleToggleBookmark}
         onApply={handleApply}

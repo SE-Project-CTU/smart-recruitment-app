@@ -16,6 +16,7 @@ import type {
 } from "@/types/application";
 import { toast } from "../use-toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
+import { useAuthStore } from "@/stores/authStore";
 
 /**
  * Hook Query: Danh sách tin tuyển dụng Public (API 5)
@@ -357,10 +358,53 @@ export const useMyBookmarkedJobs = (
   },
   options?: { enabled?: boolean },
 ) => {
+  const user = useAuthStore((s) => s.user);
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+
   return useQuery({
-    queryKey: ["job-postings", "bookmarked", params],
+    queryKey: ["job-postings", "bookmarked", user?.id, params],
     queryFn: () => jobService.getMyBookmarkedJobs(params),
-    enabled: options?.enabled ?? true,
+    enabled: (options?.enabled ?? true) && isCandidate,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Lấy toàn bộ ID các tin đã lưu của Candidate (không phân trang)
+ */
+export const useMyAllBookmarkedJobIds = (options?: { enabled?: boolean }) => {
+  const user = useAuthStore((s) => s.user);
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+
+  return useQuery({
+    queryKey: ["job-postings", "bookmarked", "all-ids", user?.id],
+    queryFn: async () => {
+      const firstPage = await jobService.getMyBookmarkedJobs({
+        page: 1,
+        pageSize: 100,
+      });
+      const ids = new Set(firstPage.items.map((j) => j.id));
+      const totalPages = firstPage.meta?.totalPages ?? 1;
+
+      if (totalPages > 1) {
+        const remainingPages = Array.from(
+          { length: totalPages - 1 },
+          (_, i) => i + 2,
+        );
+        const results = await Promise.all(
+          remainingPages.map((page) =>
+            jobService.getMyBookmarkedJobs({ page, pageSize: 100 }),
+          ),
+        );
+        for (const res of results) {
+          for (const item of res.items) {
+            ids.add(item.id);
+          }
+        }
+      }
+      return ids;
+    },
+    enabled: (options?.enabled ?? true) && isCandidate,
     staleTime: 30 * 1000,
   });
 };

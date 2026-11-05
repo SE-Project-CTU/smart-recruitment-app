@@ -5,6 +5,7 @@ import { authService } from "@/services/authService";
 import { accountService } from "@/services/accountService";
 import { getOrRefreshAccessToken } from "@/api/axios";
 import { useCompanyStore } from "./companyStore";
+import { queryClient } from "@/lib/queryClient";
 
 export interface AuthState {
   user: UserAccount | null;
@@ -89,6 +90,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearAuth: () => {
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     useCompanyStore.getState().clearActiveCompany();
+    queryClient.clear();
     set({
       user: null,
       accessToken: null,
