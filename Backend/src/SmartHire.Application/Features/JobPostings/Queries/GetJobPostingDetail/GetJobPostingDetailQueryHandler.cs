@@ -14,16 +14,19 @@ public sealed class GetJobPostingDetailQueryHandler
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly IJobApplicationRepository _jobApplicationRepository;
     private readonly ICompanyRepository _companyRepository;
+    private readonly IJobBookmarkRepository _jobBookmarkRepository;
     private readonly ICurrentUser _currentUser;
     
     public GetJobPostingDetailQueryHandler(
         IJobPostingRepository jobPostingRepository,
         IJobApplicationRepository jobApplicationRepository,
         ICompanyRepository companyRepository,
+        IJobBookmarkRepository jobBookmarkRepository,
         ICurrentUser currentUser) {
         _jobPostingRepository = jobPostingRepository;
         _jobApplicationRepository = jobApplicationRepository;
         _companyRepository = companyRepository;
+        _jobBookmarkRepository = jobBookmarkRepository;
         _currentUser = currentUser;
     }
     
@@ -62,6 +65,7 @@ public sealed class GetJobPostingDetailQueryHandler
         Guid? applicationId = null;
         var hasApplied = false;
         var isFollowingCompany = false;
+        var isBookmarked = false;
 
         if (_currentUser.UserId is Guid currentUserId) {
             applicationId = await _jobApplicationRepository.GetApplicationIdForCandidateAsync(
@@ -69,9 +73,11 @@ public sealed class GetJobPostingDetailQueryHandler
             hasApplied = applicationId.HasValue;
             isFollowingCompany = await _companyRepository.IsFollowingAsync(
                 currentUserId, posting.Company.Id, cancellationToken);
+            isBookmarked = await _jobBookmarkRepository.ExistsAsync(
+                currentUserId, id, cancellationToken);
         }
         
         return JobPostingDetailMapper.ToDetailResult(
-            posting, now, hasApplied, applicationId, isFollowingCompany);
+            posting, now, hasApplied, applicationId, isFollowingCompany, isBookmarked);
     }
 }

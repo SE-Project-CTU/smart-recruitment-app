@@ -32,6 +32,12 @@ import {
   useApplyJobModalStore,
   type AnyJob,
 } from "@/stores/applyJobModalStore";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  useBookmarkJob,
+  useUnbookmarkJob,
+  useMyBookmarkedJobs,
+} from "@/hooks/queries/useJob";
 import { useMyApplications } from "@/hooks/queries/useApplication";
 import type {
   JobPostingDetailResult,
@@ -68,11 +74,20 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
 }: JobDetailDrawerProps<T>) {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
-  const [internalBookmarked, setInternalBookmarked] = useState(false);
   const { openApplyModal } = useApplyJobModalStore();
+  const { user } = useAuthStore();
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
 
   const { data: myAppsData } = useMyApplications({ pageSize: 50 });
   const myApplications = myAppsData?.items ?? [];
+
+  const { data: bookmarkedData } = useMyBookmarkedJobs(
+    { pageSize: 100 },
+    { enabled: isCandidate && externalIsBookmarked === undefined },
+  );
+
+  const bookmarkMutation = useBookmarkJob();
+  const unbookmarkMutation = useUnbookmarkJob();
 
   const isAlreadyApplied = Boolean(
     job &&
@@ -83,7 +98,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   const isMarked =
     externalIsBookmarked !== undefined
       ? externalIsBookmarked
-      : internalBookmarked;
+      : job && "isBookmarked" in job && job.isBookmarked !== undefined
+        ? Boolean(job.isBookmarked)
+        : Boolean(bookmarkedData?.items?.some((b) => b.id === job?.id));
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -105,16 +122,25 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   };
 
   const handleBookmarkClick = () => {
+    // 1. Ưu tiên handler tùy biến từ cha (ví dụ ở trang BookmarkJobs)
     if (onToggleBookmark) {
       onToggleBookmark(job.id);
-    } else {
-      setInternalBookmarked(!internalBookmarked);
+      return;
     }
-    toast.success({
-      description: isMarked
-        ? "Đã bỏ lưu tin tuyển dụng."
-        : "Đã lưu tin tuyển dụng vào danh sách quan tâm.",
-    });
+
+    // 2. Tự xử lý độc lập nếu cha không truyền:
+    if (!isCandidate) {
+      toast.warning({
+        description: "Bạn không có quyền thực hiện thao tác này!",
+      });
+      return;
+    }
+
+    if (isMarked) {
+      unbookmarkMutation.mutate(job.id);
+    } else {
+      bookmarkMutation.mutate(job.id);
+    }
   };
 
   const handleShareClick = async () => {

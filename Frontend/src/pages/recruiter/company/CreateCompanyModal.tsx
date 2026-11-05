@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   Building2,
   X,
@@ -11,6 +11,8 @@ import {
 import Button from "@/components/common/Button";
 import { toast } from "@/components/ui/toast";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
+import { ImageUploadDialog } from "@/components/common/ImageUploadDialog";
+import { useImageCropUpload } from "@/components/common/useImageCropUpload";
 import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { useCreateCompany } from "@/hooks/queries/useCompany";
 import { useUploadImage } from "@/hooks/queries/useMedia";
@@ -43,11 +45,53 @@ export function CreateCompanyModal({
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: createCompany, isPending } = useCreateCompany();
   const { mutateAsync: uploadImage, isPending: isUploadingLogo } =
     useUploadImage();
+
+  const logoCropFlow = useImageCropUpload({
+    maxFileSizeBytes: 5 * 1024 * 1024,
+    onUpload: async (croppedFile: File) => {
+      try {
+        setLogoError(null);
+        const media = await uploadImage(croppedFile);
+        setLogoPreview(media.fileUrl);
+        setFormData((prev) => ({
+          ...prev,
+          logoUrl: media.fileUrl,
+          logoFileId: media.id,
+        }));
+        return true;
+      } catch (err: unknown) {
+        const msg = getApiErrorMessage(
+          err,
+          "Tải ảnh logo thất bại. Vui lòng kiểm tra định dạng và kích thước ảnh (< 5MB).",
+        );
+        setLogoError(msg);
+        toast.add({
+          type: "destructive",
+          title: "Tải logo thất bại",
+          description: msg,
+        });
+        return false;
+      }
+    },
+    onRemove: async () => {
+      setLogoPreview(null);
+      setLogoError(null);
+      setFormData((prev) => ({
+        ...prev,
+        logoUrl: undefined,
+        logoFileId: undefined,
+      }));
+      return true;
+    },
+  });
+
+  const handleRemoveLogo = () => {
+    logoCropFlow.removeImage();
+  };
 
   if (!isOpen) return null;
 
@@ -63,47 +107,6 @@ export function CreateCompanyModal({
         return next;
       });
     }
-  };
-
-  const handleLogoFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setLogoError(null);
-      const media = await uploadImage(file);
-      setLogoPreview(media.fileUrl);
-      setFormData((prev) => ({
-        ...prev,
-        logoUrl: media.fileUrl,
-        logoFileId: media.id,
-      }));
-    } catch (err: unknown) {
-      const msg = getApiErrorMessage(
-        err,
-        "Tải ảnh logo thất bại. Vui lòng kiểm tra định dạng và kích thước ảnh (< 5MB).",
-      );
-      setLogoError(msg);
-      toast.add({
-        type: "destructive",
-        title: "Tải logo thất bại",
-        description: msg,
-      });
-    } finally {
-      e.target.value = "";
-    }
-  };
-
-  const handleRemoveLogo = () => {
-    setLogoPreview(null);
-    setLogoError(null);
-    setFormData((prev) => ({
-      ...prev,
-      logoUrl: undefined,
-      logoFileId: undefined,
-    }));
   };
 
   const validate = (): boolean => {
@@ -241,19 +244,12 @@ export function CreateCompanyModal({
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleLogoFileChange}
-                  accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
-                />
                 <Button
                   type="button"
                   variant="secondary"
                   icon={isUploadingLogo ? Loader2 : Upload}
                   disabled={isUploadingLogo}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={logoCropFlow.open}
                   className="px-3! py-1.5! text-xs!"
                 >
                   {isUploadingLogo
@@ -506,6 +502,17 @@ export function CreateCompanyModal({
             </Button>
           </div>
         </form>
+
+        <ImageUploadDialog
+          flow={logoCropFlow}
+          currentImageUrl={logoPreview}
+          imageAlt={formData.name || "Company Logo"}
+          title="Logo doanh nghiệp"
+          description="Chọn và căn chỉnh logo cho doanh nghiệp mới."
+          aspectRatio={1}
+          shape="square"
+          maxOutputDimension={512}
+        />
       </div>
     </div>
   );

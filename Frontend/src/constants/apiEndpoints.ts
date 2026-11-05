@@ -59,6 +59,9 @@ export const API_ENDPOINTS = {
     UPDATE_STATUS: (id: string) => `/job-postings/${id}/status`,
     APPLICATIONS: (id: string) => `/job-postings/${id}/applications`,
     APPLY: (id: string) => `/job-postings/${id}/applications`,
+    BOOKMARK: (id: string) => `/job-postings/${id}/bookmarks`,
+    UNBOOKMARK: (id: string) => `/job-postings/${id}/bookmarks`,
+    MY_BOOKMARKED_JOBS: "/me/bookmarked-jobs",
   },
   APPLICATION: {
     MY_APPLICATIONS: "/applications/me",

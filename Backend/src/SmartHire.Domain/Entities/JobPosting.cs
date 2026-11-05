@@ -54,6 +54,7 @@ public class JobPosting {
 
     public ICollection<JobApplication> Applications { get; private set; } = new List<JobApplication>();
     public ICollection<JobRecommendation> Recommendations { get; private set; } = new List<JobRecommendation>();
+    public ICollection<JobBookmark> Bookmarks { get; private set; } = new List<JobBookmark>();
     
     private JobPosting() { }
 

@@ -11,6 +11,8 @@ import {
 import { Eye, EyeOff } from "lucide";
 import dayjs from "dayjs";
 import { Button, UserAvatar } from "@/components/common";
+import { ImageUploadDialog } from "@/components/common/ImageUploadDialog";
+import { useImageCropUpload } from "@/components/common/useImageCropUpload";
 
 import { useAuthStore } from "@/stores/authStore";
 import { getApiErrorMessage } from "@/api/errorHandler";
@@ -88,8 +90,6 @@ export default function UserProfile() {
     null,
   );
   const [profileErrors, setProfileErrors] = useState<ProfileErrors>({});
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Ref dùng để cleanup orphan file nếu user upload rồi rời trang / unmount component
   const pendingFileIdRef = useRef<string | null>(null);
@@ -179,39 +179,46 @@ export default function UserProfile() {
     setPendingProfileAction(null);
   };
 
-  const handleAvatarFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const avatarCropFlow = useImageCropUpload({
+    maxFileSizeBytes: 5 * 1024 * 1024,
+    onUpload: async (croppedFile: File) => {
+      setProfileErrors((prev) => ({ ...prev, avatar: undefined }));
+      try {
+        const mediaData = await uploadImage(croppedFile);
+        if (pendingAvatarFileId) {
+          await safeDeleteMedia(pendingAvatarFileId);
+        }
+        setPendingAvatarUrl(mediaData.fileUrl);
+        setPendingAvatarFileId(mediaData.id);
 
-    setProfileErrors((prev) => ({ ...prev, avatar: undefined }));
-
-    try {
-      const mediaData = await uploadImage(file);
-
-      // Nếu trước đó đã upload 1 ảnh tạm khác, xóa ngay ảnh cũ đi để không bị rác CSDL/Cloudinary
+        if (!isEditingProfile && account) {
+          setFullName(account.fullName);
+          setPhone(account.phone ?? "");
+          setIsEditingProfile(true);
+        }
+        return true;
+      } catch (err: unknown) {
+        setProfileErrors((prev) => ({
+          ...prev,
+          avatar: getApiErrorMessage(err, "Tải ảnh đại diện thất bại."),
+        }));
+        return false;
+      }
+    },
+    onRemove: async () => {
       if (pendingAvatarFileId) {
         await safeDeleteMedia(pendingAvatarFileId);
       }
-
-      setPendingAvatarUrl(mediaData.fileUrl);
-      setPendingAvatarFileId(mediaData.id);
-
+      setPendingAvatarUrl(null);
+      setPendingAvatarFileId(null);
       if (!isEditingProfile && account) {
         setFullName(account.fullName);
         setPhone(account.phone ?? "");
         setIsEditingProfile(true);
       }
-    } catch (err: unknown) {
-      setProfileErrors((prev) => ({
-        ...prev,
-        avatar: getApiErrorMessage(err, "Tải ảnh đại diện thất bại."),
-      }));
-    } finally {
-      e.target.value = "";
-    }
-  };
+      return true;
+    },
+  });
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -418,18 +425,10 @@ export default function UserProfile() {
                           className="size-full! rounded-full!"
                         />
 
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={handleAvatarFileChange}
-                          className="hidden"
-                        />
-
                         <button
                           type="button"
                           disabled={isUploadingAvatar}
-                          onClick={() => fileInputRef.current?.click()}
+                          onClick={avatarCropFlow.open}
                           title="Tải ảnh đại diện mới"
                           className="absolute right-0 bottom-0 flex size-7 cursor-pointer items-center justify-center rounded-full border border-border bg-white text-text-main shadow-xs transition-colors hover:bg-bg disabled:opacity-50"
                         >
@@ -465,7 +464,7 @@ export default function UserProfile() {
                         icon={Camera}
                         iconSize={14}
                         isLoading={isUploadingAvatar}
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={avatarCropFlow.open}
                         className="h-9! rounded-full! px-3.5! py-1.5! text-xs!"
                       >
                         Đổi ảnh
@@ -894,6 +893,17 @@ export default function UserProfile() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ImageUploadDialog
+        flow={avatarCropFlow}
+        currentImageUrl={pendingAvatarUrl ?? currentAvatar}
+        imageAlt="Ảnh đại diện của bạn"
+        title="Ảnh đại diện"
+        description="Chọn và căn chỉnh ảnh đại diện của bạn trước khi lưu."
+        aspectRatio={1}
+        shape="circle"
+        maxOutputDimension={512}
+      />
     </div>
   );
 }
