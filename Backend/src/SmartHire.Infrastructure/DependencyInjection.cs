@@ -63,6 +63,7 @@ public static class DependencyInjection {
         services.AddScoped<ILocationCatalogRepository, LocationCatalogRepository>();
         services.AddScoped<ISkillCatalogRepository, SkillCatalogRepository>();
         services.AddScoped<IJobPostingRepository, JobPostingRepository>();
+        services.AddScoped<IJobBookmarkRepository, JobBookmarkRepository>();
         services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
 
         

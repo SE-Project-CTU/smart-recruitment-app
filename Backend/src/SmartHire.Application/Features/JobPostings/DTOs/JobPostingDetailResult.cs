@@ -48,4 +48,5 @@ public sealed record JobPostingDetailResult(
     DateTimeOffset UpdatedAt,
     bool HasApplied,
     Guid? ApplicationId,
-    bool IsFollowingCompany);
+    bool IsFollowingCompany,
+    bool IsBookmarked = false);

@@ -14,4 +14,7 @@ public static class JobPostingErrorCodes {
     public const string JobPostingUnauthorized = "JOB_POSTING_UNAUTHORIZED";
     public const string JobPostingForbidden = "JOB_POSTING_FORBIDDEN";
     public const string JobPostingConflict = "JOB_POSTING_CONFLICT";
+    public const string JobAlreadyBookmarked = "JOB_ALREADY_BOOKMARKED";
+    public const string JobBookmarkNotFound = "JOB_BOOKMARK_NOT_FOUND";
+    public const string CannotBookmarkUnpublishedJob = "CANNOT_BOOKMARK_UNPUBLISHED_JOB";
 }

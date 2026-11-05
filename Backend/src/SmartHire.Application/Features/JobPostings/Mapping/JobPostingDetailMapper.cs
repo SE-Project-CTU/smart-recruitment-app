@@ -11,7 +11,8 @@ public static class JobPostingDetailMapper
         DateTimeOffset now,
         bool hasApplied = false,
         Guid? applicationId = null,
-        bool isFollowingCompany = false) => new(
+        bool isFollowingCompany = false,
+        bool isBookmarked = false) => new(
         data.Id,
         data.Title,
         data.Description,
@@ -49,7 +50,8 @@ public static class JobPostingDetailMapper
         data.UpdatedAt,
         hasApplied,
         applicationId,
-        isFollowingCompany);
+        isFollowingCompany,
+        isBookmarked);
 
     public static JobPostingResult ToJobPostingResult(JobPostingDetailData data) => new(
         data.Id,
