@@ -25,6 +25,7 @@ import Button from "@/components/common/Button";
 import { CompanyLogo } from "./CompanyLogo";
 import { useCompanyDetail } from "@/hooks/queries/useCompany";
 import { useAuthStore } from "@/stores/authStore";
+import { PATHS } from "@/constants/paths";
 import type { CompanyItem, CompanyInvitationItem } from "@/types/company";
 import dayjs from "dayjs";
 
@@ -190,11 +191,32 @@ export function CompanyDetailDrawer({
               </div>
 
               <div className="mt-4 flex items-center gap-2.5">
+                {company.id && (
+                  <Button
+                    variant="secondary"
+                    icon={ExternalLink}
+                    className="flex-1! text-xs!"
+                    onClick={() =>
+                      window.open(
+                        PATHS.COMPANY_DETAIL.replace(":id", company.id),
+                        "_blank",
+                        "noreferrer",
+                      )
+                    }
+                  >
+                    Xem chi tiết công ty
+                  </Button>
+                )}
                 {company.website && (
                   <Button
-                    icon={ExternalLink}
-                    className="flex-1!"
-                    onClick={() => window.open(company.website, "_blank")}
+                    variant="secondary"
+                    className="flex-1! text-xs!"
+                    onClick={() => {
+                      const url = company.website.startsWith("http")
+                        ? company.website
+                        : `https://${company.website}`;
+                      window.open(url, "_blank", "noreferrer");
+                    }}
                   >
                     Truy cập website
                   </Button>

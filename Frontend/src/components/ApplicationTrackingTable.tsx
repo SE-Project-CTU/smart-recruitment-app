@@ -103,9 +103,7 @@ function extractAppRow(app: ApplicationTrackingItem) {
       : null) ||
     null;
 
-  const workMode = job?.workMode
-    ? getWorkModeLabel(job.workMode)
-    : "Onsite";
+  const workMode = getWorkModeLabel(job?.workMode);
 
   const location =
     (isCandidateItem

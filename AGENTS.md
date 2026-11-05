@@ -40,7 +40,7 @@ Bất cứ khi nào nhận yêu cầu liên quan đến **Backend** hoặc chu�
 | Khu vực        | Vai trò                             | Hướng dẫn chi tiết                                                         |
 | -------------- | ----------------------------------- | -------------------------------------------------------------------------- |
 | `Frontend/`    | Web app (React + Vite + TypeScript) | **ĐỌC BẮT BUỘC TẠI:** [.agent/rules/frontend.md](.agent/rules/frontend.md) |
-| `Backend/`     | API server (.NET 8/9 C#)            | **ĐỌC BẮT BUỘC TẠI:** [.agent/rules/backend.md](.agent/rules/backend.md)   |
+| `Backend/`     | API server (.NET 10 C#)             | **ĐỌC BẮT BUỘC TẠI:** [.agent/rules/backend.md](.agent/rules/backend.md)   |
 | `compose.yaml` | Docker Compose                      | Cấu hình chạy toàn bộ ứng dụng                                             |
 
 ---

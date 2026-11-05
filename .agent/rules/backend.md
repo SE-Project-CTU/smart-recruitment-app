@@ -1,6 +1,6 @@
 # 📘 QUY TẮC PHÁT TRIỂN BACKEND SMARTHIRE (.NET C#)
 
-> **Mục đích**: Hướng dẫn tiêu chuẩn cho AI Agent và lập trình viên khi đọc, thiết kế hoặc code mở rộng tính năng trên Backend SmartHire (.NET 8/9, EF Core, PostgreSQL).
+> **Mục đích**: Hướng dẫn tiêu chuẩn cho AI Agent và lập trình viên khi đọc, thiết kế hoặc code mở rộng tính năng trên Backend SmartHire (.NET 10, EF Core, PostgreSQL).
 
 ---
 
@@ -53,7 +53,7 @@ Backend/src/
 
 ## 🧩 3. CÁC PATTERN & QUY TẮC CỐT LÕI
 
-### 1. Envelope Response Chuẩn ([`ApiResponseFactory`](smart-recruitment-app/Backend/src/SmartHire.API/Factories/ApiResponseFactory.cs))
+### 1. Envelope Response Chuẩn ([`ApiResponseFactory`](../../Backend/src/SmartHire.API/Factories/ApiResponseFactory.cs))
 
 Mọi Controller action **bắt buộc** trả về qua `_responseFactory`:
 
@@ -62,7 +62,7 @@ Mọi Controller action **bắt buộc** trả về qua `_responseFactory`:
 
 ### 2. Xử lý Lỗi: Exception-Driven (`AppException`)
 
-Không dùng `Result<T>` trong Handler. Ném trực tiếp `AppException` với [`AppErrorKind`](smart-recruitment-app/Backend/src/SmartHire.Application/Common/Errors/AppErrorKind.cs):
+Không dùng `Result<T>` trong Handler. Ném trực tiếp `AppException` với [`AppErrorKind`](../../Backend/src/SmartHire.Application/Common/Errors/AppErrorKind.cs):
 
 - **Mapping HTTP**: `Validation` $\rightarrow$ 422, `NotFound` $\rightarrow$ 404, `BadRequest` $\rightarrow$ 400, `Forbidden` $\rightarrow$ 403, `Conflict` $\rightarrow$ 409.
 - Mỗi Feature tạo static class `{Feature}Exceptions.cs` đóng vai trò factory ném lỗi:

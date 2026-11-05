@@ -118,4 +118,18 @@ public class User {
         AvatarFileId = avatarFileId;
         UpdatedAt = now;
     }
+    public void Lock(DateTimeOffset now) {
+        Status = UserStatus.Locked;
+        UpdatedAt = now;
+    }
+
+    public void Unlock(DateTimeOffset now) {
+        Status = UserStatus.Active;
+        UpdatedAt = now;
+    }
+
+    public void Deactivate(DateTimeOffset now) {
+        Status = UserStatus.Inactive;
+        UpdatedAt = now;
+    }
 }

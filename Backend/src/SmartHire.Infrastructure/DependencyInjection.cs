@@ -70,6 +70,8 @@ public static class DependencyInjection {
         services.AddScoped<ICvRepository, CvRepository>();
         services.AddScoped<ICvVersionRepository, CvVersionRepository>();
         services.AddSingleton<ICvDocumentHasher, CvDocumentHasher>();
+        services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
+        
 
         services.AddScoped<IAiMatchResultRepository, AiMatchResultRepository>();
         services.AddScoped<IJobRecommendationRepository, JobRecommendationRepository>();

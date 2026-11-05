@@ -133,6 +133,7 @@ export default function BookmarkCompanies() {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <img
             src={EmptyStreet}
+            alt=""
             loading="lazy"
             className="h-80 w-auto md:h-120"
           />

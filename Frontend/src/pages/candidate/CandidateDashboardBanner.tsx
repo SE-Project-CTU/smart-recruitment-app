@@ -82,7 +82,7 @@ const getApplicationStatusTheme = (status?: string): ApplicationStatusTheme => {
         iconBg: "bg-purple-100 text-purple-700",
         iconColor: "text-purple-700",
         icon: Gift,
-        description: "Bạn đã nhận được lời mời làm việc (Offer)",
+        description: "Bạn đã nhận được lời mời làm việc",
       };
     case "HIRED":
     case "ACCEPTED":
@@ -158,9 +158,9 @@ export function CandidateDashboardBanner() {
         if (Array.isArray(parsed)) return parsed.length;
       }
     } catch {
-      return 4;
+      return 0;
     }
-    return 4;
+    return 0;
   })();
 
   const currentDateStr = dayjs().format("dddd, DD [tháng] MM");

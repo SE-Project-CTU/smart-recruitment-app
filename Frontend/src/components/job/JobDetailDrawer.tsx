@@ -10,6 +10,7 @@ import {
   BookmarkCheck,
   Share2,
   Zap,
+  ExternalLink,
 } from "lucide-react";
 import {
   Sheet,
@@ -116,9 +117,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     });
   };
 
-  const handleShareClick = () => {
+  const handleShareClick = async () => {
     try {
-      navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(window.location.href);
       toast.success({ description: "Đã sao chép liên kết tin tuyển dụng." });
     } catch {
       toast.warning({ description: "Không thể sao chép liên kết." });
@@ -171,6 +172,29 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                   </span>
                   {data.isCompanyVerified && (
                     <CheckCircle2 className="size-3.5 text-status-success" />
+                  )}
+                  {data.companyId && (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <a
+                            href={PATHS.COMPANY_DETAIL.replace(
+                              ":id",
+                              data.companyId!,
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex size-5 cursor-pointer items-center justify-center rounded text-text-muted transition-colors hover:text-primary"
+                            aria-label="Xem trang công ty (mở tab mới)"
+                          >
+                            <ExternalLink className="size-3.5" />
+                          </a>
+                        }
+                      />
+                      <TooltipPanel>
+                        Xem trang công ty (mở tab mới)
+                      </TooltipPanel>
+                    </Tooltip>
                   )}
                 </div>
               </div>

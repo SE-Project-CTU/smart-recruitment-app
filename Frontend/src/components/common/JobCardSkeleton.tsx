@@ -2,7 +2,7 @@ import { Skeleton } from "../ui/skeleton";
 
 function JobCardSkeleton() {
   return (
-    <div className="flex w-full max-w-85 min-w-70 flex-col justify-between rounded-3xl border border-border bg-white p-5 shadow-xs">
+    <div className="flex w-full max-w-85 min-w-70 flex-col justify-between rounded-2xl border border-border bg-white p-5">
       <div>
         <div className="flex items-center justify-between gap-2">
           <Skeleton className="h-6 w-28 rounded-md" />
