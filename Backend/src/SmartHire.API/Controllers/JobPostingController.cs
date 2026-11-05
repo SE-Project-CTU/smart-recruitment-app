@@ -17,6 +17,9 @@ using SmartHire.Application.Features.JobPostings.Queries.SearchJobPostings;
 using SmartHire.Application.Features.Applications.Commands.ApplyToJobPosting;
 using SmartHire.Application.Features.Applications.Queries.ListApplicationsForJob;
 using SmartHire.Application.Features.JobPostings.DTOs;
+using SmartHire.Application.Features.JobPostings.Commands.BookmarkJob;
+using SmartHire.Application.Features.JobPostings.Commands.UnbookmarkJob;
+using SmartHire.Application.Features.JobPostings.Queries.ListMyBookmarkedJobs;
 
 namespace SmartHire.Api.Controllers;
 
@@ -242,5 +245,45 @@ public sealed class JobPostingController : ControllerBase {
             result.Page,
             result.PageSize,
             result.TotalItems));
+    }
+
+    /// <summary>
+    /// Lưu tin tuyển dụng vào danh sách quan tâm của ứng viên
+    /// </summary>
+    [HttpPost("{id:guid}/bookmarks")]
+    [Authorize(Roles = RoleNames.Candidate)]
+    public async Task<IActionResult> BookmarkJob(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken) {
+        var result = await _sender.Send(new BookmarkJobCommand(id), cancellationToken);
+        return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
+    }
+
+    /// <summary>
+    /// Xóa tin tuyển dụng khỏi danh sách quan tâm của ứng viên
+    /// </summary>
+    [HttpDelete("{id:guid}/bookmarks")]
+    [Authorize(Roles = RoleNames.Candidate)]
+    public async Task<IActionResult> UnbookmarkJob(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken) {
+        await _sender.Send(new UnbookmarkJobCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Lấy danh sách tin tuyển dụng mà ứng viên hiện tại đã lưu
+    /// </summary>
+    [HttpGet("/api/v1/me/bookmarked-jobs")]
+    [Authorize(Roles = RoleNames.Candidate)]
+    public async Task<IActionResult> ListMyBookmarkedJobs(
+        [FromQuery] string? search,
+        [FromQuery] PaginationParams pagination,
+        CancellationToken cancellationToken = default) {
+        var (items, totalCount) = await _sender.Send(
+            new ListMyBookmarkedJobsQuery(search, pagination),
+            cancellationToken);
+
+        return Ok(_responseFactory.Paged(items, pagination.Page, pagination.PageSize, totalCount));
     }
 }
