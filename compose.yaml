@@ -58,14 +58,34 @@ services:
         Database=${POSTGRES_DB};
         Username=${POSTGRES_USER};
         Password=${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     ports:
       - "127.0.0.1:${API_HOST_PORT:-5190}:8080"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   # ──────────────────────────────────────────
-  # 3. FRONTEND — React/Vite + Nginx
+  # 3. REDIS — Distributed In-Memory Cache
+  # ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      sh -c 'if [ -n "$${REDIS_PASSWORD}" ]; then redis-server --requirepass "$${REDIS_PASSWORD}" --appendonly yes; else redis-server --appendonly yes; fi'
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # ──────────────────────────────────────────
+  # 4. FRONTEND — React/Vite + Nginx
   # ──────────────────────────────────────────
   frontend:
     build:
@@ -83,3 +103,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

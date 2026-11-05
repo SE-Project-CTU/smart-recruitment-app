@@ -7,6 +7,7 @@ import type {
   CompanyInvitationItem,
   CompanyItem,
   CompanyJoinRequestItem,
+  SubmitJoinRequestPayload,
   CompanyMember,
   CreateCompanyPayload,
   InviteRecruiterPayload,
@@ -194,6 +195,20 @@ export const companyService = {
     await axiosClient.post<never, void>(
       API_ENDPOINTS.COMPANY.REJECT_INVITATION(invitationId),
     );
+  },
+
+  /**
+   * Gửi yêu cầu gia nhập công ty (API 9)
+   */
+  async submitJoinRequest(
+    companyId: string,
+    payload?: SubmitJoinRequestPayload,
+  ): Promise<CompanyJoinRequestItem> {
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<CompanyJoinRequestItem>
+    >(API_ENDPOINTS.COMPANY.JOIN_REQUESTS(companyId), payload ?? {});
+    return response.data;
   },
 
   /**

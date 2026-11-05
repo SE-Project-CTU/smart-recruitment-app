@@ -1,4 +1,4 @@
-﻿using SmartHire.Domain.Enums;
+using SmartHire.Domain.Enums;
 
 namespace SmartHire.Domain.Entities;
 
@@ -35,6 +35,9 @@ public class User {
     
     public ICollection<Cv> Cvs { get; private set; }
         = new List<Cv>();
+    
+    public ICollection<JobBookmark> JobBookmarks { get; private set; }
+        = new List<JobBookmark>();
     
     public ICollection<JobApplication> Applications { get; private set; } = new List<JobApplication>();
     
@@ -116,6 +119,20 @@ public class User {
         DateTimeOffset now
     ) {
         AvatarFileId = avatarFileId;
+        UpdatedAt = now;
+    }
+    public void Lock(DateTimeOffset now) {
+        Status = UserStatus.Locked;
+        UpdatedAt = now;
+    }
+
+    public void Unlock(DateTimeOffset now) {
+        Status = UserStatus.Active;
+        UpdatedAt = now;
+    }
+
+    public void Deactivate(DateTimeOffset now) {
+        Status = UserStatus.Inactive;
         UpdatedAt = now;
     }
 }

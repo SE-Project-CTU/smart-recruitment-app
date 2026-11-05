@@ -94,4 +94,22 @@ internal static class JobPostingExceptions
         JobPostingErrorCodes.JobPostingConflict,
         message,
         [new AppErrorDetail("status", ValidationReasons.NotAllowed, message)]);
+
+    public static AppException JobAlreadyBookmarked() => new(
+        AppErrorKind.Conflict,
+        JobPostingErrorCodes.JobAlreadyBookmarked,
+        "This job posting has already been bookmarked.",
+        [new AppErrorDetail("jobPostingId", ErrorDetailReasons.AlreadyExists, "This job posting is already in your saved jobs list.")]);
+
+    public static AppException JobBookmarkNotFound() => new(
+        AppErrorKind.NotFound,
+        JobPostingErrorCodes.JobBookmarkNotFound,
+        "Job bookmark was not found.",
+        [new AppErrorDetail("jobPostingId", ErrorDetailReasons.NotFound, "This job posting is not in your saved jobs list.")]);
+
+    public static AppException CannotBookmarkUnpublishedJob() => new(
+        AppErrorKind.BadRequest,
+        JobPostingErrorCodes.CannotBookmarkUnpublishedJob,
+        "Cannot bookmark an unpublished job posting.",
+        [new AppErrorDetail("status", ValidationReasons.NotAllowed, "Only published job postings can be bookmarked.")]);
 }

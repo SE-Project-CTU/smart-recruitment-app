@@ -25,15 +25,27 @@ public sealed class GetCompanyDetailQueryHandler : IRequestHandler<GetCompanyDet
         }
 
         CompanyMembershipSummary? membershipSummary = null;
+        bool? isFollowed = null;
+        var hasPendingJoinRequest = false;
+
         if (_currentUser.UserId is Guid userId) {
             var membership = await _companyRepository.GetMembershipAsync(company.Id, userId, cancellationToken);
             if (membership is not null) {
                 membershipSummary = new CompanyMembershipSummary(
                     membership.Role.ToString(),
                     membership.Status.ToString());
+            } else {
+                var pendingJoin = await _companyRepository.GetPendingJoinRequestAsync(company.Id, userId, cancellationToken);
+                hasPendingJoinRequest = pendingJoin is not null;
             }
+
+            isFollowed = await _companyRepository.IsFollowingAsync(userId, company.Id, cancellationToken);
         }
 
-        return CompanyResultMapper.ToCompanyResult(company, membership: membershipSummary);
+        return CompanyResultMapper.ToCompanyResult(
+            company,
+            membership: membershipSummary,
+            isFollowed: isFollowed,
+            hasPendingJoinRequest: hasPendingJoinRequest);
     }
 }

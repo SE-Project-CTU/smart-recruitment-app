@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Features.Admin.Catalogs.DTOs;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -64,6 +65,78 @@ public sealed class CvTemplateRepository : ICvTemplateRepository {
             .Take(pageSize)
             .Include(template => template.ThumbnailFile)
             .ToListAsync(cancellationToken);
+    }
+
+    // Admin methods
+    public async Task<(IReadOnlyList<AdminCvTemplateItemDto> Items, int TotalCount)> GetAdminCvTemplatesPagedAsync(
+        string? search,
+        bool? isActive,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.CvTemplates.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var pattern = $"%{search.Trim()}%";
+            query = query.Where(t => EF.Functions.ILike(t.Name, pattern) || EF.Functions.ILike(t.Code, pattern));
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(t => t.IsActive == isActive.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(t => t.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(t => new AdminCvTemplateItemDto(
+                t.Id,
+                t.Code,
+                t.Name,
+                t.Description,
+                t.ThumbnailFile != null ? t.ThumbnailFile.FileUrl : null,
+                t.Version,
+                t.Language.ToString().ToUpperInvariant(),
+                t.IsActive,
+                t.CreatedAt,
+                t.UpdatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public Task<CvTemplate?> GetAdminCvTemplateByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.CvTemplates
+            .Include(t => t.ThumbnailFile)
+            .SingleOrDefaultAsync(t => t.Id == id, cancellationToken);
+    }
+
+    public Task<bool> CodeExistsAsync(string code, Guid? excludeId, CancellationToken cancellationToken)
+    {
+        var normalized = code.Trim().ToLowerInvariant();
+        var query = _dbContext.CvTemplates.Where(t => t.Code == normalized);
+        if (excludeId.HasValue)
+        {
+            query = query.Where(t => t.Id != excludeId.Value);
+        }
+        return query.AnyAsync(cancellationToken);
+    }
+
+    public async Task AddCvTemplateAsync(CvTemplate template, CancellationToken cancellationToken)
+    {
+        await _dbContext.CvTemplates.AddAsync(template, cancellationToken);
+    }
+
+    public Task<bool> HasLinkedCvsAsync(Guid templateId, CancellationToken cancellationToken)
+    {
+        return _dbContext.Cvs.AnyAsync(cv => cv.TemplateId == templateId, cancellationToken);
     }
 
     private static IQueryable<CvTemplate> ApplyActiveSearch(

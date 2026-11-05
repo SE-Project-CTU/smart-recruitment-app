@@ -6,6 +6,7 @@ using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Abstractions.Persistence.Criteria;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
+using SmartHire.Application.Features.Admin.JobPostings.DTOs;
 using JobPostingDetailData = SmartHire.Application.Abstractions.Persistence.ReadModels.JobPostingDetailData;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -158,6 +159,63 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                 posting.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<JobPostingDetailData>> GetDetailsByIdsAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken) {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return Array.Empty<JobPostingDetailData>();
+
+        return await _dbContext.JobPostings
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Where(p => idList.Contains(p.Id))
+            .Select(posting => new JobPostingDetailData(
+                posting.Id,
+                new CreatorReadModel(
+                    posting.CreatedByMembership.User.Id,
+                    posting.CreatedByMembership.User.FullName,
+                    posting.CreatedByMembership.User.Email,
+                    posting.CreatedByMembership.User.AvatarFile != null
+                        ? posting.CreatedByMembership.User.AvatarFile.FileUrl
+                        : null),
+                posting.Title,
+                posting.Description,
+                posting.Requirements,
+                posting.Benefits,
+                posting.ExperienceYears,
+                posting.JobLevel,
+                posting.EducationLevel,
+                posting.Vacancies,
+                posting.WorkMode,
+                posting.JobType,
+                posting.SalaryMin,
+                posting.SalaryMax,
+                posting.SalaryNegotiable,
+                posting.Deadline,
+                posting.Status,
+                new CompanyReadModel(
+                    posting.Company.Id,
+                    posting.Company.Name,
+                    posting.Company.VerificationStatus,
+                    posting.Company.Address,
+                    posting.Company.LogoFile != null ? posting.Company.LogoFile.FileUrl : null),
+                new LocationReadModel(
+                    posting.ProvinceId,
+                    posting.Province.Name,
+                    posting.WardId,
+                    posting.Ward != null ? posting.Ward.Name : null,
+                    posting.DetailedLocation),
+                posting.JobIndustries
+                    .Select(ji => new IndustryReadModel(ji.Industry.Id, ji.Industry.Name))
+                    .ToList(),
+                posting.JobSkills
+                    .Select(js => new SkillReadModel(js.Skill.Id, js.Skill.Name))
+                    .ToList(),
+                posting.CreatedAt,
+                posting.UpdatedAt))
+            .ToListAsync(cancellationToken);
+    }
     
     public async Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken) {
         return await _dbContext.JobPostings
@@ -190,7 +248,6 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                         p.Deadline <= now)
             .ToListAsync(cancellationToken);
     }
-    
     
     public async Task<(IReadOnlyList<CompanyJobPostingData> Items, int TotalCount)> GetByCompanyIdPagedAsync(
         Guid companyId,
@@ -259,6 +316,68 @@ public sealed class JobPostingRepository : IJobPostingRepository {
         return (items, totalCount);
     }
     
+    public async Task<(IReadOnlyList<AdminJobPostingItemDto> Items, int TotalCount)> GetAdminJobPostingsPagedAsync(
+        string? search,
+        JobPostingStatus? status,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.JobPostings.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmed = search.Trim();
+            query = query.Where(j => EF.Functions.ILike(j.Title, "%" + trimmed + "%") || EF.Functions.ILike(j.Company.Name, "%" + trimmed + "%"));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(j => j.Status == status.Value);
+        }
+
+        if (companyId.HasValue)
+        {
+            query = query.Where(j => j.CompanyId == companyId.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(j => j.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(j => new AdminJobPostingItemDto(
+                j.Id,
+                j.CompanyId,
+                j.Company.Name,
+                j.Company.LogoFile != null ? j.Company.LogoFile.FileUrl : null,
+                j.CreatedBy,
+                j.Title,
+                j.Status.ToString().ToUpperInvariant(),
+                j.Province.Name,
+                j.Ward != null ? j.Ward.Name : null,
+                j.Vacancies,
+                j.SalaryMin,
+                j.SalaryMax,
+                j.SalaryNegotiable,
+                j.Deadline,
+                j.CreatedAt,
+                j.UpdatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public Task<JobPosting?> GetForModerationByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbContext.JobPostings
+            .Include(j => j.Company)
+            .SingleOrDefaultAsync(j => j.Id == id, cancellationToken);
+    }
+
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         JobPostingSortField sort,

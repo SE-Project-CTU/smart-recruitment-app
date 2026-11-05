@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Pgvector.EntityFrameworkCore;
 using SmartHire.Domain.Entities;
 
 namespace SmartHire.Infrastructure.Persistence.Configurations;
@@ -11,7 +12,7 @@ public class CvEmbeddingConfiguration : IEntityTypeConfiguration<CvEmbedding> {
             .HasDefaultValueSql("gen_random_uuid()")
             .ValueGeneratedOnAdd();
         
-        builder.Property(x => x.Embedding).HasColumnType("vector");
+        builder.Property(x => x.Embedding).HasColumnType("vector(768)");
         builder.Property(x => x.Model).HasMaxLength(200);
 
         builder.HasOne(x => x.CvVersion)
@@ -20,5 +21,9 @@ public class CvEmbeddingConfiguration : IEntityTypeConfiguration<CvEmbedding> {
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(x => x.CvVersionId).IsUnique();
+
+        builder.HasIndex(x => x.Embedding)
+            .HasMethod("hnsw")
+            .HasOperators("vector_cosine_ops");
     }
 }

@@ -1,3 +1,4 @@
+using SmartHire.Application.Features.Admin.JobPostings.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 using SmartHire.Application.Abstractions.Persistence.Criteria;
@@ -15,6 +16,8 @@ public interface IJobPostingRepository
 
     Task<JobPostingDetailData?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<JobPostingDetailData>> GetDetailsByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
+
     Task<JobPosting?> GetForUpdateByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<JobPosting?> GetForApplicationByIdAsync(Guid id, CancellationToken cancellationToken);
@@ -30,4 +33,13 @@ public interface IJobPostingRepository
         int page,
         int pageSize,
         CancellationToken cancellationToken);
+    Task<(IReadOnlyList<AdminJobPostingItemDto> Items, int TotalCount)> GetAdminJobPostingsPagedAsync(
+        string? search,
+        JobPostingStatus? status,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+
+    Task<JobPosting?> GetForModerationByIdAsync(Guid id, CancellationToken cancellationToken);
 }

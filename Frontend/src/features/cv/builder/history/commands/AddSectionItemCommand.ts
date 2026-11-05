@@ -35,7 +35,7 @@ export class AddSectionItemCommand implements CvCommand {
     updated.splice(this.index, 0, this.item);
     this.setValue(fieldPath as never, updated as never, {
       shouldDirty: true,
-      shouldValidate: true,
+      shouldValidate: false,
     });
   }
 

@@ -28,6 +28,7 @@ import { useApplyJob } from "@/hooks/queries/useApplication";
 import { mediaService } from "@/services/mediaService";
 import { cvService } from "@/services/cvService";
 import { toast } from "@/components/ui/toast";
+import { getApiErrorMessage } from "@/api/errorHandler";
 import { PATHS } from "@/constants/paths";
 import {
   useApplyJobModalStore,
@@ -214,8 +215,14 @@ export function ApplyJobModal({
 
       handleClose();
       onSuccess?.();
-    } catch {
+    } catch (err) {
       setUploadStatus("error");
+      toast.error({
+        description: getApiErrorMessage(
+          err,
+          "Không thể nộp hồ sơ ứng tuyển. Vui lòng thử lại.",
+        ),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -439,7 +446,7 @@ export function ApplyJobModal({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 window.open(
-                                  `/candidate/cv-builder/${cv.id}`,
+                                  `${PATHS.CANDIDATE.EDIT_CV}?id=${cv.id}`,
                                   "_blank",
                                 );
                               }}

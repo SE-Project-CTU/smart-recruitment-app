@@ -84,7 +84,7 @@ export function ImageCropper({
 
   return (
     <div className="space-y-4">
-      <div className="relative mx-auto h-[min(60vh,360px)] w-full overflow-hidden bg-[conic-gradient(#d1d5db_25%,transparent_0_50%,#d1d5db_0_75%,transparent_0)] bg-[length:20px_20px]">
+      <div className="relative mx-auto h-[min(60vh,360px)] w-full overflow-hidden bg-[conic-gradient(#d1d5db_25%,transparent_0_50%,#d1d5db_0_75%,transparent_0)] bg-size-[20px_20px]">
         {activeImage ? (
           <Cropper
             image={activeImage.objectUrl}

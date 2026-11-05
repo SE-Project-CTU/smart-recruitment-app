@@ -16,6 +16,7 @@ import type {
 } from "@/types/application";
 import { toast } from "../use-toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
+import { useAuthStore } from "@/stores/authStore";
 
 /**
  * Hook Query: Danh sách tin tuyển dụng Public (API 5)
@@ -46,6 +47,25 @@ export const useCompanyJobPostings = (
     queryFn: () => companyService.getCompanyJobPostings(companyId!, params),
     enabled: Boolean(companyId) && (options?.enabled ?? true),
     staleTime: 30 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Danh sách tin tuyển dụng công khai đang mở của công ty (Public/Candidate view)
+ */
+export const useCompanyActivePublicJobs = (
+  companyId?: string | null,
+  params?: Omit<SearchJobPostingsRequest, "companyId">,
+) => {
+  return useQuery({
+    queryKey: ["job-postings", "public-company", companyId, params],
+    queryFn: () =>
+      jobService.searchJobPostings({
+        companyId: companyId || undefined,
+        ...params,
+      }),
+    enabled: Boolean(companyId),
+    staleTime: 60 * 1000,
   });
 };
 
@@ -340,6 +360,126 @@ export const useUpdateApplicationStatus = (jobId?: string) => {
       const message = getApiErrorMessage(
         err,
         "Cập nhật trạng thái hồ sơ thất bại",
+      );
+      toast.warning({ description: message });
+    },
+  });
+};
+
+/**
+ * Hook Query: Danh sách tin tuyển dụng đã lưu của Candidate (API 15c)
+ */
+export const useMyBookmarkedJobs = (
+  params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
+  const user = useAuthStore((s) => s.user);
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+
+  return useQuery({
+    queryKey: ["job-postings", "bookmarked", user?.id, params],
+    queryFn: () => jobService.getMyBookmarkedJobs(params),
+    enabled: (options?.enabled ?? true) && isCandidate,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
+ * Hook Query: Lấy toàn bộ ID các tin đã lưu của Candidate (không phân trang)
+ */
+export const useMyAllBookmarkedJobIds = (options?: { enabled?: boolean }) => {
+  const user = useAuthStore((s) => s.user);
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+
+  return useQuery({
+    queryKey: ["job-postings", "bookmarked", "all-ids", user?.id],
+    queryFn: async () => {
+      const firstPage = await jobService.getMyBookmarkedJobs({
+        page: 1,
+        pageSize: 100,
+      });
+      const ids = new Set(firstPage.items.map((j) => j.id));
+      const totalPages = firstPage.meta?.totalPages ?? 1;
+
+      if (totalPages > 1) {
+        const remainingPages = Array.from(
+          { length: totalPages - 1 },
+          (_, i) => i + 2,
+        );
+        const results = await Promise.all(
+          remainingPages.map((page) =>
+            jobService.getMyBookmarkedJobs({ page, pageSize: 100 }),
+          ),
+        );
+        for (const res of results) {
+          for (const item of res.items) {
+            ids.add(item.id);
+          }
+        }
+      }
+      return ids;
+    },
+    enabled: (options?.enabled ?? true) && isCandidate,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
+ * Hook Mutation: Lưu tin tuyển dụng (API 15a)
+ */
+export const useBookmarkJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (jobId: string) => jobService.bookmarkJob(jobId),
+    onSuccess: (_, jobId) => {
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "bookmarked"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "detail", jobId],
+      });
+      toast.success({
+        description: "Đã lưu tin tuyển dụng vào danh sách quan tâm",
+      });
+    },
+    onError: (err: unknown) => {
+      const message = getApiErrorMessage(
+        err,
+        "Không thể lưu tin tuyển dụng",
+      );
+      toast.warning({ description: message });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Bỏ lưu tin tuyển dụng (API 15b)
+ */
+export const useUnbookmarkJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (jobId: string) => jobService.unbookmarkJob(jobId),
+    onSuccess: (_, jobId) => {
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "bookmarked"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "detail", jobId],
+      });
+      toast.success({
+        description: "Đã bỏ lưu tin tuyển dụng khỏi danh sách quan tâm",
+      });
+    },
+    onError: (err: unknown) => {
+      const message = getApiErrorMessage(
+        err,
+        "Không thể bỏ lưu tin tuyển dụng",
       );
       toast.warning({ description: message });
     },

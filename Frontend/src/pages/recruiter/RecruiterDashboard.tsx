@@ -44,6 +44,7 @@ import {
   useUpdateApplicationStatus,
 } from "@/hooks/queries/useJob";
 import { PATHS } from "@/constants/paths";
+import { getTimeOfDayGreeting } from "@/utils/helper";
 import {
   resolveCandidateProfile,
   type RecruiterCandidateApplicationItem,
@@ -151,10 +152,6 @@ export default function RecruiterDashboard() {
   const currentDateStr = dayjs().format("dddd, DD [tháng] MM");
   const formattedDate =
     currentDateStr.charAt(0).toUpperCase() + currentDateStr.slice(1);
-
-  const dayOfWeekStr = dayjs().format("dddd");
-  const formattedDayOfWeek =
-    dayOfWeekStr.charAt(0).toUpperCase() + dayOfWeekStr.slice(1);
 
   // Queries dữ liệu đồng bộ chuẩn theo Workspace
   const {
@@ -466,8 +463,7 @@ export default function RecruiterDashboard() {
               {/* Khối lời chào */}
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
-                  {formattedDayOfWeek} tốt lành,{" "}
-                  {user?.fullName || "Nhà tuyển dụng"}!
+                  {getTimeOfDayGreeting(user?.fullName || "Nhà tuyển dụng")}
                 </h1>
                 <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
                   Theo dõi tiến độ tuyển dụng, tương tác với ứng viên và phát
@@ -484,13 +480,11 @@ export default function RecruiterDashboard() {
             {activeCompany && (
               <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-white/70 p-4 backdrop-blur-xs sm:flex-row sm:items-center">
                 <div className="flex items-center gap-3">
-                  <div className="size-11 shrink-0 overflow-hidden rounded-lg border border-border bg-white">
-                    <CompanyLogo
-                      name={activeCompany.name}
-                      logoUrl={activeCompany.logoUrl}
-                      size="sm"
-                    />
-                  </div>
+                  <CompanyLogo
+                    name={activeCompany.name}
+                    logoUrl={activeCompany.logoUrl}
+                    size="sm"
+                  />
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">

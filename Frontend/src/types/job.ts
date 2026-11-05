@@ -117,6 +117,24 @@ export interface JobPostingDetailResult extends JobPostingResult {
   hasApplied: boolean;
   applicationId?: string | null;
   isFollowingCompany: boolean;
+  isBookmarked?: boolean;
+}
+
+/**
+ * DTO tin tuyển dụng đã lưu của ứng viên (API 15c)
+ */
+export interface BookmarkedJobResult extends JobPostingSearchItem {
+  bookmarkedAt: string;
+  isBookmarked: boolean;
+}
+
+/**
+ * DTO kết quả lưu tin tuyển dụng (API 15a)
+ */
+export interface BookmarkJobResult {
+  jobPostingId: string;
+  bookmarked: boolean;
+  createdAt: string;
 }
 
 /**

@@ -19,7 +19,15 @@ import {
 } from "@/components/LocationCombobox";
 import { JobDetailDrawer } from "@/components/job";
 import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
-import { useJobPostings, useJobPostingDetail } from "@/hooks/queries/useJob";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  useJobPostings,
+  useJobPostingDetail,
+  useMyAllBookmarkedJobIds,
+  useBookmarkJob,
+  useUnbookmarkJob,
+} from "@/hooks/queries/useJob";
+import { toast } from "@/hooks/use-toast";
 import type { JobPostingSearchItem } from "@/types/job";
 import {
   isSalaryNegotiable,
@@ -68,9 +76,19 @@ export default function SearchJobPage() {
     null,
   );
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
-  const [bookmarkedJobIds, setBookmarkedJobIds] = useState<Set<string>>(
-    new Set(),
-  );
+
+  const { user } = useAuthStore();
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+
+  const { data: allBookmarkedIds } = useMyAllBookmarkedJobIds({
+    enabled: Boolean(isCandidate),
+  });
+  const bookmarkMutation = useBookmarkJob();
+  const unbookmarkMutation = useUnbookmarkJob();
+
+  const bookmarkedJobIds = useMemo(() => {
+    return allBookmarkedIds || new Set<string>();
+  }, [allBookmarkedIds]);
 
   const { openApplyModal } = useApplyJobModalStore();
 
@@ -197,7 +215,8 @@ export default function SearchJobPage() {
             (typeNormalized !== null && typeNormalized === selected) ||
             (selectedNorm !== null &&
               Boolean(job.jobType) &&
-              String(job.jobType).toLowerCase() === selectedNorm.toLowerCase()) ||
+              String(job.jobType).toLowerCase() ===
+                selectedNorm.toLowerCase()) ||
             (Boolean(job.jobType) &&
               String(job.jobType).toLowerCase() === selected.toLowerCase())
           );
@@ -218,7 +237,8 @@ export default function SearchJobPage() {
             (modeNormalized !== null && modeNormalized === selected) ||
             (selectedNorm !== null &&
               Boolean(job.workMode) &&
-              String(job.workMode).toLowerCase() === selectedNorm.toLowerCase()) ||
+              String(job.workMode).toLowerCase() ===
+                selectedNorm.toLowerCase()) ||
             (Boolean(job.workMode) &&
               String(job.workMode).toLowerCase() === selected.toLowerCase())
           );
@@ -306,12 +326,22 @@ export default function SearchJobPage() {
   };
 
   const handleToggleBookmark = (jobId: string) => {
-    setBookmarkedJobIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(jobId)) next.delete(jobId);
-      else next.add(jobId);
-      return next;
-    });
+    if (!isCandidate) {
+      toast.warning({
+        description: "Bạn không có quyền thực hiện thao tác này!",
+      });
+      return;
+    }
+    const isCurrentlyBookmarked =
+      jobDetail?.id === jobId && jobDetail.isBookmarked !== undefined
+        ? jobDetail.isBookmarked
+        : bookmarkedJobIds.has(jobId);
+
+    if (isCurrentlyBookmarked) {
+      unbookmarkMutation.mutate(jobId);
+    } else {
+      bookmarkMutation.mutate(jobId);
+    }
   };
 
   const handleApply = (jobId: string) => {
@@ -568,7 +598,7 @@ export default function SearchJobPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
               {filteredAndSortedJobs.map((job) => (
                 <JobCard
                   key={job.id}
@@ -590,7 +620,11 @@ export default function SearchJobPage() {
         open={isDetailDrawerOpen}
         onClose={() => setIsDetailDrawerOpen(false)}
         isBookmarked={
-          selectedJob ? bookmarkedJobIds.has(selectedJob.id) : false
+          jobDetail?.isBookmarked !== undefined
+            ? jobDetail.isBookmarked
+            : selectedJob
+              ? bookmarkedJobIds.has(selectedJob.id)
+              : false
         }
         onToggleBookmark={handleToggleBookmark}
         onApply={handleApply}

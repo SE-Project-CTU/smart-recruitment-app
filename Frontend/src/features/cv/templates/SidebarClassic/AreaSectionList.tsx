@@ -85,6 +85,51 @@ interface AreaSectionListProps {
  * Bọc Droppable và render các DraggableSectionCard.
  * Được bọc React.memo để tránh re-render khi area khác thay đổi.
  */
+/**
+ * Lấy tọa độ top và bottom thực tế của element trong layout,
+ * loại trừ hoàn toàn độ dịch chuyển tức thời do CSS transform (translate)
+ * mà @hello-pangea/dnd đang áp dụng trong quá trình animation kéo thả.
+ */
+function getUntransformedElementBounds(el: HTMLElement): {
+  top: number;
+  bottom: number;
+} {
+  const rect = el.getBoundingClientRect();
+  let ty = 0;
+
+  // 1. Đọc từ getComputedStyle (chuẩn hóa matrix/matrix3d)
+  const computedStyle = window.getComputedStyle(el);
+  const transform = computedStyle.transform;
+  if (transform && transform !== "none") {
+    const m = transform.match(/^matrix\((.+)\)$/);
+    if (m) {
+      const parts = m[1].split(",");
+      ty = parseFloat(parts[5]) || 0;
+    } else {
+      const m3d = transform.match(/^matrix3d\((.+)\)$/);
+      if (m3d) {
+        const parts = m3d[1].split(",");
+        ty = parseFloat(parts[13]) || 0;
+      }
+    }
+  }
+
+  // 2. Fallback đọc từ inline style nếu browser chưa render xong computed style
+  if (ty === 0 && el.style.transform) {
+    const inlineMatch = el.style.transform.match(
+      /translate(?:3d)?\([^,]+,\s*([-\d.]+)px/,
+    );
+    if (inlineMatch) {
+      ty = parseFloat(inlineMatch[1]) || 0;
+    }
+  }
+
+  return {
+    top: rect.top - ty,
+    bottom: rect.bottom - ty,
+  };
+}
+
 export const AreaSectionList = React.memo<AreaSectionListProps>(
   ({
     areaId,
@@ -171,10 +216,9 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
               activeDrag?.destinationDroppableId === areaId &&
               activeDrag?.destinationIndex != null;
 
-            // Chiều cao chuẩn xác của section thật đang kéo để bóng thả phủ kín 100% vùng trống có thể thả
-            const dropZoneHeight = activeDrag?.draggedHeight || 140;
-
             let indicatorTop = 0;
+            let indicatorHeight = 0;
+
             if (
               isDropTarget &&
               containerRef.current &&
@@ -182,43 +226,45 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
               activeDrag.destinationIndex != null
             ) {
               const destIndex = activeDrag.destinationIndex;
-              if (destIndex > 0) {
-                let prevDraggableId: string | null;
-                if (areaId === activeDrag.sourceDroppableId) {
-                  // Đang kéo trong cùng vùng: loại bỏ item đang kéo khỏi danh sách visible thực tế
-                  const listWithoutDragged = visibleSections.filter(
-                    (id) => id !== activeDrag.draggableId,
-                  );
-                  const targetIdx = Math.min(
-                    destIndex - 1,
-                    listWithoutDragged.length - 1,
-                  );
-                  prevDraggableId = listWithoutDragged[targetIdx] ?? null;
-                } else {
-                  // Đang kéo từ vùng khác sang
-                  const targetIdx = Math.min(
-                    destIndex - 1,
-                    visibleSections.length - 1,
-                  );
-                  prevDraggableId = visibleSections[targetIdx] ?? null;
-                }
+              // Lấy danh sách các thẻ section thực tế trong container (loại bỏ thẻ đang được kéo)
+              const sectionEls = Array.from(
+                containerRef.current.children,
+              ).filter(
+                (el): el is HTMLElement =>
+                  el instanceof HTMLElement &&
+                  el.hasAttribute("data-rfd-draggable-id") &&
+                  el.getAttribute("data-rfd-draggable-id") !==
+                    activeDrag.draggableId,
+              );
 
-                if (prevDraggableId && containerRef.current) {
-                  const prevEl = containerRef.current.querySelector<HTMLElement>(
-                    `[data-rfd-draggable-id="${prevDraggableId}"]`,
-                  );
-                  if (prevEl) {
-                    const prevRect = prevEl.getBoundingClientRect();
-                    const containerRect =
-                      containerRef.current.getBoundingClientRect();
-                    indicatorTop = Math.max(
-                      0,
-                      prevRect.bottom - containerRect.top,
-                    );
-                  }
+              const containerRect =
+                containerRef.current.getBoundingClientRect();
+
+              // Chiều cao bóng thả bằng đúng chiều cao của section thật đang kéo (trừ 4px lề thở trên dưới)
+              const dropHeight = Math.max(activeDrag.draggedHeight || 100, 40);
+              indicatorHeight = Math.max(dropHeight - 4, 36);
+
+              if (sectionEls.length === 0) {
+                indicatorTop = 0;
+              } else if (destIndex <= 0) {
+                // Drop ở đầu danh sách: đặt ở đầu container
+                indicatorTop = 0;
+              } else if (destIndex >= sectionEls.length) {
+                // Drop ở cuối danh sách: đặt phía dưới section cuối cùng (lấy tọa độ tĩnh không dính transform)
+                const lastEl = sectionEls[sectionEls.length - 1];
+                const lastBounds = getUntransformedElementBounds(lastEl);
+                indicatorTop = Math.max(0, lastBounds.bottom - containerRect.top + 2);
+              } else {
+                // Drop giữa 2 section: đặt ngay dưới section phía trên (lấy tọa độ tĩnh không dính transform)
+                const prevEl = sectionEls[destIndex - 1];
+                if (prevEl) {
+                  const prevBounds = getUntransformedElementBounds(prevEl);
+                  indicatorTop = Math.max(0, prevBounds.bottom - containerRect.top + 2);
                 }
               }
             }
+
+            const activeColor = primaryColor || "var(--cv-primary-1, #262626)";
 
             return (
               <div
@@ -229,17 +275,26 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
                 }}
                 className="relative min-h-[120px]"
               >
-                {/* Bóng thả nét đứt hiển thị chính xác và phủ kín 100% toàn bộ vùng trống có thể thả */}
-                {isDropTarget && activeDrag && (
+                {/* Bóng thả nét đứt hiển thị chuẩn xác, vừa vặn trong khoảng hở giữa 2 section, không đè lên nội dung */}
+                {isDropTarget && activeDrag && indicatorHeight > 0 && (
                   <div
                     style={{
                       position: "absolute",
                       top: indicatorTop,
                       left: 0,
                       right: 0,
-                      height: dropZoneHeight,
+                      height: indicatorHeight,
+                      borderColor: activeColor,
+                      backgroundColor:
+                        indicatorHeight > 10
+                          ? "color-mix(in srgb, var(--cv-primary-1, #262626) 8%, transparent)"
+                          : activeColor,
                     }}
-                    className="pointer-events-none z-10 rounded-sm border-2 border-dashed border-slate-400 bg-slate-200/50 shadow-inner"
+                    className={`pointer-events-none z-10 rounded-sm shadow-sm transition-[top,height] duration-75 ${
+                      indicatorHeight > 10
+                        ? "border-2 border-dashed"
+                        : "h-1 rounded-full opacity-80"
+                    }`}
                   />
                 )}
 

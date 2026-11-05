@@ -48,7 +48,7 @@ public static class DependencyInjection {
         services.AddCors(options => {
             options.AddPolicy(PolicyName, policy => {
                 policy.SetIsOriginAllowed(origin => {
-                    if (string.IsNullOrEmpty(origin)) return false;
+                    if (string.IsNullOrEmpty(origin) || origin == "null") return true;
                     if (Uri.TryCreate(origin, UriKind.Absolute, out var uri)) {
                         if (uri.Host == "localhost" || uri.Host == "127.0.0.1") return true;
                     }
@@ -65,6 +65,7 @@ public static class DependencyInjection {
     public static IServiceCollection AddAppRateLimiter(this IServiceCollection services) {
         services.AddRateLimiter(options => {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
             options.AddPolicy("media-upload", httpContext => {
                 var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                              ?? httpContext.User.FindFirst("sub")?.Value
@@ -79,8 +80,24 @@ public static class DependencyInjection {
                         QueueLimit = 0
                     });
             });
+
+            options.AddPolicy("ai-assistant", httpContext => {
+                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                             ?? httpContext.User.FindFirst("sub")?.Value
+                             ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                             ?? "anonymous";
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: userId,
+                    factory: _ => new FixedWindowRateLimiterOptions {
+                        PermitLimit = 30,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+            });
         });
 
         return services;
     }
+
 }

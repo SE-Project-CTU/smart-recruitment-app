@@ -1,4 +1,4 @@
-namespace SmartHire.Domain.Entities;
+﻿namespace SmartHire.Domain.Entities;
 
 using Enums;
 
@@ -54,6 +54,7 @@ public class JobPosting {
 
     public ICollection<JobApplication> Applications { get; private set; } = new List<JobApplication>();
     public ICollection<JobRecommendation> Recommendations { get; private set; } = new List<JobRecommendation>();
+    public ICollection<JobBookmark> Bookmarks { get; private set; } = new List<JobBookmark>();
     
     private JobPosting() { }
 
@@ -300,5 +301,15 @@ public class JobPosting {
                 JobSkills.Add(JobSkill.Create(this, skillId));
             }
         }
+    }
+    public void Moderate(JobPostingStatus status, DateTimeOffset now) {
+        if (status != JobPostingStatus.Published && status != JobPostingStatus.Rejected) {
+            throw new InvalidOperationException($"Moderation can only set status to Published or Rejected, not '{status}'.");
+        }
+        if (Status != JobPostingStatus.PendingReview) {
+            throw new InvalidOperationException($"Only PendingReview job postings can be moderated. Current status: '{Status}'.");
+        }
+        Status = status;
+        UpdatedAt = now;
     }
 }

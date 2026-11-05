@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using SmartHire.Domain.Entities;
@@ -20,6 +20,7 @@ public sealed class SmartHireDbContext
     public DbSet<CompanyInvitation> CompanyInvitations => Set<CompanyInvitation>();
     public DbSet<CompanyJoinRequest> CompanyJoinRequests => Set<CompanyJoinRequest>();
     public DbSet<CompanyFollow> CompanyFollows => Set<CompanyFollow>();
+    public DbSet<JobBookmark> JobBookmarks => Set<JobBookmark>();
     public DbSet<Province> Provinces => Set<Province>();
     public DbSet<Ward> Wards => Set<Ward>();
     public DbSet<IndustryGroup> IndustryGroups => Set<IndustryGroup>();
@@ -42,6 +43,9 @@ public sealed class SmartHireDbContext
     public DbSet<JobRecommendation> JobRecommendations => Set<JobRecommendation>();
     public DbSet<MediaFile> MediaFiles => Set<MediaFile>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<AiConversation> AiConversations => Set<AiConversation>();
+    public DbSet<AiMessage> AiMessages => Set<AiMessage>();
+
     
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);

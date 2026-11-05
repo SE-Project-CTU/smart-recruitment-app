@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace SmartHire.Domain.ValueObjects.Cv;
@@ -6,6 +7,7 @@ namespace SmartHire.Domain.ValueObjects.Cv;
 /// <summary>
 /// Root node of a Tiptap document tree.
 /// </summary>
+[JsonConverter(typeof(CvTiptapDocumentJsonConverter))]
 public sealed record CvTiptapDocument : CvTiptapNode
 {
     [JsonPropertyName("type")]
@@ -154,4 +156,113 @@ public sealed record CvTiptapMark
     [JsonPropertyName("attrs")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, object?>? Attrs { get; set; }
+}
+
+/// <summary>
+/// Custom JSON converter for CvTiptapDocument that provides backward compatibility.
+/// When encountering legacy string data (or null/primitive), it automatically converts to a valid Tiptap document.
+/// When encountering a JSON object, it deserializes the full Tiptap tree.
+/// </summary>
+public sealed class CvTiptapDocumentJsonConverter : JsonConverter<CvTiptapDocument>
+{
+    public override CvTiptapDocument? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return CvTiptapDocument.Empty();
+        }
+
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            var text = reader.GetString();
+            return string.IsNullOrEmpty(text) ? CvTiptapDocument.Empty() : CvTiptapDocument.FromText(text);
+        }
+
+        if (reader.TokenType == JsonTokenType.Number)
+        {
+            using var numDoc = JsonDocument.ParseValue(ref reader);
+            return CvTiptapDocument.FromText(numDoc.RootElement.GetRawText());
+        }
+
+        if (reader.TokenType == JsonTokenType.True || reader.TokenType == JsonTokenType.False)
+        {
+            return CvTiptapDocument.FromText(reader.GetBoolean().ToString().ToLowerInvariant());
+        }
+
+        if (reader.TokenType == JsonTokenType.StartObject)
+        {
+            using var doc = JsonDocument.ParseValue(ref reader);
+            var root = doc.RootElement;
+
+            var type = root.TryGetProperty("type", out var typeProp) && typeProp.ValueKind == JsonValueKind.String
+                ? typeProp.GetString() ?? CvTiptapNodeTypes.Doc
+                : CvTiptapNodeTypes.Doc;
+
+            Dictionary<string, object?>? attrs = null;
+            if (root.TryGetProperty("attrs", out var attrsProp) && attrsProp.ValueKind == JsonValueKind.Object)
+            {
+                attrs = JsonSerializer.Deserialize<Dictionary<string, object?>>(attrsProp.GetRawText(), options);
+            }
+
+            string? text = null;
+            if (root.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String)
+            {
+                text = textProp.GetString();
+            }
+
+            List<CvTiptapMark>? marks = null;
+            if (root.TryGetProperty("marks", out var marksProp) && marksProp.ValueKind == JsonValueKind.Array)
+            {
+                marks = JsonSerializer.Deserialize<List<CvTiptapMark>>(marksProp.GetRawText(), options);
+            }
+
+            List<CvTiptapNode>? content = null;
+            if (root.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.Array)
+            {
+                content = JsonSerializer.Deserialize<List<CvTiptapNode>>(contentProp.GetRawText(), options);
+            }
+
+            return new CvTiptapDocument
+            {
+                Type = type,
+                Attrs = attrs,
+                Text = text,
+                Marks = marks,
+                Content = content
+            };
+        }
+
+        throw new JsonException($"Unexpected token '{reader.TokenType}' when deserializing CvTiptapDocument.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, CvTiptapDocument value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("type", value.Type ?? CvTiptapNodeTypes.Doc);
+
+        if (value.Attrs != null)
+        {
+            writer.WritePropertyName("attrs");
+            JsonSerializer.Serialize(writer, value.Attrs, options);
+        }
+
+        if (value.Text != null)
+        {
+            writer.WriteString("text", value.Text);
+        }
+
+        if (value.Marks != null)
+        {
+            writer.WritePropertyName("marks");
+            JsonSerializer.Serialize(writer, value.Marks, options);
+        }
+
+        if (value.Content != null)
+        {
+            writer.WritePropertyName("content");
+            JsonSerializer.Serialize(writer, value.Content, options);
+        }
+
+        writer.WriteEndObject();
+    }
 }

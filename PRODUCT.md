@@ -48,9 +48,9 @@ Sử dụng cơ chế so khớp thông minh giữa CV và JD (Mô tả công vi�
 
 ## Evidence on Hand
 
-- Tài liệu kiến trúc và hướng dẫn phát triển tại [README.md](smart-recruitment-app/README.md).
-- Quy chuẩn code và thiết kế frontend tại [.agent/rules/frontend.md](smart-recruitment-app/.agent/rules/frontend.md).
-- Hệ thống mã nguồn và linh kiện UI hiện hữu tại [Frontend/src](smart-recruitment-app/Frontend/src).
+- Tài liệu kiến trúc và hướng dẫn phát triển tại [README.md](README.md).
+- Quy chuẩn code và thiết kế frontend tại [.agent/rules/frontend.md](.agent/rules/frontend.md).
+- Hệ thống mã nguồn và linh kiện UI hiện hữu tại [Frontend/src](Frontend/src).
 
 ## Product Principles
 

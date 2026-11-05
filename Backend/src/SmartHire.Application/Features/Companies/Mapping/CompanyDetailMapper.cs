@@ -7,7 +7,9 @@ public static class CompanyDetailMapper {
     public static CompanyResult ToResult(
         Company company,
         string? logoUrl = null,
-        CompanyMembershipSummary? membership = null) {
+        CompanyMembershipSummary? membership = null,
+        bool? isFollowed = null,
+        bool hasPendingJoinRequest = false) {
         ArgumentNullException.ThrowIfNull(company);
 
         return new CompanyResult(
@@ -24,6 +26,8 @@ public static class CompanyDetailMapper {
             company.VerifiedAt,
             company.CreatedAt,
             company.UpdatedAt,
-            membership);
+            membership,
+            isFollowed,
+            hasPendingJoinRequest);
     }
 }

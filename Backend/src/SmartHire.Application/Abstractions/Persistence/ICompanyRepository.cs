@@ -1,3 +1,4 @@
+using SmartHire.Application.Features.Admin.Companies.DTOs;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -77,4 +78,16 @@ public interface ICompanyRepository {
     Task<IReadOnlyList<Guid>> GetFollowerUserIdsAsync(Guid companyId, CancellationToken cancellationToken);
     Task AddFollowAsync(CompanyFollow follow, CancellationToken cancellationToken);
     void DeleteFollow(CompanyFollow follow);
+
+    // Admin Operations (Anti N+1 Queries)
+    Task<(IReadOnlyList<AdminCompanyItemDto> Items, int TotalCount)> GetAdminCompaniesPagedAsync(
+        string? search,
+        CompanyVerificationStatus? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
+
+    Task<AdminCompanyDetailDto?> GetAdminCompanyDetailAsync(
+        Guid id,
+        CancellationToken cancellationToken);
 }

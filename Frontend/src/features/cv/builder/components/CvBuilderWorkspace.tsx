@@ -63,7 +63,7 @@ export default function CvBuilderWorkspace({
   });
 
   // Theo dõi mảng items của từng section để thêm/xóa/sắp xếp item cập nhật ngay
-  useWatch({
+  const watchedSectionItems = useWatch({
     control,
     name: [
       "content.sections.experience.items",
@@ -135,6 +135,15 @@ export default function CvBuilderWorkspace({
       additionalInfoVisible,
     ] = watchedVisibility || [];
 
+    const [
+      experienceItems,
+      educationItems,
+      skillsItems,
+      projectsItems,
+      certificationsItems,
+      awardsItems,
+    ] = watchedSectionItems || [];
+
     return {
       ...raw,
       metadata: {
@@ -151,22 +160,58 @@ export default function CvBuilderWorkspace({
           ? { ...raw.sections.objective, visible: objectiveVisible !== false }
           : raw.sections.objective,
         experience: raw.sections.experience
-          ? { ...raw.sections.experience, visible: experienceVisible !== false }
+          ? {
+              ...raw.sections.experience,
+              visible: experienceVisible !== false,
+              items:
+                (experienceItems as RichTextCVContentDocument["sections"]["experience"]["items"]) ??
+                raw.sections.experience.items,
+            }
           : raw.sections.experience,
         education: raw.sections.education
-          ? { ...raw.sections.education, visible: educationVisible !== false }
+          ? {
+              ...raw.sections.education,
+              visible: educationVisible !== false,
+              items:
+                (educationItems as RichTextCVContentDocument["sections"]["education"]["items"]) ??
+                raw.sections.education.items,
+            }
           : raw.sections.education,
         skills: raw.sections.skills
-          ? { ...raw.sections.skills, visible: skillsVisible !== false }
+          ? {
+              ...raw.sections.skills,
+              visible: skillsVisible !== false,
+              items:
+                (skillsItems as RichTextCVContentDocument["sections"]["skills"]["items"]) ??
+                raw.sections.skills.items,
+            }
           : raw.sections.skills,
         projects: raw.sections.projects
-          ? { ...raw.sections.projects, visible: projectsVisible !== false }
+          ? {
+              ...raw.sections.projects,
+              visible: projectsVisible !== false,
+              items:
+                (projectsItems as RichTextCVContentDocument["sections"]["projects"]["items"]) ??
+                raw.sections.projects.items,
+            }
           : raw.sections.projects,
         certifications: raw.sections.certifications
-          ? { ...raw.sections.certifications, visible: certificationsVisible !== false }
+          ? {
+              ...raw.sections.certifications,
+              visible: certificationsVisible !== false,
+              items:
+                (certificationsItems as RichTextCVContentDocument["sections"]["certifications"]["items"]) ??
+                raw.sections.certifications.items,
+            }
           : raw.sections.certifications,
         awards: raw.sections.awards
-          ? { ...raw.sections.awards, visible: awardsVisible !== false }
+          ? {
+              ...raw.sections.awards,
+              visible: awardsVisible !== false,
+              items:
+                (awardsItems as RichTextCVContentDocument["sections"]["awards"]["items"]) ??
+                raw.sections.awards.items,
+            }
           : raw.sections.awards,
         interests: raw.sections.interests
           ? { ...raw.sections.interests, visible: interestsVisible !== false }
@@ -176,7 +221,13 @@ export default function CvBuilderWorkspace({
           : raw.sections.additionalInfo,
       },
     };
-  }, [watchedVisibility, watchedDefaultStyle, watchedAvatarUrl, getValues]);
+  }, [
+    watchedVisibility,
+    watchedSectionItems,
+    watchedDefaultStyle,
+    watchedAvatarUrl,
+    getValues,
+  ]);
 
   const layoutValidation = useMemo(() => {
     return validateCvLayout(currentLayout, templateCode);

@@ -24,8 +24,9 @@ import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
 import { useMyApplications } from "@/hooks/queries/useApplication";
 import { useMyCvs } from "@/hooks/queries/useCv";
+import { useMyBookmarkedJobs } from "@/hooks/queries/useJob";
 import { PATHS } from "@/constants/paths";
-import { getTimeAgo } from "@/utils/helper";
+import { getTimeAgo, getTimeOfDayGreeting } from "@/utils/helper";
 import { Button, GradientGridBackground } from "@/components/common";
 import {
   getJobLevelLabel,
@@ -82,7 +83,7 @@ const getApplicationStatusTheme = (status?: string): ApplicationStatusTheme => {
         iconBg: "bg-purple-100 text-purple-700",
         iconColor: "text-purple-700",
         icon: Gift,
-        description: "Bạn đã nhận được lời mời làm việc (Offer)",
+        description: "Bạn đã nhận được lời mời làm việc",
       };
     case "HIRED":
     case "ACCEPTED":
@@ -150,26 +151,16 @@ export function CandidateDashboardBanner() {
     (app) => app.status !== "REJECTED" && app.status !== "WITHDRAWN",
   ).length;
 
-  const bookmarkedJobsCount = (() => {
-    try {
-      const stored = localStorage.getItem("candidate_bookmarked_jobs");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.length;
-      }
-    } catch {
-      return 4;
-    }
-    return 4;
-  })();
+  const { data: bookmarkedJobsData } = useMyBookmarkedJobs({
+    page: 1,
+    pageSize: 1,
+  });
+
+  const bookmarkedJobsCount = bookmarkedJobsData?.meta.totalItems ?? 0;
 
   const currentDateStr = dayjs().format("dddd, DD [tháng] MM");
   const formattedDate =
     currentDateStr.charAt(0).toUpperCase() + currentDateStr.slice(1);
-
-  const dayOfWeekStr = dayjs().format("dddd");
-  const formattedDayOfWeek =
-    dayOfWeekStr.charAt(0).toUpperCase() + dayOfWeekStr.slice(1);
 
   const statusTheme = getApplicationStatusTheme(latestApplication?.status);
 
@@ -198,7 +189,7 @@ export function CandidateDashboardBanner() {
           {/* Khối lời chào */}
           <div className="space-y-1.5">
             <h1 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
-              {formattedDayOfWeek} tốt lành, {userName}!
+              {getTimeOfDayGreeting(userName)}
             </h1>
             <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
               Hôm nay có nhiều cơ hội việc làm mới phù hợp với định hướng nghề

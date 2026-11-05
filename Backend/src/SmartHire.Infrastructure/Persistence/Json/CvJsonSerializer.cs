@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SmartHire.Domain.Enums;
+using SmartHire.Domain.ValueObjects.Cv;
 
 namespace SmartHire.Infrastructure.Persistence.Json;
 
@@ -19,6 +20,7 @@ public static class CvJsonSerializer
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         options.Converters.Add(new CvLanguageJsonConverter());
+        options.Converters.Add(new CvTiptapDocumentJsonConverter());
         return options;
     }
 }

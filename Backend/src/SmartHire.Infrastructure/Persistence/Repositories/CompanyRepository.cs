@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartHire.Application.Abstractions.Persistence;
+using SmartHire.Application.Features.Admin.Companies.DTOs;
 using SmartHire.Application.Features.Companies.DTOs;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
@@ -365,5 +366,92 @@ public sealed class CompanyRepository : ICompanyRepository {
 
     public void DeleteFollow(CompanyFollow follow) {
         _dbContext.CompanyFollows.Remove(follow);
+    }
+    public async Task<(IReadOnlyList<AdminCompanyItemDto> Items, int TotalCount)> GetAdminCompaniesPagedAsync(
+        string? search,
+        CompanyVerificationStatus? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken) {
+        var query = _dbContext.Companies.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var s = search.Trim().ToLower();
+            query = query.Where(c =>
+                c.Name.ToLower().Contains(s) ||
+                c.TaxCode.ToLower().Contains(s) ||
+                c.Email.ToLower().Contains(s));
+        }
+
+        if (status.HasValue) {
+            query = query.Where(c => c.VerificationStatus == status.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new AdminCompanyItemDto(
+                c.Id,
+                c.Name,
+                c.TaxCode,
+                c.Email,
+                c.Phone,
+                c.Address,
+                c.Website,
+                c.LogoFile != null ? c.LogoFile.FileUrl : null,
+                c.VerificationStatus.ToString().ToUpperInvariant(),
+                c.VerifiedAt,
+                c.CreatedAt,
+                c.UpdatedAt,
+                c.Memberships
+                    .Where(m => m.Role == CompanyMemberRole.Owner && m.Status == CompanyMembershipStatus.Active)
+                    .Select(m => new AdminCompanyOwnerDto(
+                        m.UserId,
+                        m.User.FullName,
+                        m.User.Email,
+                        m.User.Phone
+                    ))
+                    .FirstOrDefault()
+            ))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public async Task<AdminCompanyDetailDto?> GetAdminCompanyDetailAsync(
+        Guid id,
+        CancellationToken cancellationToken) {
+        return await _dbContext.Companies.AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => new AdminCompanyDetailDto(
+                c.Id,
+                c.Name,
+                c.TaxCode,
+                c.Email,
+                c.Phone,
+                c.Address,
+                c.Website,
+                c.Description,
+                c.LogoFile != null ? c.LogoFile.FileUrl : null,
+                c.VerificationStatus.ToString().ToUpperInvariant(),
+                c.VerifiedAt,
+                c.CreatedAt,
+                c.UpdatedAt,
+                c.Memberships
+                    .Where(m => m.Role == CompanyMemberRole.Owner && m.Status == CompanyMembershipStatus.Active)
+                    .Select(m => new AdminCompanyOwnerDto(
+                        m.UserId,
+                        m.User.FullName,
+                        m.User.Email,
+                        m.User.Phone
+                    ))
+                    .FirstOrDefault(),
+                c.Memberships.Count(m => m.Status == CompanyMembershipStatus.Active),
+                c.JobPostings.Count()
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

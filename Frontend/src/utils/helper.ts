@@ -62,3 +62,20 @@ export const getTimeAgo = (isoString: string): string => {
 
   return targetDate.fromNow();
 };
+
+/**
+ * Trả về lời chào theo thời gian trong ngày (Buổi sáng / Buổi trưa / Buổi chiều / Buổi tối)
+ */
+export const getTimeOfDayGreeting = (name?: string): string => {
+  const hour = dayjs().hour();
+  let session = "Buổi tối";
+  if (hour >= 5 && hour < 11) {
+    session = "Buổi sáng";
+  } else if (hour >= 11 && hour < 13) {
+    session = "Buổi trưa";
+  } else if (hour >= 13 && hour < 18) {
+    session = "Buổi chiều";
+  }
+
+  return name ? `${session} tốt lành, ${name}!` : `${session} tốt lành!`;
+};
