@@ -88,7 +88,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
     // 2. Tự xử lý độc lập nếu cha không truyền:
     if (!isCandidate) {
       toast.warning({
-        description: "Vui lòng đăng nhập tài khoản Ứng viên để lưu tin tuyển dụng.",
+        description: "Bạn không có quyền thực hiện thao tác này!",
       });
       return;
     }
