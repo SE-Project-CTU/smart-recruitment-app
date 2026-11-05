@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Clock, Ellipsis, MapPin } from "lucide-react";
 import { Bookmark, BookmarkCheck } from "lucide";
 import { MorphIcon } from "morphicons/react";
@@ -19,6 +19,13 @@ import {
   useApplyJobModalStore,
   type AnyJob,
 } from "@/stores/applyJobModalStore";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  useBookmarkJob,
+  useUnbookmarkJob,
+  useMyBookmarkedJobs,
+} from "@/hooks/queries/useJob";
+import { toast } from "@/hooks/use-toast";
 import type { JobPostingItem, JobPostingSearchItem } from "@/types/job";
 import type { MockJobPosting } from "@/constants/mockData";
 import { cn } from "@/lib/utils";
@@ -50,16 +57,46 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   companyLogoUrl: customCompanyLogoUrl,
 }: JobCardProps<T>) {
   const { openApplyModal } = useApplyJobModalStore();
-  const [internalMarked, setInternalMarked] = useState(false);
+  const { user } = useAuthStore();
+  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+
+  // Lấy cache danh sách bookmark nếu không được truyền từ cha và chưa có trên job
+  const { data: bookmarkedData } = useMyBookmarkedJobs(
+    { pageSize: 100 },
+    { enabled: isCandidate && externalIsBookmarked === undefined },
+  );
+
+  const bookmarkMutation = useBookmarkJob();
+  const unbookmarkMutation = useUnbookmarkJob();
+
+  // Xác định trạng thái lưu tin
   const isMarked =
-    externalIsBookmarked !== undefined ? externalIsBookmarked : internalMarked;
+    externalIsBookmarked !== undefined
+      ? externalIsBookmarked
+      : "isBookmarked" in job && job.isBookmarked !== undefined
+        ? Boolean(job.isBookmarked)
+        : Boolean(bookmarkedData?.items?.some((b) => b.id === job.id));
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // 1. Ưu tiên handler tùy biến từ cha (ví dụ ở trang BookmarkJobs)
     if (onToggleBookmark) {
       onToggleBookmark(job.id);
+      return;
+    }
+
+    // 2. Tự xử lý độc lập nếu cha không truyền:
+    if (!isCandidate) {
+      toast.warning({
+        description: "Vui lòng đăng nhập tài khoản Ứng viên để lưu tin tuyển dụng.",
+      });
+      return;
+    }
+
+    if (isMarked) {
+      unbookmarkMutation.mutate(job.id);
     } else {
-      setInternalMarked(!internalMarked);
+      bookmarkMutation.mutate(job.id);
     }
   };
 

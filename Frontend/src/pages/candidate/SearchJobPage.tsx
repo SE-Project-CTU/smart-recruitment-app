@@ -216,7 +216,8 @@ export default function SearchJobPage() {
             (typeNormalized !== null && typeNormalized === selected) ||
             (selectedNorm !== null &&
               Boolean(job.jobType) &&
-              String(job.jobType).toLowerCase() === selectedNorm.toLowerCase()) ||
+              String(job.jobType).toLowerCase() ===
+                selectedNorm.toLowerCase()) ||
             (Boolean(job.jobType) &&
               String(job.jobType).toLowerCase() === selected.toLowerCase())
           );
@@ -237,7 +238,8 @@ export default function SearchJobPage() {
             (modeNormalized !== null && modeNormalized === selected) ||
             (selectedNorm !== null &&
               Boolean(job.workMode) &&
-              String(job.workMode).toLowerCase() === selectedNorm.toLowerCase()) ||
+              String(job.workMode).toLowerCase() ===
+                selectedNorm.toLowerCase()) ||
             (Boolean(job.workMode) &&
               String(job.workMode).toLowerCase() === selected.toLowerCase())
           );

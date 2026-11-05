@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Search, X, BookmarkCheck, Loader2 } from "lucide-react";
+import { Search, X, BookmarkCheck } from "lucide-react";
 import { EmptyStreet } from "@/assets/images/decoration";
 import { JobCard } from "@/components/common";
 import { JobDetailDrawer } from "@/components/job";
-import {
-  useMyBookmarkedJobs,
-  useUnbookmarkJob,
-} from "@/hooks/queries/useJob";
+import { useMyBookmarkedJobs, useUnbookmarkJob } from "@/hooks/queries/useJob";
 import type { BookmarkedJobResult } from "@/types/job";
+import JobCardSkeleton from "@/components/common/JobCardSkeleton";
 
 export default function BookmarkJobs() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,14 +75,13 @@ export default function BookmarkJobs() {
 
       {/* Loading state */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="mt-3 text-xs text-text-muted">
-            Đang tải danh sách việc làm đã lưu...
-          </p>
+        <div className="grid grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          {[1, 2, 3, 4].map((k) => (
+            <JobCardSkeleton key={k} />
+          ))}
         </div>
       ) : bookmarkedJobs.length > 0 ? (
-        <div className="grid grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {bookmarkedJobs.map((job) => (
             <JobCard
               key={job.id}
@@ -92,6 +89,7 @@ export default function BookmarkJobs() {
               isSelected={job.id === selectedJob?.id && isDrawerOpen}
               onSelect={handleSelectJob}
               isBookmarked={true}
+              className="w-full"
               onToggleBookmark={handleToggleBookmark}
             />
           ))}
