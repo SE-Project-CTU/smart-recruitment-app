@@ -77,7 +77,7 @@ function Header() {
     return [
       { title: "Việc làm", href: PATHS.SEARCH_JOB },
       secondItem,
-      { title: "Blog nghề nghiệp", href: PATHS.HOME },
+      { title: "Blog nghề nghiệp", href: PATHS.BLOG },
       { title: "Liên hệ", href: PATHS.HOME },
       { title: "FAQs", href: PATHS.HOME },
     ];

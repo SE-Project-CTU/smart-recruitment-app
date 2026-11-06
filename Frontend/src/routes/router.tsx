@@ -43,6 +43,7 @@ import {
 import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
 import CandidateCvBuilderPage from "@/pages/candidate/CandidateCvBuilderPage";
 import { CompanyDetailPage } from "@/pages/company";
+import CareerBlogPage from "@/pages/CareerBlogPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -53,6 +54,7 @@ const router = createBrowserRouter([
       { index: true, element: <LandingPage /> },
       { path: PATHS.SEARCH_JOB, element: <SearchJob /> },
       { path: PATHS.COMPANY_DETAIL, element: <CompanyDetailPage /> },
+      { path: PATHS.BLOG, element: <CareerBlogPage /> },
     ],
   },
 
