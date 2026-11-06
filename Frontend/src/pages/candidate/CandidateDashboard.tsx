@@ -136,7 +136,7 @@ function CandidateDashboard() {
                   job={item}
                   isSelected={selectedJob?.id === item.id && isDrawerOpen}
                   onSelect={() => handleOpenJobDetail(item)}
-                  className="h-full min-w-90!"
+                  className="h-full max-w-100!"
                 />
               </div>
             ))

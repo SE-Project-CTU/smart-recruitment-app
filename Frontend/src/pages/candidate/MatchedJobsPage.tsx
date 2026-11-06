@@ -463,7 +463,7 @@ export default function MatchedJobsPage() {
             </Button>
           </section>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
             {matchedJobs.map((job) => (
               <JobCard
                 key={job.id}

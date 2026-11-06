@@ -461,11 +461,14 @@ export default function SearchJobPage({
         </div>
       </div>
 
-      <div className="flex flex-col items-start gap-5 lg:flex-row lg:gap-6">
+      <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-5">
         <div
           className={cn(
-            "sticky hidden w-68 shrink-0 lg:block xl:w-72 2xl:w-76",
-            isPublicPage ? "top-25" : "top-4",
+            "sticky hidden shrink-0 lg:block",
+            "w-56 xl:w-60 2xl:w-64 3xl:w-72",
+            isPublicPage
+              ? "top-25 max-h-[calc(100vh-7.5rem)]"
+              : "top-4 max-h-[calc(100vh-2rem)]",
           )}
         >
           <JobFilterSidebar
@@ -576,7 +579,7 @@ export default function SearchJobPage({
           </div>
 
           {isLoadingJobs ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
               {[1, 2, 3, 4].map((index) => (
                 <JobCardSkeleton key={index} />
               ))}
