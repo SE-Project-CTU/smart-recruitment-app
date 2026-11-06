@@ -6,7 +6,6 @@ import {
   useMyCvs,
   useToggleCvPublic,
   useDeleteCv,
-  useUpdateCv,
 } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import { useToast } from "@/hooks/use-toast";
@@ -32,12 +31,9 @@ export default function CandidateCvManagementPage() {
   const { mutateAsync: togglePublic, isPending: isTogglingPublic } =
     useToggleCvPublic();
   const { mutateAsync: deleteCv, isPending: isDeletingCv } = useDeleteCv();
-  const { mutateAsync: updateCv, isPending: isUpdatingCv } = useUpdateCv();
 
-  // State modals
+  // State modal xóa CV
   const [cvToDelete, setCvToDelete] = useState<CVItem | null>(null);
-  const [cvToRename, setCvToRename] = useState<CVItem | null>(null);
-  const [renameTitle, setRenameTitle] = useState("");
 
   // Xử lý bật/tắt công khai
   const handleTogglePublic = async (cv: CVItem, nextIsPublic: boolean) => {
@@ -54,21 +50,6 @@ export default function CandidateCvManagementPage() {
     try {
       await deleteCv(cvToDelete.id);
       setCvToDelete(null);
-    } catch {
-      // Đã xử lý lỗi ở hook
-    }
-  };
-
-  // Xác nhận đổi tên CV
-  const handleConfirmRename = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cvToRename || !renameTitle.trim()) return;
-    try {
-      await updateCv({
-        id: cvToRename.id,
-        payload: { title: renameTitle.trim() },
-      });
-      setCvToRename(null);
     } catch {
       // Đã xử lý lỗi ở hook
     }
@@ -115,20 +96,21 @@ export default function CandidateCvManagementPage() {
         </div>
 
         {isLoadingCvs ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap gap-5">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="aspect-3/4 animate-pulse rounded-2xl border border-border bg-surface/50"
+                className="aspect-3/4 w-full sm:w-[calc(50%-10px)] lg:w-[calc((100%-40px)/3)] xl:w-[calc(25%-15px)] animate-pulse rounded-2xl border border-border bg-surface/50"
               />
             ))}
           </div>
         ) : cvs.length > 0 ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap gap-5">
             {cvs.map((cv) => (
               <CVCard
                 key={cv.id}
                 cv={cv}
+                className="w-full sm:w-[calc(50%-10px)] lg:w-[calc((100%-40px)/3)] xl:w-[calc(25%-15px)]"
                 onClick={(item) => {
                   navigate(`${PATHS.CANDIDATE.PREVIEW_CV}?id=${item.id}`);
                 }}
@@ -137,10 +119,6 @@ export default function CandidateCvManagementPage() {
                 onDownload={handleDownloadCv}
                 onEdit={(item) => {
                   navigate(`${PATHS.EDIT_CV}?id=${item.id}`);
-                }}
-                onRename={(item) => {
-                  setCvToRename(item);
-                  setRenameTitle(item.title);
                 }}
                 onDelete={(item) => setCvToDelete(item)}
               />
@@ -173,45 +151,6 @@ export default function CandidateCvManagementPage() {
           </div>
         )}
       </section>
-
-      {/* Modal: Đổi tên CV */}
-      {cvToRename && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6 shadow-xl">
-            <h3 className="text-base font-bold text-text-main">Đổi tên CV</h3>
-            <p className="mt-1 text-xs text-text-muted">
-              Nhập tên mới để bạn dễ dàng quản lý các phiên bản CV.
-            </p>
-
-            <form onSubmit={handleConfirmRename} className="mt-4 space-y-4">
-              <input
-                type="text"
-                required
-                value={renameTitle}
-                onChange={(e) => setRenameTitle(e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-text-main focus:border-primary focus:outline-none"
-              />
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => setCvToRename(null)}
-                  disabled={isUpdatingCv}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  isLoading={isUpdatingCv}
-                >
-                  Lưu thay đổi
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* AlertDialog: Xác nhận xóa CV */}
       <AlertDialog
