@@ -156,6 +156,17 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   ADMIN_CV_TEMPLATE_NOT_FOUND: "Không tìm thấy mẫu CV tiêu chuẩn.",
   ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS:
     "Mã định danh (code) của mẫu CV này đã tồn tại.",
+
+  // AI Error Codes
+  AI_SERVICE_UNAVAILABLE: "Dịch vụ AI đang bận hoặc tạm thời gián đoạn. Vui lòng thử lại sau.",
+  AI_QUOTA_EXCEEDED: "Hạn ngạch gọi dịch vụ AI tạm thời vượt quá giới hạn. Vui lòng thử lại sau.",
+  RESOURCE_EXHAUSTED: "Dịch vụ AI đang quá tải yêu cầu. Vui lòng thử lại sau ít phút.",
+  AI_JOB_NOT_FOUND: "Không tìm thấy tin tuyển dụng tương ứng.",
+  AI_CV_NOT_FOUND: "Chưa có nội dung hồ sơ CV để thực hiện gợi ý việc làm.",
+  NO_CV_EMBEDDING_FOUND: "Chưa thể trích xuất đặc trưng hồ sơ CV. Vui lòng cập nhật thêm thông tin.",
+  REFRESH_COOLDOWN_ACTIVE: "Bạn vừa làm mới gợi ý. Vui lòng chờ một chút trước khi thử lại.",
+  AI_MATCH_RESULT_NOT_FOUND: "Chưa có kết quả phân tích độ phù hợp.",
+  CONVERSATION_NOT_FOUND: "Không tìm thấy cuộc trò chuyện với trợ lý AI.",
 };
 
 export const FIELD_LABELS: Record<string, string> = {
