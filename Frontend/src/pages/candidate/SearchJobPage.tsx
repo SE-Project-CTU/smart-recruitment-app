@@ -461,10 +461,10 @@ export default function SearchJobPage({
         </div>
       </div>
 
-      <div className="flex flex-col items-start gap-6 lg:flex-row">
+      <div className="flex flex-col items-start gap-5 lg:flex-row lg:gap-6">
         <div
           className={cn(
-            "sticky hidden w-85 shrink-0 lg:block",
+            "sticky hidden w-68 shrink-0 lg:block xl:w-72 2xl:w-76",
             isPublicPage ? "top-25" : "top-4",
           )}
         >
@@ -513,7 +513,7 @@ export default function SearchJobPage({
           </div>
         )}
 
-        <div className="flex w-full flex-1 flex-col gap-4">
+        <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
           <div className="flex items-center justify-between px-1">
             <p className="text-xs font-medium text-text-muted">
               Tìm thấy{" "}
@@ -576,7 +576,7 @@ export default function SearchJobPage({
           </div>
 
           {isLoadingJobs ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {[1, 2, 3, 4].map((index) => (
                 <JobCardSkeleton key={index} />
               ))}
@@ -608,7 +608,7 @@ export default function SearchJobPage({
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
               {filteredAndSortedJobs.map((job) => (
                 <JobCard
                   key={job.id}

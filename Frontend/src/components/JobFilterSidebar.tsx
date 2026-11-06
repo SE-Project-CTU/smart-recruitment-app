@@ -158,9 +158,9 @@ export function JobFilterSidebar({
   };
 
   return (
-    <aside className="flex w-full scrollbar-thin flex-col gap-5 overflow-y-auto rounded-3xl border border-border bg-surface px-5 py-5">
-      <div className="flex items-center justify-between border-b border-border pb-3.5">
-        <h2 className="text-base font-bold text-text-main">Bộ lọc</h2>
+    <aside className="flex w-full scrollbar-thin flex-col gap-4 overflow-y-auto rounded-3xl border border-border bg-surface px-4 py-4 sm:px-4.5 sm:py-4.5">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <h2 className="text-sm sm:text-base font-bold text-text-main">Bộ lọc</h2>
         <button
           type="button"
           onClick={onReset}
@@ -171,11 +171,11 @@ export function JobFilterSidebar({
         </button>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Lĩnh vực
         </h3>
-        <div className="flex max-h-50 flex-col gap-2 overflow-x-hidden overflow-y-scroll">
+        <div className="flex max-h-52 flex-col gap-1.5 overflow-x-hidden overflow-y-auto pr-0.5">
           {industryHierarchy.map((group) => {
             const isExpanded = expandedGroups[group.parent] ?? false;
             const isParentChecked =
@@ -184,8 +184,8 @@ export function JobFilterSidebar({
                 group.children.every((c) => filters.industries.includes(c)));
 
             return (
-              <div key={group.parent} className="flex w-full flex-col gap-1">
-                <div className="flex items-center justify-between rounded-xl py-1.5">
+              <div key={group.parent} className="flex w-full flex-col gap-0.5">
+                <div className="flex items-center justify-between rounded-xl py-1">
                   <FilterCheckboxItem
                     label={group.parent}
                     isParent
@@ -215,7 +215,7 @@ export function JobFilterSidebar({
                 </div>
 
                 {isExpanded && group.children.length !== 0 && (
-                  <div className="grid grid-cols-1 gap-1.5 pt-1 pl-3">
+                  <div className="grid grid-cols-1 gap-1 pt-0.5 pl-3">
                     {group.children.map((child) => (
                       <FilterCheckboxItem
                         key={child}
@@ -234,7 +234,7 @@ export function JobFilterSidebar({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-border pt-4">
+      <div className="flex flex-col gap-3 border-t border-border pt-3.5">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
             Mức lương
@@ -258,7 +258,7 @@ export function JobFilterSidebar({
                 key={preset.label}
                 type="button"
                 onClick={() => onSalaryRangeChange(preset.min, preset.max)}
-                className={`cursor-pointer rounded-lg border px-2 py-1 text-[11px] font-semibold transition-colors ${
+                className={`cursor-pointer rounded-lg border px-1.5 py-1 text-[10.5px] sm:text-[11px] font-semibold transition-colors whitespace-nowrap text-center ${
                   isActive
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border bg-bg text-text-muted hover:border-text-muted hover:text-text-main"
@@ -270,7 +270,7 @@ export function JobFilterSidebar({
           })}
         </div>
 
-        <div className="flex flex-col gap-2 pt-1">
+        <div className="flex flex-col gap-2 pt-0.5">
           <Slider
             min={SALARY_MIN_LIMIT}
             max={SALARY_MAX_LIMIT}
@@ -298,7 +298,7 @@ export function JobFilterSidebar({
               }
               onChange={(e) => handleInputChange("minSalary", e.target.value)}
               placeholder="Tối thiểu 0"
-              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
+              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-2.5 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
           </div>
 
@@ -317,7 +317,7 @@ export function JobFilterSidebar({
               }
               onChange={(e) => handleInputChange("maxSalary", e.target.value)}
               placeholder="Tối đa 100"
-              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-3 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
+              className="w-full rounded-xl border border-border bg-bg py-1.5 pr-1 pl-2.5 text-xs font-semibold text-text-main focus:border-primary focus:bg-surface focus:outline-none"
             />
           </div>
         </div>
@@ -329,11 +329,11 @@ export function JobFilterSidebar({
         />
       </div>
 
-      <div className="flex flex-col gap-2.5 border-t border-border pt-4">
+      <div className="flex flex-col gap-2 border-t border-border pt-3.5">
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Loại hình công việc
         </h3>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
           {JOB_TYPE_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
@@ -345,11 +345,11 @@ export function JobFilterSidebar({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 border-t border-border pt-4">
+      <div className="flex flex-col gap-2 border-t border-border pt-3.5">
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Môi trường làm việc
         </h3>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-1">
           {WORK_MODE_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
@@ -361,11 +361,11 @@ export function JobFilterSidebar({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 border-t border-border pt-4">
+      <div className="flex flex-col gap-2 border-t border-border pt-3.5">
         <h3 className="text-xs font-semibold tracking-wide text-text-main uppercase">
           Cấp bậc
         </h3>
-        <div className="grid max-h-12 grid-cols-2 gap-1.5 overflow-y-scroll">
+        <div className="grid max-h-28 grid-cols-2 gap-1.5 overflow-y-auto pr-0.5">
           {JOB_LEVEL_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}
