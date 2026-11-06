@@ -400,6 +400,9 @@ export const CvScoringTab: React.FC = () => {
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
         selectedJob={selectedTargetJob}
+        title="Chọn vị trí công việc đối chiếu chấm điểm"
+        description="Đối chiếu hồ sơ CV với bản mô tả công việc (JD) thực tế để phân tích và chấm điểm độ phù hợp"
+        confirmText="Xác nhận chọn công việc đối chiếu"
         onConfirm={(job) => {
           setSelectedTargetJob(job);
           setValidationHint(null);

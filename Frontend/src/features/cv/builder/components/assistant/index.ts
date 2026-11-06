@@ -8,3 +8,5 @@ export * from "./CvScoringTab";
 export * from "./SuggestedJobCard";
 export * from "./SuggestedJobsTab";
 export * from "./TargetJobSelectModal";
+export * from "./TargetJobListColumn";
+export * from "./TargetJobDetailPreview";

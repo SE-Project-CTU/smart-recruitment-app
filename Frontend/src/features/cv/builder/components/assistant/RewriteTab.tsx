@@ -258,6 +258,9 @@ export const RewriteTab: React.FC = () => {
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
         selectedJob={selectedTargetJob}
+        title="Chọn vị trí công việc mục tiêu"
+        description="Đối chiếu và tối ưu hóa nội dung CV theo chuẩn Google XYZ dựa trên bản mô tả công việc (JD)"
+        confirmText="Xác nhận chọn công việc mục tiêu"
         onConfirm={(job) => {
           setSelectedTargetJob(job);
           setValidationHint(null);
