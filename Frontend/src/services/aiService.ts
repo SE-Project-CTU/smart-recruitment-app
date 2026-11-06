@@ -4,6 +4,8 @@ import type { ApiResponse } from "@/types";
 import type {
   EnhanceCvBatchPayload,
   EnhanceCvBatchResult,
+  MatchAnalysisPayload,
+  MatchAnalysisResult,
   RealtimeRecommendedJobDto,
   RerankJobsRealtimePayload,
 } from "@/types/ai";
@@ -45,5 +47,22 @@ export const aiService = {
     const data =
       (response as ApiResponse<EnhanceCvBatchResult>)?.data ?? response;
     return data as EnhanceCvBatchResult;
+  },
+
+  /**
+   * Phân tích và chấm điểm độ phù hợp giữa CV và Job mục tiêu
+   * POST /api/v1/ai/match-analysis
+   */
+  async matchAnalysis(
+    payload: MatchAnalysisPayload,
+  ): Promise<MatchAnalysisResult> {
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<MatchAnalysisResult> | MatchAnalysisResult
+    >(API_ENDPOINTS.AI.MATCH_ANALYSIS, payload);
+
+    const data =
+      (response as ApiResponse<MatchAnalysisResult>)?.data ?? response;
+    return data as MatchAnalysisResult;
   },
 };

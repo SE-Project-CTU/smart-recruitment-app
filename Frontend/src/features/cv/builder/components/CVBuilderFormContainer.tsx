@@ -38,6 +38,7 @@ import { CV_PRINT_PAGE_STYLE } from "../../constants/print";
 import { useCvHistoryHotkeys } from "../hooks/useCvHistoryHotkeys";
 import { CvHistoryProvider, useCvHistory } from "../history";
 import { CvRewriteProvider } from "../context/CvRewriteContext";
+import { CvScoringProvider } from "../context/CvScoringContext";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -461,7 +462,9 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = (pr
     <FormProvider {...methods}>
       <CvHistoryProvider>
         <CvRewriteProvider>
-          <CVBuilderFormContent {...props} />
+          <CvScoringProvider>
+            <CVBuilderFormContent {...props} />
+          </CvScoringProvider>
         </CvRewriteProvider>
       </CvHistoryProvider>
     </FormProvider>

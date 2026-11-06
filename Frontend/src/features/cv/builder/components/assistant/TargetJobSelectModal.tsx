@@ -11,6 +11,8 @@ import {
   FileText,
   Gift,
   CheckCircle2,
+  Bookmark,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -20,6 +22,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/common";
+import { useMyBookmarkedJobs } from "@/hooks/queries/useJob";
+import { jobService } from "@/services/jobService";
+import { formatSalaryCompact } from "@/utils/jobHelpers";
 import { MOCK_TARGET_JOBS } from "./mockData";
 import type { TargetJobOption } from "./types";
 
@@ -36,25 +41,72 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
   selectedJob,
   onConfirm,
 }) => {
+  // Lấy danh sách việc làm đã lưu thật của Candidate từ Backend
+  const { data: bookmarkedData, isLoading: isLoadingBookmarks } =
+    useMyBookmarkedJobs(
+      { page: 1, pageSize: 50 },
+      { enabled: isOpen },
+    );
+
+  // Chuyển đổi dữ liệu tin đã lưu thật sang TargetJobOption
+  const realBookmarkedJobs: TargetJobOption[] = useMemo(() => {
+    if (!bookmarkedData?.items || bookmarkedData.items.length === 0) {
+      return [];
+    }
+    return bookmarkedData.items.map((job) => {
+      const salaryInfo = formatSalaryCompact(
+        job.salaryMin,
+        job.salaryMax,
+        job.salaryNegotiable,
+      );
+
+      return {
+        id: job.id,
+        title: job.title,
+        companyName: job.company?.name || "Doanh nghiệp",
+        location: job.province?.name || "Toàn quốc",
+        salaryText: salaryInfo.fullText,
+        experienceLevel: job.experienceYears
+          ? `${job.experienceYears} năm kinh nghiệm`
+          : undefined,
+        workMode: job.workMode,
+        skills: job.skillNames || [],
+        description: `Vị trí ${job.title} tại ${job.company?.name || "doanh nghiệp"}.`,
+        requirements: job.skillNames?.length
+          ? [`Yêu cầu kỹ năng: ${job.skillNames.join(", ")}`]
+          : [],
+      };
+    });
+  }, [bookmarkedData]);
+
+  // Danh sách công việc: Ưu tiên tin đã lưu thật, nếu chưa lưu tin nào thì dùng tin mẫu hỗ trợ
+  const allAvailableJobs = useMemo(() => {
+    if (realBookmarkedJobs.length > 0) {
+      return realBookmarkedJobs;
+    }
+    return MOCK_TARGET_JOBS;
+  }, [realBookmarkedJobs]);
+
   // Lựa chọn tạm thời trong phiên mở modal (chỉ lưu khi bấm Xác nhận)
   const [tempSelected, setTempSelected] = useState<TargetJobOption | null>(
-    selectedJob || MOCK_TARGET_JOBS[0] || null,
+    selectedJob || allAvailableJobs[0] || null,
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
-  // Đồng bộ lại lựa chọn tạm mỗi khi mở modal
+  // Đồng bộ lại lựa chọn tạm mỗi khi mở modal hoặc danh sách job sẵn sàng
   useEffect(() => {
     if (isOpen) {
-      setTempSelected(selectedJob || MOCK_TARGET_JOBS[0] || null);
+      setTempSelected(selectedJob || allAvailableJobs[0] || null);
       setSearchQuery("");
     }
-  }, [isOpen, selectedJob]);
+  }, [isOpen, selectedJob, allAvailableJobs]);
 
   // Lọc danh sách công việc theo từ khóa tìm kiếm
   const filteredJobs = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return MOCK_TARGET_JOBS;
-    return MOCK_TARGET_JOBS.filter(
+    if (!q) return allAvailableJobs;
+    return allAvailableJobs.filter(
       (job) =>
         job.title.toLowerCase().includes(q) ||
         job.companyName.toLowerCase().includes(q) ||
@@ -62,10 +114,53 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
         job.description?.toLowerCase().includes(q) ||
         job.skills?.some((sk) => sk.toLowerCase().includes(q)),
     );
-  }, [searchQuery]);
+  }, [allAvailableJobs, searchQuery]);
 
-  const handleSelectJob = (job: TargetJobOption) => {
+  const handleSelectJob = async (job: TargetJobOption) => {
     setTempSelected(job);
+
+    // Nếu là Job từ database thật và chưa có description đầy đủ, nạp chi tiết bổ sung
+    const isRealJob = realBookmarkedJobs.some((r) => r.id === job.id);
+    if (isRealJob && job.id) {
+      try {
+        setIsLoadingDetail(true);
+        const detail = await jobService.getJobPostingDetail(job.id);
+        if (detail) {
+          const parsedRequirements = detail.requirements
+            ? detail.requirements
+                .split("\n")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : undefined;
+
+          const parsedBenefits = detail.benefits
+            ? detail.benefits
+                .split("\n")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : undefined;
+
+          const parsedSkills = detail.skills?.length
+            ? detail.skills.map((sk) => sk.name)
+            : undefined;
+
+          setTempSelected((prev) => {
+            if (prev?.id !== job.id) return prev;
+            return {
+              ...prev,
+              description: detail.description || prev.description,
+              requirements: parsedRequirements || prev.requirements,
+              benefits: parsedBenefits || prev.benefits,
+              skills: parsedSkills || prev.skills,
+            };
+          });
+        }
+      } catch (err) {
+        console.warn("[TargetJobSelectModal] Không thể tải chi tiết JD:", err);
+      } finally {
+        setIsLoadingDetail(false);
+      }
+    }
   };
 
   const handleConfirm = () => {
@@ -94,7 +189,7 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
                 Chọn vị trí công việc mục tiêu
               </DialogTitle>
               <DialogDescription className="text-[11px] text-text-muted">
-                Đối chiếu và tối ưu hóa nội dung CV theo bản mô tả công việc (JD) thực tế
+                Đối chiếu và phân tích độ phù hợp CV theo bản mô tả công việc (JD) thực tế từ danh sách tin đã lưu
               </DialogDescription>
             </div>
           </div>
@@ -104,8 +199,8 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
         <div className="flex flex-1 overflow-hidden min-h-0">
           {/* CỘT TRÁI: DANH SÁCH CHỌN CÔNG VIỆC (~380px) */}
           <div className="flex w-full md:w-[380px] shrink-0 flex-col border-r border-border bg-bg/40">
-            {/* Thanh tìm kiếm */}
-            <div className="border-b border-border/60 bg-surface/80 p-3">
+            {/* Thanh tìm kiếm & nhãn nguồn dữ liệu */}
+            <div className="border-b border-border/60 bg-surface/80 p-3 space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-text-muted" />
                 <input
@@ -116,11 +211,30 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
                   className="w-full rounded-xl border border-border bg-bg py-1.5 pl-8.5 pr-3 text-xs text-text-main placeholder:text-text-muted/70 focus:border-primary focus:bg-surface focus:outline-none"
                 />
               </div>
+
+              <div className="flex items-center justify-between text-[10px] text-text-muted">
+                <span className="flex items-center gap-1 font-medium">
+                  <Bookmark className="size-3 text-primary" />
+                  {realBookmarkedJobs.length > 0
+                    ? `Tin đã lưu (${realBookmarkedJobs.length})`
+                    : "Tin mẫu gợi ý"}
+                </span>
+                {realBookmarkedJobs.length === 0 && !isLoadingBookmarks && (
+                  <span className="italic text-text-muted/80">
+                    (Chưa có tin lưu thực tế)
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Danh sách thẻ chọn job */}
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              {filteredJobs.length === 0 ? (
+              {isLoadingBookmarks ? (
+                <div className="flex h-48 flex-col items-center justify-center gap-2 text-xs text-text-muted">
+                  <Loader2 className="size-5 animate-spin text-primary" />
+                  <span>Đang tải danh sách tin đã lưu...</span>
+                </div>
+              ) : filteredJobs.length === 0 ? (
                 <div className="py-12 text-center text-xs text-text-muted">
                   Không tìm thấy công việc phù hợp với &ldquo;{searchQuery}&rdquo;.
                 </div>
@@ -199,9 +313,16 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
                         <span>{tempSelected.location}</span>
                       </div>
                     </div>
-                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary shrink-0">
-                      Đang xem chi tiết
-                    </span>
+                    {isLoadingDetail ? (
+                      <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary shrink-0">
+                        <Loader2 className="size-3 animate-spin" />
+                        Đang nạp JD...
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary shrink-0">
+                        Đang xem chi tiết
+                      </span>
+                    )}
                   </div>
 
                   {/* Pills thông tin nhanh */}
@@ -256,7 +377,7 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
                         <FileText className="size-3.5 text-primary" />
                         Mô tả công việc
                       </h5>
-                      <p className="leading-relaxed text-text-muted">
+                      <p className="leading-relaxed text-text-muted whitespace-pre-line">
                         {tempSelected.description}
                       </p>
                     </div>

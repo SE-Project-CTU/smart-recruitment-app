@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sparkles, X, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import { Button } from "@/components/common";
 import type { CvSectionSuggestion } from "./types";
 

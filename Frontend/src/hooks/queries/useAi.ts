@@ -3,6 +3,8 @@ import { aiService } from "@/services/aiService";
 import type {
   EnhanceCvBatchPayload,
   EnhanceCvBatchResult,
+  MatchAnalysisPayload,
+  MatchAnalysisResult,
   RealtimeRecommendedJobDto,
   RerankJobsRealtimePayload,
 } from "@/types/ai";
@@ -24,5 +26,15 @@ export const useEnhanceCvBatch = () => {
   return useMutation<EnhanceCvBatchResult, unknown, EnhanceCvBatchPayload>({
     mutationKey: ["ai", "cv", "enhance-batch"],
     mutationFn: (payload) => aiService.enhanceCvBatch(payload),
+  });
+};
+
+/**
+ * Hook Mutation: Phân tích & chấm điểm độ phù hợp giữa CV và Job mục tiêu (API POST /api/v1/ai/match-analysis)
+ */
+export const useMatchAnalysis = () => {
+  return useMutation<MatchAnalysisResult, unknown, MatchAnalysisPayload>({
+    mutationKey: ["ai", "match-analysis"],
+    mutationFn: (payload) => aiService.matchAnalysis(payload),
   });
 };

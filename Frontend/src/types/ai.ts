@@ -48,3 +48,27 @@ export interface EnhanceCvBatchItemResult {
 export interface EnhanceCvBatchResult {
   sections: EnhanceCvBatchItemResult[];
 }
+
+/**
+ * Payload yêu cầu phân tích & chấm điểm độ phù hợp CV - JD
+ * POST /api/v1/ai/match-analysis
+ */
+export interface MatchAnalysisPayload {
+  cvId?: string | null;
+  cvVersionId?: string | null;
+  jobId?: string | null;
+  cvText?: string | null;
+  jobText?: string | null;
+}
+
+/**
+ * Kết quả phân tích độ phù hợp giữa CV và JD từ AI
+ */
+export interface MatchAnalysisResult {
+  score: number;
+  summary: string;
+  matchingSkills: string[];
+  missingSkills: string[];
+  strengths: string[];
+  recommendations: string[];
+}
