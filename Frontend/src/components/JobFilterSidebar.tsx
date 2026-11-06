@@ -42,7 +42,6 @@ const SALARY_PRESETS = [
   { label: "Trên 25 triệu", min: "25", max: "" },
 ];
 
-
 interface FilterCheckboxItemProps {
   label: string;
   checked: boolean;

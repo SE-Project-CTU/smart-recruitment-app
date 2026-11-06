@@ -49,7 +49,7 @@ function Header() {
   const isHomePage =
     location.pathname === PATHS.HOME || location.pathname === "/";
 
-  const isFloating = isHomePage && isScrolled;
+  const isFloating = isScrolled;
 
   const primaryRole = user?.roles?.[0]?.toLowerCase() || "candidate";
   const dashboardPath = getDashboardPathByRole(primaryRole);
@@ -82,10 +82,10 @@ function Header() {
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center">
       <motion.div
         layout
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-        className={`pointer-events-auto flex h-16 border bg-bg backdrop-blur-md transition-all duration-300 ${
+        transition={{ type: "spring", ease: "easeInOut", duration: 0.3 }}
+        className={`pointer-events-auto flex h-16 border bg-linear-to-r from-transparent via-bg/80 to-transparent backdrop-blur-md transition-all duration-300 ${
           isFloating
-            ? "mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-full border-border/50 bg-bg/80! shadow-lg"
+            ? "mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-full border-border/50 shadow-lg"
             : "mt-0 w-full rounded-none border-x-0 border-t-0 border-b border-border/40 shadow-none"
         }`}
       >

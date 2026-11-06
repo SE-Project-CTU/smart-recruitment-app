@@ -39,6 +39,7 @@ import {
 import { Smarthire_icon_default } from "@/assets/images/logo";
 import JobCardSkeleton from "@/components/common/JobCardSkeleton";
 import { EmptyState } from "@/assets/images/decoration";
+import { cn } from "@/lib/utils";
 
 type SortKey = "AI_MATCH" | "NEWEST" | "SALARY_DESC" | "SALARY_ASC";
 
@@ -59,7 +60,11 @@ const INITIAL_FILTERS: JobFilterState = {
   negotiableOnly: false,
 };
 
-export default function SearchJobPage() {
+export default function SearchJobPage({
+  isPublicPage = false,
+}: {
+  isPublicPage?: boolean;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>({
@@ -457,7 +462,12 @@ export default function SearchJobPage() {
       </div>
 
       <div className="flex flex-col items-start gap-6 lg:flex-row">
-        <div className="sticky top-4 hidden w-78 shrink-0 lg:block">
+        <div
+          className={cn(
+            "sticky hidden w-85 shrink-0 lg:block",
+            isPublicPage ? "top-25" : "top-4",
+          )}
+        >
           <JobFilterSidebar
             filters={filters}
             onToggleArrayFilter={handleToggleArrayFilter}
@@ -566,7 +576,7 @@ export default function SearchJobPage() {
           </div>
 
           {isLoadingJobs ? (
-            <div className="flex flex-wrap justify-items-center gap-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
               {[1, 2, 3, 4].map((index) => (
                 <JobCardSkeleton key={index} />
               ))}
