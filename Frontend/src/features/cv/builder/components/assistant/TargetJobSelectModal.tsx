@@ -92,11 +92,19 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
         className="flex h-[86vh]! max-h-[720px]! w-[92vw]! max-w-5xl! flex-col gap-0! overflow-hidden rounded-2xl! border-border! bg-surface! p-0! shadow-2xl!"
       >
         {/* ================= 1. HEADER MODAL ================= */}
-        <DialogHeader className="shrink-0 border-b border-border/70 bg-surface px-5 py-5">
+        <DialogHeader className="shrink-0 border-b border-border/70 bg-surface px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <DialogTitle className="text-sm font-bold text-text-main">
-              {title}
-            </DialogTitle>
+            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <HeaderIcon className="size-4" />
+            </div>
+            <div className="space-y-0.5">
+              <DialogTitle className="text-sm font-bold text-text-main">
+                {title}
+              </DialogTitle>
+              <DialogDescription className="text-[11px] text-text-muted">
+                {description}
+              </DialogDescription>
+            </div>
           </div>
         </DialogHeader>
 

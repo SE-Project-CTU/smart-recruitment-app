@@ -84,6 +84,10 @@ export const TargetJobListColumn: React.FC<TargetJobListColumnProps> = ({
             </button>
           )}
         </div>
+        <div className="flex items-center justify-between px-0.5 text-[11px] text-text-muted">
+          <span>Tin tuyển dụng đã lưu</span>
+          <span className="font-semibold text-text-main">{totalItems} tin</span>
+        </div>
       </div>
 
       {/* 2. Danh sách việc làm và các trạng thái */}
@@ -187,6 +191,7 @@ export const TargetJobListColumn: React.FC<TargetJobListColumnProps> = ({
                     {job.title}
                   </h4>
                   <div className="flex items-center gap-1 text-[11px] text-text-muted">
+                    <Building2 className="size-3 text-text-muted/70 shrink-0" />
                     <span className="max-w-full truncate font-medium">
                       {job.companyName}
                     </span>
@@ -198,6 +203,11 @@ export const TargetJobListColumn: React.FC<TargetJobListColumnProps> = ({
                         <span className="max-w-full truncate">
                           {job.location}
                         </span>
+                      </span>
+                    )}
+                    {job.workMode && (
+                      <span className="text-text-muted/80">
+                        • {getWorkModeLabel(job.workMode)}
                       </span>
                     )}
                   </div>

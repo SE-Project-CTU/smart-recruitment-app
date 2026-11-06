@@ -2,24 +2,21 @@ import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   Sparkles,
-  Briefcase,
-  Building2,
   RefreshCw,
   AlertCircle,
   FileText,
-  X,
-  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/common";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
 import { useCvRewriteContext } from "../../context/CvRewriteContext";
 import { SuggestionCard } from "./SuggestionCard";
-import { TargetJobSelectModal } from "./TargetJobSelectModal";
+import { SuggestionCardSkeleton } from "./SuggestionCardSkeleton";
+import { TargetJobSelectorCard } from "./TargetJobSelectorCard";
 
 /**
  * RewriteTab:
  * Tab Gợi ý viết lại CV theo Job mục tiêu tích hợp API Batching:
- * - Cho phép chọn một Job mục tiêu mẫu hoặc từ hệ thống qua TargetJobSelectModal
+ * - Cho phép chọn một Job mục tiêu mẫu hoặc từ hệ thống qua TargetJobSelectorCard
  * - Nút "Tạo gợi ý" quét và gom các section có nội dung trong form CV gửi lên POST /api/v1/ai/cv/enhance/batch
  * - Hiển thị đề xuất thật theo chuẩn Google XYZ từ Gemini AI cho từng section
  * - Cho phép bỏ qua card đề xuất và Tạo lại toàn bộ
@@ -27,7 +24,6 @@ import { TargetJobSelectModal } from "./TargetJobSelectModal";
  */
 export const RewriteTab: React.FC = () => {
   const { getValues } = useFormContext<RichTextCvEditorValues>();
-  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [validationHint, setValidationHint] = useState<string | null>(null);
 
   const {
@@ -73,70 +69,16 @@ export const RewriteTab: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* ================= 1. KHỐI CHỌN JOB MỤC TIÊU ================= */}
-      <div className="rounded-xl border border-border bg-surface p-3.5 space-y-2.5 shadow-xs">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
-            Vị trí công việc mục tiêu
-          </span>
-        </div>
-
-        {selectedTargetJob ? (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="space-y-0.5 min-w-0">
-                <h4 className="text-xs font-bold text-text-main line-clamp-1">
-                  {selectedTargetJob.title}
-                </h4>
-                <div className="flex items-center gap-1 text-[11px] text-text-muted">
-                  <Building2 className="size-3 shrink-0 text-text-muted/80" />
-                  <span className="font-medium truncate max-w-[180px]">
-                    {selectedTargetJob.companyName}
-                  </span>
-                </div>
-              </div>
-
-              {/* Nút thao tác đổi / bỏ chọn */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsJobModalOpen(true)}
-                  className="rounded-md p-1 text-text-muted hover:bg-bg hover:text-text-main transition-colors cursor-pointer"
-                  title="Thay đổi vị trí mục tiêu"
-                >
-                  <Pencil className="size-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTargetJob(null)}
-                  className="rounded-md p-1 text-text-muted hover:bg-bg hover:text-status-error transition-colors cursor-pointer"
-                  title="Bỏ chọn vị trí này"
-                >
-                  <X className="size-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-bg/50 p-3.5 text-center">
-            <Briefcase className="size-5 text-text-muted/70 mb-1" />
-            <p className="text-xs font-medium text-text-main">
-              Chưa chọn công việc mục tiêu
-            </p>
-            <p className="mt-0.5 text-[11px] text-text-muted max-w-[200px]">
-              Chọn vị trí mong muốn để AI đối chiếu và điều chỉnh câu từ chuẩn xác
-            </p>
-            <Button
-              variant="secondary"
-              icon={Briefcase}
-              iconSize={13}
-              onClick={() => setIsJobModalOpen(true)}
-              className="mt-2.5! rounded-lg! px-3! py-1.5! text-xs! font-semibold!"
-            >
-              Chọn Job mục tiêu
-            </Button>
-          </div>
-        )}
-
+      <TargetJobSelectorCard
+        selectedJob={selectedTargetJob}
+        onSelectJob={(job) => {
+          setSelectedTargetJob(job);
+          setValidationHint(null);
+        }}
+        modalTitle="Chọn vị trí công việc mục tiêu"
+        modalDescription="Đối chiếu và tối ưu hóa nội dung CV theo chuẩn Google XYZ dựa trên bản mô tả công việc"
+        modalConfirmText="Xác nhận chọn công việc mục tiêu"
+      >
         {/* Nút Tạo gợi ý */}
         <div className="pt-1">
           <Button
@@ -145,7 +87,7 @@ export const RewriteTab: React.FC = () => {
             iconSize={14}
             isLoading={isGenerating}
             onClick={handleGenerateClick}
-            className="w-full! rounded-xl! py-2! text-xs! font-semibold!"
+            className="w-full! rounded-md! px-3! text-xs! font-semibold!"
           >
             {hasGenerated ? "Tạo lại toàn bộ gợi ý" : "Tạo gợi ý viết lại"}
           </Button>
@@ -177,20 +119,17 @@ export const RewriteTab: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+      </TargetJobSelectorCard>
 
-      {/* ================= 2. TRẠNG THÁI ĐANG XỬ LÝ ================= */}
+      {/* ================= 2. TRẠNG THÁI ĐANG XỬ LÝ (SKELETON CARDS) ================= */}
       {isGenerating && (
-        <div className="flex h-52 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface p-4 text-center shadow-xs">
-          <p className="text-xs font-semibold text-text-main">
-            Gemini AI đang phân tích và tối ưu hóa nội dung...
-          </p>
-          <p className="text-[11px] text-text-muted max-w-[230px]">
-            Đang áp dụng chuẩn Google XYZ dựa trên vị trí{" "}
-            <span className="font-semibold text-text-main">
-              {selectedTargetJob?.title}
-            </span>
-          </p>
+        <div className="space-y-3">
+          {/* Danh sách Skeleton của các thẻ gợi ý (SuggestionCard) */}
+          <div className="space-y-3">
+            <SuggestionCardSkeleton isExpanded={false} />
+            <SuggestionCardSkeleton isExpanded={false} />
+            <SuggestionCardSkeleton isExpanded={false} />
+          </div>
         </div>
       )}
 
@@ -252,20 +191,6 @@ export const RewriteTab: React.FC = () => {
           )}
         </div>
       )}
-
-      {/* ================= 4. MODAL CHỌN JOB MỤC TIÊU ================= */}
-      <TargetJobSelectModal
-        isOpen={isJobModalOpen}
-        onClose={() => setIsJobModalOpen(false)}
-        selectedJob={selectedTargetJob}
-        title="Chọn vị trí công việc mục tiêu"
-        description="Đối chiếu và tối ưu hóa nội dung CV theo chuẩn Google XYZ dựa trên bản mô tả công việc (JD)"
-        confirmText="Xác nhận chọn công việc mục tiêu"
-        onConfirm={(job) => {
-          setSelectedTargetJob(job);
-          setValidationHint(null);
-        }}
-      />
     </div>
   );
 };

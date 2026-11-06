@@ -97,7 +97,7 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
                   const isActive = activeTab === tab.id;
 
                   return (
-                    <Tooltip key={tab.id}>
+                    <Tooltip key={tab.id} delay={500}>
                       <TooltipTrigger
                         render={
                           <TabsTab

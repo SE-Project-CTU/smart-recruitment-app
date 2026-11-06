@@ -6,10 +6,6 @@ import {
   XCircle,
   Sparkles,
   RefreshCw,
-  Briefcase,
-  Building2,
-  Pencil,
-  X,
   AlertCircle,
   ThumbsUp,
   Lightbulb,
@@ -17,12 +13,12 @@ import {
 import { Button } from "@/components/common";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
 import { useCvScoringContext } from "../../context/CvScoringContext";
-import { TargetJobSelectModal } from "./TargetJobSelectModal";
+import { TargetJobSelectorCard } from "./TargetJobSelectorCard";
 
 /**
  * CvScoringTab:
  * Tab Chấm điểm CV theo Job mục tiêu dựa trên API thật: POST /api/v1/ai/match-analysis
- * - Người dùng chọn Job mục tiêu độc lập (lấy từ tin đã lưu hoặc danh sách mẫu).
+ * - Người dùng chọn Job mục tiêu độc lập qua TargetJobSelectorCard.
  * - Khi chấm, FE gửi nội dung CV mới nhất từ form (kể cả thay đổi chưa lưu) và jobId.
  * - Hiển thị:
  *   + Điểm số tổng quan & tóm tắt đánh giá
@@ -33,7 +29,6 @@ import { TargetJobSelectModal } from "./TargetJobSelectModal";
  */
 export const CvScoringTab: React.FC = () => {
   const { getValues } = useFormContext<RichTextCvEditorValues>();
-  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [validationHint, setValidationHint] = useState<string | null>(null);
 
   const {
@@ -99,79 +94,24 @@ export const CvScoringTab: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* ================= 1. KHỐI CHỌN JOB MỤC TIÊU (ĐỘC LẬP) ================= */}
-      <div className="rounded-xl border border-border bg-surface p-3.5 space-y-2.5 shadow-xs">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
-            Vị trí đối chiếu chấm điểm
-          </span>
-          {selectedTargetJob && (
-            <span className="rounded-full bg-status-success/15 px-2 py-0.5 text-[10px] font-bold text-status-success">
-              Đã chọn
-            </span>
-          )}
-        </div>
-
-        {selectedTargetJob ? (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="space-y-0.5 min-w-0">
-                <h4 className="text-xs font-bold text-text-main line-clamp-1">
-                  {selectedTargetJob.title}
-                </h4>
-                <div className="flex items-center gap-1 text-[11px] text-text-muted">
-                  <Building2 className="size-3 shrink-0 text-text-muted/80" />
-                  <span className="font-medium truncate max-w-[180px]">
-                    {selectedTargetJob.companyName}
-                  </span>
-                </div>
-              </div>
-
-              {/* Nút thao tác đổi / bỏ chọn */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsJobModalOpen(true)}
-                  className="rounded-md p-1 text-text-muted hover:bg-bg hover:text-text-main transition-colors cursor-pointer"
-                  title="Thay đổi vị trí đối chiếu"
-                >
-                  <Pencil className="size-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedTargetJob(null);
-                    clearScore();
-                  }}
-                  className="rounded-md p-1 text-text-muted hover:bg-bg hover:text-status-error transition-colors cursor-pointer"
-                  title="Bỏ chọn vị trí này"
-                >
-                  <X className="size-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-bg/50 p-3.5 text-center">
-            <Briefcase className="size-5 text-text-muted/70 mb-1" />
-            <p className="text-xs font-medium text-text-main">
-              Chưa chọn công việc mục tiêu
-            </p>
-            <p className="mt-0.5 text-[11px] text-text-muted max-w-[200px]">
-              Chọn vị trí mong muốn để AI đối chiếu CV với bản mô tả công việc (JD)
-            </p>
-            <Button
-              variant="secondary"
-              icon={Briefcase}
-              iconSize={13}
-              onClick={() => setIsJobModalOpen(true)}
-              className="mt-2.5! rounded-lg! px-3! py-1.5! text-xs! font-semibold!"
-            >
-              Chọn Job đối chiếu
-            </Button>
-          </div>
-        )}
-
+      {/* ================= 1. KHỐI CHỌN JOB MỤC TIÊU ================= */}
+      <TargetJobSelectorCard
+        selectedJob={selectedTargetJob}
+        onSelectJob={(job) => {
+          setSelectedTargetJob(job);
+          setValidationHint(null);
+        }}
+        onClear={() => {
+          clearScore();
+        }}
+        emptyDescription="Chọn vị trí mong muốn để AI đối chiếu CV với bản mô tả công việc"
+        buttonText="Chọn Job đối chiếu"
+        changeTooltip="Thay đổi vị trí đối chiếu"
+        clearTooltip="Bỏ chọn vị trí này"
+        modalTitle="Chọn vị trí công việc đối chiếu chấm điểm"
+        modalDescription="Đối chiếu hồ sơ CV với bản mô tả công việc (JD) thực tế để phân tích và chấm điểm độ phù hợp"
+        modalConfirmText="Xác nhận chọn công việc đối chiếu"
+      >
         {/* Nút Chấm điểm CV */}
         <div className="pt-1">
           <Button
@@ -180,7 +120,7 @@ export const CvScoringTab: React.FC = () => {
             iconSize={14}
             isLoading={isScoring}
             onClick={handleScoreClick}
-            className="w-full! rounded-xl! py-2! text-xs! font-semibold!"
+            className="w-full! rounded-md! py-2! text-xs! font-semibold!"
           >
             {hasScored ? "Chấm điểm lại CV" : "Chấm điểm độ phù hợp"}
           </Button>
@@ -212,7 +152,7 @@ export const CvScoringTab: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+      </TargetJobSelectorCard>
 
       {/* ================= 2. TRẠNG THÁI ĐANG CHẤM ================= */}
       {isScoring && (
@@ -394,20 +334,6 @@ export const CvScoringTab: React.FC = () => {
           </p>
         </div>
       )}
-
-      {/* ================= 5. MODAL CHỌN JOB MỤC TIÊU ================= */}
-      <TargetJobSelectModal
-        isOpen={isJobModalOpen}
-        onClose={() => setIsJobModalOpen(false)}
-        selectedJob={selectedTargetJob}
-        title="Chọn vị trí công việc đối chiếu chấm điểm"
-        description="Đối chiếu hồ sơ CV với bản mô tả công việc (JD) thực tế để phân tích và chấm điểm độ phù hợp"
-        confirmText="Xác nhận chọn công việc đối chiếu"
-        onConfirm={(job) => {
-          setSelectedTargetJob(job);
-          setValidationHint(null);
-        }}
-      />
     </div>
   );
 };

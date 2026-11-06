@@ -71,22 +71,32 @@ export const TargetJobDetailPreview: React.FC<TargetJobDetailPreviewProps> = ({
                 <span>{selectedJob.location}</span>
               </div>
             </div>
+
+            {isLoadingDetail && (
+              <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary shrink-0">
+                <Loader2 className="size-3 animate-spin" />
+                Đang nạp chi tiết...
+              </span>
+            )}
           </div>
 
           {/* Quick info pills: Mức lương, Kinh nghiệm, Hình thức làm việc */}
           <div className="mt-3.5 flex flex-wrap items-center gap-2 text-[11px]">
             {selectedJob.salaryText && (
               <span className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1 font-medium text-text-main">
+                <CircleDollarSign className="size-3.5 text-text-muted" />
                 {selectedJob.salaryText}
               </span>
             )}
             {selectedJob.experienceLevel && (
               <span className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1 font-medium text-text-main">
+                <Briefcase className="size-3.5 text-text-muted" />
                 {selectedJob.experienceLevel}
               </span>
             )}
             {selectedJob.workMode && (
               <span className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1 font-medium text-text-main">
+                <Clock className="size-3.5 text-text-muted" />
                 {workModeText}
               </span>
             )}
