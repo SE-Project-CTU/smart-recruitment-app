@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Search,
   X,
@@ -166,6 +166,7 @@ export default function SearchJobPage({
     key: "industries" | "jobTypes" | "workModes" | "jobLevels",
     value: string,
   ) => {
+    setCurrentPage(1);
     setFilters((prev) => {
       const exists = prev[key].includes(value);
       return {
@@ -178,6 +179,7 @@ export default function SearchJobPage({
   };
 
   const handleToggleIndustryGroup = (parent: string, children: string[]) => {
+    setCurrentPage(1);
     setFilters((prev) => {
       const groupItems = [parent, ...children];
       const isAllSelected =
@@ -203,6 +205,7 @@ export default function SearchJobPage({
   };
 
   const handleSalaryRangeChange = (minSalary: string, maxSalary: string) => {
+    setCurrentPage(1);
     setFilters((prev) => ({ ...prev, minSalary, maxSalary }));
   };
 
@@ -222,6 +225,7 @@ export default function SearchJobPage({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setCurrentPage(1);
     setSubmittedQuery(searchQuery);
   };
 
@@ -373,34 +377,19 @@ export default function SearchJobPage({
     return Math.max(1, Math.ceil(filteredAndSortedJobs.length / PAGE_SIZE));
   }, [filteredAndSortedJobs.length]);
 
+  // Keep pagination valid during render when filtering reduces the page count.
+  const effectiveCurrentPage = Math.min(currentPage, totalPages);
+
   // 2. Cắt danh sách việc làm hiển thị theo trang hiện tại (mỗi trang đúng PAGE_SIZE việc làm)
   const paginatedJobs = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
+    const start = (effectiveCurrentPage - 1) * PAGE_SIZE;
     return filteredAndSortedJobs.slice(start, start + PAGE_SIZE);
-  }, [filteredAndSortedJobs, currentPage]);
+  }, [filteredAndSortedJobs, effectiveCurrentPage]);
 
-  // 3. Đồng bộ hóa triệt để: Tự động reset về trang 1 khi người dùng đổi bất kỳ tiêu chí tìm kiếm hay bộ lọc nào
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [
-    filters,
-    searchQuery,
-    submittedQuery,
-    selectedLocation.provinceId,
-    selectedLocation.wardId,
-    sortBy,
-  ]);
-
-  // 4. Giữ an toàn: Nếu số lượng trang bị co lại nhỏ hơn trang đang chọn, tự động đưa về trang 1
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [currentPage, totalPages]);
-
-  // 5. Xử lý chuyển trang mượt mà kèm cuộn lên đầu danh sách công việc
+  // 3. Xử lý chuyển trang mượt mà kèm cuộn lên đầu danh sách công việc
   const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages || newPage === currentPage) return;
+    if (newPage < 1 || newPage > totalPages || newPage === effectiveCurrentPage)
+      return;
     setCurrentPage(newPage);
     jobListTopRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -471,7 +460,10 @@ export default function SearchJobPage({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentPage(1);
+                    setSearchQuery(e.target.value);
+                  }}
                   placeholder="Vị trí tuyển dụng, kỹ năng, công ty..."
                   className="w-full min-w-0 bg-transparent text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none sm:text-sm"
                 />
@@ -479,6 +471,7 @@ export default function SearchJobPage({
                   <button
                     type="button"
                     onClick={() => {
+                      setCurrentPage(1);
                       setSearchQuery("");
                       setSubmittedQuery("");
                     }}
@@ -500,7 +493,10 @@ export default function SearchJobPage({
                 <div className="min-w-0 flex-1 sm:w-44 md:w-56 lg:w-64">
                   <LocationCombobox
                     value={selectedLocation}
-                    onChange={setSelectedLocation}
+                    onChange={(location) => {
+                      setCurrentPage(1);
+                      setSelectedLocation(location);
+                    }}
                     className="w-full"
                     buttonClassName="flex w-full cursor-pointer items-center justify-between gap-2 border-0 bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none"
                   />
@@ -626,7 +622,10 @@ export default function SearchJobPage({
                 items={SORT_OPTIONS}
                 value={sortBy}
                 onValueChange={(val) => {
-                  if (val) setSortBy(val as SortKey);
+                  if (val) {
+                    setCurrentPage(1);
+                    setSortBy(val as SortKey);
+                  }
                 }}
               >
                 <Select.Trigger
@@ -708,7 +707,9 @@ export default function SearchJobPage({
                   <JobCard
                     key={job.id}
                     job={job}
-                    isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
+                    isSelected={
+                      job.id === selectedJob?.id && isDetailDrawerOpen
+                    }
                     onSelect={handleSelectJob}
                     isBookmarked={bookmarkedJobIds.has(job.id)}
                     onToggleBookmark={handleToggleBookmark}
