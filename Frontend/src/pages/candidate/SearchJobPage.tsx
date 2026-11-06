@@ -465,7 +465,7 @@ export default function SearchJobPage({
         <div
           className={cn(
             "sticky hidden shrink-0 lg:block",
-            "w-56 xl:w-60 2xl:w-64 3xl:w-72",
+            "w-56 xl:w-76 3xl:w-85",
             isPublicPage
               ? "top-25 max-h-[calc(100vh-7.5rem)]"
               : "top-4 max-h-[calc(100vh-2rem)]",

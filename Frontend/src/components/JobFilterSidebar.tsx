@@ -163,7 +163,9 @@ export function JobFilterSidebar({
   return (
     <aside className="flex w-full scrollbar-thin flex-col gap-3 overflow-y-auto rounded-2xl border border-border bg-surface p-3 sm:p-3.5 3xl:gap-4 3xl:rounded-3xl 3xl:p-4.5">
       <div className="flex items-center justify-between border-b border-border pb-2.5 3xl:pb-3">
-        <h2 className="text-xs font-bold text-text-main sm:text-sm 3xl:text-base">Bộ lọc</h2>
+        <h2 className="text-xs font-bold text-text-main sm:text-sm 3xl:text-base">
+          Bộ lọc
+        </h2>
         <button
           type="button"
           onClick={onReset}
@@ -178,7 +180,7 @@ export function JobFilterSidebar({
         <h3 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase 3xl:text-[11px]">
           Lĩnh vực
         </h3>
-        <div className="flex max-h-40 flex-col gap-1 overflow-x-hidden overflow-y-auto pr-0.5 3xl:max-h-50">
+        <div className="flex max-h-40 flex-col gap-1 overflow-x-hidden overflow-y-auto pr-0.5 sm:max-h-30 3xl:max-h-40">
           {industryHierarchy.map((group) => {
             const isExpanded = expandedGroups[group.parent] ?? false;
             const isParentChecked =
@@ -261,7 +263,7 @@ export function JobFilterSidebar({
                 key={preset.label}
                 type="button"
                 onClick={() => onSalaryRangeChange(preset.min, preset.max)}
-                className={`cursor-pointer rounded-md border px-1 py-0.5 text-[10px] font-semibold transition-colors whitespace-nowrap text-center 3xl:px-1.5 3xl:py-1 3xl:text-[10.5px] ${
+                className={`cursor-pointer rounded-md border px-1 py-0.5 text-center text-[10px] font-semibold whitespace-nowrap transition-colors 3xl:px-1.5 3xl:py-1 3xl:text-[10.5px] ${
                   isActive
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border bg-bg text-text-muted hover:border-text-muted hover:text-text-main"
@@ -368,7 +370,7 @@ export function JobFilterSidebar({
         <h3 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase 3xl:text-[11px]">
           Cấp bậc
         </h3>
-        <div className="grid max-h-24 grid-cols-2 gap-1 overflow-y-auto pr-0.5 3xl:max-h-28">
+        <div className="grid max-h-40 grid-cols-2 gap-1 overflow-y-auto pr-0.5 sm:max-h-12 3xl:max-h-30">
           {JOB_LEVEL_OPTIONS.map((item) => (
             <FilterCheckboxItem
               key={item.value}

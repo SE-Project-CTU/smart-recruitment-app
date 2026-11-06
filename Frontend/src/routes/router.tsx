@@ -237,7 +237,15 @@ const router = createBrowserRouter([
             element: <Navigate to={PATHS.ADMIN.DASHBOARD} replace />,
           },
           {
+            path: "/admin/approve",
+            element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
+          },
+          {
             path: "/admin/aprove",
+            element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
+          },
+          {
+            path: "/admin/aprove/company",
             element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
           },
           {

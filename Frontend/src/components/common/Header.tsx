@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -28,13 +28,10 @@ import {
 } from "@/components/animate-ui/components/base/menu";
 import { UserAvatar } from "./UserAvatar";
 
-const headerItems = [
-  { title: "Việc làm", href: PATHS.SEARCH_JOB },
-  { title: "Tạo CV", href: PATHS.CREATE_CV },
-  { title: "Blog nghề nghiệp", href: PATHS.HOME },
-  { title: "Liên hệ", href: PATHS.HOME },
-  { title: "FAQs", href: PATHS.HOME },
-];
+interface HeaderNavItem {
+  title: string;
+  href: string;
+}
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -51,9 +48,40 @@ function Header() {
 
   const isFloating = isScrolled;
 
+  const userRoles = useMemo(
+    () => user?.roles?.map((r) => r.toLowerCase()) || [],
+    [user?.roles],
+  );
+  const isAdmin = userRoles.includes("admin");
+  const isRecruiter = userRoles.includes("recruiter");
+
   const primaryRole = user?.roles?.[0]?.toLowerCase() || "candidate";
   const dashboardPath = getDashboardPathByRole(primaryRole);
   const profilePath = getProfilePathByRole(primaryRole);
+
+  const navItems = useMemo<HeaderNavItem[]>(() => {
+    let secondItem: HeaderNavItem = { title: "Tạo CV", href: PATHS.CREATE_CV };
+
+    if (isAdmin) {
+      secondItem = {
+        title: "Kiểm duyệt",
+        href: PATHS.ADMIN.APPROVE_COMPANY,
+      };
+    } else if (isRecruiter) {
+      secondItem = {
+        title: "Công ty của tôi",
+        href: PATHS.RECRUITER.COMPANY_MANAGEMENT,
+      };
+    }
+
+    return [
+      { title: "Việc làm", href: PATHS.SEARCH_JOB },
+      secondItem,
+      { title: "Blog nghề nghiệp", href: PATHS.HOME },
+      { title: "Liên hệ", href: PATHS.HOME },
+      { title: "FAQs", href: PATHS.HOME },
+    ];
+  }, [isAdmin, isRecruiter]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -101,8 +129,11 @@ function Header() {
 
           {/* Navigation Links */}
           <nav className="hidden items-center gap-8 lg:flex">
-            {headerItems.map((item, index) => {
-              const isActive = location.pathname === item.href;
+            {navItems.map((item, index) => {
+              const isActive =
+                location.pathname === item.href ||
+                (item.href !== PATHS.HOME &&
+                  location.pathname.startsWith(item.href));
               return (
                 <Link
                   key={index}
@@ -223,16 +254,26 @@ function Header() {
       {isOpen && (
         <div className="animate-in fade-in slide-in-from-top-4 pointer-events-auto absolute top-20 right-4 left-4 z-50 rounded-3xl border border-border bg-bg/95 p-6 shadow-2xl backdrop-blur-xl duration-200 lg:hidden">
           <nav className="flex flex-col space-y-4">
-            {headerItems.map((item, index) => (
-              <Link
-                key={index}
-                to={item.href}
-                onClick={() => setIsOpen(false)}
-                className="py-1 text-base font-medium text-text-main transition-colors hover:text-primary"
-              >
-                {item.title}
-              </Link>
-            ))}
+            {navItems.map((item, index) => {
+              const isActive =
+                location.pathname === item.href ||
+                (item.href !== PATHS.HOME &&
+                  location.pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={index}
+                  to={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`py-1 text-base transition-colors ${
+                    isActive
+                      ? "font-semibold text-primary"
+                      : "font-medium text-text-main hover:text-primary"
+                  }`}
+                >
+                  {item.title}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="my-5 border-t border-border" />

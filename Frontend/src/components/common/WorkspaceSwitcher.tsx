@@ -1,11 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Check,
-  ChevronsUpDown,
-  Plus,
-  ShieldCheck,
-} from "lucide-react";
+import { Check, ChevronsUpDown, Plus, ShieldCheck } from "lucide-react";
 import { getLoremAvt } from "@/utils/helper";
 import { useSidebar } from "@/components/ui/sidebar";
 import {
@@ -66,7 +61,14 @@ export function WorkspaceSwitcher() {
       // Giữ thông tin tóm tắt luôn đồng bộ mới nhất
       setActiveCompany(matched);
     }
-  }, [companies, activeCompanyId, activeCompany, isLoading, setActiveCompany, clearActiveCompany]);
+  }, [
+    companies,
+    activeCompanyId,
+    activeCompany,
+    isLoading,
+    setActiveCompany,
+    clearActiveCompany,
+  ]);
 
   // Tìm công ty đang hiển thị
   const currentCompany: CompanyItem | null = useMemo(() => {
@@ -91,9 +93,15 @@ export function WorkspaceSwitcher() {
 
     // Nếu đang ở trang quản trị chi tiết công ty, tự động đổi URL sang ID công ty mới
     if (location.pathname.includes(PATHS.RECRUITER.COMPANY_MANAGEMENT)) {
-      navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", company.id), {
-        replace: true,
-      });
+      navigate(
+        PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
+          ":companyId",
+          company.id,
+        ),
+        {
+          replace: true,
+        },
+      );
     }
   };
 
@@ -101,9 +109,15 @@ export function WorkspaceSwitcher() {
     setActiveCompany(newCompany);
     setIsCreateModalOpen(false);
     if (location.pathname.includes(PATHS.RECRUITER.COMPANY_MANAGEMENT)) {
-      navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", newCompany.id), {
-        replace: true,
-      });
+      navigate(
+        PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
+          ":companyId",
+          newCompany.id,
+        ),
+        {
+          replace: true,
+        },
+      );
     }
   };
 
@@ -172,7 +186,7 @@ export function WorkspaceSwitcher() {
                   getLoremAvt(currentCompany?.name || "Doanh nghiệp")
                 }
                 alt={currentCompany?.name || "Doanh nghiệp"}
-                className="size-full object-contain p-0.5"
+                className="size-full object-contain"
                 onError={(e) => {
                   const fallback = getLoremAvt(
                     currentCompany?.name || "Doanh nghiệp",
@@ -192,7 +206,8 @@ export function WorkspaceSwitcher() {
                   <span className="truncate text-xs font-semibold text-text-main">
                     {currentCompany?.name || "Chọn doanh nghiệp"}
                   </span>
-                  {currentCompany?.verificationStatus?.toUpperCase() === "VERIFIED" && (
+                  {currentCompany?.verificationStatus?.toUpperCase() ===
+                    "VERIFIED" && (
                     <ShieldCheck className="size-3.5 shrink-0 text-emerald-600" />
                   )}
                 </div>
@@ -239,7 +254,9 @@ export function WorkspaceSwitcher() {
                     <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
                       <img
                         key={displayComp.logoUrl || comp.id}
-                        src={displayComp.logoUrl || getLoremAvt(displayComp.name)}
+                        src={
+                          displayComp.logoUrl || getLoremAvt(displayComp.name)
+                        }
                         alt={displayComp.name}
                         className="size-full object-contain p-0.5"
                         onError={(e) => {
@@ -253,7 +270,9 @@ export function WorkspaceSwitcher() {
                       />
                     </div>
                     <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-xs">{displayComp.name}</span>
+                      <span className="truncate text-xs">
+                        {displayComp.name}
+                      </span>
                       <span className="text-[10px] text-text-muted">
                         {getRoleLabel(comp)}
                       </span>
