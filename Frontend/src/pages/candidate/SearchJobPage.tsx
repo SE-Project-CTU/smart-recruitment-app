@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   X,
@@ -6,6 +6,8 @@ import {
   ArrowUpDown,
   ChevronDown,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, CTAMeshGradient, JobCard } from "@/components/common";
@@ -60,11 +62,51 @@ const INITIAL_FILTERS: JobFilterState = {
   negotiableOnly: false,
 };
 
+const PAGE_SIZE = 20;
+
+function getPaginationRange(
+  currentPage: number,
+  totalPages: number,
+): (number | "...")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "...", totalPages];
+  }
+
+  if (currentPage >= totalPages - 3) {
+    return [
+      1,
+      "...",
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  }
+
+  return [
+    1,
+    "...",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "...",
+    totalPages,
+  ];
+}
+
 export default function SearchJobPage({
   isPublicPage = false,
 }: {
   isPublicPage?: boolean;
 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobListTopRef = useRef<HTMLDivElement>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>({
@@ -175,6 +217,7 @@ export default function SearchJobPage({
     });
     setSortBy("AI_MATCH");
     setFilters(INITIAL_FILTERS);
+    setCurrentPage(1);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -324,6 +367,46 @@ export default function SearchJobPage({
       }
     });
   }, [jobList, searchQuery, submittedQuery, filters, sortBy]);
+
+  // 1. Tổng số trang dựa trên danh sách đã lọc
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredAndSortedJobs.length / PAGE_SIZE));
+  }, [filteredAndSortedJobs.length]);
+
+  // 2. Cắt danh sách việc làm hiển thị theo trang hiện tại (mỗi trang đúng PAGE_SIZE việc làm)
+  const paginatedJobs = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredAndSortedJobs.slice(start, start + PAGE_SIZE);
+  }, [filteredAndSortedJobs, currentPage]);
+
+  // 3. Đồng bộ hóa triệt để: Tự động reset về trang 1 khi người dùng đổi bất kỳ tiêu chí tìm kiếm hay bộ lọc nào
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filters,
+    searchQuery,
+    submittedQuery,
+    selectedLocation.provinceId,
+    selectedLocation.wardId,
+    sortBy,
+  ]);
+
+  // 4. Giữ an toàn: Nếu số lượng trang bị co lại nhỏ hơn trang đang chọn, tự động đưa về trang 1
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
+  // 5. Xử lý chuyển trang mượt mà kèm cuộn lên đầu danh sách công việc
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || newPage === currentPage) return;
+    setCurrentPage(newPage);
+    jobListTopRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   const handleSelectJob = (job: JobPostingSearchItem) => {
     setSelectedJob(job);
@@ -517,6 +600,9 @@ export default function SearchJobPage({
         )}
 
         <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
+          {/* Mốc cuộn tự động khi đổi trang */}
+          <div ref={jobListTopRef} className="scroll-mt-32" />
+
           <div className="flex items-center justify-between px-1">
             <p className="text-xs font-medium text-text-muted">
               Tìm thấy{" "}
@@ -524,6 +610,11 @@ export default function SearchJobPage({
                 {isLoadingJobs ? "..." : filteredAndSortedJobs.length}
               </span>{" "}
               công việc
+              {!isLoadingJobs && totalPages > 1 && (
+                <span className="ml-1 text-slate-400">
+                  (Trang {currentPage}/{totalPages})
+                </span>
+              )}
             </p>
             <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3.5 py-1.5 shadow-2xs">
               <ArrowUpDown className="size-3.5 shrink-0 text-text-muted" />
@@ -611,19 +702,98 @@ export default function SearchJobPage({
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
-              {filteredAndSortedJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
-                  onSelect={handleSelectJob}
-                  isBookmarked={bookmarkedJobIds.has(job.id)}
-                  onToggleBookmark={handleToggleBookmark}
-                  onApply={() => handleApply(job.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
+                {paginatedJobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
+                    onSelect={handleSelectJob}
+                    isBookmarked={bookmarkedJobIds.has(job.id)}
+                    onToggleBookmark={handleToggleBookmark}
+                    onApply={() => handleApply(job.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Thanh phân trang Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-border/80 pt-4 sm:flex-row">
+                  <span className="text-xs text-text-muted">
+                    Hiển thị{" "}
+                    <span className="font-semibold text-text-main">
+                      {(currentPage - 1) * PAGE_SIZE + 1} -{" "}
+                      {Math.min(
+                        currentPage * PAGE_SIZE,
+                        filteredAndSortedJobs.length,
+                      )}
+                    </span>{" "}
+                    trong tổng số{" "}
+                    <span className="font-semibold text-text-main">
+                      {filteredAndSortedJobs.length}
+                    </span>{" "}
+                    việc làm
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Nút Về trước */}
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-slate-300 hover:text-text-main disabled:pointer-events-none disabled:opacity-40"
+                      aria-label="Trang trước"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </button>
+
+                    {/* Danh sách nút số trang */}
+                    {getPaginationRange(currentPage, totalPages).map(
+                      (p, idx) => {
+                        if (p === "...") {
+                          return (
+                            <span
+                              key={`ellipsis-${idx}`}
+                              className="px-1 text-xs font-bold text-text-muted select-none"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+
+                        const isCurrent = p === currentPage;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => handlePageChange(p)}
+                            className={`flex size-8 cursor-pointer items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                              isCurrent
+                                ? "bg-primary text-white"
+                                : "border border-border bg-surface text-text-main hover:border-slate-300 hover:bg-bg"
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        );
+                      },
+                    )}
+
+                    {/* Nút Kế tiếp */}
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-slate-300 hover:text-text-main disabled:pointer-events-none disabled:opacity-40"
+                      aria-label="Trang tiếp theo"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
