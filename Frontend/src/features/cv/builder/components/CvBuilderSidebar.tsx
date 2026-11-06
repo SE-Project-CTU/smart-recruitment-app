@@ -76,7 +76,7 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
   return (
     <>
       {/* ================= A. DESKTOP FLOATING SIDEBAR ================= */}
-      <aside className="flex overflow-hidden rounded-2xl border border-border/80 bg-surface/95 shadow-xl backdrop-blur-md transition-shadow select-none">
+      <aside className="flex overflow-hidden rounded-2xl border border-border/80 bg-surface/95 shadow-xl backdrop-blur-md transition-shadow">
         <Tabs
           value={activeTab}
           onValueChange={(val) => {
@@ -89,7 +89,7 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
           className="flex"
         >
           {/* 1. DẢI TAB DỌC BÊN TRÁI (Icon gọn gàng, hiển thị Tooltip khi hover) */}
-          <div className="z-20 flex w-13 shrink-0 flex-col items-center justify-between border-r border-border/60 bg-bg/60 px-1.5 py-4 transition-all duration-300">
+          <div className="z-20 flex w-13 shrink-0 flex-col items-center justify-between border-r border-border/60 bg-bg/60 px-1.5 py-4 transition-all duration-300 select-none">
             <div className="flex w-full flex-col items-center gap-2">
               <TabsList className="flex w-full flex-col gap-2">
                 {SIDEBAR_TABS.map((tab) => {

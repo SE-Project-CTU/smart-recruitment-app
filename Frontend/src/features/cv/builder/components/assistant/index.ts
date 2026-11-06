@@ -7,3 +7,4 @@ export * from "./ScoreProgressBox";
 export * from "./CvScoringTab";
 export * from "./SuggestedJobCard";
 export * from "./SuggestedJobsTab";
+export * from "./TargetJobSelectModal";

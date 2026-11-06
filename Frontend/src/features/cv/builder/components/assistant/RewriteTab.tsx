@@ -1,171 +1,268 @@
 import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { RefreshCw, FileText } from "lucide-react";
-import { toast } from "@/components/ui/toast";
+import {
+  Sparkles,
+  Briefcase,
+  Building2,
+  RefreshCw,
+  AlertCircle,
+  FileText,
+  X,
+  Pencil,
+} from "lucide-react";
+import { Button } from "@/components/common";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
-import { createTiptapDocumentFromText } from "../../utils/tiptapJson";
-import { MOCK_REWRITE_SUGGESTIONS, MOCK_SKILL_ANALYSIS } from "./mockData";
+import { useCvRewriteContext } from "../../context/CvRewriteContext";
 import { SuggestionCard } from "./SuggestionCard";
-import { SkillComparisonBox } from "./SkillComparisonBox";
-import type { CvSectionSuggestion } from "./types";
+import { TargetJobSelectModal } from "./TargetJobSelectModal";
 
 /**
  * RewriteTab:
- * Tab Viết lại CV bằng AI trong Sidebar:
- * - Hiển thị gợi ý viết lại theo từng section với đối chiếu trực quan.
- * - Cho phép Áp dụng trực tiếp vào React Hook Form của CV.
- * - Bảng đối chiếu kỹ năng không tự ý thêm vào CV.
+ * Tab Gợi ý viết lại CV theo Job mục tiêu tích hợp API Batching:
+ * - Cho phép chọn một Job mục tiêu mẫu hoặc từ hệ thống qua TargetJobSelectModal
+ * - Nút "Tạo gợi ý" quét và gom các section có nội dung trong form CV gửi lên POST /api/v1/ai/cv/enhance/batch
+ * - Hiển thị đề xuất thật theo chuẩn Google XYZ từ Gemini AI cho từng section
+ * - Cho phép bỏ qua card đề xuất và Tạo lại toàn bộ
+ * - Lưu giữ trạng thái trong phạm vi CV Builder qua CvRewriteContext
  */
 export const RewriteTab: React.FC = () => {
-  const [suggestions, setSuggestions] = useState<CvSectionSuggestion[]>(
-    MOCK_REWRITE_SUGGESTIONS,
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const { getValues } = useFormContext<RichTextCvEditorValues>();
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [validationHint, setValidationHint] = useState<string | null>(null);
 
-  const { setValue, getValues } = useFormContext<RichTextCvEditorValues>();
+  const {
+    selectedTargetJob,
+    suggestions,
+    isGenerating,
+    hasGenerated,
+    isError,
+    errorMessage,
+    setSelectedTargetJob,
+    generateSuggestions,
+    dismissSuggestion,
+    regenerateAll,
+  } = useCvRewriteContext();
 
   const activeSuggestions = suggestions.filter((s) => s.status !== "dismissed");
 
-  const handleApplySuggestion = (suggestionId: string) => {
-    const target = suggestions.find((s) => s.id === suggestionId);
-    if (!target) return;
+  // Xử lý khi nhấn nút "Tạo gợi ý"
+  const handleGenerateClick = async () => {
+    setValidationHint(null);
+    const formValues = getValues();
+    const result = await generateSuggestions(formValues);
 
-    const doc = createTiptapDocumentFromText(target.suggestedText);
-
-    if (target.sectionKey === "objective") {
-      setValue("content.sections.objective.content", doc, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    } else if (target.sectionKey === "experience") {
-      const currentItems = getValues("content.sections.experience.items") || [];
-      if (currentItems.length > 0) {
-        setValue("content.sections.experience.items.0.description", doc, {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
-      }
-    } else if (target.sectionKey === "projects") {
-      const currentItems = getValues("content.sections.projects.items") || [];
-      if (currentItems.length > 0) {
-        setValue("content.sections.projects.items.0.description", doc, {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
+    if (!result.success) {
+      if (result.reason === "NO_JOB") {
+        setValidationHint(
+          "Vui lòng chọn một công việc mục tiêu để AI có căn cứ tối ưu hóa nội dung CV.",
+        );
+      } else if (result.reason === "NO_SECTIONS") {
+        setValidationHint(
+          "CV của bạn chưa có nội dung ở các mục hỗ trợ (Mục tiêu, Kinh nghiệm, Kỹ năng, Dự án, Học vấn). Vui lòng nhập nội dung vào CV trước khi tạo gợi ý.",
+        );
       }
     }
-
-    setSuggestions((prev) =>
-      prev.map((s) => (s.id === suggestionId ? { ...s, status: "applied" } : s)),
-    );
-
-    toast.add({
-      type: "success",
-      description: `Đã áp dụng đề xuất cho mục ${target.sectionTitle}.`,
-    });
   };
 
-  const handleRegenerateSuggestion = (suggestionId: string) => {
-    setSuggestions((prev) =>
-      prev.map((s) => (s.id === suggestionId ? { ...s, status: "generating" } : s)),
-    );
-
-    setTimeout(() => {
-      setSuggestions((prev) =>
-        prev.map((s) =>
-          s.id === suggestionId
-            ? {
-                ...s,
-                status: "ready",
-                suggestedText: `${s.suggestedText} (Được bổ sung thêm động từ hành động và số liệu đo lường).`,
-              }
-            : s,
-        ),
-      );
-    }, 800);
+  const handleRegenerateAllClick = async () => {
+    setValidationHint(null);
+    const formValues = getValues();
+    await regenerateAll(formValues);
   };
-
-  const handleDismissSuggestion = (suggestionId: string) => {
-    setSuggestions((prev) =>
-      prev.map((s) => (s.id === suggestionId ? { ...s, status: "dismissed" } : s)),
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex h-64 flex-col items-center justify-center gap-3 p-4 text-center">
-        <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-        <p className="text-xs font-medium text-text-muted">
-          AI đang phân tích và tạo gợi ý viết lại từng section...
-        </p>
-      </div>
-    );
-  }
-
-  if (activeSuggestions.length === 0) {
-    return (
-      <div className="flex h-64 flex-col items-center justify-center gap-2 p-4 text-center">
-        <FileText className="h-8 w-8 text-text-muted/60" />
-        <p className="text-xs font-semibold text-text-main">
-          Chưa có đề xuất viết lại nào
-        </p>
-        <p className="text-[11px] text-text-muted">
-          Nội dung CV hiện tại đã khá hoàn chỉnh hoặc bạn đã xử lý hết các đề xuất.
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            setIsLoading(true);
-            setTimeout(() => {
-              setSuggestions(MOCK_REWRITE_SUGGESTIONS);
-              setIsLoading(false);
-            }, 600);
-          }}
-          className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer"
-        >
-          <RefreshCw className="h-3 w-3" />
-          Phân tích lại gợi ý
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
-      {/* 1. Danh sách đề xuất theo section - Render động */}
-      <div className="space-y-3">
-        {activeSuggestions.map((item) => (
-          <SuggestionCard
-            key={item.id}
-            item={item}
-            onApply={handleApplySuggestion}
-            onRegenerate={handleRegenerateSuggestion}
-            onDismiss={handleDismissSuggestion}
-          />
-        ))}
+      {/* ================= 1. KHỐI CHỌN JOB MỤC TIÊU ================= */}
+      <div className="rounded-xl border border-border bg-surface p-3.5 space-y-2.5 shadow-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+            Vị trí công việc mục tiêu
+          </span>
+        </div>
+
+        {selectedTargetJob ? (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-0.5 min-w-0">
+                <h4 className="text-xs font-bold text-text-main line-clamp-1">
+                  {selectedTargetJob.title}
+                </h4>
+                <div className="flex items-center gap-1 text-[11px] text-text-muted">
+                  <Building2 className="size-3 shrink-0 text-text-muted/80" />
+                  <span className="font-medium truncate max-w-[180px]">
+                    {selectedTargetJob.companyName}
+                  </span>
+                </div>
+              </div>
+
+              {/* Nút thao tác đổi / bỏ chọn */}
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsJobModalOpen(true)}
+                  className="rounded-md p-1 text-text-muted hover:bg-bg hover:text-text-main transition-colors cursor-pointer"
+                  title="Thay đổi vị trí mục tiêu"
+                >
+                  <Pencil className="size-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTargetJob(null)}
+                  className="rounded-md p-1 text-text-muted hover:bg-bg hover:text-status-error transition-colors cursor-pointer"
+                  title="Bỏ chọn vị trí này"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-bg/50 p-3.5 text-center">
+            <Briefcase className="size-5 text-text-muted/70 mb-1" />
+            <p className="text-xs font-medium text-text-main">
+              Chưa chọn công việc mục tiêu
+            </p>
+            <p className="mt-0.5 text-[11px] text-text-muted max-w-[200px]">
+              Chọn vị trí mong muốn để AI đối chiếu và điều chỉnh câu từ chuẩn xác
+            </p>
+            <Button
+              variant="secondary"
+              icon={Briefcase}
+              iconSize={13}
+              onClick={() => setIsJobModalOpen(true)}
+              className="mt-2.5! rounded-lg! px-3! py-1.5! text-xs! font-semibold!"
+            >
+              Chọn Job mục tiêu
+            </Button>
+          </div>
+        )}
+
+        {/* Nút Tạo gợi ý */}
+        <div className="pt-1">
+          <Button
+            variant="primary"
+            icon={Sparkles}
+            iconSize={14}
+            isLoading={isGenerating}
+            onClick={handleGenerateClick}
+            className="w-full! rounded-xl! py-2! text-xs! font-semibold!"
+          >
+            {hasGenerated ? "Tạo lại toàn bộ gợi ý" : "Tạo gợi ý viết lại"}
+          </Button>
+        </div>
+
+        {/* Banner hướng dẫn / thông báo kiểm tra */}
+        {validationHint && (
+          <div className="flex items-start gap-2 rounded-lg border border-status-warning/40 bg-status-warning/10 p-2.5 text-[11px] text-text-main">
+            <AlertCircle className="size-3.5 shrink-0 text-status-warning mt-0.5" />
+            <p className="leading-relaxed">{validationHint}</p>
+          </div>
+        )}
+
+        {/* Banner lỗi từ API Backend */}
+        {isError && errorMessage && (
+          <div className="flex items-start gap-2 rounded-lg border border-status-error/40 bg-status-error/10 p-2.5 text-[11px] text-text-main">
+            <AlertCircle className="size-3.5 shrink-0 text-status-error mt-0.5" />
+            <div className="flex-1 space-y-1">
+              <p className="leading-relaxed font-medium text-status-error">
+                {errorMessage}
+              </p>
+              <button
+                type="button"
+                onClick={handleGenerateClick}
+                className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+              >
+                Thử lại ngay →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 2. Khối đối chiếu kỹ năng */}
-      <SkillComparisonBox skillAnalysis={MOCK_SKILL_ANALYSIS} />
+      {/* ================= 2. TRẠNG THÁI ĐANG XỬ LÝ ================= */}
+      {isGenerating && (
+        <div className="flex h-52 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface p-4 text-center shadow-xs">
+          <p className="text-xs font-semibold text-text-main">
+            Gemini AI đang phân tích và tối ưu hóa nội dung...
+          </p>
+          <p className="text-[11px] text-text-muted max-w-[230px]">
+            Đang áp dụng chuẩn Google XYZ dựa trên vị trí{" "}
+            <span className="font-semibold text-text-main">
+              {selectedTargetJob?.title}
+            </span>
+          </p>
+        </div>
+      )}
 
-      {/* 3. Footer hành động của tab */}
-      <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[11px] text-text-muted">
-        <span>
-          {suggestions.filter((s) => s.status === "applied").length}/
-          {suggestions.length} đề xuất đã áp dụng
-        </span>
-        <button
-          type="button"
-          onClick={() => {
-            setIsLoading(true);
-            setTimeout(() => setIsLoading(false), 600);
-          }}
-          className="flex items-center gap-1 font-semibold text-primary hover:underline cursor-pointer"
-        >
-          <RefreshCw className="h-3 w-3" />
-          Làm mới gợi ý
-        </button>
-      </div>
+      {/* ================= 3. DANH SÁCH ĐỀ XUẤT VIẾT LẠI ================= */}
+      {!isGenerating && hasGenerated && (
+        <div className="space-y-3">
+          {/* Header toolbar kết quả */}
+          <div className="flex items-center justify-between border-b border-border/50 pb-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-text-main">
+              <Sparkles className="size-3.5 text-primary" />
+              <span>Đề xuất theo mục ({activeSuggestions.length})</span>
+            </div>
+
+            {activeSuggestions.length > 0 && (
+              <Button
+                variant="secondary"
+                icon={RefreshCw}
+                iconSize={12}
+                isLoading={isGenerating}
+                onClick={handleRegenerateAllClick}
+                className="h-6.5! rounded-md! px-2! py-0.5! text-[11px]! font-medium!"
+                title="Tạo lại toàn bộ đề xuất"
+              >
+                Tạo lại
+              </Button>
+            )}
+          </div>
+
+          {activeSuggestions.length === 0 ? (
+            <div className="flex h-44 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface p-4 text-center">
+              <FileText className="size-6 text-text-muted/60" />
+              <p className="text-xs font-semibold text-text-main">
+                Bạn đã xử lý hết các đề xuất
+              </p>
+              <p className="text-[11px] text-text-muted">
+                Tất cả các thẻ đề xuất từ AI đã được ẩn đi.
+              </p>
+              <Button
+                variant="secondary"
+                icon={RefreshCw}
+                iconSize={12}
+                isLoading={isGenerating}
+                onClick={handleRegenerateAllClick}
+                className="mt-1! h-7! rounded-lg! px-3! py-1! text-[11px]! font-semibold!"
+              >
+                Tạo lại đề xuất
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {activeSuggestions.map((item) => (
+                <SuggestionCard
+                  key={item.id}
+                  item={item}
+                  onDismiss={dismissSuggestion}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ================= 4. MODAL CHỌN JOB MỤC TIÊU ================= */}
+      <TargetJobSelectModal
+        isOpen={isJobModalOpen}
+        onClose={() => setIsJobModalOpen(false)}
+        selectedJob={selectedTargetJob}
+        onConfirm={(job) => {
+          setSelectedTargetJob(job);
+          setValidationHint(null);
+        }}
+      />
     </div>
   );
 };

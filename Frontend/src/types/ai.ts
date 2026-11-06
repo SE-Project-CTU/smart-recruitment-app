@@ -21,3 +21,30 @@ export interface RealtimeRecommendedJobDto {
   requirements: string;
   score: number;
 }
+
+export interface CvSectionBatchInputDto {
+  sectionType: string;
+  content: string;
+}
+
+export interface EnhanceCvBatchPayload {
+  sections: CvSectionBatchInputDto[];
+  cvId?: string | null;
+  cvVersionId?: string | null;
+  targetJobId?: string | null;
+  targetJobTitle?: string | null;
+  targetJobDescription?: string | null;
+  language?: string | null;
+}
+
+export interface EnhanceCvBatchItemResult {
+  sectionType: string;
+  originalContent: string;
+  enhancedContent: string;
+  suggestedKeywords: string[];
+  improvements: string[];
+}
+
+export interface EnhanceCvBatchResult {
+  sections: EnhanceCvBatchItemResult[];
+}
