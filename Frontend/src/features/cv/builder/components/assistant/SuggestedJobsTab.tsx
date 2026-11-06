@@ -13,6 +13,7 @@ import { Button } from "@/components/common";
 import { JobDetailDrawer } from "@/components/job/JobDetailDrawer";
 import { useCvJobRecommendations } from "../../hooks/useCvJobRecommendations";
 import { SuggestedJobCard } from "./SuggestedJobCard";
+import { SuggestedJobCardSkeleton } from "./SuggestedJobCardSkeleton";
 
 /**
  * SuggestedJobsTab:
@@ -43,14 +44,13 @@ export const SuggestedJobsTab: React.FC = () => {
     navigate(PATHS.CANDIDATE?.SEARCH_JOBS || PATHS.SEARCH_JOB);
   };
 
-  // 1. Trạng thái đang tải dữ liệu từ AI Rerank
+  // 1. Trạng thái đang tải dữ liệu từ AI Rerank (Skeleton loading)
   if (isLoading && jobs.length === 0) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-3 p-4 text-center">
-        <Compass className="size-6 animate-spin text-primary" />
-        <p className="text-xs font-medium text-text-muted">
-          AI đang đối chiếu CV với thị trường tuyển dụng...
-        </p>
+      <div className="space-y-3">
+        <SuggestedJobCardSkeleton />
+        <SuggestedJobCardSkeleton />
+        <SuggestedJobCardSkeleton />
       </div>
     );
   }
@@ -63,7 +63,7 @@ export const SuggestedJobsTab: React.FC = () => {
         <p className="text-xs font-semibold text-text-main">
           Chưa có thông tin CV để gợi ý
         </p>
-        <p className="text-[11px] text-text-muted max-w-[240px] leading-relaxed">
+        <p className="max-w-[240px] text-[11px] leading-relaxed text-text-muted">
           Hãy nhập chức danh mục tiêu, kỹ năng hoặc kinh nghiệm làm việc để AI
           tìm kiếm các cơ hội phù hợp nhất với bạn.
         </p>
@@ -88,7 +88,7 @@ export const SuggestedJobsTab: React.FC = () => {
         <p className="text-xs font-semibold text-text-main">
           Không thể tải gợi ý việc làm
         </p>
-        <p className="text-[11px] text-text-muted max-w-[240px]">
+        <p className="max-w-[240px] text-[11px] text-text-muted">
           {errorMessage || "Đã xảy ra sự cố khi đối chiếu dữ liệu với AI."}
         </p>
         <Button
@@ -112,7 +112,7 @@ export const SuggestedJobsTab: React.FC = () => {
         <p className="text-xs font-semibold text-text-main">
           Chưa tìm thấy việc làm phù hợp
         </p>
-        <p className="text-[11px] text-text-muted max-w-[240px] leading-relaxed">
+        <p className="max-w-[240px] text-[11px] leading-relaxed text-text-muted">
           Hệ thống chưa tìm thấy tin tuyển dụng trùng khớp với hồ sơ hiện tại.
           Bạn có thể làm mới hoặc tìm kiếm trực tiếp trên sàn việc làm.
         </p>
@@ -164,7 +164,7 @@ export const SuggestedJobsTab: React.FC = () => {
       {/* 2. Banner cảnh báo khi CV đã thay đổi sau lần gọi gần nhất (Stale notice) */}
       {isCvStale && (
         <div className="flex items-start gap-2 rounded-xl border border-status-warning/40 bg-status-warning/10 p-2.5 text-[11px] text-text-main">
-          <AlertCircle className="size-3.5 shrink-0 text-status-warning mt-0.5" />
+          <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-status-warning" />
           <div className="flex-1 space-y-1">
             <p className="leading-snug">
               Nội dung CV vừa thay đổi so với lần gợi ý trước.
@@ -173,7 +173,7 @@ export const SuggestedJobsTab: React.FC = () => {
               variant="secondary"
               isLoading={isLoading}
               onClick={() => refresh()}
-              className="h-6! rounded-md! px-2! py-0.5! text-[10px]! font-bold! text-primary! border-primary/30!"
+              className="h-6! rounded-md! border-primary/30! px-2! py-0.5! text-[10px]! font-bold! text-primary!"
             >
               Cập nhật gợi ý mới →
             </Button>
@@ -193,7 +193,7 @@ export const SuggestedJobsTab: React.FC = () => {
       </div>
 
       {/* 4. Footer hành động của tab */}
-      <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[11px] text-text-muted">
+      <div className="flex items-center justify-between border-t border-border/50 pt-2 text-[11px] text-text-muted">
         <span>Gợi ý {jobs.length} công việc</span>
         <Button
           variant="secondary"

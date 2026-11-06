@@ -39,6 +39,7 @@ import { useCvHistoryHotkeys } from "../hooks/useCvHistoryHotkeys";
 import { CvHistoryProvider, useCvHistory } from "../history";
 import { CvRewriteProvider } from "../context/CvRewriteContext";
 import { CvScoringProvider } from "../context/CvScoringContext";
+import { CvJobRecommendationsProvider } from "../context/CvJobRecommendationsContext";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -463,7 +464,9 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = (pr
       <CvHistoryProvider>
         <CvRewriteProvider>
           <CvScoringProvider>
-            <CVBuilderFormContent {...props} />
+            <CvJobRecommendationsProvider>
+              <CVBuilderFormContent {...props} />
+            </CvJobRecommendationsProvider>
           </CvScoringProvider>
         </CvRewriteProvider>
       </CvHistoryProvider>

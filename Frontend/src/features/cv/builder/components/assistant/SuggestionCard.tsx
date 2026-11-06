@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/common";
 import type { CvSectionSuggestion } from "./types";
 
@@ -15,26 +15,6 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
   defaultExpanded = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopySuggestedText = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(item.suggestedText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback nếu trình duyệt chặn clipboard API
-      const textarea = document.createElement("textarea");
-      textarea.value = item.suggestedText;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   return (
     <div className="rounded-md border border-border bg-surface shadow-xs transition-all select-text hover:border-primary/40">

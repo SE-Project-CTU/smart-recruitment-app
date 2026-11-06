@@ -14,6 +14,7 @@ import { Button } from "@/components/common";
 import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
 import { useCvScoringContext } from "../../context/CvScoringContext";
 import { TargetJobSelectorCard } from "./TargetJobSelectorCard";
+import { CvScoringSkeleton } from "./CvScoringSkeleton";
 
 /**
  * CvScoringTab:
@@ -129,7 +130,7 @@ export const CvScoringTab: React.FC = () => {
         {/* Banner kiểm tra dữ liệu */}
         {validationHint && (
           <div className="flex items-start gap-2 rounded-lg border border-status-warning/40 bg-status-warning/10 p-2.5 text-[11px] text-text-main">
-            <AlertCircle className="size-3.5 shrink-0 text-status-warning mt-0.5" />
+            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-status-warning" />
             <p className="leading-relaxed">{validationHint}</p>
           </div>
         )}
@@ -137,7 +138,7 @@ export const CvScoringTab: React.FC = () => {
         {/* Banner lỗi từ API */}
         {isError && errorMessage && (
           <div className="flex items-start gap-2 rounded-lg border border-status-error/40 bg-status-error/10 p-2.5 text-[11px] text-text-main">
-            <AlertCircle className="size-3.5 shrink-0 text-status-error mt-0.5" />
+            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-status-error" />
             <div className="flex-1 space-y-1">
               <p className="leading-relaxed font-medium text-status-error">
                 {errorMessage}
@@ -145,7 +146,7 @@ export const CvScoringTab: React.FC = () => {
               <button
                 type="button"
                 onClick={handleScoreClick}
-                className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                className="cursor-pointer text-[10px] font-bold text-primary hover:underline"
               >
                 Thử lại ngay →
               </button>
@@ -154,21 +155,8 @@ export const CvScoringTab: React.FC = () => {
         )}
       </TargetJobSelectorCard>
 
-      {/* ================= 2. TRẠNG THÁI ĐANG CHẤM ================= */}
-      {isScoring && (
-        <div className="flex h-56 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface p-4 text-center shadow-xs">
-          <Sparkles className="size-7 animate-spin text-primary" />
-          <p className="text-xs font-semibold text-text-main">
-            AI đang phân tích và chấm điểm hồ sơ CV...
-          </p>
-          <p className="text-[11px] text-text-muted max-w-[220px]">
-            Đang so khớp kỹ năng và kinh nghiệm theo vị trí{" "}
-            <span className="font-semibold text-text-main">
-              {selectedTargetJob?.title}
-            </span>
-          </p>
-        </div>
-      )}
+      {/* ================= 2. TRẠNG THÁI ĐANG CHẤM (SKELETON) ================= */}
+      {isScoring && <CvScoringSkeleton />}
 
       {/* ================= 3. KẾT QUẢ CHẤM ĐIỂM THẬT TỪ API ================= */}
       {!isScoring && hasScored && matchResult && (
@@ -189,7 +177,7 @@ export const CvScoringTab: React.FC = () => {
                     <span className={`text-2xl font-black ${theme.scoreColor}`}>
                       {roundedScore}
                     </span>
-                    <span className="absolute -bottom-1 rounded-full bg-text-main px-1.5 py-0.2 text-[8px] font-bold text-white uppercase tracking-wider">
+                    <span className="py-0.2 absolute -bottom-1 rounded-full bg-text-main px-1.5 text-[8px] font-bold tracking-wider text-white uppercase">
                       /100
                     </span>
                   </div>
@@ -201,7 +189,7 @@ export const CvScoringTab: React.FC = () => {
                   </span>
 
                   {matchResult.summary && (
-                    <p className="mt-2.5 text-[11px] text-text-muted leading-relaxed text-left border-t border-border/50 pt-2 w-full">
+                    <p className="mt-2.5 w-full border-t border-border/50 pt-2 text-left text-[11px] leading-relaxed text-text-muted">
                       {matchResult.summary}
                     </p>
                   )}
@@ -209,7 +197,7 @@ export const CvScoringTab: React.FC = () => {
 
                 {/* 3.2 Độ phủ kỹ năng (Phù hợp & Còn thiếu) */}
                 <div className="space-y-3 rounded-xl border border-border bg-surface p-3.5 text-xs shadow-xs">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                  <h4 className="text-[11px] font-bold tracking-wider text-text-muted uppercase">
                     Độ phủ kỹ năng chuyên môn
                   </h4>
 
@@ -220,7 +208,8 @@ export const CvScoringTab: React.FC = () => {
                         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-status-success">
                           <CheckCircle2 className="size-3.5" />
                           <span>
-                            Kỹ năng phù hợp ({matchResult.matchingSkills.length})
+                            Kỹ năng phù hợp ({matchResult.matchingSkills.length}
+                            )
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-1">
@@ -239,11 +228,12 @@ export const CvScoringTab: React.FC = () => {
                   {/* Kỹ năng còn thiếu */}
                   {matchResult.missingSkills &&
                     matchResult.missingSkills.length > 0 && (
-                      <div className="space-y-1.5 pt-2 border-t border-border/50">
+                      <div className="space-y-1.5 border-t border-border/50 pt-2">
                         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-text-muted">
                           <XCircle className="size-3.5 text-status-error/80" />
                           <span>
-                            Kỹ năng còn thiếu ({matchResult.missingSkills.length})
+                            Kỹ năng còn thiếu (
+                            {matchResult.missingSkills.length})
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-1">
@@ -262,15 +252,17 @@ export const CvScoringTab: React.FC = () => {
 
                 {/* 3.3 Điểm mạnh của hồ sơ (Strengths) */}
                 {matchResult.strengths && matchResult.strengths.length > 0 && (
-                  <div className="rounded-xl border border-border bg-surface p-3.5 text-xs shadow-xs space-y-2">
-                    <h4 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                  <div className="space-y-2 rounded-xl border border-border bg-surface p-3.5 text-xs shadow-xs">
+                    <h4 className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-text-muted uppercase">
                       <ThumbsUp className="size-3.5 text-primary" />
                       Điểm mạnh nổi bật ({matchResult.strengths.length})
                     </h4>
-                    <ul className="space-y-1.5 text-[11px] text-text-main leading-relaxed pl-1">
+                    <ul className="space-y-1.5 pl-1 text-[11px] leading-relaxed text-text-main">
                       {matchResult.strengths.map((str, idx) => (
                         <li key={idx} className="flex items-start gap-1.5">
-                          <span className="text-primary font-bold mt-0.5">•</span>
+                          <span className="mt-0.5 font-bold text-primary">
+                            •
+                          </span>
                           <span>{str}</span>
                         </li>
                       ))}
@@ -281,15 +273,18 @@ export const CvScoringTab: React.FC = () => {
                 {/* 3.4 Khuyến nghị cải thiện (Recommendations) */}
                 {matchResult.recommendations &&
                   matchResult.recommendations.length > 0 && (
-                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs shadow-xs space-y-2">
-                      <h4 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
+                    <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs shadow-xs">
+                      <h4 className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-primary uppercase">
                         <Lightbulb className="size-3.5" />
-                        Đề xuất tối ưu hồ sơ ({matchResult.recommendations.length})
+                        Đề xuất tối ưu hồ sơ (
+                        {matchResult.recommendations.length})
                       </h4>
-                      <ul className="space-y-1.5 text-[11px] text-text-main leading-relaxed pl-1">
+                      <ul className="space-y-1.5 pl-1 text-[11px] leading-relaxed text-text-main">
                         {matchResult.recommendations.map((rec, idx) => (
                           <li key={idx} className="flex items-start gap-1.5">
-                            <span className="text-primary font-bold mt-0.5">→</span>
+                            <span className="mt-0.5 font-bold text-primary">
+                              →
+                            </span>
                             <span>{rec}</span>
                           </li>
                         ))}
@@ -298,10 +293,12 @@ export const CvScoringTab: React.FC = () => {
                   )}
 
                 {/* 3.5 Footer hành động */}
-                <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[11px] text-text-muted">
+                <div className="flex items-center justify-between border-t border-border/50 pt-2 text-[11px] text-text-muted">
                   <span>
                     Điểm số:{" "}
-                    <strong className="text-text-main">{roundedScore}/100</strong>
+                    <strong className="text-text-main">
+                      {roundedScore}/100
+                    </strong>
                   </span>
                   <Button
                     variant="secondary"
@@ -328,9 +325,9 @@ export const CvScoringTab: React.FC = () => {
           <p className="text-xs font-bold text-text-main">
             Chưa có kết quả chấm điểm
           </p>
-          <p className="text-[11px] text-text-muted max-w-[220px]">
-            Chọn công việc mục tiêu và nhấn &ldquo;Chấm điểm độ phù hợp&rdquo; để AI
-            phân tích độ tương thích giữa CV và JD.
+          <p className="max-w-[220px] text-[11px] text-text-muted">
+            Chọn công việc mục tiêu và nhấn &ldquo;Chấm điểm độ phù hợp&rdquo;
+            để AI phân tích độ tương thích giữa CV và JD.
           </p>
         </div>
       )}
