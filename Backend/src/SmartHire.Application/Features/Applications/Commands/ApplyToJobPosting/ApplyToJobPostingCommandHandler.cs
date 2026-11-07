@@ -107,6 +107,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         try {
             await _unitOfWork.ExecuteInTransactionAsync(async ct => {
                 await _applicationRepository.AddAsync(application, ct);
+                // Lấy ID do database cấp trước khi tạo kết quả chấm điểm tham chiếu đến đơn.
+                await _unitOfWork.SaveChangesAsync(ct);
 
                 if (request.CvVersionId is Guid cvVerId && cvVersion?.Content is not null) {
                     var jobDetail = await _jobPostingRepository.GetDetailByIdAsync(jobPostingId, ct);
