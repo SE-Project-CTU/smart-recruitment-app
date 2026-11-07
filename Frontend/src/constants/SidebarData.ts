@@ -154,7 +154,7 @@ export const adminSidebarData = {
         { title: "Kỹ năng", url: `${PATHS.ADMIN.CATALOGS}?tab=skills` },
       ],
     },
-    { title: "Quản lý tài khoản", url: PATHS.ADMIN.USERS, icon: UserRound },
+    { title: "Quản trị người dùng", url: PATHS.ADMIN.USERS, icon: UserRound },
   ],
   //thiết lập
   setting: [

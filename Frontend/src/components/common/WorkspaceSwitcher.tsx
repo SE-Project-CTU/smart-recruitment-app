@@ -16,6 +16,11 @@ import { useCompanyStore } from "@/stores/companyStore";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import { CreateCompanyModal } from "@/pages/recruiter/company/CreateCompanyModal";
 import { PATHS } from "@/constants/paths";
+import {
+  Tooltip,
+  TooltipPanel,
+  TooltipTrigger,
+} from "@/components/animate-ui/components/base/tooltip";
 import type { CompanyItem } from "@/types/company";
 
 export function WorkspaceSwitcher() {
@@ -208,10 +213,34 @@ export function WorkspaceSwitcher() {
 
             {!isCollapsed && (
               <div className="flex min-w-0 flex-1 flex-col text-left">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate text-xs font-semibold text-text-main">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  {/* Desktop: Truncate + Tooltip */}
+                  <span className="hidden min-w-0 md:inline-flex">
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <span className="truncate text-xs font-semibold text-text-main">
+                            {currentCompany?.name || "Chọn doanh nghiệp"}
+                          </span>
+                        }
+                      />
+                      {currentCompany?.name && (
+                        <TooltipPanel
+                          side="right"
+                          sideOffset={10}
+                          className="z-60 max-w-xs break-words"
+                        >
+                          {currentCompany.name}
+                        </TooltipPanel>
+                      )}
+                    </Tooltip>
+                  </span>
+
+                  {/* Mobile: Wrap text */}
+                  <span className="block text-xs font-semibold leading-snug break-words whitespace-normal text-text-main md:hidden">
                     {currentCompany?.name || "Chọn doanh nghiệp"}
                   </span>
+
                   {currentCompany?.verificationStatus?.toUpperCase() ===
                     "VERIFIED" && (
                     <ShieldCheck className="size-3.5 shrink-0 text-emerald-600" />
@@ -256,7 +285,7 @@ export function WorkspaceSwitcher() {
                       : "text-text-main hover:bg-bg-white-blue!"
                   }`}
                 >
-                  <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
                     <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
                       <img
                         key={displayComp.logoUrl || comp.id}
@@ -275,10 +304,32 @@ export function WorkspaceSwitcher() {
                         }}
                       />
                     </div>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-xs">
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      {/* Desktop: Truncate + Tooltip */}
+                      <span className="hidden min-w-0 md:inline-flex">
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <span className="truncate text-xs">
+                                {displayComp.name}
+                              </span>
+                            }
+                          />
+                          <TooltipPanel
+                            side="right"
+                            sideOffset={10}
+                            className="z-60 max-w-xs break-words"
+                          >
+                            {displayComp.name}
+                          </TooltipPanel>
+                        </Tooltip>
+                      </span>
+
+                      {/* Mobile: Wrap text */}
+                      <span className="block text-xs leading-snug break-words whitespace-normal md:hidden">
                         {displayComp.name}
                       </span>
+
                       <span className="text-[10px] text-text-muted">
                         {getRoleLabel(comp)}
                       </span>

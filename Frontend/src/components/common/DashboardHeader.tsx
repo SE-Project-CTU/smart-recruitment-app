@@ -5,8 +5,8 @@ import {
   FilePlus,
   FileText,
   Home,
-  ListCheck,
   LogOut,
+  Megaphone,
   PlusCircle,
   UserRound,
 } from "lucide-react";
@@ -86,11 +86,11 @@ function DashboardHeader() {
       case "superadmin":
         return (
           <Button
-            icon={ListCheck}
+            icon={Megaphone}
             onClick={() => navigate(PATHS.ADMIN.APPROVE_COMPANY)}
             className="hidden! text-xs! md:flex!"
           >
-            Tạo thông báo
+            Gửi thông báo
           </Button>
         );
 

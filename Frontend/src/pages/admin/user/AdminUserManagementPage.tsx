@@ -241,7 +241,7 @@ export default function AdminUserManagementPage() {
               <button
                 type="button"
                 onClick={() => column.toggleSorting(isSorted === "asc")}
-                className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-primary"
+                className="inline-flex cursor-pointer items-center gap-1.5 pl-2 font-semibold text-slate-600 transition-colors hover:text-primary"
               >
                 <span>Người dùng</span>
                 {isSorted === "asc" ? (
@@ -258,7 +258,7 @@ export default function AdminUserManagementPage() {
             const u = row.original;
             const isCurrent = currentUser?.id === u.id;
             return (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pl-2">
                 <UserAvatar
                   name={u.fullName}
                   src={u.avatarUrl || ""}
@@ -415,7 +415,7 @@ export default function AdminUserManagementPage() {
         columnHelper.display({
           id: "actions",
           header: () => (
-            <div className="text-right font-semibold">Thao tác</div>
+            <div className="pr-2 text-right font-semibold">Thao tác</div>
           ),
           meta: { className: "text-right" },
           cell: ({ row }) => {

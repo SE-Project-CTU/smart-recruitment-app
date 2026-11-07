@@ -253,13 +253,13 @@ export default function AdminCompanyModerationPage() {
                           <button
                             type="button"
                             onClick={() => handleInspect(company)}
-                            className="block max-w-[190px] cursor-pointer truncate text-left font-semibold text-slate-800 transition-colors hover:text-primary lg:max-w-[240px]"
+                            className="block max-w-47.5 cursor-pointer truncate text-left font-semibold text-slate-800 transition-colors hover:text-primary lg:max-w-60"
                           >
                             {company.name}
                           </button>
                         }
                       />
-                      <TooltipPanel className="max-w-xs break-words">
+                      <TooltipPanel className="max-w-xs wrap-break-word">
                         {company.name}
                       </TooltipPanel>
                     </Tooltip>
@@ -270,7 +270,7 @@ export default function AdminCompanyModerationPage() {
                     <button
                       type="button"
                       onClick={() => handleInspect(company)}
-                      className="block cursor-pointer text-left text-xs leading-snug font-semibold break-words whitespace-normal text-slate-800 transition-colors hover:text-primary"
+                      className="block cursor-pointer text-left text-xs leading-snug font-semibold wrap-break-word whitespace-normal text-slate-800 transition-colors hover:text-primary"
                     >
                       {company.name}
                     </button>
