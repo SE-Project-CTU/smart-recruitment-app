@@ -477,9 +477,9 @@ export default function AdminDashboard() {
                 <EChartsPieChart.Tooltip />
                 <EChartsPieChart.Pie
                   isClickable
-                  innerRadius={60}
-                  paddingAngle={-25}
-                  cornerRadius={99}
+                  innerRadius={65}
+                  paddingAngle={activePieData.length > 1 ? 3 : 0}
+                  cornerRadius={4}
                 />
               </EChartsPieChart>
 
