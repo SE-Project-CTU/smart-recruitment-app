@@ -54,6 +54,8 @@ export const PATHS = {
     USER_PROFILE: "/admin/profile",
     APPROVE_COMPANY: "/admin/approve/company",
     APPROVE_JD: "/admin/approve/jd",
+    USERS: "/admin/users",
+    CATALOGS: "/admin/catalogs",
   },
 
   FORBIDDEN: "forbidden",

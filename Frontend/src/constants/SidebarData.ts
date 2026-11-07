@@ -1,4 +1,4 @@
-﻿import {
+import {
   BookBookmark,
   Bookmark,
   BuildingComplex,
@@ -144,18 +144,19 @@ export const adminSidebarData = {
       url: "#",
       icon: BookBookmark,
       items: [
-        { title: "Mẫu CV", url: "#" },
-        { title: "Ngành nghề", url: "#" },
-        { title: "Địa điểm", url: "#" },
+        { title: "Mẫu CV", url: `${PATHS.ADMIN.CATALOGS}?tab=cv-templates` },
+        { title: "Ngành nghề", url: `${PATHS.ADMIN.CATALOGS}?tab=industries` },
+        { title: "Địa bàn", url: `${PATHS.ADMIN.CATALOGS}?tab=locations` },
+        { title: "Kỹ năng", url: `${PATHS.ADMIN.CATALOGS}?tab=skills` },
       ],
     },
-    { title: "Quản lý tài khoản", url: "#", icon: UserRound },
+    { title: "Quản lý tài khoản", url: PATHS.ADMIN.USERS, icon: UserRound },
   ],
   //thiết lập
   setting: [
     {
       title: "Cài đặt",
-      icons: Settings,
+      icon: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },

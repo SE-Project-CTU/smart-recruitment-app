@@ -266,6 +266,14 @@ const router = createBrowserRouter([
             path: PATHS.ADMIN.APPROVE_JD,
             element: <Page title="Duyệt tin tuyển dụng" />,
           },
+          {
+            path: PATHS.ADMIN.USERS,
+            element: <Page title="Quản lý tài khoản người dùng" />,
+          },
+          {
+            path: PATHS.ADMIN.CATALOGS,
+            element: <Page title="Quản lý danh mục chung" />,
+          },
         ],
       },
     ],
