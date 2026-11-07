@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { createColumnHelper } from "@tanstack/react-table";
 import {
   Check,
   X,
@@ -16,7 +17,17 @@ import {
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 
-import { Button, TableSkeleton } from "@/components/common";
+import {
+  Button,
+  DataTable,
+  type DataTableFeatures,
+  TableSkeleton,
+} from "@/components/common";
+import {
+  Tooltip,
+  TooltipPanel,
+  TooltipTrigger,
+} from "@/components/animate-ui/components/base/tooltip";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import { EmptyStreet, EmptyState } from "@/assets/images/decoration";
@@ -55,6 +66,8 @@ const TABS: TabConfig[] = [
   { key: "Rejected", label: "Đã từ chối" },
   { key: "All", label: "Tất cả hồ sơ" },
 ];
+
+const columnHelper = createColumnHelper<DataTableFeatures, AdminCompanyItem>();
 
 export default function AdminCompanyModerationPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -200,15 +213,241 @@ export default function AdminCompanyModerationPage() {
     }
   };
 
+  // Cấu hình các cột cho DataTable
+  const columns = useMemo(
+    () =>
+      columnHelper.columns([
+        columnHelper.display({
+          id: "index",
+          header: () => <div className="text-center font-semibold">#STT</div>,
+          meta: { className: "w-16 text-center" },
+          cell: ({ row }) => {
+            const displayIndex = (page - 1) * pageSize + row.index + 1;
+            return (
+              <span className="font-semibold text-text-muted">
+                #{displayIndex < 10 ? `0${displayIndex}` : displayIndex}
+              </span>
+            );
+          },
+        }),
+
+        columnHelper.accessor("name", {
+          id: "company",
+          header: "Doanh nghiệp",
+          meta: { className: "min-w-[180px] max-w-[280px]" },
+          cell: ({ row }) => {
+            const company = row.original;
+            return (
+              <div className="flex items-center gap-3">
+                <CompanyLogo
+                  name={company.name}
+                  logoUrl={company.logoUrl}
+                  size="sm"
+                />
+                <div className="min-w-0 flex-1">
+                  {/* Desktop: Truncate + Tooltip */}
+                  <div className="hidden md:block">
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <button
+                            type="button"
+                            onClick={() => handleInspect(company)}
+                            className="block max-w-[190px] cursor-pointer truncate text-left font-semibold text-slate-800 transition-colors hover:text-primary lg:max-w-[240px]"
+                          >
+                            {company.name}
+                          </button>
+                        }
+                      />
+                      <TooltipPanel className="max-w-xs break-words">
+                        {company.name}
+                      </TooltipPanel>
+                    </Tooltip>
+                  </div>
+
+                  {/* Mobile: Wrap text */}
+                  <div className="block md:hidden">
+                    <button
+                      type="button"
+                      onClick={() => handleInspect(company)}
+                      className="block cursor-pointer text-left text-xs leading-snug font-semibold break-words whitespace-normal text-slate-800 transition-colors hover:text-primary"
+                    >
+                      {company.name}
+                    </button>
+                  </div>
+
+                  <span className="block truncate text-xs text-slate-400">
+                    {company.email || company.address || "Chưa có email"}
+                  </span>
+                </div>
+              </div>
+            );
+          },
+        }),
+
+        columnHelper.accessor("taxCode", {
+          id: "taxCode",
+          header: "Mã số thuế",
+          meta: { className: "whitespace-nowrap" },
+          cell: ({ row }) => (
+            <span className="font-mono font-semibold text-slate-700">
+              {row.original.taxCode || "—"}
+            </span>
+          ),
+        }),
+
+        columnHelper.accessor((row) => row.owner?.fullName ?? "", {
+          id: "owner",
+          header: "Chủ sở hữu / Người gửi",
+          meta: { className: "min-w-[140px] max-w-[200px]" },
+          cell: ({ row }) => {
+            const owner = row.original.owner;
+            return owner ? (
+              <div className="flex max-w-52 min-w-0 items-center gap-2.5">
+                <UserAvatar
+                  src={owner.avatarUrl || ""}
+                  name={owner.fullName}
+                  className="size-7 shrink-0 rounded-full border border-border/60"
+                />
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold text-slate-800">
+                    {owner.fullName}
+                  </span>
+                  <span className="block truncate text-xs text-slate-400">
+                    {owner.email}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <span className="text-slate-400 italic">—</span>
+            );
+          },
+        }),
+
+        columnHelper.accessor("createdAt", {
+          id: "createdAt",
+          header: "Thời gian gửi",
+          meta: { className: "whitespace-nowrap" },
+          cell: ({ row }) => {
+            const createdAt = row.original.createdAt;
+            return (
+              <div className="flex flex-col text-xs">
+                <span className="font-semibold text-slate-700">
+                  {dayjs(createdAt).format("DD/MM/YYYY")}
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {dayjs(createdAt).format("HH:mm")}
+                </span>
+              </div>
+            );
+          },
+        }),
+
+        columnHelper.accessor("verificationStatus", {
+          id: "verificationStatus",
+          header: "Trạng thái",
+          meta: { className: "whitespace-nowrap" },
+          cell: ({ row }) => {
+            const status = (
+              row.original.verificationStatus || "Pending"
+            ).toUpperCase();
+            if (status === "PENDING") {
+              return (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-amber-700">
+                  <Clock className="size-3" />
+                  Chờ thẩm định
+                </span>
+              );
+            }
+            if (status === "VERIFIED") {
+              return (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-emerald-700">
+                  <CheckCircle2 className="size-3" />
+                  Đã xác thực
+                </span>
+              );
+            }
+            if (status === "REJECTED") {
+              return (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-rose-700">
+                  <XCircle className="size-3" />
+                  Đã từ chối
+                </span>
+              );
+            }
+            return null;
+          },
+        }),
+
+        columnHelper.display({
+          id: "actions",
+          header: () => (
+            <div className="text-right font-semibold">Thao tác</div>
+          ),
+          meta: { className: "text-right whitespace-nowrap" },
+          cell: ({ row }) => {
+            const company = row.original;
+            const status = (
+              company.verificationStatus || "Pending"
+            ).toUpperCase();
+            const isPending = status === "PENDING";
+
+            return (
+              <div className="flex items-center justify-end gap-1.5">
+                {/* Nút Xem chi tiết hồ sơ */}
+                <Button
+                  variant="secondary"
+                  icon={Eye}
+                  iconSize={15}
+                  title="Xem hồ sơ chi tiết"
+                  onClick={() => handleInspect(company)}
+                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-primary! shadow-none! ring-0! hover:bg-secondary-light/50! hover:text-primary-dark!"
+                />
+
+                {/* Nút Phê duyệt nhanh */}
+                {isPending && (
+                  <Button
+                    variant="primary"
+                    icon={Check}
+                    iconSize={15}
+                    title="Phê duyệt doanh nghiệp"
+                    onClick={() => setApproveTarget(company)}
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700!"
+                  />
+                )}
+
+                {/* Nút Từ chối */}
+                {isPending && (
+                  <Button
+                    variant="secondary"
+                    icon={X}
+                    iconSize={15}
+                    title="Từ chối hồ sơ"
+                    onClick={() => {
+                      setRejectTarget(company);
+                      setRejectionReason("");
+                      setReasonError("");
+                    }}
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600!"
+                  />
+                )}
+              </div>
+            );
+          },
+        }),
+      ]),
+    [page, pageSize],
+  );
+
   return (
     <div className="space-y-6 pb-12 font-sans">
       {/* 1. Tiêu đề trang & Thông tin */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
-            Thẩm định doanh nghiệp ({counts.Pending} hồ sơ chờ duyệt)
+          <h2 className="text-lg font-bold text-text-main sm:text-xl">
+            Kiểm duyệt doanh nghiệp
           </h2>
-          <p className="text-xs text-slate-500 sm:text-sm">
+          <p className="text-xs text-text-muted sm:text-sm">
             Kiểm tra mã số thuế, giấy phép kinh doanh và cấp quyền tuyển dụng
             công khai cho doanh nghiệp
           </p>
@@ -246,7 +485,7 @@ export default function AdminCompanyModerationPage() {
                     "inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all",
                     isActive
                       ? "bg-secondary-light text-primary"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                      : "text-slate-600 hover:bg-slate-50 hover:text-text-main",
                   )}
                 >
                   <span>{tab.label}</span>
@@ -325,206 +564,18 @@ export default function AdminCompanyModerationPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-2xs">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-border/80 bg-slate-50/50 font-semibold text-slate-600">
-                    <tr>
-                      <th className="w-16 px-4 py-3.5 text-center">#STT</th>
-                      <th className="px-5 py-3.5">Doanh nghiệp</th>
-                      <th className="px-4 py-3.5">Mã số thuế</th>
-                      <th className="px-4 py-3.5">Chủ sở hữu / Người gửi</th>
-                      <th className="px-4 py-3.5">Thời gian gửi</th>
-                      <th className="px-4 py-3.5">Trạng thái</th>
-                      <th className="px-5 py-3.5 text-right">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {companies.map((company, index) => {
-                      const displayIndex = (page - 1) * pageSize + index + 1;
-                      const status = (
-                        company.verificationStatus || "Pending"
-                      ).toUpperCase();
-                      const isPending = status === "PENDING";
-                      const isVerified = status === "VERIFIED";
-                      const isRejected = status === "REJECTED";
-
-                      return (
-                        <tr
-                          key={company.id}
-                          className="transition-colors hover:bg-slate-50/60"
-                        >
-                          {/* #STT */}
-                          <td className="px-4 py-3.5 text-center font-semibold text-slate-500">
-                            #
-                            {displayIndex < 10
-                              ? `0${displayIndex}`
-                              : displayIndex}
-                          </td>
-
-                          {/* Doanh nghiệp */}
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-3">
-                              <CompanyLogo
-                                name={company.name}
-                                logoUrl={company.logoUrl}
-                                size="sm"
-                              />
-                              <div className="max-w-xs min-w-0">
-                                <span className="block truncate font-semibold text-slate-800">
-                                  {company.name}
-                                </span>
-                                <span className="block truncate text-xs text-slate-400">
-                                  {company.email ||
-                                    company.address ||
-                                    "Chưa có email"}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Mã số thuế */}
-                          <td className="px-4 py-3.5">
-                            <span className="font-mono font-semibold text-slate-700">
-                              {company.taxCode || "—"}
-                            </span>
-                          </td>
-
-                          {/* Chủ sở hữu */}
-                          <td className="px-4 py-3.5">
-                            {company.owner ? (
-                              <div className="flex items-center gap-2.5 max-w-52 min-w-0">
-                                <UserAvatar
-                                  src={company.owner.avatarUrl || ""}
-                                  name={company.owner.fullName}
-                                  className="size-7 shrink-0 rounded-full border border-border/60"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <span className="block truncate font-semibold text-slate-800">
-                                    {company.owner.fullName}
-                                  </span>
-                                  <span className="block truncate text-xs text-slate-400">
-                                    {company.owner.email}
-                                  </span>
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 italic">—</span>
-                            )}
-                          </td>
-
-                          {/* Thời gian gửi */}
-                          <td className="px-4 py-3.5">
-                            <div className="flex flex-col text-xs">
-                              <span className="font-semibold text-slate-700">
-                                {dayjs(company.createdAt).format("DD/MM/YYYY")}
-                              </span>
-                              <span className="text-[11px] text-slate-400">
-                                {dayjs(company.createdAt).format("HH:mm")}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Trạng thái */}
-                          <td className="px-4 py-3.5 whitespace-nowrap">
-                            {isPending && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                <Clock className="size-3" />
-                                Chờ thẩm định
-                              </span>
-                            )}
-                            {isVerified && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                <CheckCircle2 className="size-3" />
-                                Đã xác thực
-                              </span>
-                            )}
-                            {isRejected && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
-                                <XCircle className="size-3" />
-                                Đã từ chối
-                              </span>
-                            )}
-                          </td>
-
-                          {/* Thao tác (Button icon không label đồng bộ CompanyJoinRequestsTab) */}
-                          <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                            {isPending ? (
-                              <div className="flex items-center justify-end gap-1.5">
-                                {/* Button Xem chi tiết */}
-                                <Button
-                                  variant="secondary"
-                                  icon={Eye}
-                                  iconSize={15}
-                                  title="Xem hồ sơ chi tiết"
-                                  onClick={() => handleInspect(company)}
-                                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-primary! shadow-none! ring-0! hover:bg-secondary-light/50! hover:text-primary-dark! disabled:text-text-muted! disabled:opacity-40!"
-                                />
-                                {/* Button Phê duyệt */}
-                                <Button
-                                  variant="primary"
-                                  icon={Check}
-                                  iconSize={15}
-                                  title="Phê duyệt doanh nghiệp"
-                                  onClick={() => setApproveTarget(company)}
-                                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700! disabled:text-text-muted! disabled:opacity-40!"
-                                />
-                                {/* Button Từ chối */}
-                                <Button
-                                  variant="secondary"
-                                  icon={X}
-                                  iconSize={15}
-                                  title="Từ chối hồ sơ"
-                                  onClick={() => {
-                                    setRejectTarget(company);
-                                    setRejectionReason("");
-                                    setReasonError("");
-                                  }}
-                                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600! disabled:text-text-muted! disabled:opacity-40!"
-                                />
-                              </div>
-                            ) : isVerified ? (
-                              <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  variant="secondary"
-                                  icon={Eye}
-                                  iconSize={15}
-                                  title="Xem hồ sơ"
-                                  onClick={() => handleInspect(company)}
-                                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-primary! shadow-none! ring-0! hover:bg-secondary-light/50! hover:text-primary-dark!"
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-end gap-2">
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500">
-                                  <XCircle className="size-3.5" />
-                                  Đã từ chối
-                                </span>
-                                <Button
-                                  variant="secondary"
-                                  icon={Eye}
-                                  iconSize={15}
-                                  title="Xem hồ sơ"
-                                  onClick={() => handleInspect(company)}
-                                  className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-primary! shadow-none! ring-0! hover:bg-secondary-light/50! hover:text-primary-dark!"
-                                />
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <DataTable
+              columns={columns}
+              data={companies}
+              emptyMessage="Không có doanh nghiệp nào phù hợp với bộ lọc."
+            />
           )}
         </div>
 
         {/* 4. Thanh phân trang đồng bộ */}
         {totalItems > 0 && (
           <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row">
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-text-muted">
               Hiển thị{" "}
               <span className="font-semibold text-slate-700">
                 {(page - 1) * pageSize + 1}
@@ -609,10 +660,10 @@ export default function AdminCompanyModerationPage() {
             <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
               <ShieldCheck className="size-6" />
             </div>
-            <DialogTitle className="text-lg font-bold text-slate-900">
+            <DialogTitle className="text-lg font-bold text-text-main">
               Xác nhận phê duyệt doanh nghiệp
             </DialogTitle>
-            <DialogDescription className="text-xs leading-relaxed text-slate-500">
+            <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Bạn đang phê duyệt hồ sơ pháp lý của doanh nghiệp{" "}
               <strong className="text-slate-800">{approveTarget?.name}</strong>{" "}
               (MST: {approveTarget?.taxCode}). Sau khi duyệt, doanh nghiệp sẽ
@@ -653,10 +704,10 @@ export default function AdminCompanyModerationPage() {
             <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
               <XCircle className="size-6" />
             </div>
-            <DialogTitle className="text-lg font-bold text-slate-900">
+            <DialogTitle className="text-lg font-bold text-text-main">
               Từ chối hồ sơ pháp lý doanh nghiệp
             </DialogTitle>
-            <DialogDescription className="text-xs leading-relaxed text-slate-500">
+            <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Vui lòng nêu rõ lý do từ chối hồ sơ của{" "}
               <strong className="text-slate-800">{rejectTarget?.name}</strong>.
               Lý do này sẽ được thông báo trực tiếp đến chủ sở hữu doanh nghiệp.

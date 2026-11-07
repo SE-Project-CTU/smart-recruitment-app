@@ -90,7 +90,7 @@ function DashboardHeader() {
             onClick={() => navigate(PATHS.ADMIN.APPROVE_COMPANY)}
             className="hidden! text-xs! md:flex!"
           >
-            Kiểm duyệt
+            Tạo thông báo
           </Button>
         );
 
