@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
@@ -18,6 +18,7 @@ import { useBreadcrumbStore } from "@/stores/breadcrumbStore";
 import { PATHS } from "@/constants/paths";
 import { getProfilePathByRole } from "@/utils/helper";
 import Button from "./Button";
+import { AdminSendNotificationModal } from "@/pages/admin/notification/AdminSendNotificationModal";
 import {
   Menu,
   MenuTrigger,
@@ -43,6 +44,7 @@ function DashboardHeader() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
+  const [isSendNotificationOpen, setIsSendNotificationOpen] = useState(false);
 
   const displayName = user?.fullName || "Người dùng";
   const displayEmail = user?.email || "user@smarthire.com";
@@ -87,8 +89,8 @@ function DashboardHeader() {
         return (
           <Button
             icon={Megaphone}
-            onClick={() => navigate(PATHS.ADMIN.APPROVE_COMPANY)}
-            className="hidden! text-xs! md:flex!"
+            onClick={() => setIsSendNotificationOpen(true)}
+            className="text-xs!"
           >
             Gửi thông báo
           </Button>
@@ -221,6 +223,11 @@ function DashboardHeader() {
           </Menu>
         </div>
       </div>
+
+      <AdminSendNotificationModal
+        open={isSendNotificationOpen}
+        onOpenChange={setIsSendNotificationOpen}
+      />
     </header>
   );
 }

@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import type { NotificationDto } from "@/types/notification";
 
 interface NotificationToastProps {
@@ -16,10 +15,10 @@ export function NotificationToastContent({
 }: NotificationToastProps) {
   return (
     <div className="flex flex-col gap-1.5 py-0.5">
-      <p className="text-xs leading-relaxed text-text-muted line-clamp-2">
+      <p className="line-clamp-2 text-xs leading-relaxed text-text-muted">
         {notification.body}
       </p>
-      {actionUrl && onNavigate && (
+      {/* {actionUrl && onNavigate && (
         <button
           type="button"
           onClick={(e) => {
@@ -31,7 +30,7 @@ export function NotificationToastContent({
           <span>{actionLabel}</span>
           <ArrowRight className="size-3" />
         </button>
-      )}
+      )} */}
     </div>
   );
 }

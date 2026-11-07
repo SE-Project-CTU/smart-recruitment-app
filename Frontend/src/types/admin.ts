@@ -258,3 +258,22 @@ export interface AdminPagedResponse<T> {
   data: T[];
   meta: PaginationMeta;
 }
+
+// ==========================================
+// 7. SYSTEM ALERTS & NOTIFICATIONS
+// ==========================================
+
+export type AdminSystemAlertTarget = "SystemAll" | "Candidate" | "Recruiter";
+
+export interface SendSystemAlertPayload {
+  target?: AdminSystemAlertTarget;
+  title: string;
+  body: string;
+}
+
+export interface SendSystemAlertResponse {
+  target: string;
+  title: string;
+  sentAt: string;
+  message: string;
+}

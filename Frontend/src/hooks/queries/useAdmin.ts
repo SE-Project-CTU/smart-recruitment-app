@@ -13,6 +13,7 @@ import type {
   ReviewCompanyVerificationPayload,
   AdminJobPostingFilterParams,
   ReviewJobModerationPayload,
+  SendSystemAlertPayload,
 } from "@/types/admin";
 
 export const adminKeys = {
@@ -591,6 +592,28 @@ export const useUpdateCvTemplate = () => {
     onError: (err) => {
       toast.error(
         getApiErrorMessage(err, "Không thể cập nhật mẫu CV. Vui lòng thử lại."),
+      );
+    },
+  });
+};
+
+// ==========================================
+// 6. SYSTEM ALERTS
+// ==========================================
+
+export const useSendSystemAlert = () => {
+  return useMutation({
+    mutationFn: (payload: SendSystemAlertPayload) =>
+      adminService.sendSystemAlert(payload),
+    onSuccess: (data) => {
+      toast.success(data?.message || "Phát thông báo hệ thống thành công!");
+    },
+    onError: (err) => {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          "Không thể phát thông báo hệ thống. Vui lòng thử lại.",
+        ),
       );
     },
   });

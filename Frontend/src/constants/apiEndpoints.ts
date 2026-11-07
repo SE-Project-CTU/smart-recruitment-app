@@ -118,5 +118,6 @@ export const API_ENDPOINTS = {
     CV_TEMPLATE_DETAIL: (id: string) => `/admin/cv-templates/${id}`,
     SKILLS: "/admin/skills",
     SKILL_DETAIL: (id: string) => `/admin/skills/${id}`,
+    NOTIFICATIONS_ALERT: "/admin/notifications/alert",
   },
 } as const;

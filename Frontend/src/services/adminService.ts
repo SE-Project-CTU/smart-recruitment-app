@@ -23,6 +23,8 @@ import type {
   AdminSkill,
   AdminCvTemplateItem,
   AdminPagedResponse,
+  SendSystemAlertPayload,
+  SendSystemAlertResponse,
 } from "@/types/admin";
 
 export const adminService = {
@@ -388,6 +390,19 @@ export const adminService = {
       never,
       ApiResponse<Record<string, unknown>>
     >(API_ENDPOINTS.ADMIN.CV_TEMPLATE_DETAIL(id), payload);
+    return res.data;
+  },
+
+  // ==========================================
+  // 6. SYSTEM ALERTS
+  // ==========================================
+  async sendSystemAlert(
+    payload: SendSystemAlertPayload,
+  ): Promise<SendSystemAlertResponse> {
+    const res = await axiosClient.post<
+      never,
+      ApiResponse<SendSystemAlertResponse>
+    >(API_ENDPOINTS.ADMIN.NOTIFICATIONS_ALERT, payload);
     return res.data;
   },
 };
