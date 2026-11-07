@@ -160,6 +160,20 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS:
     "Mã định danh (code) của mẫu CV này đã tồn tại.",
 
+  // Admin Notification Error Codes
+  ADMIN_NOTIFICATION_NOT_FOUND: "Không tìm thấy thông báo hệ thống.",
+  ADMIN_NOTIFICATION_TITLE_REQUIRED: "Tiêu đề thông báo không được để trống.",
+  ADMIN_NOTIFICATION_BODY_REQUIRED: "Nội dung thông báo không được để trống.",
+  ADMIN_NOTIFICATION_PAYLOAD_TOO_LARGE:
+    "Dữ liệu đính kèm thông báo vượt quá độ dài cho phép (tối đa 512 ký tự).",
+  ADMIN_NOTIFICATION_TARGET_REQUIRED: "Vui lòng chọn đối tượng nhận thông báo.",
+  ADMIN_NOTIFICATION_INVALID_TARGET_ROLE: "Vai trò nhận thông báo không hợp lệ.",
+  ADMIN_NOTIFICATION_RECIPIENT_NOT_FOUND:
+    "Không tìm thấy người nhận thông báo hợp lệ.",
+  ADMIN_NOTIFICATION_DISPATCH_FAILED:
+    "Gửi thông báo thời gian thực thất bại. Vui lòng thử lại sau.",
+  ADMIN_NOTIFICATION_FAILED: "Không thể tạo thông báo. Vui lòng thử lại sau.",
+
   // AI Error Codes
   AI_SERVICE_UNAVAILABLE: "Dịch vụ AI đang bận hoặc tạm thời gián đoạn. Vui lòng thử lại sau.",
   AI_QUOTA_EXCEEDED: "Hạn ngạch gọi dịch vụ AI tạm thời vượt quá giới hạn. Vui lòng thử lại sau.",
@@ -214,6 +228,10 @@ export const FIELD_LABELS: Record<string, string> = {
   code: "mã định danh",
   isCentrallyGoverned: "trực thuộc trung ương",
   isCommune: "xã/thị trấn",
+  targetRole: "đối tượng nhận thông báo",
+  targetType: "phạm vi gửi thông báo",
+  notificationType: "loại thông báo",
+  expiresAt: "thời hạn thông báo",
 };
 
 export const HTTP_STATUS_MESSAGES: Record<number, string> = {

@@ -25,4 +25,15 @@ public static class AdminErrorCodes {
     public const string SkillNameAlreadyExists = "ADMIN_SKILL_NAME_ALREADY_EXISTS";
     public const string CvTemplateNotFound = "ADMIN_CV_TEMPLATE_NOT_FOUND";
     public const string CvTemplateCodeAlreadyExists = "ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS";
+
+    // Phase 5 - Broadcast & Notifications
+    public const string NotificationNotFound = "ADMIN_NOTIFICATION_NOT_FOUND";
+    public const string NotificationTitleRequired = "ADMIN_NOTIFICATION_TITLE_REQUIRED";
+    public const string NotificationBodyRequired = "ADMIN_NOTIFICATION_BODY_REQUIRED";
+    public const string NotificationPayloadTooLarge = "ADMIN_NOTIFICATION_PAYLOAD_TOO_LARGE";
+    public const string NotificationTargetRequired = "ADMIN_NOTIFICATION_TARGET_REQUIRED";
+    public const string NotificationInvalidTargetRole = "ADMIN_NOTIFICATION_INVALID_TARGET_ROLE";
+    public const string NotificationRecipientNotFound = "ADMIN_NOTIFICATION_RECIPIENT_NOT_FOUND";
+    public const string NotificationDispatchFailed = "ADMIN_NOTIFICATION_DISPATCH_FAILED";
+    public const string NotificationFailed = "ADMIN_NOTIFICATION_FAILED";
 }
