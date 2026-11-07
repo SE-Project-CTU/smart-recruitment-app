@@ -48,6 +48,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCompanyModerationPage from "@/pages/admin/company/AdminCompanyModerationPage";
 import AdminJobModerationPage from "@/pages/admin/job/AdminJobModerationPage";
 import AdminUserManagementPage from "@/pages/admin/user/AdminUserManagementPage";
+import AdminCatalogsPage from "@/pages/admin/catalog/AdminCatalogsPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -276,7 +277,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.CATALOGS,
-            element: <Page title="Quản lý danh mục chung" />,
+            element: <AdminCatalogsPage />,
           },
         ],
       },

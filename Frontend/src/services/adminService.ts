@@ -163,6 +163,8 @@ export const adminService = {
   // 5. MASTER CATALOGS
   // ==========================================
   async getIndustryGroups(params?: {
+    search?: string;
+    isActive?: boolean;
     page?: number;
     pageSize?: number;
   }): Promise<AdminPagedResponse<AdminIndustryGroup>> {
@@ -199,6 +201,8 @@ export const adminService = {
 
   async getIndustries(params?: {
     groupId?: string;
+    search?: string;
+    isActive?: boolean;
     page?: number;
     pageSize?: number;
   }): Promise<AdminPagedResponse<AdminIndustry>> {

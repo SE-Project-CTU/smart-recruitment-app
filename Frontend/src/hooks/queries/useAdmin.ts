@@ -29,10 +29,16 @@ export const adminKeys = {
     [...adminKeys.all, "job-postings", params] as const,
   jobPostingDetail: (id?: string) =>
     [...adminKeys.all, "job-postings", "detail", id] as const,
-  industryGroups: (params?: { page?: number; pageSize?: number }) =>
-    [...adminKeys.all, "industry-groups", params] as const,
+  industryGroups: (params?: {
+    search?: string;
+    isActive?: boolean;
+    page?: number;
+    pageSize?: number;
+  }) => [...adminKeys.all, "industry-groups", params] as const,
   industries: (params?: {
     groupId?: string;
+    search?: string;
+    isActive?: boolean;
     page?: number;
     pageSize?: number;
   }) => [...adminKeys.all, "industries", params] as const,
@@ -227,6 +233,8 @@ export const useModerateJobPosting = () => {
 // ==========================================
 
 export const useAdminIndustryGroups = (params?: {
+  search?: string;
+  isActive?: boolean;
   page?: number;
   pageSize?: number;
 }) => {
@@ -285,6 +293,8 @@ export const useUpdateIndustryGroup = () => {
 
 export const useAdminIndustries = (params?: {
   groupId?: string;
+  search?: string;
+  isActive?: boolean;
   page?: number;
   pageSize?: number;
 }) => {
