@@ -378,44 +378,31 @@ export function NotificationDropdown() {
                 </div>
               )}
               {earlierNotifications.map(renderNotificationItem)}
-
-              {/* Nút Xem thêm / Tải thông báo cũ hơn khi có nhiều thông báo */}
-              {hasMore && (
-                <div className="p-2.5 text-center bg-slate-50/40 border-t border-border/30">
-                  <button
-                    type="button"
-                    onClick={handleLoadMore}
-                    disabled={isFetching}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-dark transition-colors cursor-pointer py-1.5 px-3.5 rounded-lg hover:bg-slate-200/50 disabled:opacity-50"
-                  >
-                    {isFetching ? (
-                      <>
-                        <Loader2 className="size-3.5 animate-spin" />
-                        <span>Đang tải thêm...</span>
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="size-3.5" />
-                        <span>Xem các thông báo trước đó</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
             </>
           )}
         </div>
 
-        {/* Sticky Footer */}
-        {notifications.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border/50 px-4 py-2.5 bg-slate-50/80 text-[11px] text-text-muted">
-            <span>
-              Đang hiển thị {notifications.length} / {totalItems} thông báo
-            </span>
-            <span className="font-medium text-emerald-600 flex items-center gap-1">
-              <span className="size-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-              Đồng bộ thời gian thực
-            </span>
+        {/* Footer: Xem các thông báo trước đó (chỉ hiển thị khi còn thông báo cũ hơn, không có thì biến mất) */}
+        {hasMore && (
+          <div className="border-t border-border/50 p-2 bg-slate-50/80 text-center">
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={isFetching}
+              className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold text-primary hover:text-primary-dark hover:bg-slate-200/50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {isFetching ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Đang tải thêm...</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="size-3.5" />
+                  <span>Xem các thông báo trước đó</span>
+                </>
+              )}
+            </button>
           </div>
         )}
       </PopoverContent>
