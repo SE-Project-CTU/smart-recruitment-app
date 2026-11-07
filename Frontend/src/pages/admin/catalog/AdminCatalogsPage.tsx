@@ -1,8 +1,8 @@
 import { useSearchParams } from "react-router-dom";
-import { FileText } from "lucide-react";
 import { IndustryCatalogTab } from "./tabs/IndustryCatalogTab";
 import { SkillCatalogTab } from "./tabs/SkillCatalogTab";
 import { LocationCatalogTab } from "./tabs/LocationCatalogTab";
+import { CvTemplateCatalogTab } from "./tabs/CvTemplateCatalogTab";
 
 type CatalogTabKey = "industries" | "skills" | "locations" | "cv-templates";
 
@@ -98,17 +98,7 @@ export function AdminCatalogsPage() {
 
         {activeTab === "locations" && <LocationCatalogTab />}
 
-        {activeTab === "cv-templates" && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-12 text-center">
-            <FileText className="mb-2 size-8 text-primary/40" />
-            <p className="text-sm font-semibold text-text-main">
-              Quản lý Mẫu CV chuẩn hóa
-            </p>
-            <p className="mt-1 text-xs text-text-muted">
-              Mô-đun Quản lý Mẫu CV (Phase 5.4) sẵn sàng triển khai tiếp theo.
-            </p>
-          </div>
-        )}
+        {activeTab === "cv-templates" && <CvTemplateCatalogTab />}
       </div>
     </div>
   );

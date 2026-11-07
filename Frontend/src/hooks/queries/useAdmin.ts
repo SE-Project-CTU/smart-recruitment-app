@@ -61,8 +61,12 @@ export const adminKeys = {
     page?: number;
     pageSize?: number;
   }) => [...adminKeys.all, "skills", params] as const,
-  cvTemplates: (params?: { page?: number; pageSize?: number }) =>
-    [...adminKeys.all, "cv-templates", params] as const,
+  cvTemplates: (params?: {
+    search?: string;
+    isActive?: boolean;
+    page?: number;
+    pageSize?: number;
+  }) => [...adminKeys.all, "cv-templates", params] as const,
 };
 
 // ==========================================
@@ -556,6 +560,8 @@ export const useUpdateSkill = () => {
 };
 
 export const useAdminCvTemplates = (params?: {
+  search?: string;
+  isActive?: boolean;
   page?: number;
   pageSize?: number;
 }) => {
