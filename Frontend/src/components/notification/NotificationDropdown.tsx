@@ -233,7 +233,7 @@ export function NotificationDropdown() {
                 <div
                   key={item.id}
                   onClick={() => handleItemClick(item)}
-                  className={`group relative flex items-start gap-3 p-3.5 transition-colors cursor-pointer hover:bg-slate-50/80 ${
+                  className={`group relative flex items-start gap-3 p-3.5 transition-colors cursor-pointer hover:bg-slate-50 ${
                     !item.isRead ? "bg-secondary-light/15" : "bg-white"
                   }`}
                 >
@@ -245,8 +245,9 @@ export function NotificationDropdown() {
                   </div>
 
                   {/* Nội dung thông báo */}
-                  <div className="flex-1 min-w-0 pr-4">
-                    <div className="flex items-baseline justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    {/* Hàng 1: Tiêu đề + Chấm báo chưa đọc */}
+                    <div className="flex items-center justify-between gap-2">
                       <h4
                         className={`text-xs truncate ${
                           !item.isRead
@@ -256,42 +257,44 @@ export function NotificationDropdown() {
                       >
                         {item.title}
                       </h4>
-                      <span className="text-[10px] text-text-muted/70 shrink-0">
-                        {getTimeAgo(item.createdAt)}
-                      </span>
+                      {!item.isRead && (
+                        <span className="size-2 rounded-full bg-primary shrink-0" />
+                      )}
                     </div>
 
+                    {/* Hàng 2: Mô tả nội dung */}
                     <p className="text-xs text-text-muted line-clamp-2 mt-0.5 leading-relaxed">
                       {item.body}
                     </p>
-                  </div>
 
-                  {/* Chấm tròn chưa đọc & Action buttons khi hover */}
-                  <div className="absolute right-3 top-3.5 flex items-center gap-1">
-                    {!item.isRead && (
-                      <span className="size-2 rounded-full bg-primary block group-hover:hidden" />
-                    )}
+                    {/* Hàng 3: Thời gian và Nút hành động nhanh (tách riêng, không bao giờ đè lên nhau) */}
+                    <div className="flex items-center justify-between mt-2 pt-0.5">
+                      <span className="text-[11px] text-text-muted/75">
+                        {getTimeAgo(item.createdAt)}
+                      </span>
 
-                    <div className="hidden group-hover:flex items-center gap-0.5">
-                      {!item.isRead && (
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {!item.isRead && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleMarkAsReadOnly(e, item.id)}
+                            title="Đánh dấu đã đọc"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-text-muted hover:text-primary hover:bg-slate-200/60 transition-colors cursor-pointer"
+                          >
+                            <Check className="size-3" />
+                            <span>Đã đọc</span>
+                          </button>
+                        )}
+
                         <button
                           type="button"
-                          onClick={(e) => handleMarkAsReadOnly(e, item.id)}
-                          title="Đánh dấu đã đọc"
-                          className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-slate-200/60 transition-colors cursor-pointer"
+                          onClick={(e) => handleDelete(e, item.id)}
+                          title="Xóa thông báo"
+                          className="p-1 rounded text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                         >
-                          <Check className="size-3.5" />
+                          <Trash2 className="size-3.5" />
                         </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleDelete(e, item.id)}
-                        title="Xóa thông báo"
-                        className="p-1 rounded-md text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
+                      </div>
                     </div>
                   </div>
                 </div>
