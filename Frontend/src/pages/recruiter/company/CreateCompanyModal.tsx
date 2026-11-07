@@ -181,19 +181,18 @@ export function CreateCompanyModal({
       onClose();
     } catch (err: unknown) {
       const apiErrors = getApiFieldErrors(err);
+      const msg = getApiErrorMessage(
+        err,
+        "Có lỗi xảy ra khi tạo doanh nghiệp. Vui lòng thử lại.",
+      );
       if (Object.keys(apiErrors).length > 0) {
         setFieldErrors(apiErrors);
-      } else {
-        const msg = getApiErrorMessage(
-          err,
-          "Có lỗi xảy ra khi tạo doanh nghiệp. Vui lòng thử lại.",
-        );
-        toast.add({
-          type: "destructive",
-          title: "Tạo doanh nghiệp thất bại",
-          description: msg,
-        });
       }
+      toast.add({
+        type: "destructive",
+        title: "Tạo doanh nghiệp thất bại",
+        description: msg,
+      });
     }
   };
 
@@ -224,6 +223,13 @@ export function CreateCompanyModal({
         </div>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-2">
+          {(fieldErrors.general || fieldErrors.company) && (
+            <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700 animate-in fade-in">
+              <AlertCircle className="size-4 shrink-0 text-rose-600" />
+              <span>{fieldErrors.general || fieldErrors.company}</span>
+            </div>
+          )}
+
           {/* Logo Upload Section */}
           <div className="rounded-xl border border-border bg-bg/50 p-3.5">
             <label className="mb-2 block text-xs font-semibold text-text-main">

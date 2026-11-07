@@ -20,7 +20,7 @@ import "dayjs/locale/vi";
 import { Button, TableSkeleton } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { EmptyStreet, EmptyState } from "@/assets/images/decoration";
-import { JobModerationSheet } from "./JobModerationSheet";
+import { JobDetailDrawer } from "@/components/job/JobDetailDrawer";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +34,10 @@ import {
   useAdminDashboardOverview,
   useModerateJobPosting,
 } from "@/hooks/queries/useAdmin";
-import type { AdminJobPostingItem, AdminJobModerationStatus } from "@/types/admin";
+import type {
+  AdminJobPostingItem,
+  AdminJobModerationStatus,
+} from "@/types/admin";
 import { formatSalaryRange } from "@/utils/jobHelpers";
 import { cn } from "@/lib/utils";
 
@@ -72,10 +75,13 @@ export default function AdminJobModerationPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Dialog xác nhận duyệt nhanh từ table row
-  const [approveTarget, setApproveTarget] = useState<AdminJobPostingItem | null>(null);
+  const [approveTarget, setApproveTarget] =
+    useState<AdminJobPostingItem | null>(null);
 
   // Dialog từ chối kèm lý do từ table row
-  const [rejectTarget, setRejectTarget] = useState<AdminJobPostingItem | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<AdminJobPostingItem | null>(
+    null,
+  );
   const [rejectionReason, setRejectionReason] = useState("");
   const [reasonError, setReasonError] = useState("");
 
@@ -94,9 +100,7 @@ export default function AdminJobModerationPage() {
 
   // Xác định status query param
   const queryStatus =
-    activeTab === "All"
-      ? undefined
-      : (activeTab as AdminJobModerationStatus);
+    activeTab === "All" ? undefined : (activeTab as AdminJobModerationStatus);
 
   // Query dữ liệu danh sách tin tuyển dụng
   const {
@@ -163,6 +167,8 @@ export default function AdminJobModerationPage() {
         payload: { status: "Published" },
       });
       setApproveTarget(null);
+      setIsSheetOpen(false);
+      setInspectingJob(null);
       refetch();
     } catch {
       // Toast handled by mutation hook
@@ -188,6 +194,8 @@ export default function AdminJobModerationPage() {
       setRejectTarget(null);
       setRejectionReason("");
       setReasonError("");
+      setIsSheetOpen(false);
+      setInspectingJob(null);
       refetch();
     } catch {
       // Toast handled by mutation hook
@@ -203,7 +211,8 @@ export default function AdminJobModerationPage() {
             Kiểm duyệt tin tuyển dụng ({counts.PendingReview} tin chờ duyệt)
           </h2>
           <p className="text-xs text-slate-500 sm:text-sm">
-            Thẩm định mô tả công việc, mức thu nhập và nội dung yêu cầu trước khi xuất bản lên sàn SmartHire
+            Thẩm định mô tả công việc, mức thu nhập và nội dung yêu cầu trước
+            khi xuất bản lên sàn SmartHire
           </p>
         </div>
 
@@ -259,7 +268,10 @@ export default function AdminJobModerationPage() {
           </div>
 
           {/* Ô tìm kiếm */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-80">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative w-full sm:w-80"
+          >
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -333,9 +345,12 @@ export default function AdminJobModerationPage() {
                   <tbody className="divide-y divide-slate-100">
                     {jobs.map((job, index) => {
                       const displayIndex = (page - 1) * pageSize + index + 1;
-                      const status = (job.status || "PendingReview").toUpperCase();
+                      const status = (
+                        job.status || "PendingReview"
+                      ).toUpperCase();
                       const isPending =
-                        status === "PENDINGREVIEW" || status === "PENDING_APPROVAL";
+                        status === "PENDINGREVIEW" ||
+                        status === "PENDING_APPROVAL";
                       const isPublished = status === "PUBLISHED";
                       const isRejected = status === "REJECTED";
                       const isExpired = status === "EXPIRED";
@@ -348,7 +363,10 @@ export default function AdminJobModerationPage() {
                         >
                           {/* #STT */}
                           <td className="px-4 py-3.5 text-center font-semibold text-slate-500">
-                            #{displayIndex < 10 ? `0${displayIndex}` : displayIndex}
+                            #
+                            {displayIndex < 10
+                              ? `0${displayIndex}`
+                              : displayIndex}
                           </td>
 
                           {/* Vị trí & Doanh nghiệp */}
@@ -359,7 +377,7 @@ export default function AdminJobModerationPage() {
                                 logoUrl={job.companyLogoUrl}
                                 size="sm"
                               />
-                              <div className="min-w-0 max-w-xs">
+                              <div className="max-w-xs min-w-0">
                                 <span className="block truncate font-semibold text-slate-800">
                                   {job.title}
                                 </span>
@@ -384,8 +402,8 @@ export default function AdminJobModerationPage() {
                           {/* Địa bàn */}
                           <td className="px-4 py-3.5">
                             <div className="flex items-center gap-1.5 text-slate-700">
-                              <MapPin className="size-3 text-slate-400 shrink-0" />
-                              <span className="truncate max-w-40 font-medium">
+                              <MapPin className="size-3 shrink-0 text-slate-400" />
+                              <span className="max-w-40 truncate font-medium">
                                 {job.provinceName}
                               </span>
                             </div>
@@ -404,7 +422,7 @@ export default function AdminJobModerationPage() {
                           </td>
 
                           {/* Hạn nộp */}
-                          <td className="px-4 py-3.5 whitespace-nowrap text-slate-600 font-medium">
+                          <td className="px-4 py-3.5 font-medium whitespace-nowrap text-slate-600">
                             {job.deadline
                               ? dayjs(job.deadline).format("DD/MM/YYYY")
                               : "Không giới hạn"}
@@ -480,10 +498,6 @@ export default function AdminJobModerationPage() {
                               </div>
                             ) : isPublished ? (
                               <div className="flex items-center justify-end gap-2">
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                                  <CheckCircle2 className="size-3.5" />
-                                  Đã duyệt
-                                </span>
                                 <Button
                                   variant="secondary"
                                   icon={Eye}
@@ -587,15 +601,27 @@ export default function AdminJobModerationPage() {
         )}
       </div>
 
-      {/* Sheet thẩm định chi tiết tin tuyển dụng */}
-      <JobModerationSheet
+      {/* Drawer thẩm định chi tiết tin tuyển dụng tái sử dụng JobDetailDrawer */}
+      <JobDetailDrawer
         job={inspectingJob}
-        isOpen={isSheetOpen}
+        open={isSheetOpen}
         onClose={() => {
           setIsSheetOpen(false);
           setInspectingJob(null);
         }}
-        onSuccess={() => refetch()}
+        onApprove={() => {
+          if (inspectingJob) {
+            setApproveTarget(inspectingJob);
+          }
+        }}
+        onReject={() => {
+          if (inspectingJob) {
+            setRejectTarget(inspectingJob);
+            setRejectionReason("");
+            setReasonError("");
+          }
+        }}
+        isModerating={moderateMutation.isPending}
       />
 
       {/* Modal xác nhận Duyệt xuất bản tin */}
@@ -612,9 +638,14 @@ export default function AdminJobModerationPage() {
               Xác nhận phê duyệt xuất bản
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-slate-500">
-              Tin tuyển dụng <strong className="text-slate-800">{approveTarget?.title}</strong> của{" "}
-              <strong className="text-slate-800">{approveTarget?.companyName}</strong> sẽ được xuất bản
-              công khai ngay lập tức lên sàn việc làm SmartHire.
+              Tin tuyển dụng{" "}
+              <strong className="text-slate-800">{approveTarget?.title}</strong>{" "}
+              của{" "}
+              <strong className="text-slate-800">
+                {approveTarget?.companyName}
+              </strong>{" "}
+              sẽ được xuất bản công khai ngay lập tức lên sàn việc làm
+              SmartHire.
             </DialogDescription>
           </DialogHeader>
 
@@ -656,8 +687,8 @@ export default function AdminJobModerationPage() {
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-slate-500">
               Vui lòng nêu rõ lý do từ chối tin{" "}
-              <strong className="text-slate-800">{rejectTarget?.title}</strong> để nhà tuyển dụng
-              nắm được thông tin và chỉnh sửa lại.
+              <strong className="text-slate-800">{rejectTarget?.title}</strong>{" "}
+              để nhà tuyển dụng nắm được thông tin và chỉnh sửa lại.
             </DialogDescription>
           </DialogHeader>
 
@@ -683,7 +714,9 @@ export default function AdminJobModerationPage() {
               )}
             />
             {reasonError && (
-              <p className="text-[11px] font-medium text-rose-600">{reasonError}</p>
+              <p className="text-[11px] font-medium text-rose-600">
+                {reasonError}
+              </p>
             )}
           </div>
 

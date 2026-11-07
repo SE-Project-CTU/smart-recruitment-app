@@ -11,6 +11,12 @@ import {
   Share2,
   Zap,
   ExternalLink,
+  Award,
+  Layers,
+  Clock,
+  Check,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Sheet,
@@ -24,8 +30,14 @@ import {
   TooltipTrigger,
 } from "@/components/animate-ui/components/base/tooltip";
 import { Button } from "@/components/common";
+import { UserAvatar } from "@/components/common/UserAvatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getLoremAvt } from "@/utils/helper";
-import { extractJobDisplayData } from "@/utils/jobHelpers";
+import {
+  extractJobDisplayData,
+  getEducationLevelLabel,
+  getJobStatusBadge,
+} from "@/utils/jobHelpers";
 import { toast } from "@/hooks/use-toast";
 import { PATHS } from "@/constants/paths";
 import {
@@ -37,6 +49,7 @@ import {
   useBookmarkJob,
   useUnbookmarkJob,
   useMyBookmarkedJobs,
+  useJobPostingDetail,
 } from "@/hooks/queries/useJob";
 import { useMyApplications } from "@/hooks/queries/useApplication";
 import type {
@@ -45,13 +58,16 @@ import type {
   JobPostingResult,
   JobPostingSearchItem,
 } from "@/types/job";
+import type { AdminJobPostingItem } from "@/types/admin";
 import type { MockJobPosting } from "@/constants/mockData";
+import { cn } from "@/lib/utils";
 
 export type JobDrawerItem =
   | JobPostingItem
   | JobPostingDetailResult
   | JobPostingResult
   | JobPostingSearchItem
+  | AdminJobPostingItem
   | MockJobPosting
   | AnyJob;
 
@@ -62,6 +78,11 @@ export interface JobDetailDrawerProps<T extends JobDrawerItem = JobDrawerItem> {
   isBookmarked?: boolean;
   onToggleBookmark?: (jobId: string) => void;
   onApply?: (jobId: string) => void;
+  // Custom moderation actions for Admin / Recruiter
+  footer?: React.ReactNode;
+  onApprove?: (jobId: string) => void;
+  onReject?: (jobId: string) => void;
+  isModerating?: boolean;
 }
 
 export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
@@ -71,6 +92,10 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   isBookmarked: externalIsBookmarked,
   onToggleBookmark,
   onApply,
+  footer,
+  onApprove,
+  onReject,
+  isModerating = false,
 }: JobDetailDrawerProps<T>) {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
@@ -78,29 +103,21 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   const { user } = useAuthStore();
   const isCandidate = Boolean(user?.roles?.includes("Candidate"));
 
+  // Tải chi tiết tin tuyển dụng nếu có ID
+  const { data: detailData, isLoading: isLoadingDetail } = useJobPostingDetail(
+    open && job?.id ? job.id : undefined,
+  );
+
   const { data: myAppsData } = useMyApplications({ pageSize: 50 });
   const myApplications = myAppsData?.items ?? [];
 
   const { data: bookmarkedData } = useMyBookmarkedJobs(
     { pageSize: 100 },
-    { enabled: isCandidate && externalIsBookmarked === undefined },
+    { enabled: isCandidate && open && externalIsBookmarked === undefined },
   );
 
   const bookmarkMutation = useBookmarkJob();
   const unbookmarkMutation = useUnbookmarkJob();
-
-  const isAlreadyApplied = Boolean(
-    job &&
-    (("hasApplied" in job && job.hasApplied) ||
-      myApplications.some((app) => app.jobId === job.id)),
-  );
-
-  const isMarked =
-    externalIsBookmarked !== undefined
-      ? externalIsBookmarked
-      : job && "isBookmarked" in job && job.isBookmarked !== undefined
-        ? Boolean(job.isBookmarked)
-        : Boolean(bookmarkedData?.items?.some((b) => b.id === job?.id));
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -111,7 +128,50 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
 
   if (!job) return null;
 
-  const data = extractJobDisplayData(job);
+  // Hợp nhất dữ liệu chi tiết khi query thành công
+  const activeJob = (
+    detailData ? { ...job, ...detailData } : job
+  ) as unknown as AnyJob & {
+    status?: string;
+    educationLevel?: string | null;
+    industries?: Array<{ name: string } | string>;
+    creator?: { id: string; fullName: string; email: string; avatarUrl?: string | null } | null;
+    rejectionReason?: string | null;
+  };
+
+  const data = extractJobDisplayData(activeJob);
+
+  const isAlreadyApplied = Boolean(
+    job &&
+    (("hasApplied" in activeJob && activeJob.hasApplied) ||
+      myApplications.some((app) => app.jobId === job.id)),
+  );
+
+  const isMarked =
+    externalIsBookmarked !== undefined
+      ? externalIsBookmarked
+      : "isBookmarked" in activeJob && activeJob.isBookmarked !== undefined
+        ? Boolean(activeJob.isBookmarked)
+        : Boolean(bookmarkedData?.items?.some((b) => b.id === job.id));
+
+  // Trạng thái tin
+  const statusInfo = activeJob.status ? getJobStatusBadge(activeJob.status) : null;
+  const statusBadgeStyle = {
+    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    warning: "border-amber-200 bg-amber-50 text-amber-700",
+    error: "border-rose-200 bg-rose-50 text-rose-700",
+    neutral: "border-slate-200 bg-slate-100 text-slate-700",
+    info: "border-sky-200 bg-sky-50 text-sky-700",
+  }[statusInfo?.variant ?? "neutral"];
+
+  // Danh sách ngành nghề
+  const industriesList = Array.isArray(activeJob.industries)
+    ? activeJob.industries.map((ind) => (typeof ind === "string" ? ind : ind.name))
+    : [];
+
+  // Trình độ học vấn
+  const educationLabel =
+    getEducationLevelLabel(activeJob.educationLevel) || "Không yêu cầu";
 
   const handleApplyClick = () => {
     if (onApply) {
@@ -122,13 +182,11 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   };
 
   const handleBookmarkClick = () => {
-    // 1. Ưu tiên handler tùy biến từ cha (ví dụ ở trang BookmarkJobs)
     if (onToggleBookmark) {
       onToggleBookmark(job.id);
       return;
     }
 
-    // 2. Tự xử lý độc lập nếu cha không truyền:
     if (!isCandidate) {
       toast.warning({
         description: "Bạn không có quyền thực hiện thao tác này!",
@@ -168,6 +226,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
           </div>
         )}
 
+        {/* HEADER */}
         <SheetHeader className="shrink-0 border-b border-border p-5 pb-4 text-left">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3.5">
@@ -189,9 +248,22 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               </div>
 
               <div className="min-w-0 flex-1">
-                <SheetTitle className="text-base leading-snug font-semibold text-text-main">
-                  {job.title}
-                </SheetTitle>
+                <div className="flex flex-wrap items-center gap-2">
+                  <SheetTitle className="text-base leading-snug font-semibold text-text-main">
+                    {job.title}
+                  </SheetTitle>
+                  {statusInfo && (
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                        statusBadgeStyle,
+                      )}
+                    >
+                      {statusInfo.label}
+                    </span>
+                  )}
+                </div>
+
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-text-muted">
                   <span className="font-medium text-text-main">
                     {data.companyName}
@@ -267,10 +339,25 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
           </div>
         </SheetHeader>
 
-        <div className="flex-1 space-y-6 overflow-y-auto p-5 pb-6">
-          <div className="grid grid-cols-2 gap-2.5">
+        {/* BODY */}
+        <div className="flex-1 space-y-5 overflow-y-auto p-5 pb-6">
+          {/* Cảnh báo lý do từ chối nếu có */}
+          {Boolean(activeJob.rejectionReason) && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-800">
+              <div className="mb-1 flex items-center gap-1.5 font-semibold text-rose-900">
+                <AlertTriangle className="size-4 shrink-0 text-rose-600" />
+                <span>Lý do từ chối kiểm duyệt</span>
+              </div>
+              <p className="whitespace-pre-line text-rose-700">
+                {activeJob.rejectionReason}
+              </p>
+            </div>
+          )}
+
+          {/* Quick Specs Grid đầy đủ thông số */}
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2">
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary">
+              <div className="text-primary shrink-0">
                 <Briefcase className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -282,7 +369,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary">
+              <div className="text-primary shrink-0">
                 <Users className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -294,19 +381,55 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary">
+              <div className="text-primary shrink-0">
+                <Award className="size-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-text-muted">Cấp bậc</p>
+                <p className="truncate text-xs font-semibold text-text-main">
+                  {data.jobLevelLabel || "Nhân viên"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
+              <div className="text-primary shrink-0">
                 <GraduationCap className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-text-muted">Trình độ học vấn</p>
+                <p className="truncate text-xs font-semibold text-text-main">
+                  {educationLabel}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
+              <div className="text-primary shrink-0">
+                <Clock className="size-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
                 <p className="text-[10px] text-text-muted">Hình thức</p>
+                <p className="truncate text-xs font-semibold text-text-main">
+                  {data.jobTypeLabel || "Toàn thời gian"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
+              <div className="text-primary shrink-0">
+                <Layers className="size-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-text-muted">Chế độ làm việc</p>
                 <p className="truncate text-xs font-semibold text-text-main">
                   {data.workModeText}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary">
+            <div className="col-span-2 flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
+              <div className="text-primary shrink-0">
                 <MapPin className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -318,6 +441,26 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
           </div>
 
+          {/* Ngành nghề */}
+          {industriesList.length > 0 && (
+            <section>
+              <h4 className="mb-2 text-xs font-semibold tracking-wider text-text-muted uppercase">
+                Ngành nghề tuyển dụng
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {industriesList.map((ind) => (
+                  <span
+                    key={ind}
+                    className="rounded-lg border border-border bg-bg/70 px-2.5 py-1 text-xs font-medium text-text-main"
+                  >
+                    {ind}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Kỹ năng chuyên môn */}
           {data.skillList.length > 0 && (
             <section>
               <h4 className="mb-2 text-xs font-semibold tracking-wider text-text-muted uppercase">
@@ -336,97 +479,164 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </section>
           )}
 
-          {data.description && (
-            <section>
-              <h4 className="mb-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">
-                Mô tả công việc
-              </h4>
-              <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
-                {data.description}
-              </p>
-            </section>
+          {/* Nội dung chi tiết hoặc Skeleton khi đang tải */}
+          {isLoadingDetail && !data.description ? (
+            <div className="space-y-4 pt-2">
+              <Skeleton className="h-20 w-full rounded-xl" />
+              <Skeleton className="h-20 w-full rounded-xl" />
+              <Skeleton className="h-20 w-full rounded-xl" />
+            </div>
+          ) : (
+            <>
+              {data.description && (
+                <section>
+                  <h4 className="mb-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">
+                    Mô tả công việc
+                  </h4>
+                  <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
+                    {data.description}
+                  </p>
+                </section>
+              )}
+
+              {data.requirements && (
+                <section>
+                  <h4 className="mb-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">
+                    Yêu cầu ứng viên
+                  </h4>
+                  <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
+                    {data.requirements}
+                  </p>
+                </section>
+              )}
+
+              {data.benefits && (
+                <section>
+                  <h4 className="mb-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">
+                    Quyền lợi & Đãi ngộ
+                  </h4>
+                  <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
+                    {data.benefits}
+                  </p>
+                </section>
+              )}
+            </>
           )}
 
-          {data.requirements && (
-            <section>
-              <h4 className="mb-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">
-                Yêu cầu ứng viên
-              </h4>
-              <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
-                {data.requirements}
-              </p>
-            </section>
-          )}
-
-          {data.benefits && (
-            <section>
-              <h4 className="mb-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">
-                Quyền lợi & Đãi ngộ
-              </h4>
-              <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
-                {data.benefits}
-              </p>
-            </section>
-          )}
-
+          {/* Địa chỉ làm việc cụ thể */}
           <section className="rounded-xl border border-border bg-bg/40 p-3.5">
             <h4 className="mb-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">
-              Địa chỉ cụ thể
+              Địa chỉ làm việc cụ thể
             </h4>
             <div className="flex items-start gap-2 text-xs text-text-main">
               <MapPin className="size-4 shrink-0 text-primary" />
               <span>{data.fullAddress}</span>
             </div>
           </section>
+
+          {/* Thông tin người tạo tin (nếu có từ chi tiết) */}
+          {activeJob.creator && (
+            <section className="rounded-xl border border-border bg-bg/40 p-3.5">
+              <h4 className="mb-2 text-xs font-semibold tracking-wider text-text-muted uppercase">
+                Nhân sự đăng tuyển
+              </h4>
+              <div className="flex items-center gap-3">
+                <UserAvatar
+                  src={activeJob.creator.avatarUrl || ""}
+                  name={activeJob.creator.fullName}
+                  className="size-8 rounded-full"
+                />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-text-main">
+                    {activeJob.creator.fullName}
+                  </p>
+                  <p className="text-[11px] text-text-muted">
+                    {activeJob.creator.email}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
         </div>
 
-        {/* STICKY ACTION FOOTER */}
-        <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2.5">
-            {isAlreadyApplied ? (
+        {/* FOOTER ACTIONS */}
+        {footer !== undefined ? (
+          footer
+        ) : onApprove || onReject ? (
+          <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              {onReject && (
+                <Button
+                  variant="secondary"
+                  className="flex-1 justify-center rounded-xl py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                  icon={X}
+                  onClick={() => onReject(job.id)}
+                  disabled={isModerating}
+                >
+                  <span>Từ chối</span>
+                </Button>
+              )}
+              {onApprove && (
+                <Button
+                  variant="primary"
+                  className="flex-1 justify-center rounded-xl bg-emerald-600! hover:bg-emerald-700! py-2.5 text-xs font-semibold text-white!"
+                  icon={Check}
+                  onClick={() => onApprove(job.id)}
+                  disabled={isModerating}
+                >
+                  <span>Phê duyệt xuất bản</span>
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              {isAlreadyApplied ? (
+                <Button
+                  variant="secondary"
+                  icon={CheckCircle2}
+                  onClick={() => {
+                    onClose();
+                    navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
+                  }}
+                >
+                  <span>Đã nộp hồ sơ</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  className="flex-1 justify-center rounded-xl py-2.5 text-xs font-semibold"
+                  onClick={handleApplyClick}
+                >
+                  <span>Ứng tuyển ngay</span>
+                </Button>
+              )}
+
               <Button
                 variant="secondary"
-                icon={CheckCircle2}
-                onClick={() => {
-                  onClose();
-                  navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
-                }}
+                className="size-10 rounded-xl p-0"
+                aria-label={isMarked ? "Bỏ lưu tin" : "Lưu tin tuyển dụng"}
+                onClick={handleBookmarkClick}
               >
-                <span>Đã nộp hồ sơ</span>
+                {isMarked ? (
+                  <BookmarkCheck className="size-4.5 text-primary" />
+                ) : (
+                  <Bookmark className="size-4.5 text-text-muted" />
+                )}
               </Button>
-            ) : (
+
               <Button
-                variant="primary"
-                className="flex-1 justify-center rounded-xl py-2.5 text-xs font-semibold"
-                onClick={handleApplyClick}
+                variant="secondary"
+                className="size-10 rounded-xl p-0"
+                aria-label="Chia sẻ"
+                onClick={handleShareClick}
               >
-                <span>Ứng tuyển ngay</span>
+                <Share2 className="size-4 text-text-muted" />
               </Button>
-            )}
-
-            <Button
-              variant="secondary"
-              className="size-10 rounded-xl p-0"
-              aria-label={isMarked ? "Bỏ lưu tin" : "Lưu tin tuyển dụng"}
-              onClick={handleBookmarkClick}
-            >
-              {isMarked ? (
-                <BookmarkCheck className="size-4.5 text-primary" />
-              ) : (
-                <Bookmark className="size-4.5 text-text-muted" />
-              )}
-            </Button>
-
-            <Button
-              variant="secondary"
-              className="size-10 rounded-xl p-0"
-              aria-label="Chia sẻ"
-              onClick={handleShareClick}
-            >
-              <Share2 className="size-4 text-text-muted" />
-            </Button>
+            </div>
           </div>
-        </div>
+        )}
       </SheetContent>
     </Sheet>
   );

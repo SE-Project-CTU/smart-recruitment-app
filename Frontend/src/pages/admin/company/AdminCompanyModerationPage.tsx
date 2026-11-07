@@ -33,7 +33,10 @@ import {
   useAdminDashboardOverview,
   useVerifyCompany,
 } from "@/hooks/queries/useAdmin";
-import type { AdminCompanyItem, AdminCompanyVerificationStatus } from "@/types/admin";
+import type {
+  AdminCompanyItem,
+  AdminCompanyVerificationStatus,
+} from "@/types/admin";
 import { cn } from "@/lib/utils";
 
 dayjs.locale("vi");
@@ -70,10 +73,14 @@ export default function AdminCompanyModerationPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Dialog xác nhận duyệt nhanh từ table row
-  const [approveTarget, setApproveTarget] = useState<AdminCompanyItem | null>(null);
+  const [approveTarget, setApproveTarget] = useState<AdminCompanyItem | null>(
+    null,
+  );
 
   // Dialog từ chối kèm lý do từ table row
-  const [rejectTarget, setRejectTarget] = useState<AdminCompanyItem | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<AdminCompanyItem | null>(
+    null,
+  );
   const [rejectionReason, setRejectionReason] = useState("");
   const [reasonError, setReasonError] = useState("");
 
@@ -201,7 +208,8 @@ export default function AdminCompanyModerationPage() {
             Thẩm định doanh nghiệp ({counts.Pending} hồ sơ chờ duyệt)
           </h2>
           <p className="text-xs text-slate-500 sm:text-sm">
-            Kiểm tra mã số thuế, giấy phép kinh doanh và cấp quyền tuyển dụng công khai cho doanh nghiệp
+            Kiểm tra mã số thuế, giấy phép kinh doanh và cấp quyền tuyển dụng
+            công khai cho doanh nghiệp
           </p>
         </div>
 
@@ -257,7 +265,10 @@ export default function AdminCompanyModerationPage() {
           </div>
 
           {/* Ô tìm kiếm */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-80">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative w-full sm:w-80"
+          >
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -330,7 +341,9 @@ export default function AdminCompanyModerationPage() {
                   <tbody className="divide-y divide-slate-100">
                     {companies.map((company, index) => {
                       const displayIndex = (page - 1) * pageSize + index + 1;
-                      const status = (company.verificationStatus || "Pending").toUpperCase();
+                      const status = (
+                        company.verificationStatus || "Pending"
+                      ).toUpperCase();
                       const isPending = status === "PENDING";
                       const isVerified = status === "VERIFIED";
                       const isRejected = status === "REJECTED";
@@ -342,7 +355,10 @@ export default function AdminCompanyModerationPage() {
                         >
                           {/* #STT */}
                           <td className="px-4 py-3.5 text-center font-semibold text-slate-500">
-                            #{displayIndex < 10 ? `0${displayIndex}` : displayIndex}
+                            #
+                            {displayIndex < 10
+                              ? `0${displayIndex}`
+                              : displayIndex}
                           </td>
 
                           {/* Doanh nghiệp */}
@@ -353,12 +369,14 @@ export default function AdminCompanyModerationPage() {
                                 logoUrl={company.logoUrl}
                                 size="sm"
                               />
-                              <div className="min-w-0 max-w-xs">
+                              <div className="max-w-xs min-w-0">
                                 <span className="block truncate font-semibold text-slate-800">
                                   {company.name}
                                 </span>
                                 <span className="block truncate text-xs text-slate-400">
-                                  {company.email || company.address || "Chưa có email"}
+                                  {company.email ||
+                                    company.address ||
+                                    "Chưa có email"}
                                 </span>
                               </div>
                             </div>
@@ -374,7 +392,7 @@ export default function AdminCompanyModerationPage() {
                           {/* Chủ sở hữu */}
                           <td className="px-4 py-3.5">
                             {company.owner ? (
-                              <div className="min-w-0 max-w-44">
+                              <div className="max-w-44 min-w-0">
                                 <span className="block truncate font-semibold text-slate-800">
                                   {company.owner.fullName}
                                 </span>
@@ -459,10 +477,6 @@ export default function AdminCompanyModerationPage() {
                               </div>
                             ) : isVerified ? (
                               <div className="flex items-center justify-end gap-2">
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                                  <CheckCircle2 className="size-3.5" />
-                                  Đã duyệt
-                                </span>
                                 <Button
                                   variant="secondary"
                                   icon={Eye}
@@ -592,9 +606,9 @@ export default function AdminCompanyModerationPage() {
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-slate-500">
               Bạn đang phê duyệt hồ sơ pháp lý của doanh nghiệp{" "}
-              <strong className="text-slate-800">{approveTarget?.name}</strong> (MST:{" "}
-              {approveTarget?.taxCode}). Sau khi duyệt, doanh nghiệp sẽ được cấp tích xanh
-              xác thực và quyền xuất bản tin tuyển dụng.
+              <strong className="text-slate-800">{approveTarget?.name}</strong>{" "}
+              (MST: {approveTarget?.taxCode}). Sau khi duyệt, doanh nghiệp sẽ
+              được cấp tích xanh xác thực và quyền xuất bản tin tuyển dụng.
             </DialogDescription>
           </DialogHeader>
 
@@ -636,8 +650,8 @@ export default function AdminCompanyModerationPage() {
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-slate-500">
               Vui lòng nêu rõ lý do từ chối hồ sơ của{" "}
-              <strong className="text-slate-800">{rejectTarget?.name}</strong>. Lý do này
-              sẽ được thông báo trực tiếp đến chủ sở hữu doanh nghiệp.
+              <strong className="text-slate-800">{rejectTarget?.name}</strong>.
+              Lý do này sẽ được thông báo trực tiếp đến chủ sở hữu doanh nghiệp.
             </DialogDescription>
           </DialogHeader>
 
@@ -663,7 +677,9 @@ export default function AdminCompanyModerationPage() {
               )}
             />
             {reasonError && (
-              <p className="text-[11px] font-medium text-rose-600">{reasonError}</p>
+              <p className="text-[11px] font-medium text-rose-600">
+                {reasonError}
+              </p>
             )}
           </div>
 
