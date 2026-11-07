@@ -43,7 +43,6 @@ export const SuggestedJobCard: React.FC<SuggestedJobCardProps> = ({
               {job.title}
             </h4>
             <div className="flex items-center gap-1 text-[11px] text-text-muted">
-              <Building2 className="size-3 shrink-0 text-text-muted/70" />
               <span className="max-w-full truncate font-medium">
                 {job.companyName}
               </span>
@@ -62,7 +61,6 @@ export const SuggestedJobCard: React.FC<SuggestedJobCardProps> = ({
         )}
         {job.salaryText && (
           <span className="flex items-center gap-1 font-medium text-primary">
-            <CircleDollarSign className="size-3 text-primary shrink-0" />
             <span>{job.salaryText}</span>
           </span>
         )}
