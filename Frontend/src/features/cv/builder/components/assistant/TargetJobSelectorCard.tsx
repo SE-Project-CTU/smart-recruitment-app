@@ -56,9 +56,7 @@ export const TargetJobSelectorCard: React.FC<TargetJobSelectorCardProps> = ({
   clearTooltip = "Bỏ chọn vị trí này",
   onClear,
   modalTitle = "Chọn vị trí công việc mục tiêu",
-  modalDescription = "Đối chiếu và tối ưu hóa nội dung CV theo chuẩn Google XYZ dựa trên bản mô tả công việc (JD)",
   modalConfirmText = "Xác nhận chọn công việc mục tiêu",
-  modalHeaderIcon = Briefcase,
   children,
   className = "",
 }) => {
@@ -142,9 +140,7 @@ export const TargetJobSelectorCard: React.FC<TargetJobSelectorCardProps> = ({
         onClose={() => setIsModalOpen(false)}
         selectedJob={selectedJob}
         title={modalTitle}
-        description={modalDescription}
         confirmText={modalConfirmText}
-        headerIcon={modalHeaderIcon}
         onConfirm={(job) => {
           onSelectJob(job);
         }}

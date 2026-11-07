@@ -1,12 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Briefcase, type LucideIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/common";
 import { PATHS } from "@/constants/paths";
@@ -21,9 +19,7 @@ export interface TargetJobSelectModalProps {
   selectedJob: TargetJobOption | null;
   onConfirm: (job: TargetJobOption | null) => void;
   title?: string;
-  description?: string;
   confirmText?: string;
-  headerIcon?: LucideIcon;
 }
 
 /**
@@ -41,9 +37,7 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
   selectedJob,
   onConfirm,
   title = "Chọn vị trí công việc mục tiêu",
-  description = "Đối chiếu và phân tích hồ sơ CV theo bản mô tả công việc (JD) thực tế từ danh sách tin bạn đã lưu",
   confirmText = "Xác nhận chọn công việc này",
-  headerIcon: HeaderIcon = Briefcase,
 }) => {
   const navigate = useNavigate();
 
