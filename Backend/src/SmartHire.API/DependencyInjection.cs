@@ -38,7 +38,13 @@ public static class DependencyInjection {
         var redisPassword = configuration?["REDIS_PASSWORD"] ?? configuration?["Redis:Password"];
 
         string? redisConfig = null;
-        if (!string.IsNullOrWhiteSpace(redisConnStr)) {
+        // Ưu tiên REDIS_HOST khi chạy trong container mạng Docker
+        if (!string.IsNullOrWhiteSpace(redisHost) && !string.Equals(redisHost, "localhost", StringComparison.OrdinalIgnoreCase)) {
+            redisConfig = $"{redisHost}:{redisPort},abortConnect=false";
+            if (!string.IsNullOrWhiteSpace(redisPassword)) {
+                redisConfig += $",password={redisPassword}";
+            }
+        } else if (!string.IsNullOrWhiteSpace(redisConnStr)) {
             redisConfig = redisConnStr;
         } else if (!string.IsNullOrWhiteSpace(redisHost)) {
             redisConfig = $"{redisHost}:{redisPort},abortConnect=false";

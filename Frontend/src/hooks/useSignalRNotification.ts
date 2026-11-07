@@ -30,8 +30,10 @@ export function useSignalRNotification() {
 
     const rawBaseUrl =
       import.meta.env.VITE_API_BASE_URL || "http://localhost:5190";
-    const baseUrl = rawBaseUrl.replace(/\/$/, "");
-    const hubUrl = `${baseUrl}/hubs/notifications`;
+    const origin = rawBaseUrl
+      .replace(/\/api\/v1\/?$/, "")
+      .replace(/\/+$/, "");
+    const hubUrl = `${origin}/hubs/notifications`;
 
     const connection = new HubConnectionBuilder()
       .withUrl(hubUrl, {

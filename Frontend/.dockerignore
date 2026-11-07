@@ -19,7 +19,6 @@
 **/*.*proj.user
 **/*.dbmdl
 **/*.jfm
-**/charts
 **/docker-compose*
 **/compose.y*ml
 **/Dockerfile*

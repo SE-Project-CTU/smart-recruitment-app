@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -12,6 +12,8 @@ import {
   Building2,
   AlertCircle,
   ShieldCheck,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
 import {
   Popover,
@@ -77,10 +79,17 @@ export function NotificationDropdown() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
+  const [pageSize, setPageSize] = useState(8);
 
   const { data: unreadCount = 0 } = useUnreadCountQuery();
-  const { data: notificationsResponse, isLoading } = useNotificationsQuery({
-    pageSize: 30,
+  const {
+    data: notificationsResponse,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useNotificationsQuery({
+    pageSize,
     isUnread: activeTab === "unread" ? true : undefined,
   });
 
@@ -88,7 +97,30 @@ export function NotificationDropdown() {
   const markAllAsReadMutation = useMarkAllAsReadMutation();
   const deleteNotificationMutation = useDeleteNotificationMutation();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const notifications: NotificationDto[] = notificationsResponse?.data || [];
+  const totalItems = notificationsResponse?.meta?.totalItems ?? notifications.length;
+  const hasMore = totalItems > notifications.length;
+
+  // Phân nhóm thông báo theo chuẩn Facebook/LinkedIn: "Mới" (trong 24h) và "Trước đó" (cũ hơn 24h)
+  const { recentNotifications, earlierNotifications } = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const recent: NotificationDto[] = [];
+    const earlier: NotificationDto[] = [];
+
+    notifications.forEach((item) => {
+      const itemTime = new Date(item.createdAt).getTime();
+      if (now - itemTime < oneDayMs) {
+        recent.push(item);
+      } else {
+        earlier.push(item);
+      }
+    });
+
+    return { recentNotifications: recent, earlierNotifications: earlier };
+  }, [notifications]);
 
   const handleItemClick = (notification: NotificationDto) => {
     // 1. Đánh dấu đã đọc nếu chưa đọc
@@ -125,6 +157,84 @@ export function NotificationDropdown() {
     }
   };
 
+  const handleLoadMore = () => {
+    setPageSize((prev) => prev + 8);
+  };
+
+  const renderNotificationItem = (item: NotificationDto) => {
+    const { icon, bg } = getNotificationIcon(item.type);
+    return (
+      <div
+        key={item.id}
+        onClick={() => handleItemClick(item)}
+        className={`group relative flex items-start gap-3 p-3.5 transition-colors cursor-pointer hover:bg-slate-50 ${
+          !item.isRead ? "bg-secondary-light/15" : "bg-white"
+        }`}
+      >
+        {/* Icon loại nghiệp vụ */}
+        <div
+          className={`flex size-9 shrink-0 items-center justify-center rounded-xl border ${bg} shadow-2xs mt-0.5`}
+        >
+          {icon}
+        </div>
+
+        {/* Nội dung thông báo */}
+        <div className="flex-1 min-w-0">
+          {/* Hàng 1: Tiêu đề + Chấm báo chưa đọc */}
+          <div className="flex items-center justify-between gap-2">
+            <h4
+              className={`text-xs truncate ${
+                !item.isRead
+                  ? "font-bold text-text-main"
+                  : "font-semibold text-text-main/90"
+              }`}
+            >
+              {item.title}
+            </h4>
+            {!item.isRead && (
+              <span className="size-2 rounded-full bg-primary shrink-0" />
+            )}
+          </div>
+
+          {/* Hàng 2: Mô tả nội dung */}
+          <p className="text-xs text-text-muted line-clamp-2 mt-0.5 leading-relaxed">
+            {item.body}
+          </p>
+
+          {/* Hàng 3: Thời gian và Nút hành động nhanh (tách bạch, không bao giờ đè lên nhau) */}
+          <div className="flex items-center justify-between mt-2 pt-0.5">
+            <span className="text-[11px] text-text-muted/75">
+              {getTimeAgo(item.createdAt)}
+            </span>
+
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {!item.isRead && (
+                <button
+                  type="button"
+                  onClick={(e) => handleMarkAsReadOnly(e, item.id)}
+                  title="Đánh dấu đã đọc"
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-text-muted hover:text-primary hover:bg-slate-200/60 transition-colors cursor-pointer"
+                >
+                  <Check className="size-3" />
+                  <span>Đã đọc</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={(e) => handleDelete(e, item.id)}
+                title="Xóa thông báo"
+                className="p-1 rounded text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger
@@ -144,8 +254,8 @@ export function NotificationDropdown() {
         sideOffset={8}
         className="w-90 sm:w-105 p-0 overflow-hidden shadow-xl border border-border/70 rounded-2xl bg-white"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/50 px-4 py-3 bg-slate-50/50">
+        {/* Sticky Header */}
+        <div className="flex items-center justify-between border-b border-border/50 px-4 py-3 bg-slate-50/70">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-text-main">Thông báo</h3>
             {unreadCount > 0 && (
@@ -173,7 +283,10 @@ export function NotificationDropdown() {
         <div className="flex border-b border-border/50 px-3 pt-2 gap-2 bg-slate-50/20">
           <button
             type="button"
-            onClick={() => setActiveTab("all")}
+            onClick={() => {
+              setActiveTab("all");
+              setPageSize(8);
+            }}
             className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
               activeTab === "all"
                 ? "border-primary text-primary"
@@ -184,18 +297,21 @@ export function NotificationDropdown() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("unread")}
+            onClick={() => {
+              setActiveTab("unread");
+              setPageSize(8);
+            }}
             className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
               activeTab === "unread"
                 ? "border-primary text-primary"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
-            Chưa đọc ({unreadCount})
+            Chưa đọc {unreadCount > 0 ? `(${unreadCount})` : ""}
           </button>
         </div>
 
-        {/* Notification Feed */}
+        {/* Notification Feed (Scrollable) */}
         <div className="max-h-95 overflow-y-auto divide-y divide-border/30">
           {isLoading ? (
             <div className="flex flex-col gap-3 p-4">
@@ -209,6 +325,25 @@ export function NotificationDropdown() {
                   </div>
                 </div>
               ))}
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+              <div className="size-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-2">
+                <AlertCircle className="size-5" />
+              </div>
+              <p className="text-xs font-semibold text-text-main">
+                Không thể tải thông báo
+              </p>
+              <p className="text-[11px] text-text-muted mt-1 max-w-xs leading-relaxed">
+                Đã xảy ra lỗi khi kết nối máy chủ. Vui lòng kiểm tra lại.
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="mt-3 px-3 py-1 rounded text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors cursor-pointer"
+              >
+                Thử lại
+              </button>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
@@ -227,85 +362,65 @@ export function NotificationDropdown() {
               </p>
             </div>
           ) : (
-            notifications.map((item) => {
-              const { icon, bg } = getNotificationIcon(item.type);
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => handleItemClick(item)}
-                  className={`group relative flex items-start gap-3 p-3.5 transition-colors cursor-pointer hover:bg-slate-50 ${
-                    !item.isRead ? "bg-secondary-light/15" : "bg-white"
-                  }`}
-                >
-                  {/* Icon Loại thông báo */}
-                  <div
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-xl border ${bg} shadow-2xs mt-0.5`}
-                  >
-                    {icon}
-                  </div>
-
-                  {/* Nội dung thông báo */}
-                  <div className="flex-1 min-w-0">
-                    {/* Hàng 1: Tiêu đề + Chấm báo chưa đọc */}
-                    <div className="flex items-center justify-between gap-2">
-                      <h4
-                        className={`text-xs truncate ${
-                          !item.isRead
-                            ? "font-bold text-text-main"
-                            : "font-semibold text-text-main/90"
-                        }`}
-                      >
-                        {item.title}
-                      </h4>
-                      {!item.isRead && (
-                        <span className="size-2 rounded-full bg-primary shrink-0" />
-                      )}
-                    </div>
-
-                    {/* Hàng 2: Mô tả nội dung */}
-                    <p className="text-xs text-text-muted line-clamp-2 mt-0.5 leading-relaxed">
-                      {item.body}
-                    </p>
-
-                    {/* Hàng 3: Thời gian và Nút hành động nhanh (tách riêng, không bao giờ đè lên nhau) */}
-                    <div className="flex items-center justify-between mt-2 pt-0.5">
-                      <span className="text-[11px] text-text-muted/75">
-                        {getTimeAgo(item.createdAt)}
-                      </span>
-
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {!item.isRead && (
-                          <button
-                            type="button"
-                            onClick={(e) => handleMarkAsReadOnly(e, item.id)}
-                            title="Đánh dấu đã đọc"
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-text-muted hover:text-primary hover:bg-slate-200/60 transition-colors cursor-pointer"
-                          >
-                            <Check className="size-3" />
-                            <span>Đã đọc</span>
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={(e) => handleDelete(e, item.id)}
-                          title="Xóa thông báo"
-                          className="p-1 rounded text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+            <>
+              {/* Nhóm thông báo Mới (trong 24 giờ qua) */}
+              {recentNotifications.length > 0 && earlierNotifications.length > 0 && (
+                <div className="px-3.5 py-1.5 text-[10px] font-bold text-text-muted/80 bg-slate-50/70 border-b border-border/30 uppercase tracking-wider">
+                  Mới
                 </div>
-              );
-            })
+              )}
+              {recentNotifications.map(renderNotificationItem)}
+
+              {/* Nhóm thông báo Trước đó (cũ hơn 24 giờ) */}
+              {earlierNotifications.length > 0 && recentNotifications.length > 0 && (
+                <div className="px-3.5 py-1.5 text-[10px] font-bold text-text-muted/80 bg-slate-50/70 border-y border-border/30 uppercase tracking-wider">
+                  Trước đó
+                </div>
+              )}
+              {earlierNotifications.map(renderNotificationItem)}
+
+              {/* Nút Xem thêm / Tải thông báo cũ hơn khi có nhiều thông báo */}
+              {hasMore && (
+                <div className="p-2.5 text-center bg-slate-50/40 border-t border-border/30">
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    disabled={isFetching}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-dark transition-colors cursor-pointer py-1.5 px-3.5 rounded-lg hover:bg-slate-200/50 disabled:opacity-50"
+                  >
+                    {isFetching ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" />
+                        <span>Đang tải thêm...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="size-3.5" />
+                        <span>Xem các thông báo trước đó</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
+
+        {/* Sticky Footer */}
+        {notifications.length > 0 && (
+          <div className="flex items-center justify-between border-t border-border/50 px-4 py-2.5 bg-slate-50/80 text-[11px] text-text-muted">
+            <span>
+              Đang hiển thị {notifications.length} / {totalItems} thông báo
+            </span>
+            <span className="font-medium text-emerald-600 flex items-center gap-1">
+              <span className="size-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
+              Đồng bộ thời gian thực
+            </span>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
 }
 
 export default NotificationDropdown;
-
