@@ -129,13 +129,18 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   if (!job) return null;
 
   // Hợp nhất dữ liệu chi tiết khi query thành công
-  const activeJob = (
-    detailData ? { ...job, ...detailData } : job
-  ) as unknown as AnyJob & {
+  const activeJob = (detailData
+    ? { ...job, ...detailData }
+    : job) as unknown as AnyJob & {
     status?: string;
     educationLevel?: string | null;
     industries?: Array<{ name: string } | string>;
-    creator?: { id: string; fullName: string; email: string; avatarUrl?: string | null } | null;
+    creator?: {
+      id: string;
+      fullName: string;
+      email: string;
+      avatarUrl?: string | null;
+    } | null;
     rejectionReason?: string | null;
   };
 
@@ -155,7 +160,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
         : Boolean(bookmarkedData?.items?.some((b) => b.id === job.id));
 
   // Trạng thái tin
-  const statusInfo = activeJob.status ? getJobStatusBadge(activeJob.status) : null;
+  const statusInfo = activeJob.status
+    ? getJobStatusBadge(activeJob.status)
+    : null;
   const statusBadgeStyle = {
     success: "border-emerald-200 bg-emerald-50 text-emerald-700",
     warning: "border-amber-200 bg-amber-50 text-amber-700",
@@ -166,7 +173,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
 
   // Danh sách ngành nghề
   const industriesList = Array.isArray(activeJob.industries)
-    ? activeJob.industries.map((ind) => (typeof ind === "string" ? ind : ind.name))
+    ? activeJob.industries.map((ind) =>
+        typeof ind === "string" ? ind : ind.name,
+      )
     : [];
 
   // Trình độ học vấn
@@ -357,7 +366,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
           {/* Quick Specs Grid đầy đủ thông số */}
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2">
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary shrink-0">
+              <div className="shrink-0 text-primary">
                 <Briefcase className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -369,7 +378,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary shrink-0">
+              <div className="shrink-0 text-primary">
                 <Users className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -381,7 +390,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary shrink-0">
+              <div className="shrink-0 text-primary">
                 <Award className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -393,7 +402,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary shrink-0">
+              <div className="shrink-0 text-primary">
                 <GraduationCap className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -405,7 +414,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary shrink-0">
+              <div className="shrink-0 text-primary">
                 <Clock className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -417,7 +426,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary shrink-0">
+              <div className="shrink-0 text-primary">
                 <Layers className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -429,7 +438,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </div>
 
             <div className="col-span-2 flex items-center gap-2.5 rounded-xl border border-border bg-bg/60 p-2.5">
-              <div className="text-primary shrink-0">
+              <div className="shrink-0 text-primary">
                 <MapPin className="size-3.5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -568,7 +577,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               {onReject && (
                 <Button
                   variant="secondary"
-                  className="flex-1 justify-center rounded-xl py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                  className="flex-1! justify-center! py-2.5! text-xs!"
                   icon={X}
                   onClick={() => onReject(job.id)}
                   disabled={isModerating}
@@ -579,12 +588,12 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               {onApprove && (
                 <Button
                   variant="primary"
-                  className="flex-1 justify-center rounded-xl bg-emerald-600! hover:bg-emerald-700! py-2.5 text-xs font-semibold text-white!"
+                  className="flex-1! justify-center! py-2.5! text-xs!"
                   icon={Check}
                   onClick={() => onApprove(job.id)}
                   disabled={isModerating}
                 >
-                  <span>Phê duyệt xuất bản</span>
+                  <span>Xuất bản</span>
                 </Button>
               )}
             </div>

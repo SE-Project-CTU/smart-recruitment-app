@@ -36,7 +36,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
-import { useAdminCompanyDetail, useVerifyCompany } from "@/hooks/queries/useAdmin";
+import {
+  useAdminCompanyDetail,
+  useVerifyCompany,
+} from "@/hooks/queries/useAdmin";
 import type { AdminCompanyItem } from "@/types/admin";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +77,9 @@ export function CompanyInspectionSheet({
 
   if (!activeData) return null;
 
-  const currentStatus = (activeData.verificationStatus || "Pending").toUpperCase();
+  const currentStatus = (
+    activeData.verificationStatus || "Pending"
+  ).toUpperCase();
   const isPending = currentStatus === "PENDING";
   const isVerified = currentStatus === "VERIFIED";
   const isRejected = currentStatus === "REJECTED";
@@ -187,7 +192,9 @@ export function CompanyInspectionSheet({
                 <div className="flex items-center gap-2.5 text-xs">
                   <Mail className="size-4 text-text-muted" />
                   <div className="min-w-0">
-                    <span className="block text-[11px] text-text-muted">Email công ty</span>
+                    <span className="block text-[11px] text-text-muted">
+                      Email công ty
+                    </span>
                     <span className="truncate font-medium text-text-main">
                       {activeData.email || "—"}
                     </span>
@@ -197,7 +204,9 @@ export function CompanyInspectionSheet({
                 <div className="flex items-center gap-2.5 text-xs">
                   <Phone className="size-4 text-text-muted" />
                   <div>
-                    <span className="block text-[11px] text-text-muted">Số điện thoại</span>
+                    <span className="block text-[11px] text-text-muted">
+                      Số điện thoại
+                    </span>
                     <span className="font-medium text-text-main">
                       {activeData.phone || "—"}
                     </span>
@@ -207,7 +216,9 @@ export function CompanyInspectionSheet({
                 <div className="flex items-center gap-2.5 text-xs sm:col-span-2">
                   <MapPin className="size-4 shrink-0 text-text-muted" />
                   <div className="min-w-0">
-                    <span className="block text-[11px] text-text-muted">Trụ sở chính</span>
+                    <span className="block text-[11px] text-text-muted">
+                      Trụ sở chính
+                    </span>
                     <span className="font-medium text-text-main">
                       {activeData.address || "Chưa cập nhật địa chỉ trụ sở"}
                     </span>
@@ -218,7 +229,9 @@ export function CompanyInspectionSheet({
                   <div className="flex items-center gap-2.5 text-xs sm:col-span-2">
                     <Globe className="size-4 shrink-0 text-text-muted" />
                     <div className="min-w-0">
-                      <span className="block text-[11px] text-text-muted">Website chính thức</span>
+                      <span className="block text-[11px] text-text-muted">
+                        Website chính thức
+                      </span>
                       <a
                         href={
                           activeData.website.startsWith("http")
@@ -286,7 +299,9 @@ export function CompanyInspectionSheet({
                     <span className="block text-xl font-bold text-text-main">
                       {detail.memberCount}
                     </span>
-                    <span className="text-xs text-text-muted">Thành viên Workspace</span>
+                    <span className="text-xs text-text-muted">
+                      Thành viên Workspace
+                    </span>
                   </div>
                 </div>
 
@@ -298,7 +313,9 @@ export function CompanyInspectionSheet({
                     <span className="block text-xl font-bold text-text-main">
                       {detail.jobPostingCount}
                     </span>
-                    <span className="text-xs text-text-muted">Tin tuyển dụng</span>
+                    <span className="text-xs text-text-muted">
+                      Tin tuyển dụng
+                    </span>
                   </div>
                 </div>
               </div>
@@ -310,7 +327,8 @@ export function CompanyInspectionSheet({
                 Giới thiệu doanh nghiệp
               </h4>
               <p className="mt-2.5 text-xs leading-relaxed text-text-main">
-                {detail?.description || "Doanh nghiệp chưa bổ sung mô tả giới thiệu."}
+                {detail?.description ||
+                  "Doanh nghiệp chưa bổ sung mô tả giới thiệu."}
               </p>
             </div>
 
@@ -327,7 +345,8 @@ export function CompanyInspectionSheet({
                     <strong className="font-semibold text-amber-950">
                       {activeData.taxCode}
                     </strong>{" "}
-                    với Cổng thông tin Quốc gia về Đăng ký Doanh nghiệp trước khi phê duyệt.
+                    với Cổng thông tin Quốc gia về Đăng ký Doanh nghiệp trước
+                    khi phê duyệt.
                   </p>
                 </div>
               </div>
@@ -352,42 +371,28 @@ export function CompanyInspectionSheet({
 
           {/* Footer Actions */}
           <SheetFooter className="border-t border-border/70 p-4 sm:justify-between">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-              className="h-9! px-4! text-xs! font-medium!"
-            >
-              Đóng
-            </Button>
-
             <div className="flex items-center gap-2">
               {/* Nút từ chối */}
               <Button
                 variant="secondary"
                 icon={XCircle}
-                iconSize={14}
                 onClick={() => {
                   setRejectionReason("");
                   setReasonError("");
                   setIsRejectDialogOpen(true);
                 }}
                 disabled={isRejected || verifyMutation.isPending}
-                className={cn(
-                  "h-9! px-4! text-xs! font-semibold! text-rose-600! hover:bg-rose-50! hover:text-rose-700!",
-                  isRejected && "opacity-50",
-                )}
               >
-                Từ chối hồ sơ
+                Từ chối
               </Button>
 
               {/* Nút duyệt */}
               <Button
                 variant="primary"
                 icon={CheckCircle2}
-                iconSize={14}
                 onClick={() => setIsApproveDialogOpen(true)}
                 disabled={isVerified || verifyMutation.isPending}
-                className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+                className=""
               >
                 Phê duyệt doanh nghiệp
               </Button>
@@ -408,9 +413,9 @@ export function CompanyInspectionSheet({
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Bạn đang phê duyệt hồ sơ pháp lý của doanh nghiệp{" "}
-              <strong className="text-text-main">{activeData.name}</strong> (MST:{" "}
-              {activeData.taxCode}). Sau khi duyệt, doanh nghiệp sẽ được cấp tích xanh
-              xác thực và quyền xuất bản tin tuyển dụng công khai.
+              <strong className="text-text-main">{activeData.name}</strong>{" "}
+              (MST: {activeData.taxCode}). Sau khi duyệt, doanh nghiệp sẽ được
+              cấp tích xanh xác thực và quyền xuất bản tin tuyển dụng công khai.
             </DialogDescription>
           </DialogHeader>
 
@@ -449,9 +454,9 @@ export function CompanyInspectionSheet({
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Vui lòng nêu rõ lý do từ chối hồ sơ của{" "}
-              <strong className="text-text-main">{activeData.name}</strong>. Lý do này sẽ
-              được gửi trực tiếp đến hộp thư và thông báo của chủ sở hữu doanh nghiệp để họ
-              cập nhật lại giấy tờ.
+              <strong className="text-text-main">{activeData.name}</strong>. Lý
+              do này sẽ được gửi trực tiếp đến hộp thư và thông báo của chủ sở
+              hữu doanh nghiệp để họ cập nhật lại giấy tờ.
             </DialogDescription>
           </DialogHeader>
 
@@ -477,7 +482,9 @@ export function CompanyInspectionSheet({
               )}
             />
             {reasonError && (
-              <p className="text-[11px] font-medium text-rose-600">{reasonError}</p>
+              <p className="text-[11px] font-medium text-rose-600">
+                {reasonError}
+              </p>
             )}
           </div>
 
