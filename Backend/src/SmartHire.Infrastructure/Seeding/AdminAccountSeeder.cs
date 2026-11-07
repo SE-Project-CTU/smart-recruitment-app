@@ -81,14 +81,13 @@ public sealed class AdminAccountSeeder(
             
             adminUser.AssignRole(adminRole);
         }
-        else if (adminUser.UserRoles.All(ur => ur.RoleId != adminRole.Id)) {
-            logger.LogError(
-                "Admin user exists but does not have the Admin role. Please check the database and assign the Admin role to this user.");
-            throw new InvalidOperationException(
-                "Admin user exists but does not have the Admin role. Please check the database and assign the Admin role to this user.");
-        }
         else {
-            logger.LogInformation("Admin user already exists and has the Admin role. No action needed.");
+            if (adminUser.UserRoles.All(ur => ur.RoleId != adminRole.Id)) {
+                adminUser.AssignRole(adminRole);
+            }
+            
+            adminUser.ChangePasswordHash(passwordHasher.Hash(password!), DateTimeOffset.UtcNow);
+            logger.LogInformation("Admin user already exists: verified Admin role and updated password.");
         }
         
         
