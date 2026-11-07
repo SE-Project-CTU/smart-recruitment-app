@@ -12,6 +12,7 @@ import {
 import logoSmartHire from "@/assets/images/logo/SmartHire_default.svg";
 import { useAuthStore } from "@/stores/authStore";
 import { useLogout } from "@/hooks/queries/useAccount";
+import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
 import { PATHS } from "@/constants/paths";
 import {
   getLoremAvt,
@@ -159,8 +160,10 @@ function Header() {
           {/* User Profile / Action Buttons */}
           <div className="hidden items-center gap-3 lg:flex">
             {isAuthenticated ? (
-              <Menu>
-                <MenuTrigger
+              <>
+                <NotificationDropdown />
+                <Menu>
+                  <MenuTrigger
                   openOnHover
                   className="flex cursor-pointer items-center gap-2.5 rounded-full p-1 shadow-2xs backdrop-blur-xs transition-transform focus:outline-none active:scale-95"
                 >
@@ -223,6 +226,7 @@ function Header() {
                   </MenuItem>
                 </MenuPanel>
               </Menu>
+            </>
             ) : (
               <>
                 <Link to={PATHS.SIGN_IN} className="btn btn-secondary">
