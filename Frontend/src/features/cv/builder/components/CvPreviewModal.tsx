@@ -1,7 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Eye, X } from "lucide-react";
 import { CvPreviewWorkspace } from "../../templates/CvPreviewWorkspace";
 import type { RichTextCVContentDocument, CVLayoutDocument } from "@/types/cv";
+import { useCvZoom } from "../hooks/useCvZoom";
+import { CvZoomControls } from "./CvZoomControls";
 
 interface CvPreviewModalProps {
   isOpen: boolean;
@@ -23,6 +25,17 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
   layout,
   title = "Xem trước CV",
 }) => {
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+  const {
+    zoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    setZoom,
+    canZoomIn,
+    canZoomOut,
+  } = useCvZoom({ containerRef: previewScrollRef });
+
   // Đóng modal khi bấm phím ESC
   useEffect(() => {
     if (!isOpen) return;
@@ -86,14 +99,37 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
       </header>
 
       {/* 2. Khung hiển thị trang A4 căn giữa cuộn mượt mà */}
-      <div className="flex flex-1 justify-center overflow-y-auto p-2 md:p-4">
-        <div className="h-max bg-gray-100 p-4">
-          <CvPreviewWorkspace
-            content={content}
-            layout={layout}
-            className="bg-transparent!"
-          />
+      <div
+        ref={previewScrollRef}
+        className="relative flex flex-1 justify-center overflow-auto p-2 md:p-4"
+      >
+        <div className="h-max">
+          <div
+            className="bg-gray-100 p-4"
+            style={{
+              transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+              transformOrigin: "top center",
+              marginBottom:
+                zoom > 1 ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)` : "2rem",
+            }}
+          >
+            <CvPreviewWorkspace
+              content={content}
+              layout={layout}
+              className="bg-transparent!"
+            />
+          </div>
         </div>
+        <CvZoomControls
+          zoom={zoom}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onResetZoom={resetZoom}
+          onZoomChange={setZoom}
+          canZoomIn={canZoomIn}
+          canZoomOut={canZoomOut}
+          className="fixed! bottom-6! right-6!"
+        />
       </div>
     </div>
   );

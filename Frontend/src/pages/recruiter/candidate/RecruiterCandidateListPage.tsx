@@ -30,6 +30,7 @@ import {
   type UpdateJobApplicationStatus,
 } from "@/types/application";
 import { CandidateTable } from "./CandidateTable";
+import { ApplicationCvPreviewDialog } from "./ApplicationCvPreviewDialog";
 import { EmptyStreet } from "@/assets/images/decoration";
 import {
   Dialog,
@@ -88,6 +89,8 @@ export function RecruiterCandidateListPage() {
 
   // 4. Modal states
   const [selectedLetterApp, setSelectedLetterApp] =
+    useState<RecruiterCandidateApplicationItem | null>(null);
+  const [selectedCvApp, setSelectedCvApp] =
     useState<RecruiterCandidateApplicationItem | null>(null);
   const [pendingChange, setPendingChange] =
     useState<PendingStatusChange | null>(null);
@@ -491,6 +494,7 @@ export function RecruiterCandidateListPage() {
           onViewJobDetail={(jobId: string) =>
             navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", jobId))
           }
+          onPreviewCv={setSelectedCvApp}
           isUpdatingStatus={updateStatusMutation.isPending}
           emptyMessage={
             searchQuery || selectedJobId !== "ALL" || statusFilter !== "ALL"
@@ -501,6 +505,10 @@ export function RecruiterCandidateListPage() {
       )}
 
       {/* 5. Pagination Bar */}
+      <ApplicationCvPreviewDialog
+        application={selectedCvApp}
+        onClose={() => setSelectedCvApp(null)}
+      />
       {totalPages > 1 && (
         <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3 shadow-2xs sm:flex-row">
           <span className="text-xs text-slate-500">

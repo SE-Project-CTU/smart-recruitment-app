@@ -10,8 +10,7 @@ import {
   Eye,
   FileText,
   Mail,
-  MessageSquare,
-  Sparkles,
+  MessageSquare
 } from "lucide-react";
 import dayjs from "dayjs";
 import { DataTable, type DataTableFeatures } from "@/components/common";
@@ -43,6 +42,7 @@ interface CandidateTableProps {
     targetStatus: UpdateJobApplicationStatus,
   ) => void;
   onViewJobDetail: (jobId: string) => void;
+  onPreviewCv?: (app: RecruiterCandidateApplicationItem) => void;
   isUpdatingStatus?: boolean;
   emptyMessage?: string;
 }
@@ -52,6 +52,7 @@ export function CandidateTable({
   onReadCoverLetter,
   onRequestChangeStatus,
   onViewJobDetail,
+  onPreviewCv,
   isUpdatingStatus,
   emptyMessage = "Chưa có ứng viên nào phù hợp.",
 }: CandidateTableProps) {
@@ -152,10 +153,16 @@ export function CandidateTable({
                     <ExternalLink className="size-3 opacity-60" />
                   </a>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700">
-                    <Sparkles className="size-3.5 text-primary" />
+                  <button
+                    type="button"
+                    onClick={() => onPreviewCv?.(app)}
+                    disabled={!onPreviewCv || (!app.cvSnapshot && !app.cvVersionId)}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Xem trước CV hệ thống"
+                  >
                     <span>CV Hệ thống</span>
-                  </span>
+                    <Eye className="size-3.5" />
+                  </button>
                 )}
               </div>
             );
