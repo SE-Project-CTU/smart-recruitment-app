@@ -45,6 +45,8 @@ import CandidateCvBuilderPage from "@/pages/candidate/CandidateCvBuilderPage";
 import { CompanyDetailPage } from "@/pages/company";
 import CareerBlogPage from "@/pages/CareerBlogPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminCompanyModerationPage from "@/pages/admin/company/AdminCompanyModerationPage";
+import AdminJobModerationPage from "@/pages/admin/job/AdminJobModerationPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -261,11 +263,11 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.APPROVE_COMPANY,
-            element: <Page title="Duyệt doanh nghiệp" />,
+            element: <AdminCompanyModerationPage />,
           },
           {
             path: PATHS.ADMIN.APPROVE_JD,
-            element: <Page title="Duyệt tin tuyển dụng" />,
+            element: <AdminJobModerationPage />,
           },
           {
             path: PATHS.ADMIN.USERS,

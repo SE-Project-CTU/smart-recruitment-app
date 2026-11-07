@@ -147,7 +147,8 @@ export const useVerifyCompany = () => {
       queryClient.invalidateQueries({
         queryKey: [...adminKeys.all, "dashboard"],
       });
-      const isApproved = vars.payload.verificationStatus === "VERIFIED";
+      const isApproved =
+        vars.payload.verificationStatus?.toUpperCase() === "VERIFIED";
       toast.success(
         isApproved
           ? "Đã phê duyệt doanh nghiệp thành công!"
@@ -203,7 +204,7 @@ export const useModerateJobPosting = () => {
       queryClient.invalidateQueries({
         queryKey: [...adminKeys.all, "dashboard"],
       });
-      const isApproved = vars.payload.status === "PUBLISHED";
+      const isApproved = vars.payload.status?.toUpperCase() === "PUBLISHED";
       toast.success(
         isApproved
           ? "Đã duyệt và xuất bản tin tuyển dụng thành công!"
