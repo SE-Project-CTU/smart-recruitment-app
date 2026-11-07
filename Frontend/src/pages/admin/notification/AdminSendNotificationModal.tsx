@@ -5,7 +5,6 @@ import {
   UserCheck,
   Building2,
   AlertCircle,
-  BellRing,
   Send,
 } from "lucide-react";
 import {
@@ -140,16 +139,12 @@ export function AdminSendNotificationModal({
         <div className="border-b border-border/60 bg-linear-to-b from-primary/5 via-transparent to-transparent p-6">
           <DialogHeader className="gap-1.5 text-left">
             <div className="flex items-center gap-2.5">
-              <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Megaphone className="size-4.5" />
-              </div>
               <div>
                 <DialogTitle className="text-base font-semibold text-text-main">
-                  Phát thông báo hệ thống thời gian thực
+                  Phát thông báo hệ thống
                 </DialogTitle>
                 <DialogDescription className="mt-0.5 text-xs text-text-muted">
-                  Gửi thông báo & kích hoạt toast nổi ở góc màn hình tới người
-                  dùng qua SignalR
+                  Gửi thông báo cho người dùng trên toàn hệ thống
                 </DialogDescription>
               </div>
             </div>
@@ -161,8 +156,7 @@ export function AdminSendNotificationModal({
           {/* Đối tượng nhận */}
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-text-main">
-              Đối tượng nhận thông báo{" "}
-              <span className="text-destructive">*</span>
+              Đối tượng <span className="text-destructive">*</span>
             </label>
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
               {TARGET_OPTIONS.map((opt) => {
@@ -280,13 +274,11 @@ export function AdminSendNotificationModal({
           </div>
 
           {/* Live Preview Toast (Mô phỏng Bottom-Right Toast) */}
-          <div className="space-y-2 rounded-xl border border-border/70 bg-bg/60 p-3.5">
+          <div className="space-y-2 rounded-xl">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-text-muted uppercase">
-                <BellRing className="size-3 text-primary" />
                 Xem trước
               </span>
-              <span className="text-[10px] text-text-muted/80">Vừa xong</span>
             </div>
             <div className="rounded-xl border border-border/80 bg-surface p-3.5 shadow-xs">
               <div className="flex items-start gap-3">

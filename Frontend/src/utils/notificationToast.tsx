@@ -95,11 +95,8 @@ export function resolveNotificationAction(notification: NotificationDto): {
   }
 }
 
-export function showNotificationToast(
-  notification: NotificationDto,
-  navigate: (path: string) => void,
-) {
-  const { url, label, toastType } = resolveNotificationAction(notification);
+export function showNotificationToast(notification: NotificationDto) {
+  const { toastType } = resolveNotificationAction(notification);
 
   const titleElement = (
     <span className="text-sm font-semibold text-text-main">
@@ -108,14 +105,7 @@ export function showNotificationToast(
   );
 
   const descriptionElement = (
-    <NotificationToastContent
-      notification={notification}
-      actionUrl={url}
-      actionLabel={label}
-      onNavigate={(targetUrl) => {
-        navigate(targetUrl);
-      }}
-    />
+    <NotificationToastContent notification={notification} />
   );
 
   if (toastType === "success") {
@@ -126,4 +116,3 @@ export function showNotificationToast(
     toast.info({ title: titleElement, description: descriptionElement });
   }
 }
-
