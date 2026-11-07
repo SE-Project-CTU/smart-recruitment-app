@@ -1,7 +1,8 @@
 import { useSearchParams } from "react-router-dom";
-import { MapPin, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { IndustryCatalogTab } from "./tabs/IndustryCatalogTab";
 import { SkillCatalogTab } from "./tabs/SkillCatalogTab";
+import { LocationCatalogTab } from "./tabs/LocationCatalogTab";
 
 type CatalogTabKey = "industries" | "skills" | "locations" | "cv-templates";
 
@@ -95,18 +96,7 @@ export function AdminCatalogsPage() {
 
         {activeTab === "skills" && <SkillCatalogTab />}
 
-        {activeTab === "locations" && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-12 text-center">
-            <MapPin className="mb-2 size-8 text-primary/40" />
-            <p className="text-sm font-semibold text-text-main">
-              Quản lý Địa bàn hành chính
-            </p>
-            <p className="mt-1 text-xs text-text-muted">
-              Mô-đun Tỉnh/Thành phố & Phường/Xã (Phase 5.3) sẵn sàng triển khai
-              tiếp theo.
-            </p>
-          </div>
-        )}
+        {activeTab === "locations" && <LocationCatalogTab />}
 
         {activeTab === "cv-templates" && (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-12 text-center">
