@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
+import { ChevronDown } from "lucide-react";
+import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/common/Button";
 import { Switch } from "@/components/ui/switch";
-import {
-  useCreateIndustry,
-  useUpdateIndustry,
-} from "@/hooks/queries/useAdmin";
+import { useCreateIndustry, useUpdateIndustry } from "@/hooks/queries/useAdmin";
 import type { AdminIndustry, AdminIndustryGroup } from "@/types/admin";
 
 interface IndustryDialogProps {
@@ -24,7 +23,16 @@ interface IndustryDialogProps {
   onSuccess?: () => void;
 }
 
-export function IndustryDialog({
+export function IndustryDialog(props: IndustryDialogProps) {
+  const { open, industry, defaultGroupId, groups } = props;
+  const formKey = industry
+    ? `${open}-${industry.id}-${industry.groupId}-${industry.name}-${industry.isActive}`
+    : `${open}-new-${defaultGroupId ?? ""}-${groups[0]?.id ?? ""}`;
+
+  return <IndustryDialogForm key={formKey} {...props} />;
+}
+
+function IndustryDialogForm({
   open,
   onOpenChange,
   industry,
@@ -33,29 +41,25 @@ export function IndustryDialog({
   onSuccess,
 }: IndustryDialogProps) {
   const isEditing = Boolean(industry);
-  const [groupId, setGroupId] = useState("");
-  const [name, setName] = useState("");
-  const [isActive, setIsActive] = useState(true);
+  const [groupId, setGroupId] = useState(
+    industry?.groupId ?? defaultGroupId ?? groups[0]?.id ?? "",
+  );
+  const [name, setName] = useState(industry?.name ?? "");
+  const [isActive, setIsActive] = useState(industry?.isActive ?? true);
   const [errors, setErrors] = useState<{ groupId?: string; name?: string }>({});
+
+  const groupOptions = useMemo(
+    () =>
+      groups.map((g) => ({
+        value: g.id,
+        label: `${g.name}${!g.isActive ? " (Đã ẩn)" : ""}`,
+      })),
+    [groups],
+  );
 
   const createMutation = useCreateIndustry();
   const updateMutation = useUpdateIndustry();
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
-
-  useEffect(() => {
-    if (open) {
-      if (industry) {
-        setGroupId(industry.groupId);
-        setName(industry.name);
-        setIsActive(industry.isActive);
-      } else {
-        setGroupId(defaultGroupId || groups[0]?.id || "");
-        setName("");
-        setIsActive(true);
-      }
-      setErrors({});
-    }
-  }, [open, industry, defaultGroupId, groups]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,25 +133,56 @@ export function IndustryDialog({
             <label className="text-xs font-semibold text-text-main">
               Thuộc nhóm ngành <span className="text-rose-500">*</span>
             </label>
-            <select
+            <Select.Root
+              items={groupOptions}
               value={groupId}
-              onChange={(e) => {
-                setGroupId(e.target.value);
-                if (errors.groupId) {
-                  setErrors((prev) => ({ ...prev, groupId: undefined }));
+              onValueChange={(val) => {
+                if (val) {
+                  setGroupId(val);
+                  if (errors.groupId) {
+                    setErrors((prev) => ({ ...prev, groupId: undefined }));
+                  }
                 }
               }}
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-xs text-text-main transition-colors focus:border-primary focus:bg-surface focus:outline-none"
             >
-              <option value="" disabled>
-                -- Chọn nhóm ngành --
-              </option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} {!g.isActive ? "(Đã ẩn)" : ""}
-                </option>
-              ))}
-            </select>
+              <Select.Trigger
+                aria-label="Chọn nhóm ngành"
+                className="group flex h-9.5 w-full cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-medium text-text-main transition-colors hover:bg-slate-100/60 focus:border-primary focus:bg-surface focus:outline-none"
+              >
+                <Select.Value placeholder="-- Chọn nhóm ngành --" />
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
+                  <ChevronDown className="size-3.5" />
+                </Select.Icon>
+              </Select.Trigger>
+
+              <Select.Portal>
+                <Select.Positioner
+                  alignItemWithTrigger={false}
+                  sideOffset={6}
+                  className="z-60"
+                >
+                  <Select.Popup className="z-60 max-h-60 w-(--anchor-width) overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md">
+                    <Select.List>
+                      {groupOptions.map((opt) => (
+                        <Select.Item
+                          key={opt.value}
+                          value={opt.value}
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs text-text-main transition-colors hover:bg-bg data-highlighted:bg-bg data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        >
+                          <Select.ItemText>{opt.label}</Select.ItemText>
+                          <Select.ItemIndicator
+                            animation="pop"
+                            className="ml-2 text-xs text-primary"
+                          >
+                            ✓
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
             {errors.groupId && (
               <p className="text-[11px] text-rose-500">{errors.groupId}</p>
             )}
@@ -182,13 +217,11 @@ export function IndustryDialog({
                   Trạng thái hoạt động
                 </p>
                 <p className="text-[11px] text-text-muted">
-                  Khi tắt, ngành nghề sẽ không xuất hiện trong bộ chọn của việc làm
+                  Khi tắt, ngành nghề sẽ không xuất hiện trong bộ chọn của việc
+                  làm
                 </p>
               </div>
-              <Switch
-                checked={isActive}
-                onCheckedChange={setIsActive}
-              />
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
             </div>
           )}
 
@@ -198,7 +231,7 @@ export function IndustryDialog({
               variant="secondary"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
-              className="rounded-xl! text-xs! px-4! py-2! font-semibold!"
+              className="rounded-xl! px-4! py-2! text-xs! font-semibold!"
             >
               Hủy
             </Button>
@@ -206,7 +239,7 @@ export function IndustryDialog({
               type="submit"
               variant="primary"
               isLoading={isSubmitting}
-              className="rounded-xl! text-xs! px-4! py-2! font-semibold!"
+              className="rounded-xl! px-4! py-2! text-xs! font-semibold!"
             >
               {isEditing ? "Lưu thay đổi" : "Tạo ngành nghề"}
             </Button>
@@ -216,4 +249,3 @@ export function IndustryDialog({
     </Dialog>
   );
 }
-
