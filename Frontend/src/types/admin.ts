@@ -89,9 +89,9 @@ export interface UpdateUserStatusResult {
 // ==========================================
 
 export type AdminCompanyVerificationStatus =
-  | "PENDING"
-  | "VERIFIED"
-  | "REJECTED";
+  | "Pending"
+  | "Verified"
+  | "Rejected";
 
 export interface AdminCompanyOwner {
   id: string;
@@ -124,13 +124,15 @@ export interface AdminCompanyDetail extends AdminCompanyItem {
 
 export interface AdminCompanyFilterParams {
   search?: string;
+  verificationStatus?: AdminCompanyVerificationStatus | string;
   status?: string;
   page?: number;
   pageSize?: number;
 }
 
 export interface ReviewCompanyVerificationPayload {
-  verificationStatus: AdminCompanyVerificationStatus;
+  verificationStatus: "Verified" | "Rejected" | string;
+  reason?: string;
   rejectionReason?: string;
 }
 
@@ -146,12 +148,11 @@ export interface ReviewCompanyVerificationResult {
 // ==========================================
 
 export type AdminJobModerationStatus =
-  | "DRAFT"
-  | "PENDING_APPROVAL"
-  | "PUBLISHED"
-  | "REJECTED"
-  | "EXPIRED"
-  | "CLOSED";
+  | "PendingReview"
+  | "Published"
+  | "Closed"
+  | "Expired"
+  | "Rejected";
 
 export interface AdminJobPostingItem {
   id: string;
@@ -174,14 +175,14 @@ export interface AdminJobPostingItem {
 
 export interface AdminJobPostingFilterParams {
   search?: string;
-  status?: string;
+  status?: AdminJobModerationStatus | string;
   companyId?: string;
   page?: number;
   pageSize?: number;
 }
 
 export interface ReviewJobModerationPayload {
-  status: "PUBLISHED" | "REJECTED";
+  status: "Published" | "Rejected" | string;
   rejectionReason?: string;
 }
 

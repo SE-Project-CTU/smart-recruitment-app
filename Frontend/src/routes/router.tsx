@@ -44,6 +44,7 @@ import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
 import CandidateCvBuilderPage from "@/pages/candidate/CandidateCvBuilderPage";
 import { CompanyDetailPage } from "@/pages/company";
 import CareerBlogPage from "@/pages/CareerBlogPage";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -252,7 +253,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.DASHBOARD,
-            element: <Page title="Admin Dashboard Overview" />,
+            element: <AdminDashboard />,
           },
           {
             path: PATHS.ADMIN.USER_PROFILE,

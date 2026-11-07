@@ -73,10 +73,17 @@ export const adminService = {
   async getCompanies(
     params?: AdminCompanyFilterParams,
   ): Promise<AdminPagedResponse<AdminCompanyItem>> {
+    const { status, verificationStatus, ...rest } = params || {};
+    const effectiveStatus = verificationStatus || status;
     const res = await axiosClient.get<
       never,
       ApiPagedResponse<AdminCompanyItem>
-    >(API_ENDPOINTS.ADMIN.COMPANIES, { params });
+    >(API_ENDPOINTS.ADMIN.COMPANIES, {
+      params: {
+        ...rest,
+        ...(effectiveStatus ? { verificationStatus: effectiveStatus } : {}),
+      },
+    });
     return {
       data: res.data,
       meta: res.meta,
@@ -94,10 +101,14 @@ export const adminService = {
     id: string,
     payload: ReviewCompanyVerificationPayload,
   ): Promise<ReviewCompanyVerificationResult> {
+    const body = {
+      verificationStatus: payload.verificationStatus,
+      reason: payload.reason || payload.rejectionReason,
+    };
     const res = await axiosClient.patch<
       never,
       ApiResponse<ReviewCompanyVerificationResult>
-    >(API_ENDPOINTS.ADMIN.COMPANY_VERIFICATION(id), payload);
+    >(API_ENDPOINTS.ADMIN.COMPANY_VERIFICATION(id), body);
     return res.data;
   },
 
@@ -107,10 +118,22 @@ export const adminService = {
   async getJobPostings(
     params?: AdminJobPostingFilterParams,
   ): Promise<AdminPagedResponse<AdminJobPostingItem>> {
+    let normalizedStatus = params?.status;
+    if (
+      normalizedStatus?.toUpperCase() === "PENDING_APPROVAL" ||
+      normalizedStatus?.toUpperCase() === "PENDING"
+    ) {
+      normalizedStatus = "PendingReview";
+    }
     const res = await axiosClient.get<
       never,
       ApiPagedResponse<AdminJobPostingItem>
-    >(API_ENDPOINTS.ADMIN.JOB_POSTINGS, { params });
+    >(API_ENDPOINTS.ADMIN.JOB_POSTINGS, {
+      params: {
+        ...params,
+        ...(normalizedStatus ? { status: normalizedStatus } : {}),
+      },
+    });
     return {
       data: res.data,
       meta: res.meta,
