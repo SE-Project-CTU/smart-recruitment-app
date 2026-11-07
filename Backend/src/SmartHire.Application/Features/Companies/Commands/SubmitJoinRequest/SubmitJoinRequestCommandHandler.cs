@@ -104,6 +104,7 @@ public sealed class SubmitJoinRequestCommandHandler : IRequestHandler<SubmitJoin
             try {
                 var notificationDto = NotificationResultMapper.ToDto(notification);
                 await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+                await _notificationDispatcher.DispatchToCompanyAsync(company.Id, notificationDto, cancellationToken);
             } catch {
             }
         }

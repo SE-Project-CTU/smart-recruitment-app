@@ -14,7 +14,9 @@ namespace SmartHire.Api;
 public static class DependencyInjection {
     public const string PolicyName = "FrontendPolicy";
 
-    public static IServiceCollection AddApiServices(this IServiceCollection services)
+    public static IServiceCollection AddApiServices(
+        this IServiceCollection services,
+        IConfiguration? configuration = null)
     {
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -28,8 +30,29 @@ public static class DependencyInjection {
         services.AddScoped<ICurrentUser, HttpCurrentUser>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, ApiAuthorizationMiddlewareResultHandler>();
 
-        // SignalR
-        services.AddSignalR();
+        // SignalR với Redis Backplane (Graceful fallback về In-Memory nếu Redis không khả dụng)
+        var signalRBuilder = services.AddSignalR();
+        var redisConnStr = configuration?["Redis:ConnectionString"];
+        var redisHost = configuration?["REDIS_HOST"] ?? configuration?["Redis:Host"];
+        var redisPort = configuration?["REDIS_PORT"] ?? configuration?["Redis:Port"] ?? "6379";
+        var redisPassword = configuration?["REDIS_PASSWORD"] ?? configuration?["Redis:Password"];
+
+        string? redisConfig = null;
+        if (!string.IsNullOrWhiteSpace(redisConnStr)) {
+            redisConfig = redisConnStr;
+        } else if (!string.IsNullOrWhiteSpace(redisHost)) {
+            redisConfig = $"{redisHost}:{redisPort},abortConnect=false";
+            if (!string.IsNullOrWhiteSpace(redisPassword)) {
+                redisConfig += $",password={redisPassword}";
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(redisConfig)) {
+            signalRBuilder.AddStackExchangeRedis(redisConfig, options => {
+                options.Configuration.ChannelPrefix = StackExchange.Redis.RedisChannel.Literal("SmartHire_SignalR");
+            });
+        }
+
         services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, Hubs.SubUserIdProvider>();
         services.AddScoped<SmartHire.Application.Abstractions.Notifications.INotificationDispatcher, Services.SignalRNotificationDispatcher>();
         

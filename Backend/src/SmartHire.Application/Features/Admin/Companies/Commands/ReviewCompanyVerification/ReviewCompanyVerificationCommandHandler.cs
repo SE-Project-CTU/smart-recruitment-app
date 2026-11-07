@@ -1,8 +1,10 @@
 using MediatR;
+using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Features.Admin.Companies.DTOs;
 using SmartHire.Application.Features.Admin.Exceptions;
+using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -12,15 +14,18 @@ public sealed class ReviewCompanyVerificationCommandHandler
     : IRequestHandler<ReviewCompanyVerificationCommand, ReviewCompanyVerificationResult> {
     private readonly ICompanyRepository _companyRepository;
     private readonly INotificationRepository _notificationRepository;
+    private readonly INotificationDispatcher? _notificationDispatcher;
     private readonly IUnitOfWork _unitOfWork;
 
     public ReviewCompanyVerificationCommandHandler(
         ICompanyRepository companyRepository,
         INotificationRepository notificationRepository,
-        IUnitOfWork unitOfWork) {
+        IUnitOfWork unitOfWork,
+        INotificationDispatcher? notificationDispatcher = null) {
         _companyRepository = companyRepository;
         _notificationRepository = notificationRepository;
         _unitOfWork = unitOfWork;
+        _notificationDispatcher = notificationDispatcher;
     }
 
     public async Task<ReviewCompanyVerificationResult> Handle(
@@ -43,9 +48,10 @@ public sealed class ReviewCompanyVerificationCommandHandler
         var now = DateTimeOffset.UtcNow;
         DateTimeOffset? verifiedAt = command.Status == CompanyVerificationStatus.Verified ? now : null;
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+        var (result, notification) = await _unitOfWork.ExecuteInTransactionAsync(async ct => {
             company.SetVerificationStatus(command.Status, verifiedAt, now);
 
+            Notification? createdNotification = null;
             // Gửi notification cho Owner công ty nếu có
             var owner = await _companyRepository.GetActiveOwnerMembershipAsync(company.Id, ct);
             if (owner is not null) {
@@ -57,7 +63,7 @@ public sealed class ReviewCompanyVerificationCommandHandler
                     ? $"Doanh nghiệp {company.Name} đã được quản trị viên phê duyệt thành công."
                     : $"Doanh nghiệp {company.Name} bị từ chối xác minh. Lý do: {command.Reason}";
 
-                var notification = Notification.Create(
+                createdNotification = Notification.Create(
                     recipientId: owner.UserId,
                     type: NotificationType.SystemAlert,
                     title: title,
@@ -66,17 +72,31 @@ public sealed class ReviewCompanyVerificationCommandHandler
                     resourceId: company.Id,
                     now: now
                 );
-                await _notificationRepository.AddAsync(notification, ct);
+                await _notificationRepository.AddAsync(createdNotification, ct);
             }
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            return new ReviewCompanyVerificationResult(
+            var verificationResult = new ReviewCompanyVerificationResult(
                 company.Id,
                 company.VerificationStatus.ToString().ToUpperInvariant(),
                 company.VerifiedAt,
                 company.UpdatedAt
             );
+
+            return (verificationResult, createdNotification);
         }, cancellationToken);
+
+        if (_notificationDispatcher is not null && notification is not null) {
+            try {
+                var dto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, dto, cancellationToken);
+                await _notificationDispatcher.DispatchToCompanyAsync(company.Id, dto, cancellationToken);
+            }
+            catch {
+            }
+        }
+
+        return result;
     }
 }
