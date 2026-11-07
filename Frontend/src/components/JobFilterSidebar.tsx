@@ -2,9 +2,9 @@ import { useState, useMemo } from "react";
 import { Checkbox } from "@animate-ui/react/primitives/base-ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { CheckIcon, ChevronDown, RotateCcw } from "lucide-react";
-import { MOCK_INDUSTRY_HIERARCHY } from "@/constants/mockData";
 import { useIndustryGroupsWithIndustries } from "@/hooks/queries/useCatalog";
 import {
+  EXPERIENCE_RANGE_OPTIONS,
   JOB_LEVEL_OPTIONS,
   JOB_TYPE_OPTIONS,
   WORK_MODE_OPTIONS,
@@ -16,9 +16,10 @@ export const SALARY_STEP = 1;
 
 export interface JobFilterState {
   industries: string[];
-  jobTypes: string[];
-  workModes: string[];
-  jobLevels: string[];
+  experienceRanges: string[];
+  jobType: string;
+  workMode: string;
+  jobLevel: string;
   minSalary: string;
   maxSalary: string;
   negotiableOnly: boolean;
@@ -27,10 +28,14 @@ export interface JobFilterState {
 interface JobFilterSidebarProps {
   filters: JobFilterState;
   onToggleArrayFilter: (
-    key: "industries" | "jobTypes" | "workModes" | "jobLevels",
+    key: "industries" | "experienceRanges",
     value: string,
   ) => void;
-  onToggleIndustryGroup: (parent: string, children: string[]) => void;
+  onToggleSingleFilter: (
+    key: "jobType" | "workMode" | "jobLevel",
+    value: string,
+  ) => void;
+  onToggleIndustryGroup: (children: string[]) => void;
   onSalaryRangeChange: (min: string, max: string) => void;
   onToggleNegotiable: (checked: boolean) => void;
   onReset: () => void;
@@ -83,6 +88,7 @@ function FilterCheckboxItem({
 export function JobFilterSidebar({
   filters,
   onToggleArrayFilter,
+  onToggleSingleFilter,
   onToggleIndustryGroup,
   onSalaryRangeChange,
   onToggleNegotiable,
@@ -92,10 +98,13 @@ export function JobFilterSidebar({
   const { data: realIndustryGroups = [] } = useIndustryGroupsWithIndustries();
 
   const industryHierarchy = useMemo(() => {
-    if (realIndustryGroups.length === 0) return MOCK_INDUSTRY_HIERARCHY;
+    if (realIndustryGroups.length === 0) return [];
     return realIndustryGroups.map((group) => ({
       parent: group.name,
-      children: (group.items || group.industries || []).map((i) => i.name),
+      children: (group.items || group.industries || []).map((i) => ({
+        id: i.id,
+        name: i.name,
+      })),
     }));
   }, [realIndustryGroups]);
 
@@ -161,7 +170,7 @@ export function JobFilterSidebar({
   };
 
   return (
-    <aside className="flex w-full scrollbar-thin flex-col gap-3 overflow-y-auto rounded-2xl border border-border bg-surface p-3 sm:p-3.5 3xl:gap-4 3xl:rounded-3xl 3xl:p-4.5">
+    <aside className="flex h-full min-h-0 w-full touch-pan-y overscroll-contain scrollbar-thin flex-col gap-3 overflow-y-auto rounded-2xl border border-border bg-surface p-3 sm:p-3.5 3xl:gap-4 3xl:rounded-3xl 3xl:p-4.5">
       <div className="flex items-center justify-between border-b border-border pb-2.5 3xl:pb-3">
         <h2 className="text-xs font-bold text-text-main sm:text-sm 3xl:text-base">
           Bộ lọc
@@ -184,9 +193,8 @@ export function JobFilterSidebar({
           {industryHierarchy.map((group) => {
             const isExpanded = expandedGroups[group.parent] ?? false;
             const isParentChecked =
-              filters.industries.includes(group.parent) ||
-              (group.children.length > 0 &&
-                group.children.every((c) => filters.industries.includes(c)));
+              group.children.length > 0 &&
+              group.children.every((c) => filters.industries.includes(c.id));
 
             return (
               <div key={group.parent} className="flex w-full flex-col gap-0.5">
@@ -196,7 +204,9 @@ export function JobFilterSidebar({
                     isParent
                     checked={isParentChecked}
                     onChange={() =>
-                      onToggleIndustryGroup(group.parent, group.children)
+                      onToggleIndustryGroup(
+                        group.children.map((child) => child.id),
+                      )
                     }
                   />
                   <button
@@ -223,11 +233,11 @@ export function JobFilterSidebar({
                   <div className="grid grid-cols-1 gap-0.5 pt-0.5 pl-2.5">
                     {group.children.map((child) => (
                       <FilterCheckboxItem
-                        key={child}
-                        label={child}
-                        checked={filters.industries.includes(child)}
+                        key={child.id}
+                        label={child.name}
+                        checked={filters.industries.includes(child.id)}
                         onChange={() =>
-                          onToggleArrayFilter("industries", child)
+                          onToggleArrayFilter("industries", child.id)
                         }
                       />
                     ))}
@@ -343,8 +353,8 @@ export function JobFilterSidebar({
             <FilterCheckboxItem
               key={item.value}
               label={item.label}
-              checked={filters.jobTypes.includes(item.value)}
-              onChange={() => onToggleArrayFilter("jobTypes", item.value)}
+              checked={filters.jobType === item.value}
+              onChange={() => onToggleSingleFilter("jobType", item.value)}
             />
           ))}
         </div>
@@ -359,8 +369,8 @@ export function JobFilterSidebar({
             <FilterCheckboxItem
               key={item.value}
               label={item.label}
-              checked={filters.workModes.includes(item.value)}
-              onChange={() => onToggleArrayFilter("workModes", item.value)}
+              checked={filters.workMode === item.value}
+              onChange={() => onToggleSingleFilter("workMode", item.value)}
             />
           ))}
         </div>
@@ -375,8 +385,25 @@ export function JobFilterSidebar({
             <FilterCheckboxItem
               key={item.value}
               label={item.label}
-              checked={filters.jobLevels.includes(item.value)}
-              onChange={() => onToggleArrayFilter("jobLevels", item.value)}
+              checked={filters.jobLevel === item.value}
+              onChange={() => onToggleSingleFilter("jobLevel", item.value)}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5 border-t border-border pt-2.5">
+        <h3 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+          Kinh nghiệm yêu cầu
+        </h3>
+        <div className="grid grid-cols-2 gap-1">
+          {EXPERIENCE_RANGE_OPTIONS.map((item) => (
+            <FilterCheckboxItem
+              key={item.value}
+              label={item.label}
+              checked={filters.experienceRanges.includes(item.value)}
+              onChange={() =>
+                onToggleArrayFilter("experienceRanges", item.value)
+              }
             />
           ))}
         </div>

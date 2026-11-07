@@ -19,7 +19,10 @@ public sealed record JobPostingSearchFilterCriteria(
     JobLevel? JobLevel,
     JobType? JobType,
     WorkMode? WorkMode,
-    int? ExperienceYears);
+    int? ExperienceYears,
+    IReadOnlyList<Guid> IndustryIds,
+    IReadOnlyList<string> ExperienceRanges,
+    bool SalaryNegotiableOnly);
 
 public sealed record JobPostingSearchSortCriteria(
     JobPostingSortField Sort,

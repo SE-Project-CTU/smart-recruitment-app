@@ -13,4 +13,7 @@ public sealed class JobPostingFilterRequest
     public string? JobType { get; init; }
     public string? WorkMode { get; init; }
     public int? ExperienceYears { get; init; }
+    public Guid[]? IndustryIds { get; init; }
+    public string[]? ExperienceRanges { get; init; }
+    public bool? SalaryNegotiableOnly { get; init; }
 }
