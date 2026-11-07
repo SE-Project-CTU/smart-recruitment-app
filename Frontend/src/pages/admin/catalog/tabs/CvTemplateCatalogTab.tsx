@@ -27,7 +27,9 @@ import type { AdminCvTemplateItem } from "@/types/admin";
 export function CvTemplateCatalogTab() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
+  const [statusFilter, setStatusFilter] = useState<
+    "ALL" | "ACTIVE" | "INACTIVE"
+  >("ALL");
   const [page, setPage] = useState(1);
   const pageSize = 12;
 
@@ -41,10 +43,7 @@ export function CvTemplateCatalogTab() {
   const queryParams = useMemo(() => {
     return {
       search: debouncedSearch.trim() || undefined,
-      isActive:
-        statusFilter === "ALL"
-          ? undefined
-          : statusFilter === "ACTIVE",
+      isActive: statusFilter === "ALL" ? undefined : statusFilter === "ACTIVE",
       page,
       pageSize,
     };
@@ -129,7 +128,7 @@ export function CvTemplateCatalogTab() {
               iconSize={14}
               onClick={() => refetch()}
               disabled={isLoading}
-              className="h-8! px-2.5! text-xs! rounded-xl!"
+              className="h-8! rounded-xl! px-2.5! text-xs!"
               title="Làm mới danh sách"
             />
           </div>
@@ -170,7 +169,7 @@ export function CvTemplateCatalogTab() {
               onClick={() => handleStatusFilterChange("ACTIVE")}
               className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                 statusFilter === "ACTIVE"
-                  ? "bg-surface text-emerald-600 shadow-xs"
+                  ? "bg-surface text-primary shadow-xs"
                   : "text-text-muted hover:text-text-main"
               }`}
             >
@@ -181,7 +180,7 @@ export function CvTemplateCatalogTab() {
               onClick={() => handleStatusFilterChange("INACTIVE")}
               className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                 statusFilter === "INACTIVE"
-                  ? "bg-surface text-rose-600 shadow-xs"
+                  ? "bg-surface text-primary shadow-xs"
                   : "text-text-muted hover:text-text-main"
               }`}
             >
@@ -226,7 +225,7 @@ export function CvTemplateCatalogTab() {
                 <Button
                   variant="secondary"
                   onClick={handleClearFilters}
-                  className="mt-3 h-8! px-3! text-xs! rounded-xl!"
+                  className="mt-3 h-8! rounded-xl! px-3! text-xs!"
                 >
                   Xóa bộ lọc
                 </Button>
@@ -238,7 +237,6 @@ export function CvTemplateCatalogTab() {
                 const isTplActive = tpl.isActive;
                 const cardData: CVTemplateItemData = {
                   id: tpl.id,
-                  code: tpl.code,
                   name: tpl.name,
                   description: tpl.description,
                   thumbnailUrl: tpl.thumbnailUrl || undefined,
@@ -255,11 +253,10 @@ export function CvTemplateCatalogTab() {
                     onPreview={(item) => setPreviewTemplate(item)}
                     onEdit={() => handleOpenEdit(tpl)}
                     topRightBadge={
-                      <div className="flex items-center gap-1.5">
-                        <span className="rounded-md bg-white/95 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-main shadow-xs backdrop-blur-xs">
-                          v{tpl.version}
-                        </span>
-                        <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-xs">
+                      <div className="flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-medium text-text-muted shadow-xs backdrop-blur-xs">
+                        <span>v{tpl.version}</span>
+                        <span className="text-border">•</span>
+                        <span className="font-semibold text-text-main">
                           {tpl.language?.toUpperCase() || "VI"}
                         </span>
                       </div>
@@ -283,15 +280,19 @@ export function CvTemplateCatalogTab() {
                                 </div>
                               }
                             />
-                            <TooltipPanel side="top" sideOffset={6} className="text-xs">
+                            <TooltipPanel
+                              side="top"
+                              sideOffset={6}
+                              className="text-xs"
+                            >
                               {isTplActive
                                 ? "Đang kích hoạt (Nhấn để ẩn)"
                                 : "Đã ẩn (Nhấn để bật)"}
                             </TooltipPanel>
                           </Tooltip>
                           <span
-                            className={`text-xs font-semibold ${
-                              isTplActive ? "text-emerald-600" : "text-slate-400"
+                            className={`text-xs font-medium ${
+                              isTplActive ? "text-text-main" : "text-text-muted"
                             }`}
                           >
                             {isTplActive ? "Kích hoạt" : "Đã ẩn"}
@@ -312,7 +313,11 @@ export function CvTemplateCatalogTab() {
                               </button>
                             }
                           />
-                          <TooltipPanel side="left" sideOffset={6} className="text-xs">
+                          <TooltipPanel
+                            side="left"
+                            sideOffset={6}
+                            className="text-xs"
+                          >
                             Chỉnh sửa thông tin mẫu CV
                           </TooltipPanel>
                         </Tooltip>
@@ -349,7 +354,7 @@ export function CvTemplateCatalogTab() {
                 iconSize={14}
                 disabled={page <= 1 || isLoading}
                 onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                className="h-8! px-2.5! text-xs! rounded-xl!"
+                className="h-8! rounded-xl! px-2.5! text-xs!"
               >
                 Trước
               </Button>
@@ -364,8 +369,10 @@ export function CvTemplateCatalogTab() {
                 iconPosition="right"
                 iconSize={14}
                 disabled={page >= totalPages || isLoading}
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                className="h-8! px-2.5! text-xs! rounded-xl!"
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                className="h-8! rounded-xl! px-2.5! text-xs!"
               >
                 Sau
               </Button>
@@ -390,4 +397,3 @@ export function CvTemplateCatalogTab() {
     </div>
   );
 }
-

@@ -382,7 +382,7 @@ export function IndustryCatalogTab() {
                 onClick={() => setStatusFilter("ACTIVE")}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === "ACTIVE"
-                    ? "bg-surface text-emerald-600 shadow-xs"
+                    ? "bg-surface text-primary shadow-xs"
                     : "text-text-muted hover:text-text-main"
                 }`}
               >
@@ -393,7 +393,7 @@ export function IndustryCatalogTab() {
                 onClick={() => setStatusFilter("INACTIVE")}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === "INACTIVE"
-                    ? "bg-surface text-rose-600 shadow-xs"
+                    ? "bg-surface text-primary shadow-xs"
                     : "text-text-muted hover:text-text-main"
                 }`}
               >

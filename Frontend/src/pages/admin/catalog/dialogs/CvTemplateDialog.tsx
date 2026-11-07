@@ -84,7 +84,7 @@ function CvTemplateForm({
         <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-bg p-3 text-xs">
           <div>
             <span className="text-[11px] text-text-muted">Mã mẫu (Code):</span>
-            <p className="font-mono font-semibold text-primary">{template.code}</p>
+            <p className="font-semibold text-text-main">{template.code}</p>
           </div>
           <div>
             <span className="text-[11px] text-text-muted">Phiên bản:</span>

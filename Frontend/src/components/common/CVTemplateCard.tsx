@@ -4,7 +4,6 @@ import Button from "./Button";
 
 export interface CVTemplateItemData {
   id: string;
-  code?: string;
   name: string;
   description?: string | null;
   thumbnailUrl?: string | null;
@@ -75,12 +74,12 @@ export function CVTemplateCard({
         {/* Badge góc trên bên trái */}
         <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-1.5">
           {isHidden ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-600 shadow-xs backdrop-blur-xs">
-              <span className="size-1.5 rounded-full bg-rose-500" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-2.5 py-1 text-[11px] font-medium text-white shadow-xs backdrop-blur-xs">
+              <span className="size-1.5 rounded-full bg-slate-400" />
               Đã ẩn
             </span>
           ) : template.badge ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-slate-800 shadow-xs backdrop-blur-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-medium text-text-main shadow-xs backdrop-blur-xs">
               <span className="size-1.5 rounded-full bg-primary" />
               {template.badge}
             </span>
@@ -92,7 +91,7 @@ export function CVTemplateCard({
           {topRightBadge ? (
             topRightBadge
           ) : template.version !== undefined ? (
-            <span className="rounded-md bg-white/90 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-main shadow-xs backdrop-blur-xs">
+            <span className="rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium text-text-muted shadow-xs backdrop-blur-xs">
               v{template.version}
             </span>
           ) : null}
@@ -134,18 +133,13 @@ export function CVTemplateCard({
 
       {/* Thông tin mẫu CV */}
       <div className="flex flex-1 flex-col gap-1 p-4">
-        {template.code && (
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted">
-            {template.code}
-          </span>
-        )}
         <h3
           title={template.name}
-          className="line-clamp-1 text-sm font-bold text-text-main sm:text-base"
+          className="line-clamp-1 text-sm font-semibold text-text-main sm:text-base"
         >
           {template.name}
         </h3>
-        <p className="line-clamp-2 text-xs text-text-muted">
+        <p className="line-clamp-2 text-xs leading-relaxed text-text-muted">
           {template.description || "Mẫu CV chuẩn ATS tối ưu tỷ lệ trúng tuyển"}
         </p>
       </div>
