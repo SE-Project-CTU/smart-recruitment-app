@@ -352,18 +352,19 @@ export function JobModerationSheet({
           {/* Footer Actions */}
           <SheetFooter className="border-t border-border/70 p-4 sm:justify-between">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={onClose}
-              className="h-10 rounded-xl px-4 text-xs font-medium"
+              className="h-9! px-4! text-xs! font-medium!"
             >
               Đóng
             </Button>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {/* Nút từ chối tin */}
               <Button
-                variant="outline"
+                variant="secondary"
                 icon={XCircle}
+                iconSize={14}
                 onClick={() => {
                   setRejectionReason("");
                   setReasonError("");
@@ -371,7 +372,7 @@ export function JobModerationSheet({
                 }}
                 disabled={isRejected || moderateMutation.isPending}
                 className={cn(
-                  "h-10 rounded-xl border-rose-200 px-4 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700",
+                  "h-9! px-4! text-xs! font-semibold! text-rose-600! hover:bg-rose-50! hover:text-rose-700!",
                   isRejected && "opacity-50",
                 )}
               >
@@ -382,9 +383,10 @@ export function JobModerationSheet({
               <Button
                 variant="primary"
                 icon={CheckCircle2}
+                iconSize={14}
                 onClick={() => setIsApproveDialogOpen(true)}
                 disabled={isPublished || moderateMutation.isPending}
-                className="h-10 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white hover:bg-emerald-700"
+                className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
               >
                 Phê duyệt xuất bản
               </Button>
@@ -413,19 +415,20 @@ export function JobModerationSheet({
 
           <DialogFooter className="mt-4 gap-2 sm:justify-end">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => setIsApproveDialogOpen(false)}
               disabled={moderateMutation.isPending}
-              className="h-9 rounded-xl px-4 text-xs font-medium"
+              className="h-9! px-4! text-xs! font-medium!"
             >
               Hủy
             </Button>
             <Button
               variant="primary"
               icon={CheckCircle2}
+              iconSize={14}
               isLoading={moderateMutation.isPending}
               onClick={handleConfirmApprove}
-              className="h-9 rounded-xl bg-emerald-600 px-4 text-xs font-semibold text-white hover:bg-emerald-700"
+              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
             >
               Xác nhận xuất bản
             </Button>
@@ -467,8 +470,8 @@ export function JobModerationSheet({
               }}
               placeholder="Ví dụ: Mô tả công việc chưa rõ ràng, mức lương không phù hợp, hoặc vi phạm chính sách đăng tin của nền tảng..."
               className={cn(
-                "w-full rounded-xl border border-border bg-white p-3 text-xs leading-relaxed text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none",
-                reasonError && "border-rose-400 focus:border-rose-500 focus:ring-rose-400",
+                "w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs leading-relaxed text-text-main placeholder:text-text-muted focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20 focus:outline-none",
+                reasonError && "border-rose-400 focus:border-rose-500",
               )}
             />
             {reasonError && (
@@ -478,19 +481,20 @@ export function JobModerationSheet({
 
           <DialogFooter className="mt-4 gap-2 sm:justify-end">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => setIsRejectDialogOpen(false)}
               disabled={moderateMutation.isPending}
-              className="h-9 rounded-xl px-4 text-xs font-medium"
+              className="h-9! px-4! text-xs! font-medium!"
             >
               Hủy
             </Button>
             <Button
               variant="primary"
               icon={XCircle}
+              iconSize={14}
               isLoading={moderateMutation.isPending}
               onClick={handleConfirmReject}
-              className="h-9 rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white hover:bg-rose-700"
+              className="h-9! bg-rose-600! px-4! text-xs! font-semibold! text-white! hover:bg-rose-700!"
             >
               Xác nhận từ chối
             </Button>
