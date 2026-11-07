@@ -746,7 +746,7 @@ export default function RecruiterDashboard() {
                 <EChartsAreaChart.Grid />
                 <EChartsAreaChart.XAxis
                   dataKey="month"
-                  tickFormatter={(val) => val}
+                  tickFormatter={(val: string) => val}
                 />
                 <EChartsAreaChart.Tooltip />
                 <EChartsAreaChart.Area

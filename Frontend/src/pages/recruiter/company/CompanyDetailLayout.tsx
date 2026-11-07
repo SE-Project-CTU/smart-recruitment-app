@@ -51,11 +51,21 @@ export function CompanyDetailLayout() {
       activeCompany.name !== company.name ||
       activeCompany.logoUrl !== company.logoUrl ||
       activeCompany.logoFileId !== company.logoFileId ||
-      activeCompany.verificationStatus !== company.verificationStatus
+      activeCompany.verificationStatus !== company.verificationStatus ||
+      activeCompany.membership?.role !== company.membership?.role
     ) {
       setActiveCompany(company);
     }
-  }, [company, activeCompanyId, activeCompany, setActiveCompany]);
+  }, [
+    company,
+    activeCompanyId,
+    activeCompany?.name,
+    activeCompany?.logoUrl,
+    activeCompany?.logoFileId,
+    activeCompany?.verificationStatus,
+    activeCompany?.membership?.role,
+    setActiveCompany,
+  ]);
 
   if (isLoading) {
     return (

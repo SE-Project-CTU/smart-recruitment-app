@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Bell,
   ChevronDown,
   FilePlus,
   FileText,
@@ -11,6 +10,7 @@ import {
   PlusCircle,
   UserRound,
 } from "lucide-react";
+import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SmartHire_default } from "@/assets/images/logo";
 import { useAuthStore } from "@/stores/authStore";
@@ -146,14 +146,7 @@ function DashboardHeader() {
       <div className="flex items-center gap-4">
         {renderRoleActionButton()}
 
-        <button
-          type="button"
-          aria-label="Thông báo"
-          className="relative rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
-        >
-          <Bell className="size-5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
-        </button>
+        <NotificationDropdown />
 
         <div className="flex items-center gap-3 border-l border-border/40 pl-3">
           <Menu>

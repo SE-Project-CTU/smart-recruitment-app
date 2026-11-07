@@ -56,7 +56,8 @@ export function WorkspaceSwitcher() {
       activeCompany.name !== matched.name ||
       activeCompany.logoUrl !== matched.logoUrl ||
       activeCompany.logoFileId !== matched.logoFileId ||
-      activeCompany.verificationStatus !== matched.verificationStatus
+      activeCompany.verificationStatus !== matched.verificationStatus ||
+      activeCompany.membership?.role !== matched.membership?.role
     ) {
       // Giữ thông tin tóm tắt luôn đồng bộ mới nhất
       setActiveCompany(matched);
@@ -64,7 +65,12 @@ export function WorkspaceSwitcher() {
   }, [
     companies,
     activeCompanyId,
-    activeCompany,
+    activeCompany?.id,
+    activeCompany?.name,
+    activeCompany?.logoUrl,
+    activeCompany?.logoFileId,
+    activeCompany?.verificationStatus,
+    activeCompany?.membership?.role,
     isLoading,
     setActiveCompany,
     clearActiveCompany,

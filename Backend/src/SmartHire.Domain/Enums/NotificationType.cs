@@ -6,5 +6,6 @@ public enum NotificationType {
     CompanyInvitation,
     CompanyJoinRequest,
     JobRecommendation,
-    SystemAlert
+    SystemAlert,
+    JobApplicationReceived
 }

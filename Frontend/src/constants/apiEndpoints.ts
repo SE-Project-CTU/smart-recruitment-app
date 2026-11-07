@@ -89,4 +89,11 @@ export const API_ENDPOINTS = {
     ENHANCE_CV_BATCH: "/ai/cv/enhance/batch",
     MATCH_ANALYSIS: "/ai/match-analysis",
   },
+  NOTIFICATION: {
+    LIST: "/me/notifications",
+    UNREAD_COUNT: "/me/notifications/unread-count",
+    MARK_READ: (id: string) => `/me/notifications/${id}/read`,
+    MARK_ALL_READ: "/me/notifications/read-all",
+    DELETE: (id: string) => `/me/notifications/${id}`,
+  },
 } as const;

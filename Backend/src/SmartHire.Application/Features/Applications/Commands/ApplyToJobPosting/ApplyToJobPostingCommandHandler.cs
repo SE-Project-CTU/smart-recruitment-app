@@ -1,5 +1,7 @@
 using System.Text.Json;
 using MediatR;
+using Microsoft.Extensions.Caching.Distributed;
+using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
@@ -7,6 +9,7 @@ using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Ai.Matching;
 using SmartHire.Application.Features.Applications.DTOs;
 using SmartHire.Application.Features.Applications.Exceptions;
+using SmartHire.Application.Features.Notifications.Constants;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -26,6 +29,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
     private readonly IJobEmbeddingRepository _jobEmbeddingRepository;
     private readonly ISmartHireMatchEngine _matchEngine;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly INotificationDispatcher? _notificationDispatcher;
+    private readonly IDistributedCache? _distributedCache;
 
     public ApplyToJobPostingCommandHandler(
         ICurrentUser currentUser,
@@ -37,7 +42,9 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         ICvEmbeddingRepository cvEmbeddingRepository,
         IJobEmbeddingRepository jobEmbeddingRepository,
         ISmartHireMatchEngine matchEngine,
-        IUnitOfWork unitOfWork) {
+        IUnitOfWork unitOfWork,
+        INotificationDispatcher? notificationDispatcher = null,
+        IDistributedCache? distributedCache = null) {
         _currentUser = currentUser;
         _jobPostingRepository = jobPostingRepository;
         _applicationRepository = applicationRepository;
@@ -48,6 +55,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         _jobEmbeddingRepository = jobEmbeddingRepository;
         _matchEngine = matchEngine;
         _unitOfWork = unitOfWork;
+        _notificationDispatcher = notificationDispatcher;
+        _distributedCache = distributedCache;
     }
 
     public async Task<ApplyJobResult> Handle(
@@ -156,6 +165,70 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
                 "ix_applications_candidate_id_job_id",
                 StringComparison.OrdinalIgnoreCase)) {
             throw ApplicationExceptions.DuplicateApplication();
+        }
+
+        if (_notificationDispatcher is not null) {
+            try {
+                var companyId = posting.CompanyId;
+                var throttleKey = $"notify_burst:company:{companyId:D}:job:{jobPostingId:D}";
+                bool isThrottled = false;
+
+                if (_distributedCache is not null) {
+                    var cached = await _distributedCache.GetStringAsync(throttleKey, cancellationToken);
+                    if (!string.IsNullOrEmpty(cached)) {
+                        isThrottled = true;
+                    }
+                    else {
+                        // Cửa sổ chống bão thông báo, burst traffic 10 giây
+                        await _distributedCache.SetStringAsync(
+                            throttleKey,
+                            "1",
+                            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) },
+                            cancellationToken);
+                    }
+                }
+
+                if (!isThrottled) {
+                    // Đơn đầu tiên trong cửa sổ 10s: Gửi Toast notification đầy đủ tới phòng công ty
+                    var payloadJson = JsonSerializer.Serialize(new {
+                        applicationId = application.Id,
+                        jobId = jobPostingId,
+                        jobTitle = posting.Title,
+                        appliedAt = application.AppliedAt
+                    });
+
+                    var notificationDto = new {
+                        id = Guid.NewGuid(),
+                        type = NotificationType.JobApplicationReceived.ToString(),
+                        title = "Hồ sơ ứng tuyển mới",
+                        body = $"Có ứng viên vừa nộp hồ sơ vào vị trí \"{posting.Title}\".",
+                        payload = payloadJson,
+                        resourceType = "JobApplication",
+                        resourceId = application.Id,
+                        createdAt = application.AppliedAt,
+                        isRead = false
+                    };
+
+                    await _notificationDispatcher.DispatchToCompanyAsync(companyId, notificationDto, cancellationToken);
+                }
+                else {
+                    // Khi có lượng lớn ứng viên nộp dồn dập trong 10s:
+                    // Chỉ bắn sự kiện tăng bộ đếm nhẹ để UI nhảy số badge, không gây bão socket và nghẽn trình duyệt HR
+                    await _notificationDispatcher.DispatchToGroupAsync(
+                        NotificationGroups.Company(companyId),
+                        "ApplicationCounterUpdated",
+                        new {
+                            jobId = jobPostingId,
+                            companyId = companyId,
+                            delta = 1,
+                            timestamp = DateTimeOffset.UtcNow
+                        },
+                        cancellationToken);
+                }
+            }
+            catch {
+                // Nuốt lỗi thông báo để không bao giờ làm gián đoạn đơn ứng tuyển đã nộp thành công
+            }
         }
 
         return new ApplyJobResult(
