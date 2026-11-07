@@ -145,14 +145,8 @@ export const adminSidebarData = {
     },
     {
       title: "Danh mục chung",
-      url: "#",
+      url: PATHS.ADMIN.CATALOGS,
       icon: BookBookmark,
-      items: [
-        { title: "Mẫu CV", url: `${PATHS.ADMIN.CATALOGS}?tab=cv-templates` },
-        { title: "Ngành nghề", url: `${PATHS.ADMIN.CATALOGS}?tab=industries` },
-        { title: "Khu vực", url: `${PATHS.ADMIN.CATALOGS}?tab=locations` },
-        { title: "Kỹ năng", url: `${PATHS.ADMIN.CATALOGS}?tab=skills` },
-      ],
     },
     { title: "Quản trị người dùng", url: PATHS.ADMIN.USERS, icon: UserRound },
   ],

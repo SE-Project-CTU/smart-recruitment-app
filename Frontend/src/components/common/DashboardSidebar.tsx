@@ -130,10 +130,16 @@ export function DashboardSidebar() {
   const isItemActive = (item: NavItem) => {
     if (!item.url || item.url === "#") return false;
     const currentPath = location.pathname.toLowerCase();
+    const currentSearch = location.search.toLowerCase();
+    const currentFullPath = (currentPath + currentSearch).toLowerCase();
     const targetUrl = item.url.toLowerCase();
 
-    // 1. Khớp chính xác
-    if (currentPath === targetUrl) return true;
+    // 1. Khớp chính xác (hỗ trợ cả URL có query params)
+    if (targetUrl.includes("?")) {
+      if (currentFullPath === targetUrl) return true;
+    } else {
+      if (currentPath === targetUrl) return true;
+    }
 
     // 2. Khớp tiền tố (prefix) khi không có mục con nào khác khớp chính xác hơn
     if (targetUrl !== "/") {
@@ -161,24 +167,55 @@ export function DashboardSidebar() {
   };
 
   /**
-   * Kiểm tra xem một SubItem có đang active hay không, hỗ trợ cả URL chính xác, prefix route, và dynamic route (:companyId)
+   * Kiểm tra xem một SubItem có đang active hay không, hỗ trợ cả URL chính xác, prefix route, dynamic route (:companyId) và query params (?tab=...)
    */
   const isSubItemActive = (subUrl: string, siblingUrls?: string[]) => {
     if (!subUrl || subUrl === "#") return false;
     const currentPath = location.pathname.toLowerCase();
+    const currentSearch = location.search.toLowerCase();
+    const currentFullPath = (currentPath + currentSearch).toLowerCase();
     const targetUrl = subUrl.toLowerCase();
 
-    // 1. Khớp chính xác
+    // 1. Hỗ trợ URL có query params (ví dụ: ?tab=industries)
+    if (targetUrl.includes("?")) {
+      if (currentFullPath === targetUrl) return true;
+
+      const [targetPath, targetQuery] = targetUrl.split("?");
+      if (currentPath === targetPath) {
+        const currentSearchParams = new URLSearchParams(currentSearch);
+        const targetSearchParams = new URLSearchParams(targetQuery);
+
+        let allMatch = true;
+        targetSearchParams.forEach((val, key) => {
+          const currentVal = currentSearchParams.get(key);
+          if (currentVal !== val) {
+            // Mặc định tab=industries khi truy cập /admin/catalogs mà chưa có query param tab
+            if (
+              key === "tab" &&
+              (!currentVal || currentVal === "") &&
+              val === "industries"
+            ) {
+              return;
+            }
+            allMatch = false;
+          }
+        });
+        if (allMatch) return true;
+      }
+      return false;
+    }
+
+    // 2. Khớp chính xác pathname
     if (currentPath === targetUrl) return true;
 
-    // 2. Dynamic pattern (ví dụ :companyId)
+    // 3. Dynamic pattern (ví dụ :companyId)
     if (targetUrl.includes(":")) {
       const regexPattern =
         "^" + targetUrl.replace(/:[^/]+/g, "[^/]+") + "(?:/.*)?$";
       if (new RegExp(regexPattern).test(currentPath)) return true;
     }
 
-    // 3. Khớp tiền tố (prefix) theo phân hệ khi không có sibling nào khớp tốt hơn
+    // 4. Khớp tiền tố (prefix) theo phân hệ khi không có sibling nào khớp tốt hơn
     if (targetUrl !== "/" && targetUrl !== "#") {
       if (currentPath.startsWith(targetUrl + "/")) {
         if (siblingUrls) {
