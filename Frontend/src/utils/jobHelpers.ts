@@ -32,9 +32,9 @@ export const JOB_TYPE_OPTIONS: SelectOption<JobType>[] = [
 
 // WorkMode: Môi trường / Chế độ làm việc (Work Location)
 export const WORK_MODE_OPTIONS: SelectOption<WorkMode>[] = [
-  { value: "Onsite", label: "Tại văn phòng" },
-  { value: "Hybrid", label: "Linh hoạt" },
-  { value: "Remote", label: "Làm từ xa" },
+  { value: "Onsite", label: "On-site" },
+  { value: "Hybrid", label: "Hybrid" },
+  { value: "Remote", label: "Remote" },
 ];
 
 // JobLevel dịch sang tiếng Việt
@@ -90,7 +90,9 @@ export function normalizeJobType(raw?: string | null): JobType | null {
 /**
  * Chuẩn hóa chuỗi raw thành WorkMode hợp lệ (Onsite, Hybrid, Remote)
  */
-export function normalizeWorkMode(raw?: string | number | null): WorkMode | null {
+export function normalizeWorkMode(
+  raw?: string | number | null,
+): WorkMode | null {
   if (raw == null) return null;
   const clean = String(raw)
     .trim()
@@ -440,8 +442,9 @@ export function extractJobDisplayData(job: AnyJob) {
 
   const isCompanyVerified = Boolean(
     ("verificationStatus" in (job.company || {}) &&
-      (job.company as { verificationStatus?: string })?.verificationStatus?.toUpperCase() ===
-        "VERIFIED") ||
+      (
+        job.company as { verificationStatus?: string }
+      )?.verificationStatus?.toUpperCase() === "VERIFIED") ||
     ("isVerified" in (job.company || {}) &&
       Boolean((job.company as { isVerified?: boolean })?.isVerified)),
   );

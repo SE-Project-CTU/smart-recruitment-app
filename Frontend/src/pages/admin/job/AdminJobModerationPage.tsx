@@ -335,7 +335,7 @@ export default function AdminJobModerationPage() {
                       <th className="w-16 px-4 py-3.5 text-center">#STT</th>
                       <th className="px-5 py-3.5">Vị trí & Doanh nghiệp</th>
                       <th className="px-4 py-3.5">Mức thu nhập</th>
-                      <th className="px-4 py-3.5">Địa bàn</th>
+                      <th className="px-4 py-3.5">Khu vực</th>
                       <th className="px-4 py-3.5">Thời gian tạo</th>
                       <th className="px-4 py-3.5">Hạn nộp</th>
                       <th className="px-4 py-3.5">Trạng thái</th>

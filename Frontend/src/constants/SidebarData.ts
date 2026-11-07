@@ -37,14 +37,18 @@ export const candidateSidebarData = {
       title: "Việc làm phù hợp",
       url: PATHS.CANDIDATE.MATCHED_JOBS,
       icon: LayoutList,
-  LayoutTemplate,
+      LayoutTemplate,
       items: [],
     },
   ],
   //hồ sơ của tui
   myProfile: [
     { title: "Quản lý CV", url: PATHS.CANDIDATE.CV_MANAGEMENT, icon: FileText },
-    { title: "Mẫu CV", url: PATHS.CANDIDATE.CV_TEMPLATES, icon: LayoutTemplate },
+    {
+      title: "Mẫu CV",
+      url: PATHS.CANDIDATE.CV_TEMPLATES,
+      icon: LayoutTemplate,
+    },
     {
       title: "Trạng thái hồ sơ",
       url: PATHS.CANDIDATE.APPLICATION_STATUS,
@@ -146,7 +150,7 @@ export const adminSidebarData = {
       items: [
         { title: "Mẫu CV", url: `${PATHS.ADMIN.CATALOGS}?tab=cv-templates` },
         { title: "Ngành nghề", url: `${PATHS.ADMIN.CATALOGS}?tab=industries` },
-        { title: "Địa bàn", url: `${PATHS.ADMIN.CATALOGS}?tab=locations` },
+        { title: "Khu vực", url: `${PATHS.ADMIN.CATALOGS}?tab=locations` },
         { title: "Kỹ năng", url: `${PATHS.ADMIN.CATALOGS}?tab=skills` },
       ],
     },

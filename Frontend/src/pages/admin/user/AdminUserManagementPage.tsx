@@ -755,13 +755,12 @@ export default function AdminUserManagementPage() {
             {/* Cảnh báo an ninh */}
             <div className="mt-4 rounded-xl border border-rose-200/80 bg-rose-50/60 p-3 text-xs text-rose-800">
               <p className="flex items-center gap-1.5 font-semibold">
-                <Lock className="size-3.5 shrink-0" />
                 Lưu ý quan trọng:
               </p>
               <p className="mt-1 text-[11px] leading-relaxed text-rose-700">
-                Khi khóa tài khoản này, toàn bộ phiên đăng nhập (Refresh Tokens)
-                sẽ bị thu hồi ngay lập tức và người dùng sẽ bị đăng xuất khỏi
-                toàn bộ thiết bị.
+                Khi khóa tài khoản này, toàn bộ phiên đăng nhập sẽ bị thu hồi
+                ngay lập tức và người dùng sẽ bị đăng xuất khỏi toàn bộ thiết
+                bị.
               </p>
             </div>
 
@@ -776,7 +775,7 @@ export default function AdminUserManagementPage() {
                 placeholder="Ví dụ: Vi phạm chính sách tuyển dụng, nghi vấn mạo danh doanh nghiệp..."
                 rows={2}
                 maxLength={300}
-                className="w-full resize-none rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 transition-colors outline-none focus:border-rose-400 focus:bg-white focus:ring-1 focus:ring-rose-200"
+                className="w-full resize-none rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 transition-colors outline-none"
               />
             </div>
           </div>
