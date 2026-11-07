@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router-dom";
-import { Sparkles, MapPin, FileText } from "lucide-react";
+import { MapPin, FileText } from "lucide-react";
 import { IndustryCatalogTab } from "./tabs/IndustryCatalogTab";
+import { SkillCatalogTab } from "./tabs/SkillCatalogTab";
 
 type CatalogTabKey = "industries" | "skills" | "locations" | "cv-templates";
 
@@ -23,7 +24,7 @@ const CATALOG_TABS: TabItem[] = [
   },
   {
     key: "locations",
-    label: "Địa bàn",
+    label: "Khu vực",
     description: "Tỉnh/Thành phố và Phường/Xã",
   },
   {
@@ -92,17 +93,7 @@ export function AdminCatalogsPage() {
       <div>
         {activeTab === "industries" && <IndustryCatalogTab />}
 
-        {activeTab === "skills" && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-12 text-center">
-            <Sparkles className="mb-2 size-8 text-primary/40" />
-            <p className="text-sm font-semibold text-text-main">
-              Quản lý kho Kỹ năng chuyên môn
-            </p>
-            <p className="mt-1 text-xs text-text-muted">
-              Mô-đun quản lý Kỹ năng (Phase 5.2) sẵn sàng triển khai tiếp theo.
-            </p>
-          </div>
-        )}
+        {activeTab === "skills" && <SkillCatalogTab />}
 
         {activeTab === "locations" && (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-12 text-center">

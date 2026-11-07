@@ -27,8 +27,7 @@ export const API_ENDPOINTS = {
     REMOVE_MEMBER: (companyId: string, memberId: string) =>
       `/companies/${companyId}/members/${memberId}`,
     LEAVE: (companyId: string) => `/companies/${companyId}/leave`,
-    APPLICATIONS: (companyId: string) =>
-      `/companies/${companyId}/applications`,
+    APPLICATIONS: (companyId: string) => `/companies/${companyId}/applications`,
     INVITATIONS: (id: string) => `/companies/${id}/invitations`,
     MY_INVITATIONS: "/me/company-invitations",
     ACCEPT_INVITATION: (id: string) => `/company-invitations/${id}/accept`,
@@ -95,6 +94,7 @@ export const API_ENDPOINTS = {
     MARK_READ: (id: string) => `/me/notifications/${id}/read`,
     MARK_ALL_READ: "/me/notifications/read-all",
     DELETE: (id: string) => `/me/notifications/${id}`,
+  },
   ADMIN: {
     DASHBOARD_OVERVIEW: "/admin/dashboard/overview",
     USERS: "/admin/users",
@@ -104,7 +104,8 @@ export const API_ENDPOINTS = {
     COMPANY_VERIFICATION: (id: string) => `/admin/companies/${id}/verification`,
     JOB_POSTINGS: "/admin/job-postings",
     JOB_POSTING_DETAIL: (id: string) => `/admin/job-postings/${id}`,
-    JOB_POSTING_MODERATION: (id: string) => `/admin/job-postings/${id}/moderation`,
+    JOB_POSTING_MODERATION: (id: string) =>
+      `/admin/job-postings/${id}/moderation`,
     INDUSTRY_GROUPS: "/admin/industry-groups",
     INDUSTRY_GROUP_DETAIL: (id: string) => `/admin/industry-groups/${id}`,
     INDUSTRIES: "/admin/industries",

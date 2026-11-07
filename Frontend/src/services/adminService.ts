@@ -239,6 +239,8 @@ export const adminService = {
   },
 
   async getProvinces(params?: {
+    search?: string;
+    status?: string;
     page?: number;
     pageSize?: number;
   }): Promise<AdminPagedResponse<AdminProvince>> {
@@ -281,6 +283,8 @@ export const adminService = {
 
   async getWards(params?: {
     provinceId?: string;
+    search?: string;
+    status?: string;
     page?: number;
     pageSize?: number;
   }): Promise<AdminPagedResponse<AdminWard>> {

@@ -42,15 +42,25 @@ export const adminKeys = {
     page?: number;
     pageSize?: number;
   }) => [...adminKeys.all, "industries", params] as const,
-  provinces: (params?: { page?: number; pageSize?: number }) =>
-    [...adminKeys.all, "provinces", params] as const,
+  provinces: (params?: {
+    search?: string;
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }) => [...adminKeys.all, "provinces", params] as const,
   wards: (params?: {
     provinceId?: string;
+    search?: string;
+    status?: string;
     page?: number;
     pageSize?: number;
   }) => [...adminKeys.all, "wards", params] as const,
-  skills: (params?: { page?: number; pageSize?: number }) =>
-    [...adminKeys.all, "skills", params] as const,
+  skills: (params?: {
+    search?: string;
+    isActive?: boolean;
+    page?: number;
+    pageSize?: number;
+  }) => [...adminKeys.all, "skills", params] as const,
   cvTemplates: (params?: { page?: number; pageSize?: number }) =>
     [...adminKeys.all, "cv-templates", params] as const,
 };
@@ -355,6 +365,8 @@ export const useUpdateIndustry = () => {
 };
 
 export const useAdminProvinces = (params?: {
+  search?: string;
+  status?: string;
   page?: number;
   pageSize?: number;
 }) => {
@@ -423,6 +435,8 @@ export const useUpdateProvince = () => {
 
 export const useAdminWards = (params?: {
   provinceId?: string;
+  search?: string;
+  status?: string;
   page?: number;
   pageSize?: number;
 }) => {
@@ -488,6 +502,8 @@ export const useUpdateWard = () => {
 };
 
 export const useAdminSkills = (params?: {
+  search?: string;
+  isActive?: boolean;
   page?: number;
   pageSize?: number;
 }) => {
