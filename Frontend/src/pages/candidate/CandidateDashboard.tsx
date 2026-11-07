@@ -124,8 +124,8 @@ function CandidateDashboard() {
 
         <div className="scrollbar-hide flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto pb-2">
           {isLoadingJobs ? (
-            <div className="shrink-0">
-              {[1, 2, 3].map((n) => (
+            <div className="flex min-w-0 flex-row flex-nowrap gap-2">
+              {[1, 2, 3, 4, 5].map((n) => (
                 <JobCardSkeleton key={n} />
               ))}
             </div>

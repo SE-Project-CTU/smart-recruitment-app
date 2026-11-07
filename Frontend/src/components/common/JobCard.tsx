@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Clock, Ellipsis, MapPin } from "lucide-react";
 import { Bookmark, BookmarkCheck } from "lucide";
 import { MorphIcon } from "morphicons/react";
@@ -26,6 +27,7 @@ import {
   useMyBookmarkedJobs,
 } from "@/hooks/queries/useJob";
 import { toast } from "@/hooks/use-toast";
+import { PATHS } from "@/constants/paths";
 import type { JobPostingItem, JobPostingSearchItem } from "@/types/job";
 import type { MockJobPosting } from "@/constants/mockData";
 import { cn } from "@/lib/utils";
@@ -56,9 +58,12 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   role = "candidate",
   companyLogoUrl: customCompanyLogoUrl,
 }: JobCardProps<T>) {
+  const navigate = useNavigate();
   const { openApplyModal } = useApplyJobModalStore();
   const { user } = useAuthStore();
-  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+  const isCandidate = Boolean(
+    user?.roles?.some((r) => r.toLowerCase() === "candidate")
+  );
 
   // Lấy cache danh sách bookmark nếu không được truyền từ cha và chưa có trên job
   const { data: bookmarkedData } = useMyBookmarkedJobs(
@@ -106,6 +111,19 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
 
   const handleApplyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      toast.warning({
+        description: "Vui lòng đăng nhập với tư cách ứng viên để ứng tuyển!",
+      });
+      navigate(PATHS.SIGN_IN);
+      return;
+    }
+    if (!isCandidate) {
+      toast.warning({
+        description: "Chỉ tài khoản ứng viên mới có thể nộp hồ sơ ứng tuyển!",
+      });
+      return;
+    }
     if (onApply) {
       onApply(job);
     } else {

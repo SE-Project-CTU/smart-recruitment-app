@@ -134,11 +134,7 @@ export default function CandidateApplicationStatusPage() {
       }).length,
       offered: rawApplications.filter((a) => {
         const s = (a.status || "").toUpperCase();
-        return (
-          s === "OFFERED" ||
-          s === "HIRED" ||
-          s === "ACCEPTED"
-        );
+        return s === "OFFERED" || s === "HIRED" || s === "ACCEPTED";
       }).length,
     };
   }, [rawApplications, totalItems]);
@@ -284,8 +280,7 @@ export default function CandidateApplicationStatusPage() {
           filterFn: "includesString",
           cell: ({ row }) => {
             const statusKey = (row.original.status as string) || "";
-            const cfg =
-              APPLICATION_STATUS_CONFIG[statusKey] ||
+            const cfg = APPLICATION_STATUS_CONFIG[statusKey] ||
               APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
                 label: statusKey,
                 badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
@@ -544,7 +539,7 @@ export default function CandidateApplicationStatusPage() {
           if (!open) setSelectedApplication(null);
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="min-w-fit sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-900">
               Chi tiết tiến trình hồ sơ
@@ -701,8 +696,11 @@ export default function CandidateApplicationStatusPage() {
                 ) : (
                   <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
                     Đơn ứng tuyển đang ở trạng thái ban đầu (
-                    {APPLICATION_STATUS_CONFIG[selectedApplication.status]?.label ||
-                      APPLICATION_STATUS_CONFIG[(selectedApplication.status || "").toUpperCase()]?.label ||
+                    {APPLICATION_STATUS_CONFIG[selectedApplication.status]
+                      ?.label ||
+                      APPLICATION_STATUS_CONFIG[
+                        (selectedApplication.status || "").toUpperCase()
+                      ]?.label ||
                       selectedApplication.status}
                     ). Nhà tuyển dụng chưa có ghi nhận thay đổi mới.
                   </div>
