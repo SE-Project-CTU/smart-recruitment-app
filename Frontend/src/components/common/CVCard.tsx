@@ -5,32 +5,38 @@ import type { CVItem } from "@/types/cv";
 import { Switch } from "../ui/switch";
 import { MorphIcon } from "morphicons/react";
 import { Globe, Lock } from "lucide";
+import { cn } from "@/lib/utils";
 
 interface CVCardProps {
   cv: CVItem;
   onClick?: (cv: CVItem) => void;
   onEdit?: (cv: CVItem) => void;
-  onRename?: (cv: CVItem) => void;
   onDownload?: (cv: CVItem) => void;
   onDelete?: (cv: CVItem) => void;
   onTogglePublic?: (cv: CVItem, nextIsPublic: boolean) => void;
   isTogglingPublic?: boolean;
+  className?: string;
 }
 
 export function CVCard({
   cv,
   onClick,
   onEdit,
-  onRename,
   onDownload,
   onDelete,
   onTogglePublic,
   isTogglingPublic,
+  className,
 }: CVCardProps) {
   const templateName = cv.template?.name || "ATS Standard";
 
   return (
-    <div className="group flex flex-col justify-between rounded-2xl border border-border bg-white shadow-2xs transition-all duration-300 hover:border-secondary hover:shadow-md">
+    <div
+      className={cn(
+        "group flex flex-col justify-between rounded-2xl border border-border bg-white shadow-2xs transition-all duration-300 hover:border-secondary hover:shadow-md",
+        className,
+      )}
+    >
       {/* Khung ảnh thumbnail */}
       <div
         onClick={() => onClick?.(cv)}
@@ -113,32 +119,17 @@ export function CVCard({
 
       {/* Thông tin tiêu đề & thời gian cập nhật */}
       <div className="flex flex-col gap-1.5 p-4 pb-2">
-        <div className="flex items-center justify-between gap-1.5">
-          <h3
-            title={cv.title}
-            onClick={() => onClick?.(cv)}
-            className={`line-clamp-1 text-base font-bold text-slate-800 ${
-              onClick ? "cursor-pointer transition-colors hover:text-primary" : ""
-            }`}
-          >
-            {cv.title}
-          </h3>
-          {onRename && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRename(cv);
-              }}
-              title="Đổi tên CV"
-              className="cursor-pointer rounded-md p-1 text-text-muted transition-colors hover:bg-bg hover:text-text-main"
-            >
-              <Edit3 className="size-3.5" />
-            </button>
-          )}
-        </div>
+        <h3
+          title={cv.title}
+          onClick={() => onClick?.(cv)}
+          className={`line-clamp-1 text-base font-bold text-slate-800 ${
+            onClick ? "cursor-pointer transition-colors hover:text-primary" : ""
+          }`}
+        >
+          {cv.title}
+        </h3>
 
-        <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
+        <div className="flex flex-col justify-between gap-2 text-xs text-text-muted">
           <span className="truncate">{templateName}</span>
           <span className="flex shrink-0 items-center gap-1 text-text-muted">
             <Clock className="size-3.5" />

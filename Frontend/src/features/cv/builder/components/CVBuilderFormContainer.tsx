@@ -37,6 +37,9 @@ import { useCvZoom } from "../hooks/useCvZoom";
 import { CV_PRINT_PAGE_STYLE } from "../../constants/print";
 import { useCvHistoryHotkeys } from "../hooks/useCvHistoryHotkeys";
 import { CvHistoryProvider, useCvHistory } from "../history";
+import { CvRewriteProvider } from "../context/CvRewriteContext";
+import { CvScoringProvider } from "../context/CvScoringContext";
+import { CvJobRecommendationsProvider } from "../context/CvJobRecommendationsContext";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -378,7 +381,7 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
           {/* ================= 2. KHU VỰC THIẾT KẾ: TÁCH BIỆT SIDEBAR VÀ CV WORKSPACE ================= */}
           <div className="flex flex-1 overflow-hidden h-full w-full relative">
             {/* ITEM 1: SIDEBAR TÙY CHỈNH (CỐ ĐỊNH, HOÀN TOÀN KHÔNG BỊ SCROLL, DẠNG FLOATING, ĐẨY CV SANG PHẢI) */}
-            <div className="no-print hidden md:flex shrink-0 h-full py-3 pl-3 z-30 select-none">
+            <div className="no-print hidden md:flex shrink-0 h-full py-3 pl-3 z-30">
               <CvBuilderSidebar
                 isLocked={isLocked}
                 isOpenMobile={isMobileSidebarOpen}
@@ -459,7 +462,13 @@ export const CVBuilderFormContainer: React.FC<CVBuilderFormContainerProps> = (pr
   return (
     <FormProvider {...methods}>
       <CvHistoryProvider>
-        <CVBuilderFormContent {...props} />
+        <CvRewriteProvider>
+          <CvScoringProvider>
+            <CvJobRecommendationsProvider>
+              <CVBuilderFormContent {...props} />
+            </CvJobRecommendationsProvider>
+          </CvScoringProvider>
+        </CvRewriteProvider>
       </CvHistoryProvider>
     </FormProvider>
   );

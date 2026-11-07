@@ -1,118 +1,105 @@
-import React from "react";
-import { Sparkles, Check, RefreshCw, X, CheckCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React, { useState } from "react";
+import { X, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/common";
 import type { CvSectionSuggestion } from "./types";
 
 interface SuggestionCardProps {
   item: CvSectionSuggestion;
-  onApply: (id: string) => void;
-  onRegenerate: (id: string) => void;
   onDismiss: (id: string) => void;
+  defaultExpanded?: boolean;
 }
 
 export const SuggestionCard: React.FC<SuggestionCardProps> = ({
   item,
-  onApply,
-  onRegenerate,
   onDismiss,
+  defaultExpanded = false,
 }) => {
-  const isApplied = item.status === "applied";
-  const isGenerating = item.status === "generating";
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div
-      className={cn(
-        "rounded-xl border bg-surface p-3.5 shadow-xs transition-all",
-        isApplied
-          ? "border-status-success/40 bg-status-success/5"
-          : "border-border hover:border-primary/40",
-      )}
-    >
-      {/* 1. Header thẻ: Tên section & Trạng thái */}
-      <div className="mb-2.5 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-xs font-bold text-text-main">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
+    <div className="rounded-md border border-border bg-surface shadow-xs transition-all select-text hover:border-primary/40">
+      {/* 1. Header thẻ: Tên section độc lập (dành trọn vẹn không gian hiển thị dù tiêu đề dài) */}
+      <div className="flex items-center gap-2 border-b border-border/50 rounded-t-md px-3.5 pt-3 pb-2 select-text bg-primary/10">
+        <h4 className="text-xs leading-snug font-bold break-words text-text-main select-text">
           {item.sectionTitle}
-        </span>
+        </h4>
+      </div>
 
-        {isApplied ? (
-          <span className="flex items-center gap-1 rounded-full bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success">
-            <CheckCircle2 className="h-3 w-3" />
-            Đã áp dụng
-          </span>
-        ) : isGenerating ? (
-          <span className="flex items-center gap-1 rounded-full bg-status-info/15 px-2 py-0.5 text-[10px] font-semibold text-status-info">
-            <RefreshCw className="h-3 w-3 animate-spin" />
-            Đang tạo...
-          </span>
+      {/* 2. Body: Chứa nút mở rộng / thu gọn và nội dung chi tiết */}
+      <div className=" py-1.5 select-text">
+        {isExpanded ? (
+          <div className="space-y-2.5 select-text ">
+            {/* Nội dung hiện tại trên CV (để đối chiếu) */}
+            <div className="text-xs select-text px-3.5">
+              <p className="mb-1 text-[10px] font-semibold tracking-wider uppercase select-none">
+                Nội dung hiện tại:
+              </p>
+              <p className="max-h-36 cursor-text overflow-y-auto text-[11px] leading-relaxed whitespace-pre-wrap select-text">
+                {item.originalText}
+              </p>
+            </div>
+
+            {/* Nội dung AI đề xuất viết lại */}
+            <div className="text-xs text-text-main select-text bg-primary/5 px-3.5 py-1.5">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <p className="text-[10px] font-bold tracking-wider text-primary uppercase select-none">
+                  AI gợi ý viết lại:
+                </p>
+              </div>
+              <p className="cursor-text text-[11px] leading-relaxed font-medium whitespace-pre-wrap text-text-main select-text">
+                {item.suggestedText}
+              </p>
+
+              <div className="h-px bg-border/50 my-2" />
+
+              {item.reason && (
+                <div className="mt-2 text-[10px] text-text-muted italic select-text">
+                  <span className="font-semibold text-primary not-italic select-none">
+                    Lý do:{" "}
+                  </span>
+                  <span className="cursor-text select-text">{item.reason}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Nút thu gọn nằm ở body */}
+            <button
+              type="button"
+              onClick={() => setIsExpanded(false)}
+              className="flex w-full cursor-pointer items-center justify-center gap-1 py-1.5 text-[11px] font-medium text-text-muted transition-colors select-none hover:text-primary"
+            >
+              <span>Thu gọn nội dung</span>
+              <ChevronUp className="size-3.5" />
+            </button>
+          </div>
         ) : (
-          <span className="rounded-full bg-bg px-2 py-0.5 text-[10px] font-medium text-text-muted">
-            Sẵn sàng áp dụng
-          </span>
+          /* Khi thu gọn (mặc định): Nút mở rộng nằm ở body */
+          <button
+            type="button"
+            onClick={() => setIsExpanded(true)}
+            className="flex w-full cursor-pointer items-center justify-center px-3 py-2 text-xs text-text-muted transition-all select-none hover:text-primary"
+          >
+            <span className="text-[11px] font-medium">
+              Xem chi tiết gợi ý AI
+            </span>
+            <ChevronDown className="size-3.5 shrink-0" />
+          </button>
         )}
       </div>
 
-      {/* 2. Nội dung hiện tại trên CV (để người dùng đối chiếu) */}
-      <div className="mb-2.5 rounded-lg border border-border/70 bg-bg/60 p-2.5 text-xs text-text-muted">
-        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
-          Nội dung hiện tại:
-        </p>
-        <p className="leading-relaxed whitespace-pre-wrap">{item.originalText}</p>
+      {/* 3. Footer: Nút Bỏ qua như hiện tại */}
+      <div className="flex items-center justify-end border-t border-border/50 px-3.5 py-2 select-none">
+        <Button
+          variant="secondary"
+          icon={X}
+          iconSize={12}
+          onClick={() => onDismiss(item.id)}
+          className="h-6.5! rounded-md! px-2.5! py-1! text-[11px]! font-medium!"
+          title="Bỏ qua đề xuất này"
+        >
+          Bỏ qua
+        </Button>
       </div>
-
-      {/* 3. Nội dung AI đề xuất */}
-      <div className="mb-3 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs text-text-main">
-        <div className="mb-1 flex items-center justify-between">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-            AI gợi ý viết lại:
-          </p>
-          {item.reason && (
-            <span
-              className="text-[10px] italic text-text-muted truncate max-w-[150px]"
-              title={item.reason}
-            >
-              {item.reason}
-            </span>
-          )}
-        </div>
-        <p className="leading-relaxed font-medium whitespace-pre-wrap text-text-main">
-          {item.suggestedText}
-        </p>
-      </div>
-
-      {/* 4. Hành động: Áp dụng, Tạo lại, Bỏ qua */}
-      {!isApplied && (
-        <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-border/50">
-          <button
-            type="button"
-            onClick={() => onDismiss(item.id)}
-            className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-muted hover:bg-bg hover:text-text-main transition-colors"
-            title="Bỏ qua gợi ý này"
-          >
-            <X className="h-3 w-3" />
-            Bỏ qua
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onRegenerate(item.id)}
-            className="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-muted hover:bg-bg hover:text-text-main transition-colors"
-            title="Tạo lại gợi ý mới"
-          >
-            <RefreshCw className="h-3 w-3" />
-            Tạo lại
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onApply(item.id)}
-            className="flex cursor-pointer items-center gap-1 rounded-md bg-primary px-3 py-1 text-[11px] font-semibold text-white shadow-xs hover:bg-primary/90 transition-all active:scale-95"
-          >
-            <Check className="h-3.5 w-3.5" />
-            Áp dụng
-          </button>
-        </div>
-      )}
     </div>
   );
 };

@@ -81,4 +81,12 @@ export const API_ENDPOINTS = {
     TEMPLATES: "/cv-templates",
     TEMPLATE_DETAIL: (id: string) => `/cv-templates/${id}`,
   },
+  AI: {
+    RERANK_JOBS: "/ai/jobs/rerank",
+    RECOMMENDATIONS: "/ai/recommendations",
+    REFRESH_RECOMMENDATIONS: "/ai/recommendations/refresh",
+    ENHANCE_CV: "/ai/cv/enhance",
+    ENHANCE_CV_BATCH: "/ai/cv/enhance/batch",
+    MATCH_ANALYSIS: "/ai/match-analysis",
+  },
 } as const;

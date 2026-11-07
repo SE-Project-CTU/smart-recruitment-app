@@ -25,9 +25,9 @@ export const JOB_TYPE_OPTIONS: SelectOption<JobType>[] = [
 
 // WorkMode: Môi trường / Chế độ làm việc (Work Location)
 export const WORK_MODE_OPTIONS: SelectOption<WorkMode>[] = [
-  { value: "Onsite", label: "On-site" },
-  { value: "Hybrid", label: "Hybrid" },
-  { value: "Remote", label: "Remote" },
+  { value: "Onsite", label: "Tại văn phòng" },
+  { value: "Hybrid", label: "Linh hoạt" },
+  { value: "Remote", label: "Làm từ xa" },
 ];
 
 // JobLevel dịch sang tiếng Việt
@@ -83,18 +83,25 @@ export function normalizeJobType(raw?: string | null): JobType | null {
 /**
  * Chuẩn hóa chuỗi raw thành WorkMode hợp lệ (Onsite, Hybrid, Remote)
  */
-export function normalizeWorkMode(raw?: string | null): WorkMode | null {
-  if (!raw) return null;
-  const clean = raw
+export function normalizeWorkMode(raw?: string | number | null): WorkMode | null {
+  if (raw == null) return null;
+  const clean = String(raw)
     .trim()
     .toLowerCase()
-    .replace(/[_\-\s]/g, "");
+    .replace(/[_-\s]/g, "");
   switch (clean) {
+    case "1":
     case "onsite":
+    case "taivanphong":
       return "Onsite";
+    case "2":
     case "hybrid":
+    case "linhhoat":
       return "Hybrid";
+    case "0":
     case "remote":
+    case "lamtuxa":
+    case "tuxa":
       return "Remote";
     default:
       return null;
