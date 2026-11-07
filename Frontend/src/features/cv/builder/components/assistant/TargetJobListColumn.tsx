@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Search,
-  Building2,
   MapPin,
   Check,
   Bookmark,
@@ -13,7 +12,6 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/common";
-import { getWorkModeLabel } from "@/utils/jobHelpers";
 import type { TargetJobOption } from "./types";
 
 interface TargetJobListColumnProps {

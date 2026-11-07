@@ -1,8 +1,6 @@
 import React from "react";
 import {
   Briefcase,
-  CircleDollarSign,
-  Clock,
   Sparkles,
   FileText,
   Gift,
