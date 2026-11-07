@@ -36,41 +36,44 @@ import type { NotificationDto, NotificationType } from "@/types/notification";
  * Trả về icon và màu nền trực quan cho từng loại thông báo
  */
 function getNotificationIcon(type: NotificationType) {
+  const iconProps = { className: "size-4 text-secondary-dark" };
+  const bg = "bg-bg-white-blue border-border/40";
+
   switch (type) {
     case "JobApplicationReceived":
       return {
-        icon: <UserPlus className="size-4 text-emerald-600" />,
-        bg: "bg-emerald-50 border-emerald-100",
+        icon: <UserPlus {...iconProps} />,
+        bg,
       };
     case "ApplicationStatusUpdate":
       return {
-        icon: <FileCheck className="size-4 text-blue-600" />,
-        bg: "bg-blue-50 border-blue-100",
+        icon: <FileCheck {...iconProps} />,
+        bg,
       };
     case "CompanyNewJobPosting":
       return {
-        icon: <Briefcase className="size-4 text-primary" />,
-        bg: "bg-secondary-light/40 border-secondary-light",
+        icon: <Briefcase {...iconProps} />,
+        bg,
       };
     case "CompanyInvitation":
       return {
-        icon: <MailCheck className="size-4 text-amber-600" />,
-        bg: "bg-amber-50 border-amber-100",
+        icon: <MailCheck {...iconProps} />,
+        bg,
       };
     case "CompanyJoinRequest":
       return {
-        icon: <Building2 className="size-4 text-orange-600" />,
-        bg: "bg-orange-50 border-orange-100",
+        icon: <Building2 {...iconProps} />,
+        bg,
       };
     case "SystemAlert":
       return {
-        icon: <ShieldCheck className="size-4 text-purple-600" />,
-        bg: "bg-purple-50 border-purple-100",
+        icon: <ShieldCheck {...iconProps} />,
+        bg,
       };
     default:
       return {
-        icon: <AlertCircle className="size-4 text-slate-600" />,
-        bg: "bg-slate-100 border-slate-200",
+        icon: <AlertCircle {...iconProps} />,
+        bg,
       };
   }
 }

@@ -33,12 +33,44 @@ export function resolveNotificationAction(notification: NotificationDto): {
         label: "Xem lời mời",
         toastType: "info",
       };
-    case "CompanyJoinRequest":
+    case "CompanyJoinRequest": {
+      let companyId: string | undefined;
+      let isRejected = false;
+      const titleLower = notification.title.toLowerCase();
+      const bodyLower = notification.body.toLowerCase();
+
+      if (titleLower.includes("từ chối") || bodyLower.includes("từ chối")) {
+        isRejected = true;
+      }
+
+      if (notification.payload) {
+        try {
+          const parsed =
+            typeof notification.payload === "string"
+              ? JSON.parse(notification.payload)
+              : notification.payload;
+          companyId = parsed?.company_id || parsed?.companyId;
+          if (parsed?.request_status === "REJECTED") {
+            isRejected = true;
+          }
+        } catch {
+          // ignore error
+        }
+      }
+
+      // Nếu là thông báo bị từ chối gửi cho ứng viên/người gửi yêu cầu, chuyển về trang quản lý công ty
+      // Nếu là yêu cầu gia nhập mới gửi cho Owner, chuyển thẳng vào tab duyệt yêu cầu gia nhập
+      const joinRequestUrl =
+        isRejected || !companyId
+          ? PATHS.RECRUITER.COMPANY_MANAGEMENT
+          : `/recruiter/company-management/${companyId}/invitations`;
+
       return {
-        url: PATHS.RECRUITER.COMPANY_MANAGEMENT,
-        label: "Xét duyệt yêu cầu",
-        toastType: "warning",
+        url: joinRequestUrl,
+        label: isRejected ? "Xem danh sách công ty" : "Xét duyệt yêu cầu",
+        toastType: isRejected ? "warning" : "info",
       };
+    }
     case "SystemAlert": {
       const titleLower = notification.title.toLowerCase();
       const bodyLower = notification.body.toLowerCase();
