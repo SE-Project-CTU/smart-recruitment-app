@@ -98,6 +98,7 @@ export interface AdminCompanyOwner {
   fullName: string;
   email: string;
   phone?: string | null;
+  avatarUrl?: string | null;
 }
 
 export interface AdminCompanyItem {

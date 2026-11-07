@@ -491,7 +491,7 @@ export function CompanyInspectionSheet({
 
                 <div className="flex items-center gap-3">
                   <UserAvatar
-                    src=""
+                    src={activeData.owner.avatarUrl || ""}
                     name={activeData.owner.fullName}
                     className="size-8 rounded-full border border-border/60"
                   />

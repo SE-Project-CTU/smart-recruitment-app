@@ -18,6 +18,7 @@ import "dayjs/locale/vi";
 
 import { Button, TableSkeleton } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
+import { UserAvatar } from "@/components/common/UserAvatar";
 import { EmptyStreet, EmptyState } from "@/assets/images/decoration";
 import { CompanyInspectionSheet } from "./CompanyInspectionSheet";
 import {
@@ -392,13 +393,20 @@ export default function AdminCompanyModerationPage() {
                           {/* Chủ sở hữu */}
                           <td className="px-4 py-3.5">
                             {company.owner ? (
-                              <div className="max-w-44 min-w-0">
-                                <span className="block truncate font-semibold text-slate-800">
-                                  {company.owner.fullName}
-                                </span>
-                                <span className="block truncate text-xs text-slate-400">
-                                  {company.owner.email}
-                                </span>
+                              <div className="flex items-center gap-2.5 max-w-52 min-w-0">
+                                <UserAvatar
+                                  src={company.owner.avatarUrl || ""}
+                                  name={company.owner.fullName}
+                                  className="size-7 shrink-0 rounded-full border border-border/60"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <span className="block truncate font-semibold text-slate-800">
+                                    {company.owner.fullName}
+                                  </span>
+                                  <span className="block truncate text-xs text-slate-400">
+                                    {company.owner.email}
+                                  </span>
+                                </div>
                               </div>
                             ) : (
                               <span className="text-slate-400 italic">—</span>
