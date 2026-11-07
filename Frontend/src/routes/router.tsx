@@ -47,6 +47,7 @@ import CareerBlogPage from "@/pages/CareerBlogPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCompanyModerationPage from "@/pages/admin/company/AdminCompanyModerationPage";
 import AdminJobModerationPage from "@/pages/admin/job/AdminJobModerationPage";
+import AdminUserManagementPage from "@/pages/admin/user/AdminUserManagementPage";
 
 const router = createBrowserRouter([
   // PUBLIC ROUTES
@@ -271,7 +272,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.USERS,
-            element: <Page title="Quản lý tài khoản người dùng" />,
+            element: <AdminUserManagementPage />,
           },
           {
             path: PATHS.ADMIN.CATALOGS,

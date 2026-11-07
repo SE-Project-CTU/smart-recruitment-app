@@ -75,6 +75,7 @@ export interface AdminUserFilterParams {
 
 export interface UpdateUserStatusPayload {
   status: AdminUserStatus | string;
+  reason?: string;
 }
 
 export interface UpdateUserStatusResult {
