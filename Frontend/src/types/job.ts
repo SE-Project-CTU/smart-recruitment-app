@@ -274,6 +274,9 @@ export interface SearchJobPostingsRequest {
   jobType?: JobType;
   workMode?: WorkMode;
   experienceYears?: number;
+  industryIds?: string[];
+  experienceRanges?: string[];
+  salaryNegotiableOnly?: boolean;
   page?: number;
   pageSize?: number;
   sort?: "createdAt" | "salaryMax";
@@ -323,4 +326,3 @@ export const JOB_STATUS_CONFIG: Record<
     badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
   },
 };
-

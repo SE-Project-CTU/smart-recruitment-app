@@ -7,6 +7,7 @@ using SmartHire.Application.Abstractions.Persistence.Criteria;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 using SmartHire.Application.Features.Admin.JobPostings.DTOs;
+using SmartHire.Application.Features.JobPostings.DTOs;
 using JobPostingDetailData = SmartHire.Application.Abstractions.Persistence.ReadModels.JobPostingDetailData;
 
 namespace SmartHire.Infrastructure.Persistence.Repositories;
@@ -67,14 +68,40 @@ public sealed class JobPostingRepository : IJobPostingRepository {
             query = query.Where(posting => posting.ExperienceYears == null ||
                                            posting.ExperienceYears <= experienceYears);
         
+        if (criteria.Filter.IndustryIds.Count > 0) {
+            var industryIds = criteria.Filter.IndustryIds.ToArray();
+            query = query.Where(posting => posting.JobIndustries.Any(link => industryIds.Contains(link.IndustryId)));
+        }
+        
+        if (criteria.Filter.ExperienceRanges.Count > 0) {
+            var selectedRanges = JobExperienceRanges.All
+                .Where(range =>
+                    criteria.Filter.ExperienceRanges.Contains(range.Value, StringComparer.OrdinalIgnoreCase));
+            var matchingYears = selectedRanges
+                .SelectMany(range => Enumerable.Range(
+                    range.MinYears,
+                    range.MaxYears - range.MinYears + 1))
+                .Distinct()
+                .ToArray();
+
+            query = query.Where(posting =>
+                posting.ExperienceYears.HasValue &&
+                matchingYears.Contains(posting.ExperienceYears.Value));
+        }
+        
+        if (criteria.Filter.SalaryNegotiableOnly)
+            query = query.Where(posting => posting.SalaryNegotiable);
+        
         if (criteria.Filter.SalaryMin is decimal requestedMinimum)
             query = query.Where(posting => posting.SalaryMax == null ||
-                                           posting.SalaryMax >= requestedMinimum ||
-                                           posting.SalaryNegotiable);
+                                           posting.SalaryMax >= requestedMinimum);
+        
         if (criteria.Filter.SalaryMax is decimal requestedMaximum)
             query = query.Where(posting => posting.SalaryMin == null ||
-                                           posting.SalaryMin <= requestedMaximum ||
-                                           posting.SalaryNegotiable);
+                                           posting.SalaryMin <= requestedMaximum);
+        
+        if (criteria.Filter.SalaryMin.HasValue || criteria.Filter.SalaryMax.HasValue)
+            query = query.Where(posting => posting.SalaryMin != null || posting.SalaryMax != null);
         
         var totalCount = await query.CountAsync(cancellationToken);
         var ordered = ApplyOrdering(query, criteria.Sort.Sort, criteria.Sort.Direction);
@@ -159,13 +186,13 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                 posting.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken);
     }
-
+    
     public async Task<IReadOnlyList<JobPostingDetailData>> GetDetailsByIdsAsync(
         IEnumerable<Guid> ids,
         CancellationToken cancellationToken) {
         var idList = ids.Distinct().ToList();
         if (idList.Count == 0) return Array.Empty<JobPostingDetailData>();
-
+        
         return await _dbContext.JobPostings
             .AsNoTracking()
             .AsSplitQuery()
@@ -322,28 +349,26 @@ public sealed class JobPostingRepository : IJobPostingRepository {
         Guid? companyId,
         int page,
         int pageSize,
-        CancellationToken cancellationToken)
-    {
+        CancellationToken cancellationToken) {
         var query = _dbContext.JobPostings.AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
+        
+        if (!string.IsNullOrWhiteSpace(search)) {
             var trimmed = search.Trim();
-            query = query.Where(j => EF.Functions.ILike(j.Title, "%" + trimmed + "%") || EF.Functions.ILike(j.Company.Name, "%" + trimmed + "%"));
+            query = query.Where(j =>
+                EF.Functions.ILike(j.Title, "%" + trimmed + "%") ||
+                EF.Functions.ILike(j.Company.Name, "%" + trimmed + "%"));
         }
-
-        if (status.HasValue)
-        {
+        
+        if (status.HasValue) {
             query = query.Where(j => j.Status == status.Value);
         }
-
-        if (companyId.HasValue)
-        {
+        
+        if (companyId.HasValue) {
             query = query.Where(j => j.CompanyId == companyId.Value);
         }
-
+        
         var totalCount = await query.CountAsync(cancellationToken);
-
+        
         var items = await query
             .OrderByDescending(j => j.CreatedAt)
             .Skip((page - 1) * pageSize)
@@ -367,17 +392,16 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                 j.UpdatedAt
             ))
             .ToListAsync(cancellationToken);
-
+        
         return (items, totalCount);
     }
-
-    public Task<JobPosting?> GetForModerationByIdAsync(Guid id, CancellationToken cancellationToken)
-    {
+    
+    public Task<JobPosting?> GetForModerationByIdAsync(Guid id, CancellationToken cancellationToken) {
         return _dbContext.JobPostings
             .Include(j => j.Company)
             .SingleOrDefaultAsync(j => j.Id == id, cancellationToken);
     }
-
+    
     private static IOrderedQueryable<JobPosting> ApplyOrdering(
         IQueryable<JobPosting> query,
         JobPostingSortField sort,

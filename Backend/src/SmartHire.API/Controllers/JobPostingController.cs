@@ -53,7 +53,10 @@ public sealed class JobPostingController : ControllerBase {
                 filter.JobLevel,
                 filter.JobType,
                 filter.WorkMode,
-                filter.ExperienceYears),
+                filter.ExperienceYears,
+                filter.IndustryIds,
+                filter.ExperienceRanges,
+                filter.SalaryNegotiableOnly),
             new JobPostingSearchSort(
                 sort.Sort,
                 sort.Direction),

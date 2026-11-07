@@ -14,6 +14,13 @@ export interface SelectOption<T extends string = string> {
   description?: string;
 }
 
+export const EXPERIENCE_RANGE_OPTIONS = [
+  { value: "0-1", label: "0–1 năm" },
+  { value: "2-3", label: "2–3 năm" },
+  { value: "4-5", label: "4–5 năm" },
+  { value: "6+", label: "Trên 5 năm" },
+] as const;
+
 // JobType: Hình thức làm việc (Employment Type)
 export const JOB_TYPE_OPTIONS: SelectOption<JobType>[] = [
   { value: "FullTime", label: "Full-time" },

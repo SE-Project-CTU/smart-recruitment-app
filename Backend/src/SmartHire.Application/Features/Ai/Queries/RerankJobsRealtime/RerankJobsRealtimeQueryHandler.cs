@@ -45,7 +45,7 @@ public sealed class RerankJobsRealtimeQueryHandler
         // Lấy danh sách việc làm Published từ Database (Hỗ trợ phân trang và danh mục phong phú đến 500 jobs)
         var limit = request.Limit is > 0 and <= 500 ? request.Limit.Value : 100;
         var criteria = new JobPostingSearchCriteria(
-            new JobPostingSearchFilterCriteria(null, null, null, null, null, null, null, null, null, null, null),
+            new JobPostingSearchFilterCriteria(null, null, null, null, null, null, null, null, null, null, null, [], [], false),
             new JobPostingSearchSortCriteria(JobPostingSortField.CreatedAt, SortDirection.Desc),
             new PaginationCriteria(1, limit),
             DateTimeOffset.UtcNow
