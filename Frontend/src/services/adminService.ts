@@ -361,6 +361,8 @@ export const adminService = {
   },
 
   async getCvTemplates(params?: {
+    search?: string;
+    isActive?: boolean;
     page?: number;
     pageSize?: number;
   }): Promise<AdminPagedResponse<AdminCvTemplateItem>> {

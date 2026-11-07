@@ -111,9 +111,7 @@ export function LocationCatalogTab() {
   const handleToggleProvinceActive = (
     prov: AdminProvince,
     newActive: boolean,
-    e: React.MouseEvent,
   ) => {
-    e.stopPropagation();
     updateProvinceMutation.mutate({
       id: prov.id,
       payload: { status: newActive ? "Active" : "Inactive" },
@@ -286,12 +284,7 @@ export function LocationCatalogTab() {
                                 size="sm"
                                 checked={isProvActive}
                                 onCheckedChange={(checked) =>
-                                  handleToggleProvinceActive(
-                                    prov,
-                                    checked,
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    { stopPropagation: () => {} } as any,
-                                  )
+                                  handleToggleProvinceActive(prov, checked)
                                 }
                                 aria-label="Bật/Tắt hoạt động"
                               />

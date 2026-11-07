@@ -112,9 +112,7 @@ export function IndustryCatalogTab() {
   const handleToggleGroupActive = (
     group: AdminIndustryGroup,
     newActive: boolean,
-    e: React.MouseEvent,
   ) => {
-    e.stopPropagation();
     updateGroupMutation.mutate({
       id: group.id,
       payload: { isActive: newActive },
@@ -287,12 +285,7 @@ export function IndustryCatalogTab() {
                                 size="sm"
                                 checked={group.isActive}
                                 onCheckedChange={(checked) =>
-                                  handleToggleGroupActive(
-                                    group,
-                                    checked,
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    { stopPropagation: () => {} } as any,
-                                  )
+                                  handleToggleGroupActive(group, checked)
                                 }
                                 aria-label="Bật/Tắt hoạt động"
                               />
