@@ -124,7 +124,7 @@ function CandidateDashboard() {
 
         <div className="scrollbar-hide flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto pb-2">
           {isLoadingJobs ? (
-            <div className="flex gap-2">
+            <div className="shrink-0">
               {[1, 2, 3].map((n) => (
                 <JobCardSkeleton key={n} />
               ))}
@@ -136,7 +136,7 @@ function CandidateDashboard() {
                   job={item}
                   isSelected={selectedJob?.id === item.id && isDrawerOpen}
                   onSelect={() => handleOpenJobDetail(item)}
-                  className="min-w-90!"
+                  className="h-full max-w-100!"
                 />
               </div>
             ))

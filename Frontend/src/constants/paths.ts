@@ -5,6 +5,7 @@ export const PATHS = {
   SIGN_UP: "/sign-up",
   SEARCH_JOB: "/search-job",
   COMPANY_DETAIL: "/companies/:id",
+  BLOG: "/blog",
 
   // Root aliases for CV flow
   CREATE_CV: "/candidate/cv-templates",
@@ -51,8 +52,8 @@ export const PATHS = {
   ADMIN: {
     DASHBOARD: "/admin/dashboard",
     USER_PROFILE: "/admin/profile",
-    APPROVE_COMPANY: "/admin/aprove/company",
-    APPROVE_JD: "/admin/aprove/jd",
+    APPROVE_COMPANY: "/admin/approve/company",
+    APPROVE_JD: "/admin/approve/jd",
   },
 
   FORBIDDEN: "forbidden",

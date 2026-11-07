@@ -125,10 +125,9 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   return (
     <div
       onClick={handleCardClick}
-
       className={cn(
         className,
-        "group relative flex min-h-80.5 max-w-120 cursor-pointer flex-col justify-between rounded-2xl border p-6 shadow-xs transition-all duration-300",
+        "group relative flex w-full min-h-70 sm:min-h-74 cursor-pointer flex-col justify-between rounded-2xl border p-4 sm:p-5 shadow-xs transition-all duration-300",
         isSelected
           ? "border-primary bg-secondary-light/20 shadow-md ring-2 ring-primary/20"
           : "border-border bg-surface hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200",
@@ -136,12 +135,12 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
     >
       <div>
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-semibold tracking-tight text-text-main">
+          <div className="flex min-w-0 items-baseline gap-1">
+            <span className="truncate text-base sm:text-lg font-semibold tracking-tight text-text-main">
               {salaryInfo.text}
             </span>
             {salaryInfo.unit && (
-              <span className="text-xs font-semibold text-text-muted">
+              <span className="shrink-0 text-xs font-semibold text-text-muted">
                 {salaryInfo.unit}
               </span>
             )}
@@ -152,7 +151,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <div className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
+                    <div className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-primary-dark">
                       <span>{aiScore}%</span>
                     </div>
                   }
@@ -170,9 +169,9 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
                       onSelect?.(job);
                     }}
                     type="button"
-                    className="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:text-text-main"
+                    className="flex size-7.5 cursor-pointer items-center justify-center rounded-full text-text-muted transition-colors hover:text-text-main"
                   >
-                    <Ellipsis className="size-5" />
+                    <Ellipsis className="size-4.5" />
                   </button>
                 }
               />
@@ -183,9 +182,9 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
           </div>
         </div>
 
-        <div className="mt-5 flex items-start justify-between gap-3">
+        <div className="mt-3.5 sm:mt-4 flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <h3 className="text-base leading-snug font-semibold text-text-main transition-colors group-hover:text-primary">
+            <h3 className="line-clamp-2 text-sm sm:text-base leading-snug font-semibold text-text-main transition-colors group-hover:text-primary">
               {job.title}
             </h3>
             <p className="truncate text-xs font-medium text-text-muted">
@@ -201,34 +200,35 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
             }
             name={companyName}
             size="md"
+            className="size-11 sm:size-12 rounded-xl"
           />
         </div>
 
-        <div className="mt-4 flex flex-col gap-1.5 text-xs font-medium text-text-muted">
-          <div className="flex items-center gap-2">
-            <MapPin className="size-4 shrink-0 text-text-muted" />
+        <div className="mt-3 flex flex-col gap-1 text-[11px] sm:text-xs font-medium text-text-muted">
+          <div className="flex items-center gap-1.5">
+            <MapPin className="size-3.5 shrink-0 text-text-muted" />
             <span className="truncate">{displayLocation}</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Clock className="size-4 shrink-0 text-text-muted" />
+          <div className="flex items-center gap-1.5">
+            <Clock className="size-3.5 shrink-0 text-text-muted" />
             <span>{displayTimeAgo}</span>
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-3.5 flex flex-wrap gap-1.5">
           {job.jobType && (
-            <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
+            <span className="rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-text-main">
               {getJobTypeLabel(job.jobType)}
             </span>
           )}
           {job.workMode && (
-            <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
+            <span className="rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-text-main">
               {getWorkModeLabel(job.workMode)}
             </span>
           )}
           {job.jobLevel && (
-            <span className="rounded-full border border-border px-3 py-1 text-xs text-text-main">
+            <span className="rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-text-main">
               {getJobLevelLabel(job.jobLevel)}
             </span>
           )}
@@ -236,7 +236,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
       </div>
 
       {role === "recruiter" ? (
-        <div className="mt-6 flex items-center gap-2">
+        <div className="mt-4 flex items-center gap-2">
           <Button
             className="justify-center py-2! text-xs! font-semibold!"
             onClick={(e) => {
@@ -248,9 +248,9 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
           </Button>
         </div>
       ) : (
-        <div className="mt-6 flex items-center gap-2.5">
+        <div className="mt-4 flex items-center gap-2">
           <Button
-            className="flex-1 justify-center py-2.5! text-xs!"
+            className="flex-1 justify-center py-2! sm:py-2.5! text-xs!"
             onClick={handleApplyClick}
           >
             Ứng tuyển ngay
@@ -261,7 +261,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
               render={
                 <Button
                   variant="secondary"
-                  className="p-2.5!"
+                  className="p-2! sm:p-2.5!"
                   aria-label="Lưu công việc"
                   onClick={handleBookmarkClick}
                 >

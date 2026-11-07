@@ -6,6 +6,7 @@
 @plugin "@tailwindcss/typography";
 @theme {
   --font-sans: "Montserrat", sans-serif;
+  --breakpoint-3xl: 120rem;
 
   /* Primary */
   --color-primary: #1b3b6f;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Search,
   X,
@@ -6,6 +6,8 @@ import {
   ArrowUpDown,
   ChevronDown,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { Button, CTAMeshGradient, JobCard } from "@/components/common";
@@ -39,6 +41,7 @@ import {
 import { Smarthire_icon_default } from "@/assets/images/logo";
 import JobCardSkeleton from "@/components/common/JobCardSkeleton";
 import { EmptyState } from "@/assets/images/decoration";
+import { cn } from "@/lib/utils";
 
 type SortKey = "AI_MATCH" | "NEWEST" | "SALARY_DESC" | "SALARY_ASC";
 
@@ -59,7 +62,51 @@ const INITIAL_FILTERS: JobFilterState = {
   negotiableOnly: false,
 };
 
-export default function SearchJobPage() {
+const PAGE_SIZE = 20;
+
+function getPaginationRange(
+  currentPage: number,
+  totalPages: number,
+): (number | "...")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "...", totalPages];
+  }
+
+  if (currentPage >= totalPages - 3) {
+    return [
+      1,
+      "...",
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  }
+
+  return [
+    1,
+    "...",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "...",
+    totalPages,
+  ];
+}
+
+export default function SearchJobPage({
+  isPublicPage = false,
+}: {
+  isPublicPage?: boolean;
+}) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobListTopRef = useRef<HTMLDivElement>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>({
@@ -119,6 +166,7 @@ export default function SearchJobPage() {
     key: "industries" | "jobTypes" | "workModes" | "jobLevels",
     value: string,
   ) => {
+    setCurrentPage(1);
     setFilters((prev) => {
       const exists = prev[key].includes(value);
       return {
@@ -131,6 +179,7 @@ export default function SearchJobPage() {
   };
 
   const handleToggleIndustryGroup = (parent: string, children: string[]) => {
+    setCurrentPage(1);
     setFilters((prev) => {
       const groupItems = [parent, ...children];
       const isAllSelected =
@@ -156,6 +205,7 @@ export default function SearchJobPage() {
   };
 
   const handleSalaryRangeChange = (minSalary: string, maxSalary: string) => {
+    setCurrentPage(1);
     setFilters((prev) => ({ ...prev, minSalary, maxSalary }));
   };
 
@@ -170,10 +220,12 @@ export default function SearchJobPage() {
     });
     setSortBy("AI_MATCH");
     setFilters(INITIAL_FILTERS);
+    setCurrentPage(1);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setCurrentPage(1);
     setSubmittedQuery(searchQuery);
   };
 
@@ -320,6 +372,31 @@ export default function SearchJobPage() {
     });
   }, [jobList, searchQuery, submittedQuery, filters, sortBy]);
 
+  // 1. Tổng số trang dựa trên danh sách đã lọc
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredAndSortedJobs.length / PAGE_SIZE));
+  }, [filteredAndSortedJobs.length]);
+
+  // Keep pagination valid during render when filtering reduces the page count.
+  const effectiveCurrentPage = Math.min(currentPage, totalPages);
+
+  // 2. Cắt danh sách việc làm hiển thị theo trang hiện tại (mỗi trang đúng PAGE_SIZE việc làm)
+  const paginatedJobs = useMemo(() => {
+    const start = (effectiveCurrentPage - 1) * PAGE_SIZE;
+    return filteredAndSortedJobs.slice(start, start + PAGE_SIZE);
+  }, [filteredAndSortedJobs, effectiveCurrentPage]);
+
+  // 3. Xử lý chuyển trang mượt mà kèm cuộn lên đầu danh sách công việc
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || newPage === effectiveCurrentPage)
+      return;
+    setCurrentPage(newPage);
+    jobListTopRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   const handleSelectJob = (job: JobPostingSearchItem) => {
     setSelectedJob(job);
     setIsDetailDrawerOpen(true);
@@ -383,7 +460,10 @@ export default function SearchJobPage() {
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentPage(1);
+                    setSearchQuery(e.target.value);
+                  }}
                   placeholder="Vị trí tuyển dụng, kỹ năng, công ty..."
                   className="w-full min-w-0 bg-transparent text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none sm:text-sm"
                 />
@@ -391,6 +471,7 @@ export default function SearchJobPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      setCurrentPage(1);
                       setSearchQuery("");
                       setSubmittedQuery("");
                     }}
@@ -412,7 +493,10 @@ export default function SearchJobPage() {
                 <div className="min-w-0 flex-1 sm:w-44 md:w-56 lg:w-64">
                   <LocationCombobox
                     value={selectedLocation}
-                    onChange={setSelectedLocation}
+                    onChange={(location) => {
+                      setCurrentPage(1);
+                      setSelectedLocation(location);
+                    }}
                     className="w-full"
                     buttonClassName="flex w-full cursor-pointer items-center justify-between gap-2 border-0 bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none"
                   />
@@ -456,8 +540,16 @@ export default function SearchJobPage() {
         </div>
       </div>
 
-      <div className="flex flex-col items-start gap-6 lg:flex-row">
-        <div className="sticky top-4 hidden w-78 shrink-0 lg:block">
+      <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-5">
+        <div
+          className={cn(
+            "sticky hidden shrink-0 lg:block",
+            "w-56 xl:w-76 3xl:w-85",
+            isPublicPage
+              ? "top-25 max-h-[calc(100vh-7.5rem)]"
+              : "top-4 max-h-[calc(100vh-2rem)]",
+          )}
+        >
           <JobFilterSidebar
             filters={filters}
             onToggleArrayFilter={handleToggleArrayFilter}
@@ -503,7 +595,10 @@ export default function SearchJobPage() {
           </div>
         )}
 
-        <div className="flex w-full flex-1 flex-col gap-4">
+        <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
+          {/* Mốc cuộn tự động khi đổi trang */}
+          <div ref={jobListTopRef} className="scroll-mt-32" />
+
           <div className="flex items-center justify-between px-1">
             <p className="text-xs font-medium text-text-muted">
               Tìm thấy{" "}
@@ -511,6 +606,11 @@ export default function SearchJobPage() {
                 {isLoadingJobs ? "..." : filteredAndSortedJobs.length}
               </span>{" "}
               công việc
+              {!isLoadingJobs && totalPages > 1 && (
+                <span className="ml-1 text-slate-400">
+                  (Trang {currentPage}/{totalPages})
+                </span>
+              )}
             </p>
             <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3.5 py-1.5 shadow-2xs">
               <ArrowUpDown className="size-3.5 shrink-0 text-text-muted" />
@@ -522,7 +622,10 @@ export default function SearchJobPage() {
                 items={SORT_OPTIONS}
                 value={sortBy}
                 onValueChange={(val) => {
-                  if (val) setSortBy(val as SortKey);
+                  if (val) {
+                    setCurrentPage(1);
+                    setSortBy(val as SortKey);
+                  }
                 }}
               >
                 <Select.Trigger
@@ -566,7 +669,7 @@ export default function SearchJobPage() {
           </div>
 
           {isLoadingJobs ? (
-            <div className="flex flex-wrap justify-items-center gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
               {[1, 2, 3, 4].map((index) => (
                 <JobCardSkeleton key={index} />
               ))}
@@ -598,19 +701,100 @@ export default function SearchJobPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
-              {filteredAndSortedJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  isSelected={job.id === selectedJob?.id && isDetailDrawerOpen}
-                  onSelect={handleSelectJob}
-                  isBookmarked={bookmarkedJobIds.has(job.id)}
-                  onToggleBookmark={handleToggleBookmark}
-                  onApply={() => handleApply(job.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
+                {paginatedJobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    isSelected={
+                      job.id === selectedJob?.id && isDetailDrawerOpen
+                    }
+                    onSelect={handleSelectJob}
+                    isBookmarked={bookmarkedJobIds.has(job.id)}
+                    onToggleBookmark={handleToggleBookmark}
+                    onApply={() => handleApply(job.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Thanh phân trang Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-border/80 pt-4 sm:flex-row">
+                  <span className="text-xs text-text-muted">
+                    Hiển thị{" "}
+                    <span className="font-semibold text-text-main">
+                      {(currentPage - 1) * PAGE_SIZE + 1} -{" "}
+                      {Math.min(
+                        currentPage * PAGE_SIZE,
+                        filteredAndSortedJobs.length,
+                      )}
+                    </span>{" "}
+                    trong tổng số{" "}
+                    <span className="font-semibold text-text-main">
+                      {filteredAndSortedJobs.length}
+                    </span>{" "}
+                    việc làm
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Nút Về trước */}
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-slate-300 hover:text-text-main disabled:pointer-events-none disabled:opacity-40"
+                      aria-label="Trang trước"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </button>
+
+                    {/* Danh sách nút số trang */}
+                    {getPaginationRange(currentPage, totalPages).map(
+                      (p, idx) => {
+                        if (p === "...") {
+                          return (
+                            <span
+                              key={`ellipsis-${idx}`}
+                              className="px-1 text-xs font-bold text-text-muted select-none"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+
+                        const isCurrent = p === currentPage;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => handlePageChange(p)}
+                            className={`flex size-8 cursor-pointer items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                              isCurrent
+                                ? "bg-primary text-white"
+                                : "border border-border bg-surface text-text-main hover:border-slate-300 hover:bg-bg"
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        );
+                      },
+                    )}
+
+                    {/* Nút Kế tiếp */}
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-slate-300 hover:text-text-main disabled:pointer-events-none disabled:opacity-40"
+                      aria-label="Trang tiếp theo"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
