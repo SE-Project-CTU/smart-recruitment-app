@@ -2,7 +2,7 @@ import SearchJobPage from "./candidate/SearchJobPage";
 
 function SearchJob() {
   return (
-    <div className="flex min-h-screen w-full justify-center bg-bg px-4 sm:px-6 xl:px-8 pt-28 sm:pt-32 pb-12">
+    <div className="flex min-h-screen w-full flex-col items-center bg-bg px-4 pt-28 pb-12 sm:px-6 sm:pt-32 xl:px-8">
       <div className="w-full max-w-[1720px]">
         <SearchJobPage isPublicPage={true} />
       </div>
