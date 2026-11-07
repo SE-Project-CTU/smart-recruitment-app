@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useBreadcrumbStore } from "@/stores/breadcrumbStore";
+import { PATHS } from "@/constants/paths";
 import { IndustryCatalogTab } from "./tabs/IndustryCatalogTab";
 import { SkillCatalogTab } from "./tabs/SkillCatalogTab";
 import { LocationCatalogTab } from "./tabs/LocationCatalogTab";
@@ -37,11 +40,29 @@ const CATALOG_TABS: TabItem[] = [
 
 export function AdminCatalogsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const setBreadcrumbs = useBreadcrumbStore((state) => state.setBreadcrumbs);
+  const resetBreadcrumbs = useBreadcrumbStore((state) => state.resetBreadcrumbs);
+
   const rawTab = searchParams.get("tab");
   const activeTab: CatalogTabKey =
     rawTab === "skills" || rawTab === "locations" || rawTab === "cv-templates"
       ? rawTab
       : "industries";
+
+  // Đồng bộ breadcrumbs theo tab đang chọn
+  useEffect(() => {
+    const currentTabItem = CATALOG_TABS.find((t) => t.key === activeTab);
+    const tabLabel = currentTabItem?.label || "Ngành nghề";
+
+    setBreadcrumbs([
+      { label: "Danh mục chung", url: PATHS.ADMIN.CATALOGS },
+      { label: tabLabel },
+    ]);
+
+    return () => {
+      resetBreadcrumbs();
+    };
+  }, [activeTab, setBreadcrumbs, resetBreadcrumbs]);
 
   const handleSelectTab = (tabKey: CatalogTabKey) => {
     setSearchParams(
