@@ -1,20 +1,11 @@
 import DashboardHeader from "@/components/common/DashboardHeader";
 import DashboardSidebar from "@/components/common/DashboardSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { ApplyJobModal } from "@/components/job/ApplyJobModal";
 import { Outlet } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-import { SignalRNotificationListener } from "@/components/notification/SignalRNotificationListener";
 
 const DashboardLayout = () => {
-  const user = useAuthStore((state) => state.user);
-  const isCandidate = user?.roles?.some(
-    (role) => role.toLowerCase() === "candidate",
-  );
-
   return (
     <div className="font-sans text-text-main">
-      <SignalRNotificationListener />
       <SidebarProvider className="flex min-h-screen flex-col">
         <DashboardHeader />
 
@@ -27,9 +18,6 @@ const DashboardLayout = () => {
           </SidebarInset>
         </div>
       </SidebarProvider>
-
-      {/* Global Apply Job Modal chỉ cần mount cho Candidate */}
-      {isCandidate && <ApplyJobModal />}
     </div>
   );
 };

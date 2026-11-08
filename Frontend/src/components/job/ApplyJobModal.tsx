@@ -249,7 +249,7 @@ export function ApplyJobModal({
     "Doanh nghiệp tuyển dụng";
 
   const modalNode = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4">
       {/* Lớp phủ */}
       <div
         onClick={!isSubmitting ? handleClose : undefined}

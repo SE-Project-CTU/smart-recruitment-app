@@ -95,7 +95,10 @@ export function resolveNotificationAction(notification: NotificationDto): {
   }
 }
 
-export function showNotificationToast(notification: NotificationDto) {
+export function showNotificationToast(
+  notification: NotificationDto,
+  _navigate?: (path: string) => void,
+) {
   const { toastType } = resolveNotificationAction(notification);
 
   const titleElement = (

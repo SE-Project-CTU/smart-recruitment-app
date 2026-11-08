@@ -8,6 +8,12 @@ import {
   ChevronRight,
   RotateCcw,
   PieChart as PieChartIcon,
+  Eye,
+  Check,
+  X,
+  ShieldCheck,
+  XCircle,
+  Sparkles,
 } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
@@ -17,6 +23,16 @@ import {
   GradientGridBackground,
   TableSkeleton,
 } from "@/components/common";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { CompanyInspectionSheet } from "@/pages/admin/company/CompanyInspectionSheet";
+import { JobDetailDrawer } from "@/components/job/JobDetailDrawer";
 import { cn } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import Grainient from "@/components/external/Grainient";
@@ -31,7 +47,10 @@ import {
   useAdminDashboardOverview,
   useAdminCompanies,
   useAdminJobPostings,
+  useVerifyCompany,
+  useModerateJobPosting,
 } from "@/hooks/queries/useAdmin";
+import type { AdminCompanyItem, AdminJobPostingItem } from "@/types/admin";
 import { PATHS } from "@/constants/paths";
 import { getTimeOfDayGreeting } from "@/utils/helper";
 import { formatSalaryRange } from "@/utils/jobHelpers";
@@ -107,23 +126,140 @@ export default function AdminDashboard() {
   } = useAdminDashboardOverview();
 
   // 2. Query Doanh nghiệp chờ thẩm định (Top 4 hồ sơ mới nhất)
-  const { data: pendingCompaniesData, isLoading: isLoadingPendingCompanies } =
-    useAdminCompanies({
-      verificationStatus: "Pending",
-      pageSize: 4,
-    });
+  const {
+    data: pendingCompaniesData,
+    isLoading: isLoadingPendingCompanies,
+    refetch: refetchPendingCompanies,
+  } = useAdminCompanies({
+    verificationStatus: "Pending",
+    pageSize: 4,
+  });
   const pendingCompanies = pendingCompaniesData?.data ?? [];
 
   // 3. Query Tin tuyển dụng chờ phê duyệt (Top 4 tin mới nhất)
-  const { data: pendingJobsData, isLoading: isLoadingPendingJobs } =
-    useAdminJobPostings({
-      status: "PendingReview",
-      pageSize: 4,
-    });
+  const {
+    data: pendingJobsData,
+    isLoading: isLoadingPendingJobs,
+    refetch: refetchPendingJobs,
+  } = useAdminJobPostings({
+    status: "PendingReview",
+    pageSize: 4,
+  });
   const pendingJobs = pendingJobsData?.data ?? [];
+
+  const verifyMutation = useVerifyCompany();
+  const moderateMutation = useModerateJobPosting();
+
+  // Company Inspection & Quick Actions
+  const [inspectingCompany, setInspectingCompany] =
+    useState<AdminCompanyItem | null>(null);
+  const [isCompanySheetOpen, setIsCompanySheetOpen] = useState(false);
+  const [approveCompanyTarget, setApproveCompanyTarget] =
+    useState<AdminCompanyItem | null>(null);
+  const [rejectCompanyTarget, setRejectCompanyTarget] =
+    useState<AdminCompanyItem | null>(null);
+  const [companyRejectionReason, setCompanyRejectionReason] = useState("");
+  const [companyReasonError, setCompanyReasonError] = useState("");
+
+  // Job Inspection & Quick Actions
+  const [inspectingJob, setInspectingJob] =
+    useState<AdminJobPostingItem | null>(null);
+  const [isJobSheetOpen, setIsJobSheetOpen] = useState(false);
+  const [approveJobTarget, setApproveJobTarget] =
+    useState<AdminJobPostingItem | null>(null);
+  const [rejectJobTarget, setRejectJobTarget] =
+    useState<AdminJobPostingItem | null>(null);
+  const [jobRejectionReason, setJobRejectionReason] = useState("");
+  const [jobReasonError, setJobReasonError] = useState("");
+
+  const handleInspectCompany = (company: AdminCompanyItem) => {
+    setInspectingCompany(company);
+    setIsCompanySheetOpen(true);
+  };
+
+  const handleConfirmApproveCompany = async () => {
+    if (!approveCompanyTarget) return;
+    try {
+      await verifyMutation.mutateAsync({
+        id: approveCompanyTarget.id,
+        payload: { verificationStatus: "Verified" },
+      });
+      setApproveCompanyTarget(null);
+      refetchPendingCompanies();
+      refetchOverview();
+    } catch {
+      // toast is handled in mutation hook
+    }
+  };
+
+  const handleConfirmRejectCompany = async () => {
+    if (!rejectCompanyTarget) return;
+    if (!companyRejectionReason.trim()) {
+      setCompanyReasonError("Vui lòng nhập lý do từ chối hồ sơ doanh nghiệp.");
+      return;
+    }
+    try {
+      await verifyMutation.mutateAsync({
+        id: rejectCompanyTarget.id,
+        payload: {
+          verificationStatus: "Rejected",
+          rejectionReason: companyRejectionReason.trim(),
+        },
+      });
+      setRejectCompanyTarget(null);
+      refetchPendingCompanies();
+      refetchOverview();
+    } catch {
+      // toast is handled in mutation hook
+    }
+  };
+
+  const handleInspectJob = (job: AdminJobPostingItem) => {
+    setInspectingJob(job);
+    setIsJobSheetOpen(true);
+  };
+
+  const handleConfirmApproveJob = async () => {
+    if (!approveJobTarget) return;
+    try {
+      await moderateMutation.mutateAsync({
+        id: approveJobTarget.id,
+        payload: { status: "Published" },
+      });
+      setApproveJobTarget(null);
+      refetchPendingJobs();
+      refetchOverview();
+    } catch {
+      // toast is handled in mutation hook
+    }
+  };
+
+  const handleConfirmRejectJob = async () => {
+    if (!rejectJobTarget) return;
+    if (!jobRejectionReason.trim()) {
+      setJobReasonError("Vui lòng nhập lý do từ chối tin tuyển dụng.");
+      return;
+    }
+    try {
+      await moderateMutation.mutateAsync({
+        id: rejectJobTarget.id,
+        payload: {
+          status: "Rejected",
+          rejectionReason: jobRejectionReason.trim(),
+        },
+      });
+      setRejectJobTarget(null);
+      refetchPendingJobs();
+      refetchOverview();
+    } catch {
+      // toast is handled in mutation hook
+    }
+  };
 
   const handleRefreshAll = () => {
     refetchOverview();
+    refetchPendingCompanies();
+    refetchPendingJobs();
   };
 
   // Số liệu thẻ KPI
@@ -555,9 +691,13 @@ export default function AdminDashboard() {
                         size="sm"
                       />
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-text-main">
+                        <button
+                          type="button"
+                          onClick={() => handleInspectCompany(company)}
+                          className="block cursor-pointer truncate text-left text-sm font-semibold text-text-main transition-colors hover:text-primary"
+                        >
                           {company.name}
-                        </p>
+                        </button>
                         <p className="truncate text-xs text-text-muted">
                           MST: {company.taxCode || "Chưa có"} • Gửi lúc:{" "}
                           {dayjs(company.createdAt).format("DD/MM/YYYY")}
@@ -565,13 +705,36 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <Button
-                      variant="secondary"
-                      onClick={() => navigate(PATHS.ADMIN.APPROVE_COMPANY)}
-                      className="h-8 shrink-0 rounded-lg px-3 text-xs font-medium"
-                    >
-                      Thẩm định
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        variant="secondary"
+                        icon={Eye}
+                        iconSize={15}
+                        title="Xem hồ sơ chi tiết"
+                        onClick={() => handleInspectCompany(company)}
+                        className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-primary! shadow-none! ring-0! hover:bg-secondary-light/50! hover:text-primary-dark!"
+                      />
+                      <Button
+                        variant="primary"
+                        icon={Check}
+                        iconSize={15}
+                        title="Phê duyệt doanh nghiệp"
+                        onClick={() => setApproveCompanyTarget(company)}
+                        className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700!"
+                      />
+                      <Button
+                        variant="secondary"
+                        icon={X}
+                        iconSize={15}
+                        title="Từ chối hồ sơ"
+                        onClick={() => {
+                          setRejectCompanyTarget(company);
+                          setCompanyRejectionReason("");
+                          setCompanyReasonError("");
+                        }}
+                        className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600!"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -624,9 +787,13 @@ export default function AdminDashboard() {
                     className="flex items-center justify-between gap-3 py-3 transition-colors hover:bg-bg/50"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-text-main">
+                      <button
+                        type="button"
+                        onClick={() => handleInspectJob(job)}
+                        className="block cursor-pointer truncate text-left text-sm font-semibold text-text-main transition-colors hover:text-primary"
+                      >
                         {job.title}
-                      </p>
+                      </button>
                       <p className="truncate text-xs text-text-muted">
                         {job.companyName} • {job.provinceName} • Lương:{" "}
                         {formatSalaryRange(
@@ -637,13 +804,36 @@ export default function AdminDashboard() {
                       </p>
                     </div>
 
-                    <Button
-                      variant="secondary"
-                      onClick={() => navigate(PATHS.ADMIN.APPROVE_JD)}
-                      className="h-8 shrink-0 rounded-lg px-3 text-xs font-medium"
-                    >
-                      Kiểm duyệt
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        variant="secondary"
+                        icon={Eye}
+                        iconSize={15}
+                        title="Xem nội dung chi tiết"
+                        onClick={() => handleInspectJob(job)}
+                        className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-primary! shadow-none! ring-0! hover:bg-secondary-light/50! hover:text-primary-dark!"
+                      />
+                      <Button
+                        variant="primary"
+                        icon={Check}
+                        iconSize={15}
+                        title="Phê duyệt xuất bản"
+                        onClick={() => setApproveJobTarget(job)}
+                        className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700!"
+                      />
+                      <Button
+                        variant="secondary"
+                        icon={X}
+                        iconSize={15}
+                        title="Từ chối tin tuyển dụng"
+                        onClick={() => {
+                          setRejectJobTarget(job);
+                          setJobRejectionReason("");
+                          setJobReasonError("");
+                        }}
+                        className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600!"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -651,6 +841,280 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── Modal & Drawers cho Doanh nghiệp ── */}
+      <CompanyInspectionSheet
+        company={inspectingCompany}
+        isOpen={isCompanySheetOpen}
+        onClose={() => {
+          setIsCompanySheetOpen(false);
+          setInspectingCompany(null);
+        }}
+        onSuccess={() => {
+          refetchPendingCompanies();
+          refetchOverview();
+        }}
+      />
+
+      <Dialog
+        open={Boolean(approveCompanyTarget)}
+        onOpenChange={(open) => !open && setApproveCompanyTarget(null)}
+      >
+        <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogHeader>
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <ShieldCheck className="size-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-text-main">
+              Xác nhận phê duyệt doanh nghiệp
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-text-muted">
+              Bạn đang phê duyệt hồ sơ pháp lý của doanh nghiệp{" "}
+              <strong className="text-slate-800">
+                {approveCompanyTarget?.name}
+              </strong>{" "}
+              (MST: {approveCompanyTarget?.taxCode}). Sau khi duyệt, doanh nghiệp
+              sẽ được cấp tích xanh xác thực và quyền xuất bản tin tuyển dụng.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="mt-4 gap-2 sm:justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => setApproveCompanyTarget(null)}
+              disabled={verifyMutation.isPending}
+              className="h-9! px-4! text-xs! font-medium!"
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              icon={Check}
+              iconSize={14}
+              isLoading={verifyMutation.isPending}
+              onClick={handleConfirmApproveCompany}
+              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+            >
+              Xác nhận duyệt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(rejectCompanyTarget)}
+        onOpenChange={(open) => !open && setRejectCompanyTarget(null)}
+      >
+        <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogHeader>
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+              <XCircle className="size-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-text-main">
+              Từ chối hồ sơ pháp lý doanh nghiệp
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-text-muted">
+              Vui lòng nêu rõ lý do từ chối hồ sơ của{" "}
+              <strong className="text-slate-800">
+                {rejectCompanyTarget?.name}
+              </strong>
+              . Lý do này sẽ được thông báo trực tiếp đến chủ sở hữu doanh nghiệp.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-3 space-y-1.5">
+            <label
+              htmlFor="dashboard-company-rejection-reason"
+              className="text-xs font-semibold text-slate-800"
+            >
+              Lý do từ chối <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              id="dashboard-company-rejection-reason"
+              rows={4}
+              value={companyRejectionReason}
+              onChange={(e) => {
+                setCompanyRejectionReason(e.target.value);
+                if (companyReasonError) setCompanyReasonError("");
+              }}
+              placeholder="Ví dụ: Giấy phép ĐKKD mờ không đọc được thông tin, hoặc mã số thuế không khớp..."
+              className={cn(
+                "w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs leading-relaxed text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20 focus:outline-none",
+                companyReasonError && "border-rose-400 focus:border-rose-500",
+              )}
+            />
+            {companyReasonError && (
+              <p className="text-[11px] font-medium text-rose-600">
+                {companyReasonError}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="mt-4 gap-2 sm:justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => setRejectCompanyTarget(null)}
+              disabled={verifyMutation.isPending}
+              className="h-9! px-4! text-xs! font-medium!"
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              icon={X}
+              iconSize={14}
+              isLoading={verifyMutation.isPending}
+              onClick={handleConfirmRejectCompany}
+              className="h-9! bg-rose-600! px-4! text-xs! font-semibold! text-white! hover:bg-rose-700!"
+            >
+              Xác nhận từ chối
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal & Drawers cho Tin tuyển dụng ── */}
+      <JobDetailDrawer
+        job={inspectingJob}
+        open={isJobSheetOpen}
+        onClose={() => {
+          setIsJobSheetOpen(false);
+          setInspectingJob(null);
+        }}
+        onApprove={() => {
+          if (inspectingJob) {
+            setApproveJobTarget(inspectingJob);
+          }
+        }}
+        onReject={() => {
+          if (inspectingJob) {
+            setRejectJobTarget(inspectingJob);
+            setJobRejectionReason("");
+            setJobReasonError("");
+          }
+        }}
+        isModerating={moderateMutation.isPending}
+      />
+
+      <Dialog
+        open={Boolean(approveJobTarget)}
+        onOpenChange={(open) => !open && setApproveJobTarget(null)}
+      >
+        <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogHeader>
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <Sparkles className="size-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-text-main">
+              Xác nhận phê duyệt xuất bản
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-text-muted">
+              Tin tuyển dụng{" "}
+              <strong className="text-slate-800">
+                {approveJobTarget?.title}
+              </strong>{" "}
+              của{" "}
+              <strong className="text-slate-800">
+                {approveJobTarget?.companyName}
+              </strong>{" "}
+              sẽ được xuất bản công khai ngay lập tức lên sàn việc làm SmartHire.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="mt-4 gap-2 sm:justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => setApproveJobTarget(null)}
+              disabled={moderateMutation.isPending}
+              className="h-9! px-4! text-xs! font-medium!"
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              icon={Check}
+              iconSize={14}
+              isLoading={moderateMutation.isPending}
+              onClick={handleConfirmApproveJob}
+              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+            >
+              Xác nhận xuất bản
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(rejectJobTarget)}
+        onOpenChange={(open) => !open && setRejectJobTarget(null)}
+      >
+        <DialogContent className="max-w-md rounded-2xl p-6">
+          <DialogHeader>
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+              <XCircle className="size-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-text-main">
+              Từ chối tin tuyển dụng
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-text-muted">
+              Vui lòng nêu rõ lý do từ chối tin{" "}
+              <strong className="text-slate-800">
+                {rejectJobTarget?.title}
+              </strong>{" "}
+              để nhà tuyển dụng nắm được thông tin và chỉnh sửa lại.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-3 space-y-1.5">
+            <label
+              htmlFor="dashboard-job-rejection-reason"
+              className="text-xs font-semibold text-slate-800"
+            >
+              Lý do từ chối <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              id="dashboard-job-rejection-reason"
+              rows={4}
+              value={jobRejectionReason}
+              onChange={(e) => {
+                setJobRejectionReason(e.target.value);
+                if (jobReasonError) setJobReasonError("");
+              }}
+              placeholder="Ví dụ: Mô tả công việc không rõ ràng, yêu cầu chưa đầy đủ, hoặc mức lương không khớp..."
+              className={cn(
+                "w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs leading-relaxed text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20 focus:outline-none",
+                jobReasonError && "border-rose-400 focus:border-rose-500",
+              )}
+            />
+            {jobReasonError && (
+              <p className="text-[11px] font-medium text-rose-600">
+                {jobReasonError}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="mt-4 gap-2 sm:justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => setRejectJobTarget(null)}
+              disabled={moderateMutation.isPending}
+              className="h-9! px-4! text-xs! font-medium!"
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              icon={X}
+              iconSize={14}
+              isLoading={moderateMutation.isPending}
+              onClick={handleConfirmRejectJob}
+              className="h-9! bg-rose-600! px-4! text-xs! font-semibold! text-white! hover:bg-rose-700!"
+            >
+              Xác nhận từ chối
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
