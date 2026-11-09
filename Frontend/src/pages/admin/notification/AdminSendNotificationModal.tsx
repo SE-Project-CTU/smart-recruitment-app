@@ -65,7 +65,7 @@ const LEVEL_OPTIONS: Array<{
 }> = [
   {
     value: "general",
-    label: "Thông báo chung",
+    label: "Chung",
     shortLabel: "Chung",
     icon: Megaphone,
   },
@@ -244,8 +244,8 @@ export function AdminSendNotificationModal({
                       className={cn(
                         "w-full truncate px-0.5 text-center text-[10px] leading-tight transition-colors duration-200 sm:text-xs",
                         isSelected
-                          ? "font-semibold text-text-main"
-                          : "font-medium text-text-muted hover:text-text-main",
+                          ? "text-text-main"
+                          : "text-text-muted hover:text-text-main",
                       )}
                     >
                       <span className="hidden sm:inline">{opt.label}</span>
@@ -287,15 +287,13 @@ export function AdminSendNotificationModal({
                     <Icon
                       className={cn(
                         "size-3 shrink-0 transition-colors duration-200 sm:size-3.5",
-                        isSelected ? "text-text-main" : "text-text-main/80",
+                        isSelected ? "text-text-main" : "text-text-muted",
                       )}
                     />
                     <span
                       className={cn(
                         "truncate transition-colors duration-200",
-                        isSelected
-                          ? "font-semibold text-text-main"
-                          : "font-medium text-text-main/80",
+                        isSelected ? "text-text-main" : "text-text-muted",
                       )}
                     >
                       <span className="hidden sm:inline">{opt.label}</span>
