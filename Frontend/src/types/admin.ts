@@ -265,10 +265,13 @@ export interface AdminPagedResponse<T> {
 
 export type AdminSystemAlertTarget = "SystemAll" | "Candidate" | "Recruiter";
 
+export type AdminSystemAlertLevel = "info" | "success" | "warning" | "error";
+
 export interface SendSystemAlertPayload {
   target?: AdminSystemAlertTarget;
   title: string;
   body: string;
+  alertLevel?: AdminSystemAlertLevel;
 }
 
 export interface SendSystemAlertResponse {

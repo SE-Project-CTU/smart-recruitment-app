@@ -671,7 +671,7 @@ export default function RecruiterDashboard() {
                     <span className="text-xs font-semibold tracking-wider text-text-muted uppercase">
                       {item.title}
                     </span>
-                    <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                    <div className="flex size-9 items-center justify-center rounded-xl bg-bg-white-blue text-secondary-dark transition-colors group-hover:bg-primary group-hover:text-white">
                       <item.icon className="size-4" />
                     </div>
                   </div>

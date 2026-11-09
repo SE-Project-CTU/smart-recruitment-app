@@ -56,4 +56,9 @@ public interface IUserRepository {
     );
 
     Task<int> CountActiveAdminsAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Guid>> GetActiveUserIdsByRoleAsync(
+        string? role,
+        CancellationToken cancellationToken
+    );
 }

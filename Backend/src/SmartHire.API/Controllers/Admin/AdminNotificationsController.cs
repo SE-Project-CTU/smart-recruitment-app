@@ -1,11 +1,14 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartHire.Api.Factories;
 using SmartHire.Application.Abstractions.Notifications;
+using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
 using SmartHire.Application.Features.Notifications.DTOs;
+using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Api.Controllers.Admin;
@@ -13,7 +16,8 @@ namespace SmartHire.Api.Controllers.Admin;
 public sealed record SendSystemAlertRequest(
     string? Target,
     string Title,
-    string Body
+    string Body,
+    string? AlertLevel
 );
 
 [ApiController]
@@ -21,17 +25,26 @@ public sealed record SendSystemAlertRequest(
 [Route("api/v1/admin/notifications")]
 public sealed class AdminNotificationsController : ControllerBase {
     private readonly INotificationDispatcher _notificationDispatcher;
+    private readonly IUserRepository _userRepository;
+    private readonly INotificationRepository _notificationRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ApiResponseFactory _responseFactory;
 
     public AdminNotificationsController(
         INotificationDispatcher notificationDispatcher,
+        IUserRepository userRepository,
+        INotificationRepository notificationRepository,
+        IUnitOfWork unitOfWork,
         ApiResponseFactory responseFactory) {
         _notificationDispatcher = notificationDispatcher;
+        _userRepository = userRepository;
+        _notificationRepository = notificationRepository;
+        _unitOfWork = unitOfWork;
         _responseFactory = responseFactory;
     }
 
     /// <summary>
-    /// Phát cảnh báo / thông báo hệ thống realtime tới SignalR group (Toàn server hoặc theo Role)
+    /// Phát cảnh báo / thông báo hệ thống realtime tới SignalR group và lưu vào lịch sử thông báo của người dùng
     /// </summary>
     [HttpPost("alert")]
     public async Task<IActionResult> SendAlert(
@@ -57,13 +70,57 @@ public sealed class AdminNotificationsController : ControllerBase {
         var trimmedBody = request.Body.Trim();
         var now = DateTimeOffset.UtcNow;
 
+        var alertLevel = request.AlertLevel?.Trim().ToLowerInvariant() switch {
+            "success" => "success",
+            "warning" => "warning",
+            "error" => "error",
+            _ => "info"
+        };
+
+        var payloadJson = $"{{\"level\":\"{alertLevel}\"}}";
+        using var jsonDoc = JsonDocument.Parse(payloadJson);
+        var payloadElement = jsonDoc.RootElement.Clone();
+
+        string? roleFilter = null;
+        string targetGroupDisplay;
+        if (string.Equals(request.Target, "Candidate", StringComparison.OrdinalIgnoreCase)) {
+            roleFilter = "Candidate";
+            targetGroupDisplay = "Candidate";
+        } else if (string.Equals(request.Target, "Recruiter", StringComparison.OrdinalIgnoreCase)) {
+            roleFilter = "Recruiter";
+            targetGroupDisplay = "Recruiter";
+        } else {
+            targetGroupDisplay = "SystemAll";
+        }
+
+        // 1. Lấy danh sách tài khoản active theo role mục tiêu
+        var userIds = await _userRepository.GetActiveUserIdsByRoleAsync(roleFilter, cancellationToken);
+
+        // 2. Lưu vào bảng Notifications để người dùng thấy trong chuông thông báo
+        if (userIds.Count > 0) {
+            var notifications = userIds.Select(userId => Notification.Create(
+                recipientId: userId,
+                type: NotificationType.SystemAlert,
+                title: trimmedTitle,
+                body: trimmedBody,
+                payload: payloadJson,
+                resourceType: "System",
+                resourceId: null,
+                now: now
+            )).ToList();
+
+            await _notificationRepository.AddRangeAsync(notifications, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        // 3. Phát SignalR realtime qua Group tới các client đang online
         var dto = new NotificationDto(
             Id: Guid.NewGuid(),
             RecipientId: Guid.Empty,
             Type: NotificationType.SystemAlert.ToString(),
             Title: trimmedTitle,
             Body: trimmedBody,
-            Payload: null,
+            Payload: payloadElement,
             ResourceType: "System",
             ResourceId: null,
             CreatedAt: now,
@@ -72,24 +129,21 @@ public sealed class AdminNotificationsController : ControllerBase {
             IsRead: false
         );
 
-        string targetGroupDisplay;
-        if (string.Equals(request.Target, "Candidate", StringComparison.OrdinalIgnoreCase)) {
+        if (roleFilter == "Candidate") {
             await _notificationDispatcher.DispatchToRoleAsync("candidate", dto, cancellationToken);
-            targetGroupDisplay = "Candidate";
-        } else if (string.Equals(request.Target, "Recruiter", StringComparison.OrdinalIgnoreCase)) {
+        } else if (roleFilter == "Recruiter") {
             await _notificationDispatcher.DispatchToRoleAsync("recruiter", dto, cancellationToken);
-            targetGroupDisplay = "Recruiter";
         } else {
-            // Mặc định hoặc All: phát tới group system:all
             await _notificationDispatcher.DispatchBroadcastAsync(dto, cancellationToken);
-            targetGroupDisplay = "SystemAll";
         }
 
         return Ok(_responseFactory.Success(new {
             target = targetGroupDisplay,
+            level = alertLevel,
             title = trimmedTitle,
+            recipientCount = userIds.Count,
             sentAt = now,
-            message = "Thông báo hệ thống đã được phát thành công tới người dùng."
+            message = "Thông báo hệ thống đã được phát và lưu vào hệ thống thành công."
         }));
     }
 }

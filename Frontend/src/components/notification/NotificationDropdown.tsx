@@ -11,7 +11,9 @@ import {
   MailCheck,
   Building2,
   AlertCircle,
-  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  Megaphone,
   ChevronDown,
   Loader2,
 } from "lucide-react";
@@ -35,7 +37,7 @@ import type { NotificationDto, NotificationType } from "@/types/notification";
 /**
  * Trả về icon và màu nền trực quan cho từng loại thông báo
  */
-function getNotificationIcon(type: NotificationType) {
+function getNotificationIcon(type: NotificationType, payload?: unknown) {
   const iconProps = { className: "size-4 text-secondary-dark" };
   const bg = "bg-bg-white-blue border-border/40";
 
@@ -65,11 +67,34 @@ function getNotificationIcon(type: NotificationType) {
         icon: <Building2 {...iconProps} />,
         bg,
       };
-    case "SystemAlert":
+    case "SystemAlert": {
+      let level = "info";
+      if (payload) {
+        try {
+          const parsed =
+            typeof payload === "string" ? JSON.parse(payload) : (payload as Record<string, unknown>);
+          if (typeof parsed?.level === "string") {
+            level = parsed.level;
+          }
+        } catch {
+          // ignore error
+        }
+      }
+
+      let IconComponent = Megaphone;
+      if (level === "success") {
+        IconComponent = CheckCircle2;
+      } else if (level === "warning") {
+        IconComponent = AlertTriangle;
+      } else if (level === "error") {
+        IconComponent = AlertCircle;
+      }
+
       return {
-        icon: <ShieldCheck {...iconProps} />,
+        icon: <IconComponent {...iconProps} />,
         bg,
       };
+    }
     default:
       return {
         icon: <AlertCircle {...iconProps} />,
@@ -166,7 +191,7 @@ export function NotificationDropdown() {
   };
 
   const renderNotificationItem = (item: NotificationDto) => {
-    const { icon, bg } = getNotificationIcon(item.type);
+    const { icon, bg } = getNotificationIcon(item.type, item.payload);
     return (
       <div
         key={item.id}

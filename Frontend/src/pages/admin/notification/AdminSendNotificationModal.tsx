@@ -1,10 +1,12 @@
 import { useState } from "react";
 import {
-  Megaphone,
   Globe,
   UserCheck,
   Building2,
   AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
   Send,
 } from "lucide-react";
 import {
@@ -17,7 +19,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/common/Button";
 import { useSendSystemAlert } from "@/hooks/queries/useAdmin";
-import type { AdminSystemAlertTarget } from "@/types/admin";
+import type {
+  AdminSystemAlertTarget,
+  AdminSystemAlertLevel,
+} from "@/types/admin";
 import { cn } from "cn";
 
 interface AdminSendNotificationModalProps {
@@ -52,12 +57,40 @@ const TARGET_OPTIONS: Array<{
   },
 ];
 
+const LEVEL_OPTIONS: Array<{
+  value: AdminSystemAlertLevel;
+  label: string;
+  icon: typeof Info;
+}> = [
+  {
+    value: "info",
+    label: "Thông tin",
+    icon: Info,
+  },
+  {
+    value: "success",
+    label: "Thành công",
+    icon: CheckCircle2,
+  },
+  {
+    value: "warning",
+    label: "Cảnh báo",
+    icon: AlertTriangle,
+  },
+  {
+    value: "error",
+    label: "Nguy cấp",
+    icon: AlertCircle,
+  },
+];
+
 export function AdminSendNotificationModal({
   open,
   onOpenChange,
   onSuccess,
 }: AdminSendNotificationModalProps) {
   const [target, setTarget] = useState<AdminSystemAlertTarget>("SystemAll");
+  const [level, setLevel] = useState<AdminSystemAlertLevel>("info");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -74,6 +107,7 @@ export function AdminSendNotificationModal({
     setTitle("");
     setBody("");
     setTarget("SystemAll");
+    setLevel("info");
     setTitleError(null);
     setBodyError(null);
   };
@@ -118,6 +152,7 @@ export function AdminSendNotificationModal({
         target,
         title: trimmedTitle,
         body: trimmedBody,
+        alertLevel: level,
       },
       {
         onSuccess: () => {
@@ -128,6 +163,10 @@ export function AdminSendNotificationModal({
       },
     );
   };
+
+  const activeLevelConfig =
+    LEVEL_OPTIONS.find((opt) => opt.value === level) ?? LEVEL_OPTIONS[0];
+  const LevelIcon = activeLevelConfig.icon;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -144,7 +183,7 @@ export function AdminSendNotificationModal({
                   Phát thông báo hệ thống
                 </DialogTitle>
                 <DialogDescription className="mt-0.5 text-xs text-text-muted">
-                  Gửi thông báo cho người dùng trên toàn hệ thống
+                  Gửi thông báo tới người dùng và lưu vào lịch sử thông báo
                 </DialogDescription>
               </div>
             </div>
@@ -169,26 +208,63 @@ export function AdminSendNotificationModal({
                     onClick={() => setTarget(opt.value)}
                     disabled={sendAlertMutation.isPending}
                     className={cn(
-                      "flex cursor-pointer flex-col items-start rounded-xl border p-3 text-left transition-all",
+                      "flex flex-col items-start rounded-xl border p-3 text-left transition-all",
                       isSelected
                         ? "border-primary bg-primary/5 text-primary ring-1 ring-primary/30"
-                        : "border-border/70 bg-bg/50 text-text-muted hover:border-border hover:bg-bg hover:text-text-main",
+                        : "border-border bg-bg/50 hover:border-border/80 hover:bg-bg text-text-main",
                     )}
                   >
-                    <div className="mb-1 flex items-center gap-2">
-                      <Icon
+                    <div className="flex w-full items-center justify-between">
+                      <div
                         className={cn(
-                          "size-4 shrink-0",
-                          isSelected ? "text-primary" : "text-text-muted",
+                          "flex size-6 items-center justify-center rounded-lg",
+                          isSelected
+                            ? "bg-primary text-white"
+                            : "bg-border/60 text-text-muted",
                         )}
-                      />
-                      <span className="text-xs font-semibold text-text-main">
-                        {opt.label}
-                      </span>
+                      >
+                        <Icon className="size-3.5" />
+                      </div>
+                      {isSelected && (
+                        <div className="size-1.5 rounded-full bg-primary" />
+                      )}
                     </div>
-                    <span className="text-[11px] leading-tight text-text-muted">
+                    <span className="mt-2 text-xs font-semibold">
+                      {opt.label}
+                    </span>
+                    <span className="mt-0.5 line-clamp-1 text-[11px] text-text-muted">
                       {opt.description}
                     </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Loại thông báo */}
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-text-main">
+              Loại thông báo <span className="text-destructive">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {LEVEL_OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const isSelected = level === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setLevel(opt.value)}
+                    disabled={sendAlertMutation.isPending}
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-medium transition-all",
+                      isSelected
+                        ? "border-primary bg-primary/5 text-primary ring-1 ring-primary/30 font-semibold"
+                        : "border-border bg-bg/50 hover:bg-bg text-text-muted hover:text-text-main",
+                    )}
+                  >
+                    <Icon className="size-3.5 shrink-0" />
+                    <span>{opt.label}</span>
                   </button>
                 );
               })}
@@ -202,7 +278,7 @@ export function AdminSendNotificationModal({
                 htmlFor="alert-title"
                 className="text-xs font-semibold text-text-main"
               >
-                Tiêu đề thông báo <span className="text-destructive">*</span>
+                Tiêu đề <span className="text-destructive">*</span>
               </label>
               <span className="text-[11px] text-text-muted">
                 {title.length}/200
@@ -277,13 +353,16 @@ export function AdminSendNotificationModal({
           <div className="space-y-2 rounded-xl">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-text-muted uppercase">
-                Xem trước
+                Xem trước giao diện
+              </span>
+              <span className="text-[11px] font-semibold text-secondary-dark">
+                {activeLevelConfig.label}
               </span>
             </div>
             <div className="rounded-xl border border-border/80 bg-surface p-3.5 shadow-xs">
               <div className="flex items-start gap-3">
-                <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Megaphone className="size-3.5" />
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-bg-white-blue text-secondary-dark">
+                  <LevelIcon className="size-3.5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-1 text-xs font-semibold text-text-main">
@@ -291,7 +370,7 @@ export function AdminSendNotificationModal({
                   </p>
                   <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-text-muted">
                     {body.trim() ||
-                      "Nội dung thông báo sẽ hiển thị trực tiếp dạng pop-up ở góc dưới bên phải màn hình của người dùng..."}
+                      "Nội dung thông báo sẽ hiển thị trực tiếp dạng pop-up ở góc dưới bên phải và lưu vào chuông thông báo của người dùng..."}
                   </p>
                 </div>
               </div>

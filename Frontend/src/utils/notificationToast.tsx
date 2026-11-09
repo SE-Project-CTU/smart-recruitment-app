@@ -6,7 +6,7 @@ import { NotificationToastContent } from "@/components/notification/Notification
 export function resolveNotificationAction(notification: NotificationDto): {
   url?: string;
   label?: string;
-  toastType: "success" | "info" | "warning";
+  toastType: "success" | "info" | "warning" | "error";
 } {
   switch (notification.type) {
     case "JobApplicationReceived":
@@ -58,8 +58,6 @@ export function resolveNotificationAction(notification: NotificationDto): {
         }
       }
 
-      // Nếu là thông báo bị từ chối gửi cho ứng viên/người gửi yêu cầu, chuyển về trang quản lý công ty
-      // Nếu là yêu cầu gia nhập mới gửi cho Owner, chuyển thẳng vào tab duyệt yêu cầu gia nhập
       const joinRequestUrl =
         isRejected || !companyId
           ? PATHS.RECRUITER.COMPANY_MANAGEMENT
@@ -72,6 +70,32 @@ export function resolveNotificationAction(notification: NotificationDto): {
       };
     }
     case "SystemAlert": {
+      // 1. Nếu là thông báo hệ thống do Admin chủ động phát (resourceType === 'System' hoặc không có resourceId)
+      if (notification.resourceType === "System" || !notification.resourceId) {
+        let level: "info" | "success" | "warning" | "error" = "info";
+        if (notification.payload) {
+          try {
+            const parsed =
+              typeof notification.payload === "string"
+                ? JSON.parse(notification.payload)
+                : notification.payload;
+            if (
+              parsed?.level &&
+              ["info", "success", "warning", "error"].includes(parsed.level)
+            ) {
+              level = parsed.level;
+            }
+          } catch {
+            // ignore error
+          }
+        }
+        // Không dùng action button cho thông báo phát từ admin
+        return {
+          toastType: level,
+        };
+      }
+
+      // 2. Nếu là thông báo hệ thống tự động từ thẩm định công ty / duyệt tin tuyển dụng
       const titleLower = notification.title.toLowerCase();
       const bodyLower = notification.body.toLowerCase();
       const isRejected =
@@ -115,6 +139,8 @@ export function showNotificationToast(
     toast.success({ title: titleElement, description: descriptionElement });
   } else if (toastType === "warning") {
     toast.warning({ title: titleElement, description: descriptionElement });
+  } else if (toastType === "error") {
+    toast.error({ title: titleElement, description: descriptionElement });
   } else {
     toast.info({ title: titleElement, description: descriptionElement });
   }

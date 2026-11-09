@@ -873,8 +873,9 @@ export default function AdminDashboard() {
               <strong className="text-slate-800">
                 {approveCompanyTarget?.name}
               </strong>{" "}
-              (MST: {approveCompanyTarget?.taxCode}). Sau khi duyệt, doanh nghiệp
-              sẽ được cấp tích xanh xác thực và quyền xuất bản tin tuyển dụng.
+              (MST: {approveCompanyTarget?.taxCode}). Sau khi duyệt, doanh
+              nghiệp sẽ được cấp tích xanh xác thực và quyền xuất bản tin tuyển
+              dụng.
             </DialogDescription>
           </DialogHeader>
 
@@ -918,7 +919,8 @@ export default function AdminDashboard() {
               <strong className="text-slate-800">
                 {rejectCompanyTarget?.name}
               </strong>
-              . Lý do này sẽ được thông báo trực tiếp đến chủ sở hữu doanh nghiệp.
+              . Lý do này sẽ được thông báo trực tiếp đến chủ sở hữu doanh
+              nghiệp.
             </DialogDescription>
           </DialogHeader>
 
@@ -1017,7 +1019,8 @@ export default function AdminDashboard() {
               <strong className="text-slate-800">
                 {approveJobTarget?.companyName}
               </strong>{" "}
-              sẽ được xuất bản công khai ngay lập tức lên sàn việc làm SmartHire.
+              sẽ được xuất bản công khai ngay lập tức lên sàn việc làm
+              SmartHire.
             </DialogDescription>
           </DialogHeader>
 
