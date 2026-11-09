@@ -90,9 +90,11 @@ function DashboardHeader() {
           <Button
             icon={Megaphone}
             onClick={() => setIsSendNotificationOpen(true)}
-            className="text-xs!"
+            size="sm"
+            className="text-xs"
           >
-            Gửi thông báo
+            <span className="hidden sm:inline">Gửi thông báo</span>
+            <span className="sm:hidden">Gửi TB</span>
           </Button>
         );
 
@@ -107,8 +109,8 @@ function DashboardHeader() {
     customBreadcrumbs || resolveBreadcrumbs(location.pathname);
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-4 backdrop-blur-md md:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-3 sm:px-4 backdrop-blur-md md:px-6">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Link to={PATHS.HOME} className="flex items-center">
           <img
             src={SmartHire_default}
@@ -116,7 +118,7 @@ function DashboardHeader() {
             className="h-4 w-auto md:h-8"
           />
         </Link>
-        <SidebarTrigger className="h-9 w-9 rounded-lg hover:bg-slate-100" />
+        <SidebarTrigger className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-slate-100" />
         <Breadcrumb className="hidden sm:block">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -145,12 +147,12 @@ function DashboardHeader() {
         </Breadcrumb>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {renderRoleActionButton()}
 
         <NotificationDropdown />
 
-        <div className="flex items-center gap-3 border-l border-border/40 pl-3">
+        <div className="flex items-center gap-2 sm:gap-3 border-l border-border/40 pl-2 sm:pl-3">
           <Menu>
             <MenuTrigger
               openOnHover

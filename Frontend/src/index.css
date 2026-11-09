@@ -77,19 +77,19 @@ body {
 }
 
 .btn {
-  @apply inline-flex cursor-pointer items-center justify-center font-medium transition-all duration-200 select-none active:scale-[0.98];
+  @apply inline-flex cursor-pointer items-center justify-center font-medium transition-all duration-200 select-none active:scale-[0.98] whitespace-nowrap shrink-0;
 }
 
 .btn-primary {
-  @apply rounded-full bg-primary px-4 py-2 text-sm text-white shadow-sm hover:bg-primary-dark hover:shadow-md;
+  @apply rounded-full bg-primary px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm text-white shadow-sm hover:bg-primary-dark hover:shadow-md;
 }
 
 .btn-secondary {
-  @apply rounded-full px-4 py-2 text-sm text-primary ring-1 ring-primary ring-inset hover:bg-secondary-light/40 hover:text-primary-dark hover:ring-primary-dark;
+  @apply rounded-full px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm text-primary ring-1 ring-primary ring-inset hover:bg-secondary-light/40 hover:text-primary-dark hover:ring-primary-dark;
 }
 
 .btn-outline {
-  @apply rounded-full px-4 py-2 text-sm text-white ring-1 ring-white ring-inset hover:bg-white hover:text-primary-dark hover:ring-primary-dark;
+  @apply rounded-full px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm text-white ring-1 ring-white ring-inset hover:bg-white hover:text-primary-dark hover:ring-primary-dark;
 }
 
 .section-title {

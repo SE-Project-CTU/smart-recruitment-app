@@ -642,8 +642,8 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Hàng đợi 1: Doanh nghiệp mới nộp chờ thẩm định */}
         <div className="flex flex-col rounded-2xl border border-border bg-surface p-5">
-          <div className="flex items-center justify-between border-b border-border/60 pb-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-4">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div>
                 <h3 className="text-base font-bold text-text-main">
                   Doanh nghiệp chờ kiểm định
@@ -656,10 +656,11 @@ export default function AdminDashboard() {
 
             <Button
               variant="secondary"
+              size="sm"
               icon={ChevronRight}
               iconPosition="right"
               onClick={() => navigate(PATHS.ADMIN.APPROVE_COMPANY)}
-              className="h-8 px-2.5 text-xs font-semibold"
+              className="h-8 font-semibold"
             >
               Xem tất cả
             </Button>
@@ -744,8 +745,8 @@ export default function AdminDashboard() {
 
         {/* Hàng đợi 2: Tin tuyển dụng mới gửi chờ duyệt */}
         <div className="flex flex-col rounded-2xl border border-border bg-surface p-5">
-          <div className="flex items-center justify-between border-b border-border/60 pb-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-4">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div>
                 <h3 className="text-base font-bold text-text-main">
                   Tin tuyển dụng chờ duyệt
@@ -758,10 +759,11 @@ export default function AdminDashboard() {
 
             <Button
               variant="secondary"
+              size="sm"
               icon={ChevronRight}
               iconPosition="right"
               onClick={() => navigate(PATHS.ADMIN.APPROVE_JD)}
-              className="h-8 px-2.5 text-xs font-semibold"
+              className="h-8 font-semibold"
             >
               Xem tất cả
             </Button>
