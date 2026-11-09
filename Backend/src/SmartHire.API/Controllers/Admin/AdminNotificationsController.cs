@@ -71,10 +71,10 @@ public sealed class AdminNotificationsController : ControllerBase {
         var now = DateTimeOffset.UtcNow;
 
         var alertLevel = request.AlertLevel?.Trim().ToLowerInvariant() switch {
-            "success" => "success",
+            "info" => "info",
             "warning" => "warning",
             "error" => "error",
-            _ => "info"
+            _ => "general"
         };
 
         var payloadJson = $"{{\"level\":\"{alertLevel}\"}}";

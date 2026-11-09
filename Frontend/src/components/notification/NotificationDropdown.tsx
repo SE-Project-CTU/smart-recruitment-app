@@ -12,7 +12,7 @@ import {
   Building2,
   AlertCircle,
   AlertTriangle,
-  CheckCircle2,
+  Info,
   Megaphone,
   ChevronDown,
   Loader2,
@@ -68,7 +68,7 @@ function getNotificationIcon(type: NotificationType, payload?: unknown) {
         bg,
       };
     case "SystemAlert": {
-      let level = "info";
+      let level = "general";
       if (payload) {
         try {
           const parsed =
@@ -81,13 +81,13 @@ function getNotificationIcon(type: NotificationType, payload?: unknown) {
         }
       }
 
-      let IconComponent = Megaphone;
-      if (level === "success") {
-        IconComponent = CheckCircle2;
+      let IconComponent = Megaphone; // Thông báo chung: megaphone
+      if (level === "info") {
+        IconComponent = Info; // Thông tin: icon chữ i
       } else if (level === "warning") {
-        IconComponent = AlertTriangle;
+        IconComponent = AlertTriangle; // Cảnh báo: triangle-exclamation-point
       } else if (level === "error") {
-        IconComponent = AlertCircle;
+        IconComponent = AlertCircle; // Nguy cấp: circle-exclamation-point
       }
 
       return {

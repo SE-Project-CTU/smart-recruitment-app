@@ -72,7 +72,7 @@ export function resolveNotificationAction(notification: NotificationDto): {
     case "SystemAlert": {
       // 1. Nếu là thông báo hệ thống do Admin chủ động phát (resourceType === 'System' hoặc không có resourceId)
       if (notification.resourceType === "System" || !notification.resourceId) {
-        let level: "info" | "success" | "warning" | "error" = "info";
+        let level: "general" | "info" | "warning" | "error" = "general";
         if (notification.payload) {
           try {
             const parsed =
@@ -81,7 +81,7 @@ export function resolveNotificationAction(notification: NotificationDto): {
                 : notification.payload;
             if (
               parsed?.level &&
-              ["info", "success", "warning", "error"].includes(parsed.level)
+              ["general", "info", "warning", "error"].includes(parsed.level)
             ) {
               level = parsed.level;
             }
@@ -89,9 +89,17 @@ export function resolveNotificationAction(notification: NotificationDto): {
             // ignore error
           }
         }
+        // Mapping toastType: error -> error, warning -> warning, general/info -> info
+        const toastType: "info" | "warning" | "error" =
+          level === "error"
+            ? "error"
+            : level === "warning"
+              ? "warning"
+              : "info";
+
         // Không dùng action button cho thông báo phát từ admin
         return {
-          toastType: level,
+          toastType,
         };
       }
 
