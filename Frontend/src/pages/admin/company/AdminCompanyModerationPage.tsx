@@ -290,7 +290,7 @@ export default function AdminCompanyModerationPage() {
           header: "Mã số thuế",
           meta: { className: "whitespace-nowrap" },
           cell: ({ row }) => (
-            <span className="font-mono font-semibold text-slate-700">
+            <span className="text-slate-700">
               {row.original.taxCode || "—"}
             </span>
           ),

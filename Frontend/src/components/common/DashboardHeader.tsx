@@ -109,7 +109,7 @@ function DashboardHeader() {
     customBreadcrumbs || resolveBreadcrumbs(location.pathname);
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-3 sm:px-4 backdrop-blur-md md:px-6">
+    <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-3 backdrop-blur-md sm:px-4 md:px-6">
       <div className="flex items-center gap-2 sm:gap-3">
         <Link to={PATHS.HOME} className="flex items-center">
           <img
@@ -118,7 +118,7 @@ function DashboardHeader() {
             className="h-4 w-auto md:h-8"
           />
         </Link>
-        <SidebarTrigger className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-slate-100" />
+        <SidebarTrigger className="h-8 w-8 rounded-lg hover:bg-slate-100 sm:h-9 sm:w-9" />
         <Breadcrumb className="hidden sm:block">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -152,7 +152,7 @@ function DashboardHeader() {
 
         <NotificationDropdown />
 
-        <div className="flex items-center gap-2 sm:gap-3 border-l border-border/40 pl-2 sm:pl-3">
+        <div className="flex items-center gap-2 border-l border-border/40 pl-2 sm:gap-3 sm:pl-3">
           <Menu>
             <MenuTrigger
               openOnHover
