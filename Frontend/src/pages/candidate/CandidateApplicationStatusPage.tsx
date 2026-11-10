@@ -9,7 +9,6 @@ import {
   Filter,
   MapPin,
   Globe,
-  ExternalLink,
   ChevronDown,
   Search,
   ChevronLeft,
@@ -49,6 +48,7 @@ import {
   type CandidateMyApplicationItem,
   type ApplicationStatusHistoryItem,
 } from "@/types/application";
+import { ApplicationCvPreviewDialog } from "@/pages/recruiter/candidate/ApplicationCvPreviewDialog";
 
 const columnHelper = createColumnHelper<
   DataTableFeatures,
@@ -111,6 +111,9 @@ export default function CandidateApplicationStatusPage() {
 
   // Modal xem chi tiết & Timeline tiến trình
   const [selectedApplication, setSelectedApplication] =
+    useState<CandidateMyApplicationItem | null>(null);
+  // Modal xem trước CV hệ thống
+  const [previewCvApp, setPreviewCvApp] =
     useState<CandidateMyApplicationItem | null>(null);
 
   // Hook lấy lịch sử trạng thái của application đang xem
@@ -228,26 +231,31 @@ export default function CandidateApplicationStatusPage() {
                   <a
                     href={app.uploadedCvUrl}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     title="Mở file CV PDF đã tải lên"
-                    className="inline-flex items-center gap-1 rounded-lg border border-border bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary"
+                    className="inline-flex items-center gap-1.5"
                   >
-                    <FileText className="size-3.5" />
-                    <span>File CV</span>
-                    <ExternalLink className="size-3 opacity-60" />
+                    <Button
+                      variant="secondary"
+                      iconPosition="right"
+                      icon={FileText}
+                      className="rounded-lg! text-xs! text-text-muted! ring-border!"
+                    >
+                      Xem CV
+                    </Button>
                   </a>
                 ) : (
-                  <span
-                    title={
-                      app.cvVersionId
-                        ? `Phiên bản CV: ${app.cvVersionId}`
-                        : "CV trực tuyến chuẩn ATS"
-                    }
-                    className="inline-flex items-center gap-1 rounded-lg border border-border bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary"
+                  <Button
+                    onClick={() => setPreviewCvApp(app)}
+                    disabled={!app.cvSnapshot && !app.cvVersionId}
+                    aria-label="Xem trước CV hệ thống"
+                    variant="secondary"
+                    iconPosition="right"
+                    icon={Globe}
+                    className="rounded-lg! text-xs! text-text-muted! ring-border!"
                   >
-                    <Globe className="size-3.5 text-primary" />
-                    <span>CV Online</span>
-                  </span>
+                    Xem CV
+                  </Button>
                 )}
               </div>
             );
@@ -717,6 +725,11 @@ export default function CandidateApplicationStatusPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ApplicationCvPreviewDialog
+        application={previewCvApp}
+        onClose={() => setPreviewCvApp(null)}
+      />
     </div>
   );
 }

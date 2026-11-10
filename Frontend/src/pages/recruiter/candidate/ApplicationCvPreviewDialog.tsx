@@ -1,6 +1,9 @@
 import { CvPreviewModal } from "@/features/cv";
 import { useApplicationDetail } from "@/hooks/queries/useApplication";
-import type { RecruiterCandidateApplicationItem } from "@/types/application";
+import type {
+  CandidateMyApplicationItem,
+  RecruiterCandidateApplicationItem,
+} from "@/types/application";
 import type {
   CVLayoutDocument,
   RichTextCVContentDocument,
@@ -14,7 +17,10 @@ import {
 } from "@/components/ui/dialog";
 
 interface ApplicationCvPreviewDialogProps {
-  application: RecruiterCandidateApplicationItem | null;
+  application:
+    | RecruiterCandidateApplicationItem
+    | CandidateMyApplicationItem
+    | null;
   onClose: () => void;
 }
 
@@ -28,13 +34,26 @@ export function ApplicationCvPreviewDialog({
     isError,
   } = useApplicationDetail(application?.id);
   const snapshot = applicationDetail?.cvSnapshot ?? application?.cvSnapshot;
+  const candidateName =
+    application && "candidate" in application
+      ? application.candidate?.fullName
+      : undefined;
+  const jobTitle =
+    application && "jobTitle" in application
+      ? application.jobTitle || application.job?.title
+      : application?.job?.title;
+  const previewTitle = candidateName
+    ? `CV của ứng viên ${candidateName}`
+    : jobTitle
+      ? `CV ứng tuyển - ${jobTitle}`
+      : "CV ứng tuyển của tôi";
 
   if (snapshot && !isFetching) {
     return (
       <CvPreviewModal
         isOpen={Boolean(application)}
         onClose={onClose}
-        title={`CV của ứng viên ${application?.candidate?.fullName}`}
+        title={previewTitle}
         content={snapshot.content as unknown as RichTextCVContentDocument}
         layout={snapshot.layout as unknown as CVLayoutDocument}
       />
@@ -49,7 +68,7 @@ export function ApplicationCvPreviewDialog({
         <DialogHeader>
           <DialogTitle>CV hệ thống</DialogTitle>
           <DialogDescription>
-            Bản CV được đính kèm trong hồ sơ ứng tuyển của ứng viên.
+            Bản CV được đính kèm trong hồ sơ ứng tuyển.
           </DialogDescription>
         </DialogHeader>
         {isFetching ? (
