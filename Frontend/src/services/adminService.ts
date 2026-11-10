@@ -330,6 +330,8 @@ export const adminService = {
   },
 
   async getSkills(params?: {
+    search?: string;
+    isActive?: boolean;
     page?: number;
     pageSize?: number;
   }): Promise<AdminPagedResponse<AdminSkill>> {

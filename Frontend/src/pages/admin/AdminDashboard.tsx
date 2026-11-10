@@ -319,12 +319,12 @@ export default function AdminDashboard() {
     const months = [];
     for (let i = 5; i >= 0; i--) {
       const d = dayjs().subtract(i, "month");
-      // Phân bổ ước lượng theo xu hướng tăng trưởng
+      // Phân bổ ước lượng theo tổng lượt ứng tuyển thực tế (tránh hiển thị số giả khi = 0)
       const weight = (6 - i) / 21;
-      const val = Math.max(0, Math.round(totalApps * weight));
+      const val = totalApps > 0 ? Math.max(0, Math.round(totalApps * weight)) : 0;
       months.push({
         month: d.format("[Tháng] MM"),
-        applications: totalApps > 0 ? val : (6 - i) * 12,
+        applications: val,
       });
     }
     return months;

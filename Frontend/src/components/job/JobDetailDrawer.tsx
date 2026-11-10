@@ -101,14 +101,19 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   const [isMobile, setIsMobile] = useState(false);
   const { openApplyModal } = useApplyJobModalStore();
   const { user } = useAuthStore();
-  const isCandidate = Boolean(user?.roles?.includes("Candidate"));
+  const isCandidate = Boolean(
+    user?.roles?.some((role) => role.toLowerCase() === "candidate"),
+  );
 
   // Tải chi tiết tin tuyển dụng nếu có ID
   const { data: detailData, isLoading: isLoadingDetail } = useJobPostingDetail(
     open && job?.id ? job.id : undefined,
   );
 
-  const { data: myAppsData } = useMyApplications({ pageSize: 50 });
+  const { data: myAppsData } = useMyApplications(
+    { pageSize: 50 },
+    { enabled: isCandidate && open },
+  );
   const myApplications = myAppsData?.items ?? [];
 
   const { data: bookmarkedData } = useMyBookmarkedJobs(

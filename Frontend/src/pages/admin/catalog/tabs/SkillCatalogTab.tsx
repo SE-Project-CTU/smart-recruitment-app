@@ -131,7 +131,7 @@ export function SkillCatalogTab() {
               icon={Plus}
               iconSize={15}
               onClick={handleOpenAdd}
-              className="! h-8! rounded-xl! px-3! text-xs!"
+              className="h-8! rounded-xl! px-3! text-xs!"
             >
               Thêm kỹ năng
             </Button>

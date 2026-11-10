@@ -78,7 +78,7 @@ export default function AdminJobModerationPage() {
 
   // Đọc params từ URL
   const activeTab = (searchParams.get("tab") || "PendingReview") as TabKey;
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
   const search = searchParams.get("search") || "";
   const pageSize = 10;
 
@@ -105,14 +105,19 @@ export default function AdminJobModerationPage() {
 
   // Lấy tổng quan số lượng cho Tab badge
   const { data: overview } = useAdminDashboardOverview();
+  const { data: rejectedSummary } = useAdminJobPostings({
+    status: "Rejected",
+    pageSize: 1,
+  });
+
   const counts = useMemo(() => {
     return {
       PendingReview: overview?.jobPostings.pendingReview ?? 0,
       Published: overview?.jobPostings.open ?? 0,
-      Rejected: overview?.jobPostings.closed ?? 0,
+      Rejected: rejectedSummary?.meta?.totalItems ?? 0,
       All: overview?.jobPostings.total ?? 0,
     };
-  }, [overview]);
+  }, [overview, rejectedSummary]);
 
   // Xác định status query param
   const queryStatus =

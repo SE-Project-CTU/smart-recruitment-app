@@ -74,7 +74,7 @@ export default function AdminCompanyModerationPage() {
 
   // Đọc params từ URL
   const activeTab = (searchParams.get("tab") || "Pending") as TabKey;
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
   const search = searchParams.get("search") || "";
   const pageSize = 10;
 

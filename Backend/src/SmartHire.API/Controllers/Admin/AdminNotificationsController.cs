@@ -68,6 +68,23 @@ public sealed class AdminNotificationsController : ControllerBase {
 
         var trimmedTitle = request.Title.Trim();
         var trimmedBody = request.Body.Trim();
+
+        if (trimmedTitle.Length > 200) {
+            throw new AppException(
+                AppErrorKind.Validation,
+                AdminErrorCodes.NotificationPayloadTooLarge,
+                "Title exceeds maximum length of 200 characters.",
+                [new AppErrorDetail("title", ValidationReasons.MaxLength, "Tiêu đề thông báo không được vượt quá 200 ký tự.")]);
+        }
+
+        if (trimmedBody.Length > 2000) {
+            throw new AppException(
+                AppErrorKind.Validation,
+                AdminErrorCodes.NotificationPayloadTooLarge,
+                "Body exceeds maximum length of 2000 characters.",
+                [new AppErrorDetail("body", ValidationReasons.MaxLength, "Nội dung thông báo không được vượt quá 2000 ký tự.")]);
+        }
+
         var now = DateTimeOffset.UtcNow;
 
         var alertLevel = request.AlertLevel?.Trim().ToLowerInvariant() switch {
@@ -81,16 +98,31 @@ public sealed class AdminNotificationsController : ControllerBase {
         using var jsonDoc = JsonDocument.Parse(payloadJson);
         var payloadElement = jsonDoc.RootElement.Clone();
 
+        if (string.IsNullOrWhiteSpace(request.Target)) {
+            throw new AppException(
+                AppErrorKind.Validation,
+                AdminErrorCodes.NotificationTargetRequired,
+                "Target is required.",
+                [new AppErrorDetail("target", ValidationReasons.Required, "Vui lòng chọn đối tượng nhận thông báo.")]);
+        }
+
+        var trimmedTarget = request.Target.Trim();
         string? roleFilter = null;
         string targetGroupDisplay;
-        if (string.Equals(request.Target, "Candidate", StringComparison.OrdinalIgnoreCase)) {
+        if (string.Equals(trimmedTarget, "Candidate", StringComparison.OrdinalIgnoreCase)) {
             roleFilter = "Candidate";
             targetGroupDisplay = "Candidate";
-        } else if (string.Equals(request.Target, "Recruiter", StringComparison.OrdinalIgnoreCase)) {
+        } else if (string.Equals(trimmedTarget, "Recruiter", StringComparison.OrdinalIgnoreCase)) {
             roleFilter = "Recruiter";
             targetGroupDisplay = "Recruiter";
-        } else {
+        } else if (string.Equals(trimmedTarget, "SystemAll", StringComparison.OrdinalIgnoreCase)) {
             targetGroupDisplay = "SystemAll";
+        } else {
+            throw new AppException(
+                AppErrorKind.Validation,
+                AdminErrorCodes.NotificationInvalidTargetRole,
+                $"Invalid target '{trimmedTarget}'. Allowed values: SystemAll, Candidate, Recruiter.",
+                [new AppErrorDetail("target", ValidationReasons.NotAllowed, "Đối tượng nhận thông báo không hợp lệ. Chỉ chấp nhận: SystemAll, Candidate, Recruiter.")]);
         }
 
         // 1. Lấy danh sách tài khoản active theo role mục tiêu

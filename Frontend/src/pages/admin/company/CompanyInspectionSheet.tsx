@@ -390,12 +390,12 @@ export function CompanyInspectionSheet({
                   {activeData.website ? (
                     <a
                       href={
-                        activeData.website.startsWith("http")
+                        /^https?:\/\//i.test(activeData.website)
                           ? activeData.website
                           : `https://${activeData.website}`
                       }
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 truncate text-xs font-semibold text-primary hover:underline"
                     >
                       <span className="truncate">

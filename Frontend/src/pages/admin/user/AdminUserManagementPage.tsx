@@ -116,7 +116,7 @@ export default function AdminUserManagementPage() {
   // Đọc params từ URL
   const activeRoleTab = (searchParams.get("role") || "ALL") as RoleTabKey;
   const activeStatus = searchParams.get("status") || "ALL";
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
   const search = searchParams.get("search") || "";
   const pageSize = 10;
 
