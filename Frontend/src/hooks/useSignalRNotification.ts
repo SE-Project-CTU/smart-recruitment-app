@@ -56,21 +56,29 @@ export function useSignalRNotification() {
         });
 
         if (notification.type === "JobApplicationReceived") {
-          queryClient.invalidateQueries({ queryKey: ["applications"] });
           queryClient.invalidateQueries({
-            queryKey: ["recruiter-candidates"],
+            queryKey: ["companies", "applications"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["job-postings", "applications"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["recruiter", "all-applications"],
           });
         } else if (notification.type === "ApplicationStatusUpdate") {
-          queryClient.invalidateQueries({ queryKey: ["my-applications"] });
-          queryClient.invalidateQueries({
-            queryKey: ["candidate-applications"],
-          });
+          queryClient.invalidateQueries({ queryKey: ["applications"] });
+        } else if (notification.type === "CompanyInvitation") {
+          queryClient.invalidateQueries({ queryKey: ["company-invitations"] });
+          queryClient.invalidateQueries({ queryKey: ["companies"] });
+        } else if (notification.type === "CompanyJoinRequest") {
+          queryClient.invalidateQueries({ queryKey: ["companies"] });
         } else if (
           notification.type === "CompanyNewJobPosting" ||
-          notification.type === "SystemAlert"
+          notification.type === "SystemAlert" ||
+          notification.type === "JobRecommendation"
         ) {
           queryClient.invalidateQueries({ queryKey: ["job-postings"] });
-          queryClient.invalidateQueries({ queryKey: ["company"] });
+          queryClient.invalidateQueries({ queryKey: ["companies"] });
         }
 
         // Hiển thị interactive Toast Popup
@@ -82,8 +90,19 @@ export function useSignalRNotification() {
     connection.on(
       "ApplicationCounterUpdated",
       (_payload: ApplicationCounterPayload) => {
-        queryClient.invalidateQueries({ queryKey: ["applications"] });
-        queryClient.invalidateQueries({ queryKey: ["recruiter-candidates"] });
+        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        queryClient.invalidateQueries({
+          queryKey: ["notifications", "unread-count"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["companies", "applications"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["job-postings", "applications"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["recruiter", "all-applications"],
+        });
       },
     );
 

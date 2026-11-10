@@ -19,14 +19,17 @@ public class NotificationHub : Hub {
     }
 
     public override async Task OnConnectedAsync() {
-        await Groups.AddToGroupAsync(Context.ConnectionId, NotificationGroups.SystemAll);
+        var isAdmin = false;
 
         if (Context.User is { } user) {
             // Tự động tham gia các group theo Role (Admin, Recruiter, Candidate)
             var roles = user.FindAll(ClaimTypes.Role)
                 .Concat(user.FindAll("role"))
                 .Select(c => c.Value)
-                .Distinct(StringComparer.OrdinalIgnoreCase);
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            isAdmin = roles.Any(r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase));
 
             foreach (var role in roles) {
                 await Groups.AddToGroupAsync(Context.ConnectionId, NotificationGroups.Role(role));
@@ -44,6 +47,11 @@ public class NotificationHub : Hub {
                     _logger.LogWarning(ex, "Could not resolve active companies for user {UserId} upon SignalR connection.", userId);
                 }
             }
+        }
+
+        // Broadcast SystemAll chỉ áp dụng cho Candidate & Recruiter (khớp với UserRepository.GetActiveUserIdsByRoleAsync)
+        if (!isAdmin) {
+            await Groups.AddToGroupAsync(Context.ConnectionId, NotificationGroups.SystemAll);
         }
 
         await base.OnConnectedAsync();
