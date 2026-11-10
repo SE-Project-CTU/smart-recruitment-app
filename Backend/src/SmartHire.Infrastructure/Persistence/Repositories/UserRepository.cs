@@ -152,4 +152,23 @@ public sealed class UserRepository : IUserRepository {
             .Where(u => u.Status == UserStatus.Active && u.UserRoles.Any(ur => ur.Role.Name == RoleNames.Admin))
             .CountAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Guid>> GetActiveUserIdsByRoleAsync(
+        string? role,
+        CancellationToken cancellationToken
+    ) {
+        var query = _dbContext.Users
+            .AsNoTracking()
+            .Where(u => u.Status == UserStatus.Active);
+
+        if (!string.IsNullOrWhiteSpace(role)) {
+            var normalizedRole = role.Trim().ToLower();
+            query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name.ToLower() == normalizedRole));
+        } else {
+            // SystemAll: Gửi tới Candidate và Recruiter, loại trừ Admin
+            query = query.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.Admin));
+        }
+
+        return await query.Select(u => u.Id).ToListAsync(cancellationToken);
+    }
 }

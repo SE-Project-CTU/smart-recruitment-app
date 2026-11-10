@@ -1,12 +1,12 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   FilePlus,
   FileText,
   Home,
-  ListCheck,
   LogOut,
+  Megaphone,
   PlusCircle,
   UserRound,
 } from "lucide-react";
@@ -18,6 +18,7 @@ import { useBreadcrumbStore } from "@/stores/breadcrumbStore";
 import { PATHS } from "@/constants/paths";
 import { getProfilePathByRole } from "@/utils/helper";
 import Button from "./Button";
+import { AdminSendNotificationModal } from "@/pages/admin/notification/AdminSendNotificationModal";
 import {
   Menu,
   MenuTrigger,
@@ -43,6 +44,7 @@ function DashboardHeader() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
+  const [isSendNotificationOpen, setIsSendNotificationOpen] = useState(false);
 
   const displayName = user?.fullName || "Người dùng";
   const displayEmail = user?.email || "user@smarthire.com";
@@ -86,11 +88,13 @@ function DashboardHeader() {
       case "superadmin":
         return (
           <Button
-            icon={ListCheck}
-            onClick={() => navigate(PATHS.ADMIN.APPROVE_COMPANY)}
-            className="hidden! text-xs! md:flex!"
+            icon={Megaphone}
+            onClick={() => setIsSendNotificationOpen(true)}
+            size="sm"
+            className="text-xs"
           >
-            Kiểm duyệt
+            <span className="hidden sm:inline">Gửi thông báo</span>
+            <span className="sm:hidden">Gửi TB</span>
           </Button>
         );
 
@@ -105,8 +109,8 @@ function DashboardHeader() {
     customBreadcrumbs || resolveBreadcrumbs(location.pathname);
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-4 backdrop-blur-md md:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b border-border/60 bg-bg px-3 backdrop-blur-md sm:px-4 md:px-6">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Link to={PATHS.HOME} className="flex items-center">
           <img
             src={SmartHire_default}
@@ -114,7 +118,7 @@ function DashboardHeader() {
             className="h-4 w-auto md:h-8"
           />
         </Link>
-        <SidebarTrigger className="h-9 w-9 rounded-lg hover:bg-slate-100" />
+        <SidebarTrigger className="h-8 w-8 rounded-lg hover:bg-slate-100 sm:h-9 sm:w-9" />
         <Breadcrumb className="hidden sm:block">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -143,12 +147,12 @@ function DashboardHeader() {
         </Breadcrumb>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {renderRoleActionButton()}
 
         <NotificationDropdown />
 
-        <div className="flex items-center gap-3 border-l border-border/40 pl-3">
+        <div className="flex items-center gap-2 border-l border-border/40 pl-2 sm:gap-3 sm:pl-3">
           <Menu>
             <MenuTrigger
               openOnHover
@@ -221,6 +225,11 @@ function DashboardHeader() {
           </Menu>
         </div>
       </div>
+
+      <AdminSendNotificationModal
+        open={isSendNotificationOpen}
+        onOpenChange={setIsSendNotificationOpen}
+      />
     </header>
   );
 }

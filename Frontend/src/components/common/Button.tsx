@@ -1,20 +1,36 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
-import { clsx } from "clsx";
 import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export type ButtonVariant = "primary" | "secondary" | "outline";
+export type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   isLoading?: boolean;
   icon?: LucideIcon;
   iconPosition?: "left" | "right";
   iconSize?: number;
 }
 
-// muốn ghi đè className, phải truyền thêm "!", ví dụ "text-white!"
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: "px-2.5 py-1 text-[11px] sm:text-xs gap-1 sm:gap-1.5",
+  md: "px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm gap-1.5 sm:gap-2",
+  lg: "px-3.5 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-base gap-2 sm:gap-2.5",
+};
+
+const iconSizeClasses: Record<ButtonSize, string> = {
+  sm: "size-3 sm:size-3.5 shrink-0",
+  md: "size-3.5 sm:size-4 shrink-0",
+  lg: "size-4 sm:size-4.5 shrink-0",
+};
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       variant = "primary",
+      size = "md",
       type = "button",
       className,
       disabled = false,
@@ -22,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       icon: Icon,
       iconPosition = "left",
-      iconSize = 18,
+      iconSize,
       onClick,
       ...props
     },
@@ -33,9 +49,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={type}
         disabled={disabled || isLoading}
-        className={clsx(
-          "btn inline-flex items-center justify-center gap-2 transition-all duration-200",
+        className={cn(
+          "btn inline-flex items-center justify-center font-medium transition-all duration-200 select-none active:scale-[0.98] whitespace-nowrap shrink-0 rounded-full",
           `btn-${variant}`,
+          sizeClasses[size],
           (disabled || isLoading) &&
             "pointer-events-none cursor-not-allowed opacity-60",
           className,
@@ -46,7 +63,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {isLoading ? (
           <>
             <svg
-              className="h-4 w-4 shrink-0 animate-spin text-current"
+              className={cn(iconSizeClasses[size], "animate-spin text-current")}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -70,13 +87,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           <>
             {Icon && iconPosition === "left" && (
-              <Icon size={iconSize} className="shrink-0" />
+              <Icon
+                {...(iconSize !== undefined ? { size: iconSize } : {})}
+                className={cn(iconSizeClasses[size])}
+              />
             )}
 
             {children && <span>{children}</span>}
 
             {Icon && iconPosition === "right" && (
-              <Icon size={iconSize} className="shrink-0" />
+              <Icon
+                {...(iconSize !== undefined ? { size: iconSize } : {})}
+                className={cn(iconSizeClasses[size])}
+              />
             )}
           </>
         )}

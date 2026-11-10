@@ -1,0 +1,127 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useBreadcrumbStore } from "@/stores/breadcrumbStore";
+import { PATHS } from "@/constants/paths";
+import { IndustryCatalogTab } from "./tabs/IndustryCatalogTab";
+import { SkillCatalogTab } from "./tabs/SkillCatalogTab";
+import { LocationCatalogTab } from "./tabs/LocationCatalogTab";
+import { CvTemplateCatalogTab } from "./tabs/CvTemplateCatalogTab";
+
+type CatalogTabKey = "industries" | "skills" | "locations" | "cv-templates";
+
+interface TabItem {
+  key: CatalogTabKey;
+  label: string;
+  description: string;
+}
+
+const CATALOG_TABS: TabItem[] = [
+  {
+    key: "industries",
+    label: "Ngành nghề",
+    description: "Nhóm ngành và ngành nghề trực thuộc",
+  },
+  {
+    key: "skills",
+    label: "Kỹ năng",
+    description: "Ngân hàng kỹ năng chuyên môn",
+  },
+  {
+    key: "locations",
+    label: "Khu vực",
+    description: "Tỉnh/Thành phố và Phường/Xã",
+  },
+  {
+    key: "cv-templates",
+    label: "Mẫu CV",
+    description: "Kho mẫu CV chuẩn hóa sàn",
+  },
+];
+
+export function AdminCatalogsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const setBreadcrumbs = useBreadcrumbStore((state) => state.setBreadcrumbs);
+  const resetBreadcrumbs = useBreadcrumbStore((state) => state.resetBreadcrumbs);
+
+  const rawTab = searchParams.get("tab");
+  const activeTab: CatalogTabKey =
+    rawTab === "skills" || rawTab === "locations" || rawTab === "cv-templates"
+      ? rawTab
+      : "industries";
+
+  // Đồng bộ breadcrumbs theo tab đang chọn
+  useEffect(() => {
+    const currentTabItem = CATALOG_TABS.find((t) => t.key === activeTab);
+    const tabLabel = currentTabItem?.label || "Ngành nghề";
+
+    setBreadcrumbs([
+      { label: "Danh mục chung", url: PATHS.ADMIN.CATALOGS },
+      { label: tabLabel },
+    ]);
+
+    return () => {
+      resetBreadcrumbs();
+    };
+  }, [activeTab, setBreadcrumbs, resetBreadcrumbs]);
+
+  const handleSelectTab = (tabKey: CatalogTabKey) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", tabKey);
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  return (
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-bold text-text-main sm:text-2xl">
+          Quản lý danh mục chung
+        </h1>
+        <p className="text-xs text-text-muted sm:text-sm">
+          Cấu hình chuẩn hóa các danh mục ngành nghề, kỹ năng, địa bàn hành
+          chính và mẫu CV toàn hệ thống.
+        </p>
+      </div>
+
+      {/* MASTER TAB BAR */}
+      <div className="border-b border-border">
+        <nav className="flex space-x-2 overflow-x-auto pb-2" aria-label="Tabs">
+          {CATALOG_TABS.map((tab) => {
+            const isSelected = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => handleSelectTab(tab.key)}
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+                  isSelected
+                    ? "bg-secondary-light text-primary"
+                    : "text-text-muted hover:bg-slate-100 hover:text-text-main"
+                }`}
+              >
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* TAB CONTENTS */}
+      <div>
+        {activeTab === "industries" && <IndustryCatalogTab />}
+
+        {activeTab === "skills" && <SkillCatalogTab />}
+
+        {activeTab === "locations" && <LocationCatalogTab />}
+
+        {activeTab === "cv-templates" && <CvTemplateCatalogTab />}
+      </div>
+    </div>
+  );
+}
+export default AdminCatalogsPage;

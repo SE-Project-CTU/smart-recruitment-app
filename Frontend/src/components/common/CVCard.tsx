@@ -179,7 +179,7 @@ export function CVCard({
           icon={Download}
           iconSize={14}
           onClick={() => onDownload?.(cv)}
-          className="w-full! justify-center rounded-lg! p-2! text-xs! md:text-sm!"
+          className="flex-1 justify-center rounded-lg! p-2! text-xs! md:text-sm!"
         >
           Tải xuống
         </Button>

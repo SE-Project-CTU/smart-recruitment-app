@@ -72,6 +72,13 @@ export default function CandidateApplicationStatusPage() {
   const totalItems = appData?.totalItems ?? rawApplications.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
+  // Lấy toàn bộ đơn để thống kê chính xác các thẻ đầu trang (không bị ảnh hưởng bởi bộ lọc hay phân trang)
+  const { data: allAppsData } = useMyApplications({
+    page: 1,
+    pageSize: 100,
+  });
+  const allApplications = useMemo(() => allAppsData?.items ?? [], [allAppsData?.items]);
+
   // Client-side search & status filter theo tên công việc, công ty và trạng thái
   const filteredApplications = useMemo(() => {
     let result = rawApplications;
@@ -120,24 +127,24 @@ export default function CandidateApplicationStatusPage() {
     });
   }, [historyList]);
 
-  // Thống kê nhanh số lượng theo trạng thái
+  // Thống kê nhanh số lượng theo trạng thái độc lập
   const stats = useMemo(() => {
     return {
-      total: totalItems,
-      reviewing: rawApplications.filter((a) => {
+      total: allAppsData?.totalItems ?? allApplications.length,
+      reviewing: allApplications.filter((a) => {
         const s = (a.status || "").toUpperCase();
         return s === "REVIEWING";
       }).length,
-      interview: rawApplications.filter((a) => {
+      interview: allApplications.filter((a) => {
         const s = (a.status || "").toUpperCase();
         return s === "INTERVIEW" || s === "INTERVIEWING";
       }).length,
-      offered: rawApplications.filter((a) => {
+      offered: allApplications.filter((a) => {
         const s = (a.status || "").toUpperCase();
         return s === "OFFERED" || s === "HIRED" || s === "ACCEPTED";
       }).length,
     };
-  }, [rawApplications, totalItems]);
+  }, [allApplications, allAppsData?.totalItems]);
 
   // Columns definition cho DataTable
   const columns = useMemo(

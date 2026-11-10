@@ -13,19 +13,25 @@ import type { ApplyJobPayload } from "@/types/application";
  * Hook Query: Lấy danh sách các đơn ứng tuyển của Candidate
  * Dữ liệu đã tự động tích hợp Job & Company info và phòng chống N+1 Query
  */
-export const useMyApplications = (params?: {
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  sort?: string;
-  direction?: string;
-}) => {
+export const useMyApplications = (
+  params?: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+    sort?: string;
+    direction?: string;
+  },
+  options?: { enabled?: boolean },
+) => {
   const user = useAuthStore((state) => state.user);
+  const isCandidate = Boolean(
+    user?.roles?.some((role) => role.toLowerCase() === "candidate"),
+  );
 
   return useQuery({
     queryKey: ["applications", "my", user?.id, params],
     queryFn: () => applicationService.getMyApplications(params),
-    enabled: Boolean(user?.id),
+    enabled: Boolean(user?.id) && isCandidate && (options?.enabled ?? true),
     staleTime: 60 * 1000, // 1 phút
   });
 };

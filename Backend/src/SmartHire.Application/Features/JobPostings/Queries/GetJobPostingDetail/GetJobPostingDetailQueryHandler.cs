@@ -43,8 +43,10 @@ public sealed class GetJobPostingDetailQueryHandler
         var isPublic = posting.Status == JobPostingStatus.Published
                        && posting.Company.VerificationStatus == CompanyVerificationStatus.Verified
                        && (posting.Deadline == null || posting.Deadline > now);
+
+        var isAdmin = _currentUser.Roles.Contains(RoleNames.Admin);
         
-        if (!isPublic) {
+        if (!isPublic && !isAdmin) {
             // Private posting: require a Recruiter with an Active membership in the company
             var userId = _currentUser.UserId;
             

@@ -265,6 +265,9 @@ export const getApiFieldErrors = (error: unknown): Record<string, string> => {
       result.name = API_ERROR_MESSAGES.ADMIN_SKILL_NAME_ALREADY_EXISTS;
     } else if (code === "ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS" && !result.code) {
       result.code = API_ERROR_MESSAGES.ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS;
+    } else if (code === "MAX_OWNED_COMPANIES_REACHED") {
+      result.general = API_ERROR_MESSAGES.MAX_OWNED_COMPANIES_REACHED;
+      result.company = API_ERROR_MESSAGES.MAX_OWNED_COMPANIES_REACHED;
     }
   }
 

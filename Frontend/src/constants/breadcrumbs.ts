@@ -63,6 +63,8 @@ const STATIC_BREADCRUMBS: Record<string, BreadcrumbConfigItem[]> = {
     { label: "Kiểm duyệt" },
     { label: "Duyệt tin tuyển dụng" },
   ],
+  [PATHS.ADMIN.USERS]: [{ label: "Quản trị người dùng" }],
+  [PATHS.ADMIN.CATALOGS]: [{ label: "Danh mục chung" }],
 };
 
 const DYNAMIC_RULES: RouteBreadcrumbRule[] = [

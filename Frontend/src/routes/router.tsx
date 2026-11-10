@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import RootLayout from "@/layouts/RootLayout";
 import BaseLayout from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/common/Page";
@@ -44,19 +45,27 @@ import { RecruiterCandidateListPage } from "@/pages/recruiter/candidate";
 import CandidateCvBuilderPage from "@/pages/candidate/CandidateCvBuilderPage";
 import { CompanyDetailPage } from "@/pages/company";
 import CareerBlogPage from "@/pages/CareerBlogPage";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminCompanyModerationPage from "@/pages/admin/company/AdminCompanyModerationPage";
+import AdminJobModerationPage from "@/pages/admin/job/AdminJobModerationPage";
+import AdminUserManagementPage from "@/pages/admin/user/AdminUserManagementPage";
+import AdminCatalogsPage from "@/pages/admin/catalog/AdminCatalogsPage";
 
 const router = createBrowserRouter([
-  // PUBLIC ROUTES
   {
-    path: PATHS.HOME,
-    element: <BaseLayout />,
+    element: <RootLayout />,
     children: [
-      { index: true, element: <LandingPage /> },
-      { path: PATHS.SEARCH_JOB, element: <SearchJob /> },
-      { path: PATHS.COMPANY_DETAIL, element: <CompanyDetailPage /> },
-      { path: PATHS.BLOG, element: <CareerBlogPage /> },
-    ],
-  },
+      // PUBLIC ROUTES
+      {
+        path: PATHS.HOME,
+        element: <BaseLayout />,
+        children: [
+          { index: true, element: <LandingPage /> },
+          { path: PATHS.SEARCH_JOB, element: <SearchJob /> },
+          { path: PATHS.COMPANY_DETAIL, element: <CompanyDetailPage /> },
+          { path: PATHS.BLOG, element: <CareerBlogPage /> },
+        ],
+      },
 
   {
     element: <PublicOnlyRoute redirectTo={PATHS.HOME} />,
@@ -252,7 +261,7 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.DASHBOARD,
-            element: <Page title="Admin Dashboard Overview" />,
+            element: <AdminDashboard />,
           },
           {
             path: PATHS.ADMIN.USER_PROFILE,
@@ -260,11 +269,19 @@ const router = createBrowserRouter([
           },
           {
             path: PATHS.ADMIN.APPROVE_COMPANY,
-            element: <Page title="Duyệt doanh nghiệp" />,
+            element: <AdminCompanyModerationPage />,
           },
           {
             path: PATHS.ADMIN.APPROVE_JD,
-            element: <Page title="Duyệt tin tuyển dụng" />,
+            element: <AdminJobModerationPage />,
+          },
+          {
+            path: PATHS.ADMIN.USERS,
+            element: <AdminUserManagementPage />,
+          },
+          {
+            path: PATHS.ADMIN.CATALOGS,
+            element: <AdminCatalogsPage />,
           },
         ],
       },
@@ -281,19 +298,21 @@ const router = createBrowserRouter([
   //   ],
   // },
 
-  {
-    path: PATHS.FORBIDDEN,
-    element: (
-      <BadRequestPage
-        httpCode="403"
-        title="Forbidden"
-        description="Rất tiếc, bạn không có quyền truy cập vào khu vực này!"
-      />
-    ),
-  },
-  {
-    path: PATHS.NOT_FOUND,
-    element: <BadRequestPage />,
+      {
+        path: PATHS.FORBIDDEN,
+        element: (
+          <BadRequestPage
+            httpCode="403"
+            title="Forbidden"
+            description="Rất tiếc, bạn không có quyền truy cập vào khu vực này!"
+          />
+        ),
+      },
+      {
+        path: PATHS.NOT_FOUND,
+        element: <BadRequestPage />,
+      },
+    ],
   },
 ]);
 

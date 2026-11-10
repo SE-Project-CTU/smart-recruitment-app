@@ -1,6 +1,6 @@
+import { useMemo } from "react";
 import {
   useQuery,
-  useQueries,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -223,69 +223,53 @@ export const useMyCompanyInvitations = (params?: {
 };
 
 /**
- * Hook Query: Lấy toàn bộ lời mời gia nhập và thống kê theo từng trạng thái (hỗ trợ lazy fetch theo tab)
+ * Hook Query: Lấy toàn bộ lời mời gia nhập và thống kê theo từng trạng thái qua 1 API call duy nhất
  */
-export const useMyCompanyInvitationsAll = (activeTab?: string) => {
-  const statuses = ["Pending", "Accepted", "Rejected", "Expired"] as const;
-
-  const results = useQueries({
-    queries: statuses.map((status) => ({
-      queryKey: ["company-invitations", "my", status, 1, 50],
-      queryFn: () =>
-        companyService.getMyInvitations({ status, page: 1, pageSize: 50 }),
-      staleTime: 1 * 60 * 1000,
-      enabled: !activeTab || activeTab === "ALL" || activeTab === status,
-    })),
+export const useMyCompanyInvitationsAll = (_activeTab?: string) => {
+  const query = useQuery({
+    queryKey: ["company-invitations", "my", "all"],
+    queryFn: () => companyService.getMyInvitations({ page: 1, pageSize: 100 }),
+    staleTime: 1 * 60 * 1000,
   });
 
-  const isLoading = results.some((r) => r.isLoading);
-  const isFetching = results.some((r) => r.isFetching);
-  const isError = results.some((r) => r.isError);
-
-  const pendingData = results[0]?.data?.items ?? [];
-  const acceptedData = results[1]?.data?.items ?? [];
-  const rejectedData = results[2]?.data?.items ?? [];
-  const expiredData = results[3]?.data?.items ?? [];
-
-  const counts = {
-    ALL:
-      (results[0]?.data?.totalCount ?? 0) +
-      (results[1]?.data?.totalCount ?? 0) +
-      (results[2]?.data?.totalCount ?? 0) +
-      (results[3]?.data?.totalCount ?? 0),
-    Pending: results[0]?.data?.totalCount ?? 0,
-    Accepted: results[1]?.data?.totalCount ?? 0,
-    Rejected: results[2]?.data?.totalCount ?? 0,
-    Expired: results[3]?.data?.totalCount ?? 0,
-  };
-
-  const allItems = [
-    ...pendingData,
-    ...acceptedData,
-    ...rejectedData,
-    ...expiredData,
-  ].sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  const allItems = useMemo(
+    () =>
+      (query.data?.items ?? []).slice().sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [query.data?.items],
   );
 
-  const refetch = async () => {
-    await Promise.all(results.map((r) => r.refetch()));
-  };
+  const byStatus = useMemo(
+    () => ({
+      Pending: allItems.filter((i) => i.status === "Pending"),
+      Accepted: allItems.filter((i) => i.status === "Accepted"),
+      Rejected: allItems.filter((i) => i.status === "Rejected"),
+      Expired: allItems.filter((i) => i.status === "Expired"),
+    }),
+    [allItems],
+  );
+
+  const counts = useMemo(
+    () => ({
+      ALL: allItems.length,
+      Pending: byStatus.Pending.length,
+      Accepted: byStatus.Accepted.length,
+      Rejected: byStatus.Rejected.length,
+      Expired: byStatus.Expired.length,
+    }),
+    [allItems, byStatus],
+  );
 
   return {
     items: allItems,
-    byStatus: {
-      Pending: pendingData,
-      Accepted: acceptedData,
-      Rejected: rejectedData,
-      Expired: expiredData,
-    },
+    byStatus,
     counts,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    refetch: query.refetch,
   };
 };
 

@@ -97,7 +97,7 @@ export function CompanyInvitation() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // Lấy dữ liệu theo tab (lazy fetch) để tránh gọi cùng lúc 4 requests khi mount
+  // Lấy toàn bộ dữ liệu lời mời và tính toán counts theo tab qua 1 API call duy nhất
   const {
     items,
     byStatus,
@@ -105,7 +105,7 @@ export function CompanyInvitation() {
     isLoading: isLoadingInvitations,
     isFetching: isFetchingInvitations,
     refetch: refetchInvitations,
-  } = useMyCompanyInvitationsAll(activeTab);
+  } = useMyCompanyInvitationsAll();
 
   const isLoading = isLoadingInvitations;
   const isFetching = isFetchingInvitations;

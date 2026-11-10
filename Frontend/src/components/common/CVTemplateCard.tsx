@@ -1,34 +1,57 @@
-import { Eye } from "lucide-react";
+import React from "react";
+import { Eye, Pencil } from "lucide-react";
 import Button from "./Button";
 
 export interface CVTemplateItemData {
   id: string;
-  code?: string;
   name: string;
   description?: string | null;
-  thumbnailUrl?: string;
+  thumbnailUrl?: string | null;
   badge?: string;
+  version?: number | string;
+  isActive?: boolean;
+  language?: string;
 }
 
-interface CVTemplateCardProps {
+export interface CVTemplateCardProps {
   template: CVTemplateItemData;
-  onUseTemplate: (template: CVTemplateItemData) => void;
+  onUseTemplate?: (template: CVTemplateItemData) => void;
   onPreview?: (template: CVTemplateItemData) => void;
+  onEdit?: (template: CVTemplateItemData) => void;
+  footerExtra?: React.ReactNode;
+  topRightBadge?: React.ReactNode;
+  className?: string;
 }
 
 export function CVTemplateCard({
   template,
   onUseTemplate,
   onPreview,
+  onEdit,
+  footerExtra,
+  topRightBadge,
+  className = "",
 }: CVTemplateCardProps) {
+  const isHidden = template.isActive === false;
+
   return (
-    <div className="group flex flex-col justify-between rounded-2xl border border-border bg-white shadow-2xs transition-all duration-300 hover:border-secondary hover:shadow-md">
+    <div
+      className={`group flex flex-col justify-between rounded-2xl border transition-all duration-300 ${
+        isHidden
+          ? "border-border/70 bg-slate-50/70 opacity-80"
+          : "border-border bg-surface hover:border-primary/40 hover:shadow-xs"
+      } ${className}`}
+    >
       <div className="group/image relative flex aspect-3/4 w-full flex-col justify-between overflow-hidden rounded-t-2xl bg-slate-50">
         {template.thumbnailUrl ? (
           <img
             src={template.thumbnailUrl}
             alt={template.name}
             className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              // Fallback khi ảnh lỗi
+              e.currentTarget.style.display = "none";
+            }}
           />
         ) : (
           <div className="my-auto flex w-full flex-col gap-3 px-4 pt-6 select-none">
@@ -49,24 +72,42 @@ export function CVTemplateCard({
         )}
 
         {/* Badge góc trên bên trái */}
-        {template.badge && (
-          <div className="absolute top-3 left-3 z-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-slate-800 shadow-sm backdrop-blur-xs">
+        <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-1.5">
+          {isHidden ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-2.5 py-1 text-[11px] font-medium text-white shadow-xs backdrop-blur-xs">
+              <span className="size-1.5 rounded-full bg-slate-400" />
+              Đã ẩn
+            </span>
+          ) : template.badge ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-medium text-text-main shadow-xs backdrop-blur-xs">
               <span className="size-1.5 rounded-full bg-primary" />
               {template.badge}
             </span>
-          </div>
-        )}
+          ) : null}
+        </div>
 
-        {/* Overlay hover làm mờ ảnh và hiện nút Dùng mẫu */}
+        {/* Badge góc trên bên phải */}
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+          {topRightBadge ? (
+            topRightBadge
+          ) : template.version !== undefined ? (
+            <span className="rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium text-text-muted shadow-xs backdrop-blur-xs">
+              v{template.version}
+            </span>
+          ) : null}
+        </div>
+
+        {/* Overlay hover làm mờ ảnh và hiện các nút thao tác */}
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 bg-black/50 p-4 opacity-0 backdrop-blur-xs transition-opacity duration-300 group-hover:opacity-100">
-          <Button
-            variant="primary"
-            onClick={() => onUseTemplate(template)}
-            className="w-full max-w-44 justify-center shadow-lg"
-          >
-            Dùng mẫu này
-          </Button>
+          {onUseTemplate && (
+            <Button
+              variant="primary"
+              onClick={() => onUseTemplate(template)}
+              className="w-full max-w-44 justify-center shadow-lg"
+            >
+              Dùng mẫu này
+            </Button>
+          )}
           {onPreview && (
             <Button
               variant="secondary"
@@ -77,32 +118,48 @@ export function CVTemplateCard({
               Xem trước
             </Button>
           )}
+          {onEdit && (
+            <Button
+              variant="primary"
+              icon={Pencil}
+              onClick={() => onEdit(template)}
+              className="w-full max-w-44 justify-center rounded-xl! text-xs! font-semibold!"
+            >
+              Chỉnh sửa
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Thông tin mẫu CV */}
-      <div className="flex flex-col gap-1 p-4">
+      <div className="flex flex-1 flex-col gap-1 p-4">
         <h3
           title={template.name}
-          className="line-clamp-1 text-base font-bold text-slate-800"
+          className="line-clamp-1 text-sm font-semibold text-text-main sm:text-base"
         >
           {template.name}
         </h3>
-        <p className="line-clamp-1 text-xs text-text-muted">
+        <p className="line-clamp-2 text-xs leading-relaxed text-text-muted">
           {template.description || "Mẫu CV chuẩn ATS tối ưu tỷ lệ trúng tuyển"}
         </p>
       </div>
 
-      {/* Chân card cho mobile & desktop */}
-      <div className="p-4 pt-0">
-        <Button
-          variant="secondary"
-          onClick={() => onUseTemplate(template)}
-          className="hidden! w-full justify-center rounded-lg! py-2! text-xs font-semibold! text-primary! hover:bg-primary/10 hover:text-primary md:hidden! md:text-sm!"
-        >
-          Dùng mẫu này
-        </Button>
-      </div>
+      {/* Chân card: Custom footer cho Admin hoặc Nút mobile cho Candidate */}
+      {footerExtra ? (
+        <div className="border-t border-border bg-slate-50/50 p-3">
+          {footerExtra}
+        </div>
+      ) : onUseTemplate ? (
+        <div className="p-4 pt-0">
+          <Button
+            variant="secondary"
+            onClick={() => onUseTemplate(template)}
+            className="hidden! w-full justify-center rounded-lg! py-2! text-xs font-semibold! text-primary! hover:bg-primary/10 hover:text-primary md:hidden! md:text-sm!"
+          >
+            Dùng mẫu này
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-﻿import {
+import {
   BookBookmark,
   Bookmark,
   BuildingComplex,
@@ -37,14 +37,18 @@ export const candidateSidebarData = {
       title: "Việc làm phù hợp",
       url: PATHS.CANDIDATE.MATCHED_JOBS,
       icon: LayoutList,
-  LayoutTemplate,
+      LayoutTemplate,
       items: [],
     },
   ],
   //hồ sơ của tui
   myProfile: [
     { title: "Quản lý CV", url: PATHS.CANDIDATE.CV_MANAGEMENT, icon: FileText },
-    { title: "Mẫu CV", url: PATHS.CANDIDATE.CV_TEMPLATES, icon: LayoutTemplate },
+    {
+      title: "Mẫu CV",
+      url: PATHS.CANDIDATE.CV_TEMPLATES,
+      icon: LayoutTemplate,
+    },
     {
       title: "Trạng thái hồ sơ",
       url: PATHS.CANDIDATE.APPLICATION_STATUS,
@@ -141,21 +145,16 @@ export const adminSidebarData = {
     },
     {
       title: "Danh mục chung",
-      url: "#",
+      url: PATHS.ADMIN.CATALOGS,
       icon: BookBookmark,
-      items: [
-        { title: "Mẫu CV", url: "#" },
-        { title: "Ngành nghề", url: "#" },
-        { title: "Địa điểm", url: "#" },
-      ],
     },
-    { title: "Quản lý tài khoản", url: "#", icon: UserRound },
+    { title: "Quản trị người dùng", url: PATHS.ADMIN.USERS, icon: UserRound },
   ],
   //thiết lập
   setting: [
     {
       title: "Cài đặt",
-      icons: Settings,
+      icon: Settings,
       url: "#",
       items: [
         { title: "Chung", url: "#" },
