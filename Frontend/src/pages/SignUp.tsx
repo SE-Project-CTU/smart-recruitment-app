@@ -16,11 +16,19 @@ import {
 } from "@/components/animate-ui/components/base/tabs";
 import { Blur } from "@/components/animate-ui/primitives/effects/blur";
 import {
+  useGoogleLogin,
   useRegisterCandidate,
   useRegisterRecruiter,
 } from "@/hooks/queries/useAccount";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import { PATHS } from "@/constants/paths";
+import {
+  getFirebaseAuthErrorMessage,
+  isFirebasePopupCancelled,
+  signInWithGooglePopup,
+} from "@/lib/firebase";
+import type { GoogleAuthRole } from "@/types/auth";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -29,8 +37,14 @@ function SignUp() {
     useRegisterCandidate();
   const { mutateAsync: registerRecruiter, isPending: isRecruiterPending } =
     useRegisterRecruiter();
+  const { mutateAsync: googleLogin, isPending: isGoogleMutationPending } =
+    useGoogleLogin();
+
+  const [isPopupPending, setIsPopupPending] = useState(false);
 
   const isLoading = isCandidatePending || isRecruiterPending;
+  const isGoogleLoading = isPopupPending || isGoogleMutationPending;
+  const isBusy = isLoading || isGoogleLoading;
 
   const [role, setRole] = useState<"candidate" | "recruiter">("candidate");
   const [fullName, setFullName] = useState("");
@@ -100,6 +114,45 @@ function SignUp() {
     }
   };
 
+  const handleGoogleSignUp = async () => {
+    const targetRole: GoogleAuthRole =
+      role === "recruiter" ? "Recruiter" : "Candidate";
+
+    setErrorMessage(null);
+    setIsPopupPending(true);
+
+    let idToken: string;
+    try {
+      idToken = await signInWithGooglePopup();
+    } catch (err: unknown) {
+      if (!isFirebasePopupCancelled(err)) {
+        setErrorMessage(
+          getFirebaseAuthErrorMessage(err) ??
+            "Không thể xác thực tài khoản Google. Vui lòng thử lại.",
+        );
+      }
+      return;
+    } finally {
+      setIsPopupPending(false);
+    }
+
+    try {
+      await googleLogin({ idToken, role: targetRole });
+      toast.add({
+        type: "success",
+        description: "Đăng ký và đăng nhập thành công!",
+      });
+      navigate(PATHS.HOME, { replace: true });
+    } catch (err: unknown) {
+      setErrorMessage(
+        getApiErrorMessage(
+          err,
+          "Đăng ký bằng Google thất bại. Vui lòng thử lại.",
+        ),
+      );
+    }
+  };
+
   const renderFormFields = () => (
     <form className="p flex w-full flex-col gap-3.5" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-1 text-left">
@@ -115,7 +168,7 @@ function SignUp() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Nhập họ và tên"
-            disabled={isLoading}
+            disabled={isBusy}
             required
             className="input-primary"
           />
@@ -139,7 +192,7 @@ function SignUp() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="03268xxxxx"
-              disabled={isLoading}
+              disabled={isBusy}
               required
               className="input-primary"
             />
@@ -160,7 +213,7 @@ function SignUp() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email liên hệ"
-            disabled={isLoading}
+            disabled={isBusy}
             required
             className="input-primary"
           />
@@ -183,7 +236,7 @@ function SignUp() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            disabled={isLoading}
+            disabled={isBusy}
             required
             className="input-primary"
           />
@@ -205,7 +258,7 @@ function SignUp() {
           id="agreeTerms"
           checked={agreeTerms}
           onChange={(e) => setAgreeTerms(e.target.checked)}
-          disabled={isLoading}
+          disabled={isBusy}
           className="mt-0.5 h-4 w-4 cursor-pointer rounded accent-primary"
         />
         <label
@@ -233,12 +286,26 @@ function SignUp() {
       <Button
         type="submit"
         isLoading={isLoading}
+        disabled={isBusy}
         className="mt-2 py-3.5! text-base! font-medium!"
       >
         {role === "recruiter"
           ? "Tạo tài khoản Nhà tuyển dụng"
           : "Tạo tài khoản Ứng viên"}
       </Button>
+
+      <div className="my-1 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border/80" />
+        <span className="text-xs font-medium text-text-muted">Hoặc</span>
+        <div className="h-px flex-1 bg-border/80" />
+      </div>
+
+      <GoogleAuthButton
+        label="Tiếp tục với Google"
+        onClick={handleGoogleSignUp}
+        isLoading={isGoogleLoading}
+        disabled={isBusy}
+      />
     </form>
   );
 

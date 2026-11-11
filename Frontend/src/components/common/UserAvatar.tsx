@@ -23,6 +23,7 @@ export function UserAvatar({
       {...props}
       src={src || fallbackSrc}
       alt={alt}
+      referrerPolicy="no-referrer"
       className={cn(className, "object-cover")}
       loading="lazy"
       onError={(event) => {

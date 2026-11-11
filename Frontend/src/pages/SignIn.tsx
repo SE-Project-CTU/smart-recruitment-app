@@ -10,16 +10,26 @@ import { SmartHire_default } from "@/assets/images/logo";
 import Button from "@/components/common/Button";
 import { AlertCircle, Lock, UserRound } from "lucide-react";
 import { Eye, EyeOff } from "lucide";
-import { useLogin } from "@/hooks/queries/useAccount";
+import { useLogin, useGoogleLogin } from "@/hooks/queries/useAccount";
 import { MorphIcon } from "morphicons/react";
 import { toast } from "@/components/ui/toast";
-import { getApiErrorMessage } from "@/api/errorHandler";
+import { getApiErrorCode, getApiErrorMessage } from "@/api/errorHandler";
 import { PATHS } from "@/constants/paths";
+import {
+  getFirebaseAuthErrorMessage,
+  isFirebasePopupCancelled,
+  signInWithGooglePopup,
+} from "@/lib/firebase";
+import type { GoogleAuthRole } from "@/types/auth";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
+import GoogleRoleSelectModal from "@/components/auth/GoogleRoleSelectModal";
 
 function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const { mutateAsync: login, isPending: isLoading } = useLogin();
+  const { mutateAsync: googleLogin, isPending: isGoogleMutationPending } =
+    useGoogleLogin();
   const from =
     (location.state as { from?: Location | string } | null)?.from || PATHS.HOME;
 
@@ -27,6 +37,13 @@ function SignIn() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPopupPending, setIsPopupPending] = useState(false);
+  const [pendingGoogleToken, setPendingGoogleToken] = useState<string | null>(
+    null,
+  );
+
+  const isGoogleLoading = isPopupPending || isGoogleMutationPending;
+  const isBusy = isLoading || isGoogleLoading;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,6 +73,63 @@ function SignIn() {
         getApiErrorMessage(
           err,
           "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+        ),
+      );
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setErrorMessage(null);
+    setIsPopupPending(true);
+
+    let idToken: string;
+    try {
+      idToken = await signInWithGooglePopup();
+    } catch (err: unknown) {
+      if (!isFirebasePopupCancelled(err)) {
+        setErrorMessage(
+          getFirebaseAuthErrorMessage(err) ??
+            "Không thể xác thực tài khoản Google. Vui lòng thử lại.",
+        );
+      }
+      return;
+    } finally {
+      setIsPopupPending(false);
+    }
+
+    try {
+      await googleLogin({ idToken });
+      toast.add({ type: "success", description: "Đăng nhập thành công" });
+      navigate(from, { replace: true });
+    } catch (err: unknown) {
+      if (getApiErrorCode(err) === "AUTH_GOOGLE_ROLE_REQUIRED") {
+        setPendingGoogleToken(idToken);
+        return;
+      }
+      setErrorMessage(
+        getApiErrorMessage(
+          err,
+          "Đăng nhập bằng Google thất bại. Vui lòng thử lại.",
+        ),
+      );
+    }
+  };
+
+  const handleConfirmGoogleRole = async (selectedRole: GoogleAuthRole) => {
+    if (!pendingGoogleToken) return;
+    setErrorMessage(null);
+
+    try {
+      await googleLogin({ idToken: pendingGoogleToken, role: selectedRole });
+      setPendingGoogleToken(null);
+      toast.add({ type: "success", description: "Đăng nhập thành công" });
+      navigate(from, { replace: true });
+    } catch (err: unknown) {
+      setPendingGoogleToken(null);
+      setErrorMessage(
+        getApiErrorMessage(
+          err,
+          "Đăng ký tài khoản Google thất bại. Vui lòng thử lại.",
         ),
       );
     }
@@ -101,7 +175,7 @@ function SignIn() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                disabled={isLoading}
+                disabled={isBusy}
                 required
                 className="text-text w-full rounded-full border-none bg-white py-4 pr-6 pl-14 text-sm shadow-sm transition-all outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-gray-100"
               />
@@ -119,7 +193,7 @@ function SignIn() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                disabled={isLoading}
+                disabled={isBusy}
                 required
                 className="text-text w-full rounded-full border-none bg-white py-4 pr-12 pl-14 text-sm shadow-sm transition-all outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-gray-100"
               />
@@ -156,18 +230,19 @@ function SignIn() {
             <Button
               type="submit"
               isLoading={isLoading}
+              disabled={isBusy}
               className="py-4! text-base! font-medium!"
             >
               Đăng nhập
             </Button>
 
-            <button
-              type="button"
-              disabled={isLoading}
-              className="text-text flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-white py-4 font-medium shadow-sm transition-all hover:bg-gray-50 disabled:opacity-50"
-            >
-              Đăng nhập Google
-            </button>
+            <GoogleAuthButton
+              label="Đăng nhập Google"
+              onClick={handleGoogleSignIn}
+              isLoading={isGoogleLoading}
+              disabled={isBusy}
+              className="py-4! text-base!"
+            />
           </form>
 
           <div className="mt-8 text-xs text-text-muted md:text-sm">
@@ -228,6 +303,15 @@ function SignIn() {
           </h3>
         </div>
       </div>
+
+      <GoogleRoleSelectModal
+        open={Boolean(pendingGoogleToken)}
+        onOpenChange={(open) => {
+          if (!open) setPendingGoogleToken(null);
+        }}
+        onConfirm={handleConfirmGoogleRole}
+        isLoading={isGoogleMutationPending}
+      />
     </div>
   );
 }

@@ -1,8 +1,15 @@
 export type UserRole = "Candidate" | "Recruiter" | "Admin";
 
+export type GoogleAuthRole = "Candidate" | "Recruiter";
+
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface GoogleLoginRequest {
+  idToken: string;
+  role?: GoogleAuthRole;
 }
 
 export interface RegisterRequest {
