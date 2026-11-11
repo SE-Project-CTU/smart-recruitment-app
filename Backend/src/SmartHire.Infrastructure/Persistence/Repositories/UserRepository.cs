@@ -47,6 +47,22 @@ public sealed class UserRepository : IUserRepository {
                 cancellationToken
             );
     }
+
+    public async Task<User?> GetTrackedForGoogleAuthAsync(
+        string firebaseUid,
+        string normalizedEmail,
+        CancellationToken cancellationToken
+    ) {
+        var candidates = await _dbContext.Users
+            .Include(user => user.UserRoles)
+            .ThenInclude(userRole => userRole.Role)
+            .Include(user => user.AvatarFile)
+            .Where(user => user.FirebaseUid == firebaseUid || user.Email == normalizedEmail)
+            .ToListAsync(cancellationToken);
+
+        return candidates.FirstOrDefault(u => u.FirebaseUid == firebaseUid)
+            ?? candidates.FirstOrDefault();
+    }
     
     public Task<CurrentAccountData?> GetCurrentAccountAsync(Guid userId, CancellationToken cancellationToken) {
         return _dbContext.Users
@@ -56,9 +72,9 @@ public sealed class UserRepository : IUserRepository {
                 user.Email,
                 user.Phone,
                 user.FullName,
-                user.AvatarFile == null
-                    ? null
-                    : user.AvatarFile.FileUrl,
+                user.AvatarFile != null
+                    ? user.AvatarFile.FileUrl
+                    : user.ExternalAvatarUrl,
                 user.UserRoles
                     .Select(userRole => userRole.Role.Name)
                     .ToList(),
@@ -136,7 +152,7 @@ public sealed class UserRepository : IUserRepository {
                 u.Email,
                 u.FullName,
                 u.Phone,
-                u.AvatarFile != null ? u.AvatarFile.FileUrl : null,
+                u.AvatarFile != null ? u.AvatarFile.FileUrl : u.ExternalAvatarUrl,
                 u.Status.ToString().ToUpperInvariant(),
                 u.UserRoles.Select(ur => ur.Role.Name).ToList(),
                 u.CreatedAt,

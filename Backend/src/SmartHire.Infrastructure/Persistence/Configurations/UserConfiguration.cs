@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartHire.Domain.Entities;
 
@@ -19,7 +19,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User> {
             .IsUnique();
         
         builder.Property(x => x.PasswordHash)
-            .IsRequired();
+            .IsRequired(false);
+
+        builder.Property(x => x.FirebaseUid)
+            .HasMaxLength(User.MaxFirebaseUidLength);
+
+        builder.HasIndex(x => x.FirebaseUid)
+            .IsUnique()
+            .HasFilter("firebase_uid IS NOT NULL");
+
+        builder.Property(x => x.ExternalAvatarUrl)
+            .HasMaxLength(User.MaxExternalAvatarUrlLength);
         
         builder.Property(x => x.FullName)
             .IsRequired().HasMaxLength(100);

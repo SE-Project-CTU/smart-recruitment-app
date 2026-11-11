@@ -148,7 +148,7 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     posting.CreatedByMembership.User.Email,
                     posting.CreatedByMembership.User.AvatarFile != null
                         ? posting.CreatedByMembership.User.AvatarFile.FileUrl
-                        : null),
+                        : posting.CreatedByMembership.User.ExternalAvatarUrl),
                 posting.Title,
                 posting.Description,
                 posting.Requirements,
@@ -205,7 +205,7 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     posting.CreatedByMembership.User.Email,
                     posting.CreatedByMembership.User.AvatarFile != null
                         ? posting.CreatedByMembership.User.AvatarFile.FileUrl
-                        : null),
+                        : posting.CreatedByMembership.User.ExternalAvatarUrl),
                 posting.Title,
                 posting.Description,
                 posting.Requirements,
@@ -316,7 +316,7 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     posting.CreatedByMembership.User.Email,
                     posting.CreatedByMembership.User.AvatarFile != null
                         ? posting.CreatedByMembership.User.AvatarFile.FileUrl
-                        : null),
+                        : posting.CreatedByMembership.User.ExternalAvatarUrl),
                 new CompanyJobPostingProvinceData(
                     posting.Province.Id,
                     posting.Province.Name),

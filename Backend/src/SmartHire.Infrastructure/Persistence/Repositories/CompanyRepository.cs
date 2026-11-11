@@ -413,7 +413,7 @@ public sealed class CompanyRepository : ICompanyRepository {
                         m.User.FullName,
                         m.User.Email,
                         m.User.Phone,
-                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : null
+                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : m.User.ExternalAvatarUrl
                     ))
                     .FirstOrDefault()
             ))
@@ -448,7 +448,7 @@ public sealed class CompanyRepository : ICompanyRepository {
                         m.User.FullName,
                         m.User.Email,
                         m.User.Phone,
-                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : null
+                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : m.User.ExternalAvatarUrl
                     ))
                     .FirstOrDefault(),
                 c.Memberships.Count(m => m.Status == CompanyMembershipStatus.Active),

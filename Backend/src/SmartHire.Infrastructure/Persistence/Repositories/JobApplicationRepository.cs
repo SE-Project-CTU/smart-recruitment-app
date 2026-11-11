@@ -154,7 +154,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     application.Candidate.FullName,
                     application.Candidate.Email,
                     application.Candidate.Phone,
-                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : application.Candidate.ExternalAvatarUrl),
                 application.Job.CompanyId,
                 application.CvVersionId,
                 application.CvVersion,
@@ -191,7 +191,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     history.ChangedByUser.Id,
                     history.ChangedByUser.FullName,
                     history.ChangedByUser.Email,
-                    history.ChangedByUser.AvatarFile != null ? history.ChangedByUser.AvatarFile.FileUrl : null,
+                    history.ChangedByUser.AvatarFile != null ? history.ChangedByUser.AvatarFile.FileUrl : history.ChangedByUser.ExternalAvatarUrl,
                     history.ChangedBy == history.Application.CandidateId
                         ? RoleNames.Candidate
                         : history.ChangedByUser.UserRoles
@@ -239,7 +239,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     application.Candidate.FullName,
                     application.Candidate.Email,
                     application.Candidate.Phone,
-                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : application.Candidate.ExternalAvatarUrl),
                 application.CvVersionId,
                 application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
                 application.CoverLetter,
@@ -311,7 +311,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     application.Candidate.FullName,
                     application.Candidate.Email,
                     application.Candidate.Phone,
-                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : application.Candidate.ExternalAvatarUrl),
                 application.CvVersionId,
                 application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
                 application.CoverLetter,

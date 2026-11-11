@@ -27,7 +27,7 @@ public static class CompanyInvitationMapper {
                 invitation.Inviter.User.Id,
                 invitation.Inviter.User.FullName,
                 invitation.Inviter.User.Email,
-                invitation.Inviter.User.AvatarFile?.FileUrl);
+                invitation.Inviter.User.GetAvatarUrl());
         }
 
         return new CompanyInvitationResult(
