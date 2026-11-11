@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Check, User } from "lucide-react";
+import { Building2, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -49,19 +49,22 @@ export function GoogleRoleSelectModal({
   const [selectedRole, setSelectedRole] = useState<GoogleAuthRole>("Candidate");
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !isLoading && onOpenChange(next)}>
-      <DialogContent className="sm:max-w-md" showCloseButton={!isLoading}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => !isLoading && onOpenChange(next)}
+    >
+      <DialogContent className="sm:max-w-lg" showCloseButton={!isLoading}>
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-text-main">
             Chọn vai trò tham gia
           </DialogTitle>
           <DialogDescription className="text-xs leading-relaxed text-text-muted md:text-sm">
-            Đây là lần đầu bạn đăng nhập bằng tài khoản Google này. Vui lòng chọn
-            vai trò phù hợp để hoàn tất tạo tài khoản SmartHire.
+            Chọn vai trò phù hợp để hoàn tất đăng ký tài khoản SmartHire với
+            Google.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {ROLE_OPTIONS.map((option) => {
             const Icon = option.icon;
             const isSelected = selectedRole === option.value;
@@ -73,34 +76,27 @@ export function GoogleRoleSelectModal({
                 disabled={isLoading}
                 onClick={() => setSelectedRole(option.value)}
                 className={cn(
-                  "flex cursor-pointer items-start gap-3.5 rounded-xl border p-4 text-left transition-all",
+                  "relative flex cursor-pointer items-center gap-3.5 rounded-xl border p-3.5 text-left transition-all sm:flex-col sm:items-center sm:gap-3 sm:p-5 sm:text-center",
                   isSelected
-                    ? "border-primary bg-bg-white-blue"
+                    ? "border-primary bg-bg-white-blue/60"
                     : "border-border bg-white hover:border-primary/40 hover:bg-bg",
                 )}
               >
                 <div
                   className={cn(
-                    "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
+                    "flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors sm:size-12",
                     isSelected
                       ? "bg-primary text-white"
-                      : "bg-bg text-text-muted",
+                      : "bg-bg-white-blue text-secondary-dark",
                   )}
                 >
-                  <Icon className="size-5" />
+                  <Icon className="size-5 sm:size-6" />
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-text-main">
-                      {option.title}
-                    </span>
-                    {isSelected && (
-                      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-                        <Check className="size-3.5" />
-                      </span>
-                    )}
-                  </div>
+                <div className="min-w-0 flex-1 sm:w-full">
+                  <span className="block text-sm font-semibold text-text-main">
+                    {option.title}
+                  </span>
                   <p className="mt-1 text-xs leading-relaxed text-text-muted">
                     {option.description}
                   </p>
@@ -110,7 +106,7 @@ export function GoogleRoleSelectModal({
           })}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-row justify-end gap-2.5">
           <Button
             type="button"
             variant="secondary"
@@ -134,4 +130,3 @@ export function GoogleRoleSelectModal({
 }
 
 export default GoogleRoleSelectModal;
-

@@ -124,6 +124,7 @@ axiosClient.interceptors.response.use(
     // 1. Các route tuyệt đối không được kích hoạt refresh token khi gặp 401
     const isAuthBypassRoute =
       requestUrl.includes(API_ENDPOINTS.AUTH.LOGIN.toLowerCase()) ||
+      requestUrl.includes(API_ENDPOINTS.AUTH.GOOGLE.toLowerCase()) ||
       requestUrl.includes(API_ENDPOINTS.AUTH.REFRESH.toLowerCase()) ||
       requestUrl.includes(
         API_ENDPOINTS.AUTH.REGISTER_CANDIDATE.toLowerCase(),
