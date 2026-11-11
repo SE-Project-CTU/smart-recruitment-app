@@ -108,12 +108,12 @@ export function resolveNotificationAction(notification: NotificationDto): {
       if (invitationStatus === "REJECTED") {
         return {
           url: companyId
-            ? PATHS.RECRUITER.COMPANAY_MANAGEMENT_MEMBERS.replace(
+            ? PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
                 ":companyId",
                 companyId,
               )
             : PATHS.RECRUITER.COMPANY_MANAGEMENT,
-          label: "Xem quản lý công ty",
+          label: "Xem tổng quan công ty",
           toastType: "warning",
         };
       }

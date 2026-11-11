@@ -146,17 +146,12 @@ export function CandidateTable({
                   <a
                     href={app.uploadedCvUrl}
                     target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5"
+                    rel="noopener noreferrer"
+                    title="Mở file CV PDF đã tải lên"
+                    className="btn btn-secondary gap-1.5 rounded-lg! text-xs! text-text-muted! ring-border!"
                   >
-                    <Button
-                      variant="secondary"
-                      iconPosition="right"
-                      icon={FileText}
-                      className="rounded-lg! text-xs! text-text-muted! ring-border!"
-                    >
-                      Xem CV
-                    </Button>
+                    <span>Xem CV</span>
+                    <FileText className="size-3.5" />
                   </a>
                 ) : (
                   <Button

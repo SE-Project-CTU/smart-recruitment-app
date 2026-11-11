@@ -17,6 +17,7 @@ interface GoogleRoleSelectModalProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: (role: GoogleAuthRole) => Promise<void>;
   isLoading?: boolean;
+  errorMessage?: string | null;
 }
 
 const ROLE_OPTIONS: {
@@ -45,13 +46,27 @@ export function GoogleRoleSelectModal({
   onOpenChange,
   onConfirm,
   isLoading = false,
+  errorMessage = null,
 }: GoogleRoleSelectModalProps) {
-  const [selectedRole, setSelectedRole] = useState<GoogleAuthRole>("Candidate");
+  const [selectedRole, setSelectedRole] = useState<GoogleAuthRole | null>(null);
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  // Reset lựa chọn mỗi lần mở modal cho tài khoản mới
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setSelectedRole(null);
+    }
+  }
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => !isLoading && onOpenChange(next)}
+      onOpenChange={(next) => {
+        if (isLoading) return;
+        if (!next) setSelectedRole(null);
+        onOpenChange(next);
+      }}
     >
       <DialogContent className="sm:max-w-lg" showCloseButton={!isLoading}>
         <DialogHeader>
@@ -106,6 +121,12 @@ export function GoogleRoleSelectModal({
           })}
         </div>
 
+        {errorMessage ? (
+          <p className="text-xs font-medium text-status-error">
+            {errorMessage}
+          </p>
+        ) : null}
+
         <DialogFooter className="flex-row justify-end gap-2.5">
           <Button
             type="button"
@@ -118,8 +139,9 @@ export function GoogleRoleSelectModal({
           <Button
             type="button"
             variant="primary"
+            disabled={!selectedRole}
             isLoading={isLoading}
-            onClick={() => void onConfirm(selectedRole)}
+            onClick={() => selectedRole && void onConfirm(selectedRole)}
           >
             Hoàn tất đăng nhập
           </Button>

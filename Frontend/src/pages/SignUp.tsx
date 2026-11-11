@@ -353,14 +353,14 @@ function SignUp() {
             <TabsList className="grid h-fit! w-full grid-cols-2 border border-border/20 bg-white/80 p-1 shadow-xs">
               <TabsTab
                 value="candidate"
-                className="flex cursor-pointer items-center justify-center gap-2 py-2 text-xs font-semibold text-text-muted transition-all data-[state=active]:bg-primary-dark data-[state=active]:text-white data-[state=active]:shadow-md sm:text-sm 3xl:py-2.5"
+                className="flex cursor-pointer items-center justify-center gap-2 py-2 text-xs font-semibold text-text-muted transition-all data-[selected]:bg-primary-dark data-[selected]:text-white data-[selected]:shadow-md sm:text-sm 3xl:py-2.5"
               >
                 <User size={16} />
                 Ứng viên
               </TabsTab>
               <TabsTab
                 value="recruiter"
-                className="flex cursor-pointer items-center justify-center gap-2 py-2 text-xs font-semibold text-text-muted transition-all data-[state=active]:bg-primary-dark data-[state=active]:text-white data-[state=active]:shadow-md sm:text-sm 3xl:py-2.5"
+                className="flex cursor-pointer items-center justify-center gap-2 py-2 text-xs font-semibold text-text-muted transition-all data-[selected]:bg-primary-dark data-[selected]:text-white data-[selected]:shadow-md sm:text-sm 3xl:py-2.5"
               >
                 <Building2 size={16} />
                 Nhà tuyển dụng

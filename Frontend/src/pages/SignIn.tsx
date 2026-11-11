@@ -41,6 +41,7 @@ function SignIn() {
   const [pendingGoogleToken, setPendingGoogleToken] = useState<string | null>(
     null,
   );
+  const [roleModalError, setRoleModalError] = useState<string | null>(null);
 
   const isGoogleLoading = isPopupPending || isGoogleMutationPending;
   const isBusy = isLoading || isGoogleLoading;
@@ -103,6 +104,7 @@ function SignIn() {
       navigate(from, { replace: true });
     } catch (err: unknown) {
       if (getApiErrorCode(err) === "AUTH_GOOGLE_ROLE_REQUIRED") {
+        setRoleModalError(null);
         setPendingGoogleToken(idToken);
         return;
       }
@@ -118,20 +120,34 @@ function SignIn() {
   const handleConfirmGoogleRole = async (selectedRole: GoogleAuthRole) => {
     if (!pendingGoogleToken) return;
     setErrorMessage(null);
+    setRoleModalError(null);
 
     try {
       await googleLogin({ idToken: pendingGoogleToken, role: selectedRole });
       setPendingGoogleToken(null);
+      setRoleModalError(null);
       toast.add({ type: "success", description: "Đăng nhập thành công" });
       navigate(from, { replace: true });
     } catch (err: unknown) {
-      setPendingGoogleToken(null);
-      setErrorMessage(
-        getApiErrorMessage(
-          err,
-          "Đăng ký tài khoản Google thất bại. Vui lòng thử lại.",
-        ),
+      const code = getApiErrorCode(err);
+      const message = getApiErrorMessage(
+        err,
+        "Đăng ký tài khoản Google thất bại. Vui lòng thử lại.",
       );
+      const nonRetryable =
+        code === "AUTH_INVALID_GOOGLE_TOKEN" ||
+        code === "AUTH_GOOGLE_EMAIL_NOT_VERIFIED" ||
+        code === "AUTH_GOOGLE_ROLE_MISMATCH" ||
+        code === "AUTH_EMAIL_ALREADY_EXISTS" ||
+        code === "AUTH_ACCOUNT_NOTALLOWED";
+
+      if (nonRetryable) {
+        setPendingGoogleToken(null);
+        setRoleModalError(null);
+        setErrorMessage(message);
+      } else {
+        setRoleModalError(message);
+      }
     }
   };
 
@@ -313,10 +329,14 @@ function SignIn() {
       <GoogleRoleSelectModal
         open={Boolean(pendingGoogleToken)}
         onOpenChange={(open) => {
-          if (!open) setPendingGoogleToken(null);
+          if (!open) {
+            setPendingGoogleToken(null);
+            setRoleModalError(null);
+          }
         }}
         onConfirm={handleConfirmGoogleRole}
         isLoading={isGoogleMutationPending}
+        errorMessage={roleModalError}
       />
     </div>
   );
