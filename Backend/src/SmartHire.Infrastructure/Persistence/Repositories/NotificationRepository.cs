@@ -37,6 +37,12 @@ public sealed class NotificationRepository : INotificationRepository {
             .ToListAsync(cancellationToken);
     }
 
+    public Task AcquireJobApplicationAggregateLockAsync(Guid jobPostingId, CancellationToken cancellationToken) {
+        return _context.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT pg_advisory_xact_lock(hashtext('job_app_notify'), hashtext({jobPostingId.ToString("N")}))",
+            cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Notification>> GetPendingRealtimeDispatchByIdsAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken) {

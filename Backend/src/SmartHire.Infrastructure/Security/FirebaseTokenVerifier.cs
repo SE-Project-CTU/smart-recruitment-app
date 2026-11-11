@@ -33,7 +33,7 @@ public sealed class FirebaseTokenVerifier : IFirebaseTokenVerifier {
 
         FirebaseToken decodedToken;
         try {
-            decodedToken = await auth.VerifyIdTokenAsync(idToken, cancellationToken);
+            decodedToken = await auth.VerifyIdTokenAsync(idToken, checkRevoked: true, cancellationToken);
         }
         catch (FirebaseAuthException ex) {
             _logger.LogWarning(ex, "Firebase ID token verification failed ({ErrorCode}).", ex.AuthErrorCode);

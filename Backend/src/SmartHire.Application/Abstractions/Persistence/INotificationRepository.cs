@@ -11,6 +11,7 @@ public interface INotificationRepository {
         string resourceType,
         Guid resourceId,
         CancellationToken cancellationToken);
+    Task AcquireJobApplicationAggregateLockAsync(Guid jobPostingId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Notification>> GetPendingRealtimeDispatchByIdsAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken);

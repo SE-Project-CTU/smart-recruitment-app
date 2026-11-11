@@ -125,6 +125,15 @@ public sealed class CompanyRepository : ICompanyRepository {
         return (items, totalCount);
     }
 
+    public Task<List<Guid>> GetActiveMemberUserIdsAsync(Guid companyId, CancellationToken cancellationToken) {
+        return _dbContext.CompanyMemberships
+            .AsNoTracking()
+            .Where(m => m.CompanyId == companyId && m.Status == CompanyMembershipStatus.Active)
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyMemberships
             .CountAsync(
