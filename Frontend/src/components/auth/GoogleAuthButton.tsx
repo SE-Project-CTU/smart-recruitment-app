@@ -22,7 +22,7 @@ export function GoogleAuthButton({
       onClick={onClick}
       disabled={disabled || isLoading}
       className={cn(
-        "flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-border/60 bg-white px-5 py-3.5 text-sm font-medium text-text-main shadow-sm transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 md:text-base",
+        "flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full border border-border/60 bg-white px-5 py-2.5 text-sm font-medium text-text-main shadow-sm transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 3xl:gap-3 3xl:py-3.5 3xl:text-base",
         className,
       )}
     >
