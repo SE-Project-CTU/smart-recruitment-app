@@ -401,9 +401,9 @@ function Header() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -16, scale: 0.96 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className="pointer-events-auto absolute top-20 right-4 left-4 max-h-[calc(100svh-6rem)] origin-top overflow-y-auto rounded-3xl border border-border/80 bg-bg/95 p-6 shadow-2xl backdrop-blur-xl lg:hidden"
+              className="pointer-events-auto absolute top-20 right-4 left-4 max-h-[calc(100svh-6rem)] origin-top overflow-y-auto rounded-2xl border border-border/80 bg-bg/95 p-4 shadow-2xl backdrop-blur-xl sm:p-5 lg:hidden"
             >
-              <nav className="flex flex-col space-y-3.5">
+              <nav className="flex flex-col space-y-1">
                 {navItems.map((item) => {
                   const isActive = isNavItemActive(item);
 
@@ -411,10 +411,10 @@ function Header() {
                     return (
                       <div
                         key={item.title}
-                        className="flex flex-col space-y-1.5"
+                        className="flex flex-col space-y-1"
                       >
                         <span
-                          className={`py-1 text-base ${
+                          className={`px-2 py-1 text-sm ${
                             isActive
                               ? "font-semibold text-primary"
                               : "font-medium text-text-main"
@@ -422,7 +422,7 @@ function Header() {
                         >
                           {item.title}
                         </span>
-                        <div className="ml-2 flex flex-col space-y-1 border-l border-border pl-3">
+                        <div className="ml-3 flex flex-col space-y-0.5 border-l border-border pl-3">
                           {item.children.map((child) => {
                             const Icon = child.icon;
                             const isChildActive =
@@ -432,13 +432,13 @@ function Header() {
                                 key={child.href}
                                 to={child.href}
                                 onClick={() => setIsOpen(false)}
-                                className={`flex items-center gap-2.5 rounded-lg py-1.5 text-sm transition-colors ${
+                                className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] transition-colors ${
                                   isChildActive
                                     ? "font-semibold text-primary"
                                     : "font-medium text-text-muted hover:text-primary"
                                 }`}
                               >
-                                {Icon && <Icon className="size-4 shrink-0" />}
+                                {Icon && <Icon className="size-3.5 shrink-0" />}
                                 <span>{child.title}</span>
                               </Link>
                             );
@@ -453,7 +453,7 @@ function Header() {
                       key={item.title}
                       to={item.href}
                       onClick={() => setIsOpen(false)}
-                      className={`py-1 text-base transition-colors ${
+                      className={`rounded-lg px-2 py-1.5 text-sm transition-colors ${
                         isActive
                           ? "font-semibold text-primary"
                           : "font-medium text-text-main hover:text-primary"
@@ -465,69 +465,69 @@ function Header() {
                 })}
               </nav>
 
-              <div className="my-5 border-t border-border" />
+              <div className="my-3.5 border-t border-border" />
 
               {isAuthenticated ? (
                 <div className="flex flex-col">
                   {/* Profile Header */}
-                  <div className="flex items-center gap-3.5 px-1 py-1">
+                  <div className="flex items-center gap-3 px-1 py-0.5">
                     <UserAvatar
                       src={user?.avatarUrl || ""}
                       name={user?.fullName}
-                      className="size-11 rounded-full ring-1 ring-border/60"
+                      className="size-9 rounded-full ring-1 ring-border/60"
                     />
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate text-base font-bold text-text-main">
+                      <span className="truncate text-sm font-bold text-text-main">
                         {user?.fullName || "Người dùng"}
                       </span>
-                      <span className="truncate text-xs text-text-muted">
+                      <span className="truncate text-[11px] text-text-muted">
                         {user?.email}
                       </span>
                     </div>
                   </div>
 
                   {/* Divider */}
-                  <div className="my-3 border-t border-border/60" />
+                  <div className="my-2.5 border-t border-border/60" />
 
                   {/* Menu Items List */}
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex flex-col space-y-0.5">
                     {isCandidate ? (
                       <>
                         <Link
                           to={PATHS.CANDIDATE.APPLICATION_STATUS}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3.5 rounded-xl px-2 py-2.5 text-sm font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
+                          className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-[13px] font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
                         >
-                          <FileChartLine className="size-5 shrink-0 text-text-muted transition-colors" />
+                          <FileChartLine className="size-4 shrink-0 text-text-muted transition-colors" />
                           <span>Trạng thái hồ sơ</span>
                         </Link>
 
                         <Link
                           to={profilePath}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3.5 rounded-xl px-2 py-2.5 text-sm font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
+                          className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-[13px] font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
                         >
-                          <Settings className="size-5 shrink-0 text-text-muted transition-colors" />
+                          <Settings className="size-4 shrink-0 text-text-muted transition-colors" />
                           <span>Cài đặt tài khoản</span>
                         </Link>
 
-                        <div className="pt-2 pb-1 pl-2 text-xs font-semibold text-text-muted">
+                        <div className="pt-1.5 pb-0.5 pl-2 text-[11px] font-semibold text-text-muted">
                           Mục đã lưu
                         </div>
                         <Link
                           to={PATHS.CANDIDATE.BOOKMARK_JOBS}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3.5 rounded-xl px-2 py-2.5 text-sm font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
+                          className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-[13px] font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
                         >
-                          <Bookmark className="size-5 shrink-0 text-text-muted transition-colors" />
+                          <Bookmark className="size-4 shrink-0 text-text-muted transition-colors" />
                           <span>Việc làm đã lưu</span>
                         </Link>
                         <Link
                           to={PATHS.CANDIDATE.BOOKMARK_COMPANIES}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3.5 rounded-xl px-2 py-2.5 text-sm font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
+                          className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-[13px] font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
                         >
-                          <Building2 className="size-5 shrink-0 text-text-muted transition-colors" />
+                          <Building2 className="size-4 shrink-0 text-text-muted transition-colors" />
                           <span>Công ty đã lưu</span>
                         </Link>
                       </>
@@ -536,18 +536,18 @@ function Header() {
                         <Link
                           to={dashboardPath}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3.5 rounded-xl px-2 py-2.5 text-sm font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
+                          className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-[13px] font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
                         >
-                          <LayoutDashboard className="size-5 shrink-0 text-text-muted transition-colors" />
+                          <LayoutDashboard className="size-4 shrink-0 text-text-muted transition-colors" />
                           <span>Trang quản lý</span>
                         </Link>
 
                         <Link
                           to={profilePath}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3.5 rounded-xl px-2 py-2.5 text-sm font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
+                          className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-[13px] font-medium text-text-main/90 transition-colors hover:bg-slate-100/80 hover:text-primary"
                         >
-                          <Settings className="size-5 shrink-0 text-text-muted transition-colors" />
+                          <Settings className="size-4 shrink-0 text-text-muted transition-colors" />
                           <span>Cài đặt tài khoản</span>
                         </Link>
                       </>
@@ -555,14 +555,14 @@ function Header() {
                   </div>
 
                   {/* Log out */}
-                  <div className="mt-2 border-t border-border/60 pt-2">
+                  <div className="mt-2 border-t border-border/60 pt-1.5">
                     <button
                       type="button"
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="flex w-full cursor-pointer items-center gap-3.5 rounded-xl px-2 py-2.5 text-left text-sm font-medium text-status-error transition-colors hover:bg-red-50/80 disabled:opacity-60"
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left text-[13px] font-medium text-status-error transition-colors hover:bg-red-50/80 disabled:opacity-60"
                     >
-                      <LogOut className="size-5 shrink-0 text-status-error" />
+                      <LogOut className="size-4 shrink-0 text-status-error" />
                       <span>{isLoggingOut ? "Đang xuất..." : "Đăng xuất"}</span>
                     </button>
                   </div>
