@@ -16,7 +16,7 @@ public static class CompanyFollowerMapper {
         return new CompanyFollowerItem(
             follow.UserId,
             follow.User.FullName,
-            follow.User.AvatarFile?.FileUrl,
+            follow.User.GetAvatarUrl(),
             follow.CreatedAt);
     }
 

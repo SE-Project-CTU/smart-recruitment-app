@@ -95,6 +95,13 @@ services:
         # URL này phải là địa chỉ mà TRÌNH DUYỆT người dùng có thể gọi tới,
         # không phải tên service nội bộ Docker (vì JS chạy trên browser, không trong container)
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5190/api/v1}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET:-}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+        VITE_FIREBASE_MEASUREMENT_ID: ${VITE_FIREBASE_MEASUREMENT_ID:-}
     restart: unless-stopped
     ports:
       - "5173:80"

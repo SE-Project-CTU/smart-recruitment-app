@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Info,
   Megaphone,
+  Sparkles,
   ChevronDown,
   Loader2,
 } from "lucide-react";
@@ -24,7 +25,10 @@ import {
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTimeAgo } from "@/utils/helper";
-import { resolveNotificationAction } from "@/utils/notificationToast";
+import {
+  parseNotificationPayload,
+  resolveNotificationAction,
+} from "@/utils/notificationToast";
 import {
   useNotificationsQuery,
   useUnreadCountQuery,
@@ -37,7 +41,11 @@ import type { NotificationDto, NotificationType } from "@/types/notification";
 /**
  * Trả về icon và màu nền trực quan cho từng loại thông báo
  */
-function getNotificationIcon(type: NotificationType, payload?: unknown) {
+function getNotificationIcon(
+  type: NotificationType,
+  payload?: string | Record<string, unknown> | null,
+  resourceType?: string | null,
+) {
   const iconProps = { className: "size-4 text-secondary-dark" };
   const bg = "bg-bg-white-blue border-border/40";
 
@@ -67,18 +75,26 @@ function getNotificationIcon(type: NotificationType, payload?: unknown) {
         icon: <Building2 {...iconProps} />,
         bg,
       };
+    case "JobRecommendation":
+      return {
+        icon: <Sparkles {...iconProps} />,
+        bg,
+      };
     case "SystemAlert": {
-      let level = "general";
-      if (payload) {
-        try {
-          const parsed =
-            typeof payload === "string" ? JSON.parse(payload) : (payload as Record<string, unknown>);
-          if (typeof parsed?.level === "string") {
-            level = parsed.level;
-          }
-        } catch {
-          // ignore error
-        }
+      const parsed = parseNotificationPayload(payload);
+      const level = typeof parsed?.level === "string" ? parsed.level : null;
+
+      if (!level && resourceType === "Company") {
+        return {
+          icon: <Building2 {...iconProps} />,
+          bg,
+        };
+      }
+      if (!level && resourceType === "JobPosting") {
+        return {
+          icon: <Briefcase {...iconProps} />,
+          bg,
+        };
       }
 
       let IconComponent = Megaphone; // Thông báo chung: megaphone
@@ -191,7 +207,11 @@ export function NotificationDropdown() {
   };
 
   const renderNotificationItem = (item: NotificationDto) => {
-    const { icon, bg } = getNotificationIcon(item.type, item.payload);
+    const { icon, bg } = getNotificationIcon(
+      item.type,
+      item.payload,
+      item.resourceType,
+    );
     return (
       <div
         key={item.id}

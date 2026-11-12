@@ -13,7 +13,7 @@ public static class CompanyJoinRequestMapper {
                 request.User.Id,
                 request.User.Email,
                 request.User.FullName,
-                request.User.AvatarFile?.FileUrl);
+                request.User.GetAvatarUrl());
         }
 
         return new CompanyJoinRequestResult(

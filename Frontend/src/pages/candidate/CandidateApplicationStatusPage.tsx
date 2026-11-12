@@ -9,7 +9,6 @@ import {
   Filter,
   MapPin,
   Globe,
-  ExternalLink,
   ChevronDown,
   Search,
   ChevronLeft,
@@ -49,6 +48,7 @@ import {
   type CandidateMyApplicationItem,
   type ApplicationStatusHistoryItem,
 } from "@/types/application";
+import { ApplicationCvPreviewDialog } from "@/pages/recruiter/candidate/ApplicationCvPreviewDialog";
 
 const columnHelper = createColumnHelper<
   DataTableFeatures,
@@ -112,6 +112,9 @@ export default function CandidateApplicationStatusPage() {
   // Modal xem chi tiết & Timeline tiến trình
   const [selectedApplication, setSelectedApplication] =
     useState<CandidateMyApplicationItem | null>(null);
+  // Modal xem trước CV hệ thống
+  const [previewCvApp, setPreviewCvApp] =
+    useState<CandidateMyApplicationItem | null>(null);
 
   // Hook lấy lịch sử trạng thái của application đang xem
   const { data: historyList = [], isLoading: isLoadingHistory } =
@@ -147,9 +150,34 @@ export default function CandidateApplicationStatusPage() {
   }, [allApplications, allAppsData?.totalItems]);
 
   // Columns definition cho DataTable
-  const columns = useMemo(
-    () =>
-      columnHelper.columns([
+  const columns = useMemo(() => {
+    const renderCvAction = (app: CandidateMyApplicationItem) =>
+      app.uploadedCvUrl ? (
+        <a
+          href={app.uploadedCvUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Mở file CV PDF đã tải lên"
+          className="btn btn-secondary gap-1.5 rounded-lg! text-xs! text-text-muted! ring-border!"
+        >
+          <span>Xem CV</span>
+          <FileText className="size-3.5" />
+        </a>
+      ) : (
+        <Button
+          onClick={() => setPreviewCvApp(app)}
+          disabled={!app.cvSnapshot && !app.cvVersionId}
+          aria-label="Xem trước CV hệ thống"
+          variant="secondary"
+          iconPosition="right"
+          icon={Globe}
+          className="rounded-lg! text-xs! text-text-muted! ring-border!"
+        >
+          Xem CV
+        </Button>
+      );
+
+    return columnHelper.columns([
         columnHelper.accessor("jobTitle", {
           id: "jobInfo",
           header: "Vị trí & Công ty",
@@ -191,6 +219,9 @@ export default function CandidateApplicationStatusPage() {
                       {app.locationName}
                     </span>
                   )}
+                  <div className="mt-1.5 flex items-center lg:hidden">
+                    {renderCvAction(app)}
+                  </div>
                 </div>
               </div>
             );
@@ -220,38 +251,11 @@ export default function CandidateApplicationStatusPage() {
           id: "documents",
           header: "Hồ sơ ứng tuyển",
           meta: { className: "hidden lg:table-cell" },
-          cell: ({ row }) => {
-            const app = row.original;
-            return (
-              <div className="flex items-center gap-1.5">
-                {app.uploadedCvUrl ? (
-                  <a
-                    href={app.uploadedCvUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Mở file CV PDF đã tải lên"
-                    className="inline-flex items-center gap-1 rounded-lg border border-border bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary"
-                  >
-                    <FileText className="size-3.5" />
-                    <span>File CV</span>
-                    <ExternalLink className="size-3 opacity-60" />
-                  </a>
-                ) : (
-                  <span
-                    title={
-                      app.cvVersionId
-                        ? `Phiên bản CV: ${app.cvVersionId}`
-                        : "CV trực tuyến chuẩn ATS"
-                    }
-                    className="inline-flex items-center gap-1 rounded-lg border border-border bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary"
-                  >
-                    <Globe className="size-3.5 text-primary" />
-                    <span>CV Online</span>
-                  </span>
-                )}
-              </div>
-            );
-          },
+          cell: ({ row }) => (
+            <div className="flex items-center gap-1.5">
+              {renderCvAction(row.original)}
+            </div>
+          ),
         }),
 
         columnHelper.accessor("appliedAt", {
@@ -327,9 +331,8 @@ export default function CandidateApplicationStatusPage() {
             );
           },
         }),
-      ]),
-    [],
-  );
+      ]);
+  }, []);
 
   return (
     <div className="min-h-full space-y-6 pb-12">
@@ -717,6 +720,11 @@ export default function CandidateApplicationStatusPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ApplicationCvPreviewDialog
+        application={previewCvApp}
+        onClose={() => setPreviewCvApp(null)}
+      />
     </div>
   );
 }

@@ -34,6 +34,7 @@ public interface ICompanyRepository {
         int page,
         int pageSize,
         CancellationToken cancellationToken);
+    Task<List<Guid>> GetActiveMemberUserIdsAsync(Guid companyId, CancellationToken cancellationToken);
     Task<List<Guid>> GetActiveCompanyIdsForUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken);
     Task AddMembershipAsync(CompanyMembership membership, CancellationToken cancellationToken);

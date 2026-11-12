@@ -12,6 +12,12 @@
 *.env
 !*.env.example
 
+# Firebase credentials & client config JSON (never commit)
+*firebase-adminsdk*.json
+firebase-service-account*.json
+firebase*.config.json
+firebaseConfig*.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

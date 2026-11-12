@@ -9,6 +9,8 @@
 
 # Also exclude local secrets / dev config that must not enter the image
 **/.env
+*firebase*.json
+secrets/
 **/*.user
 **/*.suo
 **/.vs/

@@ -231,7 +231,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
         className={
           isMobile
             ? "flex h-[90vh] max-h-[92vh] w-full flex-col gap-0 rounded-t-2xl border-t border-border bg-surface p-0 shadow-2xl backdrop-blur-none"
-            : "flex w-full min-w-120 flex-col gap-0 overflow-hidden p-0 pt-10 backdrop-blur-none sm:max-w-lg"
+            : "flex w-full min-w-130 flex-col gap-0 overflow-hidden p-0 pt-10 backdrop-blur-none sm:max-w-lg"
         }
       >
         {isMobile && (

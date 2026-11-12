@@ -71,6 +71,16 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
                             "The account is not active.")]);
                 }
 
+                if (string.IsNullOrEmpty(user.PasswordHash))
+                {
+                    throw new AppException(
+                        AppErrorKind.BadRequest,
+                        AuthErrorCodes.PasswordNotSet,
+                        "This account was signed in via Google and does not have a local password.",
+                        [new AppErrorDetail("currentPassword", ValidationReasons.NotAllowed,
+                            "Local password has not been set for this account.")]);
+                }
+
                 if (!_passwordHasher.Verify(passwords.CurrentPassword, user.PasswordHash))
                 {
                     throw new AppException(

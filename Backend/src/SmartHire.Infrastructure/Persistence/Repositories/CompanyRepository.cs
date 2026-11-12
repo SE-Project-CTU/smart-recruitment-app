@@ -125,6 +125,15 @@ public sealed class CompanyRepository : ICompanyRepository {
         return (items, totalCount);
     }
 
+    public Task<List<Guid>> GetActiveMemberUserIdsAsync(Guid companyId, CancellationToken cancellationToken) {
+        return _dbContext.CompanyMemberships
+            .AsNoTracking()
+            .Where(m => m.CompanyId == companyId && m.Status == CompanyMembershipStatus.Active)
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyMemberships
             .CountAsync(
@@ -413,7 +422,7 @@ public sealed class CompanyRepository : ICompanyRepository {
                         m.User.FullName,
                         m.User.Email,
                         m.User.Phone,
-                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : null
+                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : m.User.ExternalAvatarUrl
                     ))
                     .FirstOrDefault()
             ))
@@ -448,7 +457,7 @@ public sealed class CompanyRepository : ICompanyRepository {
                         m.User.FullName,
                         m.User.Email,
                         m.User.Phone,
-                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : null
+                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : m.User.ExternalAvatarUrl
                     ))
                     .FirstOrDefault(),
                 c.Memberships.Count(m => m.Status == CompanyMembershipStatus.Active),

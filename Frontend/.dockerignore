@@ -7,6 +7,7 @@
 **/.classpath
 **/.dockerignore
 **/.env
+*firebase*.json
 **/.git
 **/.gitignore
 **/.project

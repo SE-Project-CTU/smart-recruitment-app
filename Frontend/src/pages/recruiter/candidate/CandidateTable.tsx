@@ -9,11 +9,12 @@ import {
   ExternalLink,
   Eye,
   FileText,
+  Globe,
   Mail,
-  MessageSquare
+  MessageSquare,
 } from "lucide-react";
 import dayjs from "dayjs";
-import { DataTable, type DataTableFeatures } from "@/components/common";
+import { Button, DataTable, type DataTableFeatures } from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,
@@ -145,24 +146,27 @@ export function CandidateTable({
                   <a
                     href={app.uploadedCvUrl}
                     target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
+                    rel="noopener noreferrer"
+                    title="Mở file CV PDF đã tải lên"
+                    className="btn btn-secondary gap-1.5 rounded-lg! text-xs! text-text-muted! ring-border!"
                   >
-                    <FileText className="size-3.5 text-rose-500" />
-                    <span>File CV PDF</span>
-                    <ExternalLink className="size-3 opacity-60" />
+                    <span>Xem CV</span>
+                    <FileText className="size-3.5" />
                   </a>
                 ) : (
-                  <button
-                    type="button"
+                  <Button
                     onClick={() => onPreviewCv?.(app)}
-                    disabled={!onPreviewCv || (!app.cvSnapshot && !app.cvVersionId)}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={
+                      !onPreviewCv || (!app.cvSnapshot && !app.cvVersionId)
+                    }
                     aria-label="Xem trước CV hệ thống"
+                    variant="secondary"
+                    iconPosition="right"
+                    icon={Globe}
+                    className="rounded-lg! text-xs! text-text-muted! ring-border!"
                   >
-                    <span>CV Hệ thống</span>
-                    <Eye className="size-3.5" />
-                  </button>
+                    Xem CV
+                  </Button>
                 )}
               </div>
             );
@@ -383,6 +387,7 @@ export function CandidateTable({
       ]),
     [
       isUpdatingStatus,
+      onPreviewCv,
       onReadCoverLetter,
       onRequestChangeStatus,
       onViewJobDetail,

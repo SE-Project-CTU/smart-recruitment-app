@@ -31,6 +31,17 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   AUTH_CURRENT_ACCOUNT_NOT_FOUND: "Không tìm thấy tài khoản hiện tại.",
   AUTH_AVATAR_FILE_NOT_FOUND: "Không tìm thấy ảnh đại diện.",
   AUTH_AVATAR_FILE_NOT_OWNED: "Ảnh đại diện không thuộc tài khoản hiện tại.",
+  AUTH_INVALID_GOOGLE_TOKEN:
+    "Phiên xác thực Google không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.",
+  AUTH_GOOGLE_EMAIL_NOT_VERIFIED:
+    "Email Google của bạn chưa được xác minh. Vui lòng sử dụng tài khoản đã xác minh.",
+  AUTH_GOOGLE_ROLE_REQUIRED:
+    "Vui lòng chọn vai trò Ứng viên hoặc Nhà tuyển dụng để hoàn tất đăng ký.",
+  AUTH_GOOGLE_ROLE_MISMATCH:
+    "Email Google này đã được đăng ký với một vai trò khác. Vui lòng đăng nhập ở đúng tài khoản hoặc chọn đúng vai trò.",
+  AUTH_INVALID_ROLE: "Vai trò được chọn không hợp lệ.",
+  AUTH_PASSWORD_NOT_SET:
+    "Tài khoản này đăng nhập bằng Google và chưa thiết lập mật khẩu riêng.",
   MEDIA_FILE_NOT_FOUND: "Không tìm thấy tệp.",
   MEDIA_FILE_FORBIDDEN: "Bạn không có quyền truy cập tệp này.",
   MEDIA_FILE_STORAGE_ERROR: "Không thể lưu tệp. Vui lòng thử lại.",

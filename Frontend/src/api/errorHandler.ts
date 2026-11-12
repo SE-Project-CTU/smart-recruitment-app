@@ -103,6 +103,14 @@ const getProblemValidationMessages = (value: unknown): string[] => {
 const getErrorPayload = (error: unknown): unknown =>
   isAxiosError(error) ? error.response?.data : error;
 
+export const getApiErrorCode = (error: unknown): string | null => {
+  const payload = getErrorPayload(error);
+  if (!isRecord(payload)) return null;
+  const nestedError = payload.error ?? payload.Error;
+  const errorBody = isRecord(nestedError) ? nestedError : payload;
+  return getString(errorBody, "code", "Code");
+};
+
 export const getApiErrorMessage = (
   error: unknown,
   fallbackMessage: string,

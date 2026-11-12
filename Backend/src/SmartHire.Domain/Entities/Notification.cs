@@ -65,5 +65,24 @@ public class Notification {
         ReadAt = now ?? DateTimeOffset.UtcNow;
     }
 
+    public void AggregateUpdate(string title, string body, string? payload, DateTimeOffset now) {
+        if (string.IsNullOrWhiteSpace(title)) {
+            throw new ArgumentException("Title is required.", nameof(title));
+        }
+        if (string.IsNullOrWhiteSpace(body)) {
+            throw new ArgumentException("Body is required.", nameof(body));
+        }
+        if (payload is { Length: > MaxPayloadLength }) {
+            throw new ArgumentException($"Notification payload cannot exceed {MaxPayloadLength} characters.", nameof(payload));
+        }
+
+        Title = title;
+        Body = body;
+        Payload = payload;
+        CreatedAt = now;
+        ReadAt = null;
+        RealtimeDispatchedAt = null;
+    }
+
     public bool IsRead => ReadAt.HasValue;
 }

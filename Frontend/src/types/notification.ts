@@ -12,7 +12,7 @@ export interface NotificationDto {
   type: NotificationType;
   title: string;
   body: string;
-  payload?: string | null;
+  payload?: string | Record<string, unknown> | null;
   resourceType?: string | null;
   resourceId?: string | null;
   createdAt: string;

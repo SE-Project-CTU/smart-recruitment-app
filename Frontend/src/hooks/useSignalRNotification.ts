@@ -44,33 +44,44 @@ export function useSignalRNotification() {
       .build();
 
     connectionRef.current = connection;
+    let counterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const invalidateApplicationQueries = () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "applications"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["job-postings", "applications"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["recruiter", "all-applications"],
+      });
+    };
 
     // Lắng nghe sự kiện phát thông báo thời gian thực từ Backend
     connection.on(
       "ReceiveNotification",
       (notification: NotificationDto) => {
-        // Invalidate các queries liên quan để dữ liệu tự động cập nhật
+        // Prefix ["notifications"] đã bao phủ cả ["notifications", "unread-count"]
         queryClient.invalidateQueries({ queryKey: ["notifications"] });
-        queryClient.invalidateQueries({
-          queryKey: ["notifications", "unread-count"],
-        });
 
         if (notification.type === "JobApplicationReceived") {
-          queryClient.invalidateQueries({ queryKey: ["applications"] });
-          queryClient.invalidateQueries({
-            queryKey: ["recruiter-candidates"],
-          });
+          invalidateApplicationQueries();
         } else if (notification.type === "ApplicationStatusUpdate") {
-          queryClient.invalidateQueries({ queryKey: ["my-applications"] });
-          queryClient.invalidateQueries({
-            queryKey: ["candidate-applications"],
-          });
+          queryClient.invalidateQueries({ queryKey: ["applications"] });
+        } else if (notification.type === "CompanyInvitation") {
+          queryClient.invalidateQueries({ queryKey: ["company-invitations"] });
+          queryClient.invalidateQueries({ queryKey: ["companies"] });
+        } else if (notification.type === "CompanyJoinRequest") {
+          queryClient.invalidateQueries({ queryKey: ["companies"] });
         } else if (
           notification.type === "CompanyNewJobPosting" ||
-          notification.type === "SystemAlert"
+          notification.type === "SystemAlert" ||
+          notification.type === "JobRecommendation"
         ) {
           queryClient.invalidateQueries({ queryKey: ["job-postings"] });
-          queryClient.invalidateQueries({ queryKey: ["company"] });
+          queryClient.invalidateQueries({ queryKey: ["companies"] });
         }
 
         // Hiển thị interactive Toast Popup
@@ -82,8 +93,14 @@ export function useSignalRNotification() {
     connection.on(
       "ApplicationCounterUpdated",
       (_payload: ApplicationCounterPayload) => {
-        queryClient.invalidateQueries({ queryKey: ["applications"] });
-        queryClient.invalidateQueries({ queryKey: ["recruiter-candidates"] });
+        if (counterDebounceTimer) {
+          clearTimeout(counterDebounceTimer);
+        }
+        // Gom nhịp invalidate khi nhận nhiều cập nhật liên tiếp trong burst window
+        counterDebounceTimer = setTimeout(() => {
+          counterDebounceTimer = null;
+          invalidateApplicationQueries();
+        }, 1000);
       },
     );
 
@@ -93,6 +110,9 @@ export function useSignalRNotification() {
     });
 
     return () => {
+      if (counterDebounceTimer) {
+        clearTimeout(counterDebounceTimer);
+      }
       connection.stop().catch(() => {});
       connectionRef.current = null;
     };

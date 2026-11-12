@@ -17,6 +17,32 @@ public sealed class NotificationRepository : INotificationRepository {
             .FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Notification>> GetUnreadByRecipientsAndResourceAsync(
+        IReadOnlyCollection<Guid> recipientIds,
+        NotificationType type,
+        string resourceType,
+        Guid resourceId,
+        CancellationToken cancellationToken) {
+        if (recipientIds.Count == 0) {
+            return Array.Empty<Notification>();
+        }
+
+        return await _context.Notifications
+            .Where(n => recipientIds.Contains(n.RecipientId)
+                        && n.Type == type
+                        && n.ResourceType == resourceType
+                        && n.ResourceId == resourceId
+                        && n.ReadAt == null)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task AcquireJobApplicationAggregateLockAsync(Guid jobPostingId, CancellationToken cancellationToken) {
+        return _context.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT pg_advisory_xact_lock(hashtext('job_app_notify'), hashtext({jobPostingId.ToString("N")}))",
+            cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Notification>> GetPendingRealtimeDispatchByIdsAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken) {
