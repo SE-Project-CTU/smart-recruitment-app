@@ -252,11 +252,13 @@ function Header() {
             })}
           </nav>
 
-          {/* User Profile / Action Buttons */}
-          <div className="hidden items-center gap-3 lg:flex">
-            {isAuthenticated ? (
-              <>
-                <NotificationDropdown />
+          {/* Right Actions: Notification + Desktop Profile / Auth + Mobile Toggle */}
+          <div className="flex items-center gap-1.5 lg:gap-3">
+            {isAuthenticated && <NotificationDropdown />}
+
+            {/* User Profile / Action Buttons (Desktop) */}
+            <div className="hidden items-center gap-3 lg:flex">
+              {isAuthenticated ? (
                 <Menu>
                   <MenuTrigger
                     openOnHover
@@ -359,27 +361,27 @@ function Header() {
                     </MenuItem>
                   </MenuPanel>
                 </Menu>
-              </>
-            ) : (
-              <>
-                <Link to={PATHS.SIGN_IN} className="btn btn-secondary">
-                  Đăng nhập
-                </Link>
-                <Link to={PATHS.SIGN_UP} className="btn btn-primary">
-                  Đăng ký ngay
-                </Link>
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  <Link to={PATHS.SIGN_IN} className="btn btn-secondary">
+                    Đăng nhập
+                  </Link>
+                  <Link to={PATHS.SIGN_UP} className="btn btn-primary">
+                    Đăng ký ngay
+                  </Link>
+                </>
+              )}
+            </div>
 
-          {/* Mobile Toggle Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle Menu"
-            className="flex size-10 items-center justify-center rounded-lg p-2 text-text-main transition-colors hover:text-primary active:scale-90 lg:hidden"
-          >
-            <MorphIcon icon={isOpen ? X : MenuIc} />
-          </button>
+            {/* Mobile Toggle Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle Menu"
+              className="flex size-10 items-center justify-center rounded-lg p-2 text-text-main transition-colors hover:text-primary active:scale-90 lg:hidden"
+            >
+              <MorphIcon icon={isOpen ? X : MenuIc} />
+            </button>
+          </div>
         </div>
       </motion.div>
 
