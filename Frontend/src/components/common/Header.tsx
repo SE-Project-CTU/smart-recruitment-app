@@ -76,7 +76,7 @@ function Header() {
       return [
         { title: "Tổng quan", href: PATHS.CANDIDATE.DASHBOARD },
         { title: "Việc làm", href: PATHS.SEARCH_JOB },
-        { title: "Việc làm phù hợp", href: PATHS.CANDIDATE.MATCHED_JOBS },
+        // { title: "Việc làm phù hợp", href: PATHS.CANDIDATE.MATCHED_JOBS },
         {
           title: "Tạo CV",
           href: PATHS.CANDIDATE.CV_MANAGEMENT,
@@ -94,6 +94,8 @@ function Header() {
           ],
         },
         { title: "Blog nghề nghiệp", href: PATHS.BLOG },
+        { title: "Liên hệ", href: PATHS.HOME },
+        { title: "FAQs", href: PATHS.HOME },
       ];
     }
 
@@ -409,10 +411,7 @@ function Header() {
 
                   if (item.children?.length) {
                     return (
-                      <div
-                        key={item.title}
-                        className="flex flex-col space-y-1"
-                      >
+                      <div key={item.title} className="flex flex-col space-y-1">
                         <span
                           className={`px-2 py-1 text-sm ${
                             isActive
