@@ -77,11 +77,11 @@ function CandidateDashboard() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col gap-8 overflow-hidden">
+    <div className="flex w-full flex-col gap-6 sm:gap-8">
       <CandidateDashboardBanner />
 
       {/* Việc làm gợi ý */}
-      <div className="flex flex-col gap-4 rounded-2xl bg-bg p-4">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-surface p-4 sm:p-5">
         <div className="flex flex-col items-start gap-3">
           <div className="flex w-full items-center justify-between">
             <h2 className="text-xl font-semibold text-text-main">
@@ -93,7 +93,7 @@ function CandidateDashboard() {
               icon={ArrowRight}
               iconPosition="right"
               iconSize={14}
-              onClick={() => navigate(PATHS.CANDIDATE.SEARCH_JOBS)}
+              onClick={() => navigate(PATHS.SEARCH_JOB)}
               className="px-3! py-1.5! text-xs!"
             >
               Xem tất cả gợi ý
@@ -163,7 +163,7 @@ function CandidateDashboard() {
                   variant="primary"
                   icon={Search}
                   iconSize={15}
-                  onClick={() => navigate(PATHS.CANDIDATE.SEARCH_JOBS)}
+                  onClick={() => navigate(PATHS.SEARCH_JOB)}
                   className="w-full! py-2.5! text-xs!"
                 >
                   Bắt đầu tìm kiếm
@@ -185,7 +185,7 @@ function CandidateDashboard() {
       </div>
 
       {/* Theo dõi hồ sơ */}
-      <div className="flex flex-col gap-4 rounded-2xl bg-bg p-4">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-surface p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-text-main">
             Theo dõi hồ sơ

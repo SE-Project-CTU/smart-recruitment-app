@@ -125,7 +125,7 @@ export const CandidateCvPreviewView: React.FC<CandidateCvPreviewViewProps> = ({
 
   // 4. Hiển thị thông tin CV và khu vực xem trước A4
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6">
       {/* Header Toolbar */}
       <div className="relative overflow-hidden rounded-2xl border border-border bg-surface p-5 shadow-xs md:p-6">
         <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">

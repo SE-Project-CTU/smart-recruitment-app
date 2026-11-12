@@ -76,7 +76,7 @@ export const TargetJobSelectModal: React.FC<TargetJobSelectModalProps> = ({
 
   const handleGoToSearch = () => {
     onClose();
-    navigate(PATHS.CANDIDATE?.SEARCH_JOBS || PATHS.SEARCH_JOB);
+    navigate(PATHS.SEARCH_JOB);
   };
 
   return (

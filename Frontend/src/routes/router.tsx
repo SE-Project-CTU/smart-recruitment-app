@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import RootLayout from "@/layouts/RootLayout";
-import BaseLayout from "@/layouts/BaseLayout.tsx";
+import BaseLayout, { CandidatePageLayout } from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/common/Page";
 import {
@@ -14,7 +14,6 @@ import {
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { PATHS } from "@/constants/paths";
-import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
@@ -84,68 +83,72 @@ const router = createBrowserRouter([
         element: <CandidateCvBuilderPage />,
       },
       {
-        element: <DashboardLayout />,
+        element: <BaseLayout />,
         children: [
           {
-            path: "/candidate",
-            element: <Navigate to={PATHS.CANDIDATE.DASHBOARD} replace />,
-          },
-          {
-            path: "/candidate/bookmarks",
-            element: <Navigate to={PATHS.CANDIDATE.BOOKMARK_JOBS} replace />,
-          },
-          {
-            path: PATHS.CANDIDATE.DASHBOARD,
-            element: <CandidateDashboard />,
-          },
-          {
-            path: PATHS.CANDIDATE.SEARCH_JOBS,
-            element: <SearchJobPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.MATCHED_JOBS,
-            element: <MatchedJobsPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.CV_MANAGEMENT,
-            element: <CandidateCvManagementPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.CV_TEMPLATES,
-            element: <CandidateCvTemplatesPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.SAVE_CV_SUCCESS,
-            element: <CandidateSaveCvSuccessPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.PREVIEW_CV,
-            element: <CandidatePreviewCvPage />,
-          },
-
-          {
-            path: PATHS.CANDIDATE.APPLICATION_STATUS,
-            element: <CandidateApplicationStatusPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.BOOKMARK_COMPANIES,
-            element: <BookmarkCompanies />,
-          },
-          {
-            path: PATHS.CANDIDATE.BOOKMARK_JOBS,
-            element: <BookmarkJobs />,
-          },
-          {
-            path: PATHS.CANDIDATE.COMPANY_REVIEWS,
-            element: <Page title="Rì viu" />,
-          },
-          {
-            path: PATHS.CANDIDATE.USER_PROFILE,
-            element: <UserProfile />,
-          },
-          {
-            path: PATHS.CANDIDATE.SETTINGS,
-            element: <Page title="Cài đặt tài khoản" />,
+            element: <CandidatePageLayout />,
+            children: [
+              {
+                path: "/candidate",
+                element: <Navigate to={PATHS.CANDIDATE.DASHBOARD} replace />,
+              },
+              {
+                path: "/candidate/bookmarks",
+                element: <Navigate to={PATHS.CANDIDATE.BOOKMARK_JOBS} replace />,
+              },
+              {
+                path: PATHS.CANDIDATE.DASHBOARD,
+                element: <CandidateDashboard />,
+              },
+              {
+                path: PATHS.CANDIDATE.SEARCH_JOBS,
+                element: <Navigate to={PATHS.SEARCH_JOB} replace />,
+              },
+              {
+                path: PATHS.CANDIDATE.MATCHED_JOBS,
+                element: <MatchedJobsPage />,
+              },
+              {
+                path: PATHS.CANDIDATE.CV_MANAGEMENT,
+                element: <CandidateCvManagementPage />,
+              },
+              {
+                path: PATHS.CANDIDATE.CV_TEMPLATES,
+                element: <CandidateCvTemplatesPage />,
+              },
+              {
+                path: PATHS.CANDIDATE.SAVE_CV_SUCCESS,
+                element: <CandidateSaveCvSuccessPage />,
+              },
+              {
+                path: PATHS.CANDIDATE.PREVIEW_CV,
+                element: <CandidatePreviewCvPage />,
+              },
+              {
+                path: PATHS.CANDIDATE.APPLICATION_STATUS,
+                element: <CandidateApplicationStatusPage />,
+              },
+              {
+                path: PATHS.CANDIDATE.BOOKMARK_COMPANIES,
+                element: <BookmarkCompanies />,
+              },
+              {
+                path: PATHS.CANDIDATE.BOOKMARK_JOBS,
+                element: <BookmarkJobs />,
+              },
+              {
+                path: PATHS.CANDIDATE.COMPANY_REVIEWS,
+                element: <Page title="Rì viu" />,
+              },
+              {
+                path: PATHS.CANDIDATE.USER_PROFILE,
+                element: <UserProfile />,
+              },
+              {
+                path: PATHS.CANDIDATE.SETTINGS,
+                element: <Page title="Cài đặt tài khoản" />,
+              },
+            ],
           },
         ],
       },

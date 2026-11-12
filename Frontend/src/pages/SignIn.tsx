@@ -154,7 +154,7 @@ function SignIn() {
   return (
     <div className="mx-auto flex min-h-screen flex-col gap-4 bg-surface p-3 font-sans sm:p-4 md:max-w-[92%] xl:flex-row xl:gap-5 xl:py-4 3xl:max-w-[88%] 3xl:gap-6 3xl:p-6">
       <div className="flex w-full flex-col gap-4 xl:w-1/2 3xl:gap-6">
-        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-5 shadow-sm sm:p-8 xl:rounded-[2rem] xl:px-12 xl:py-6 2xl:px-16 3xl:rounded-[2.5rem] 3xl:px-24 3xl:py-12">
+        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-5 shadow-sm sm:p-8 xl:rounded-4xl xl:px-12 xl:py-6 2xl:px-16 3xl:rounded-[2.5rem] 3xl:px-24 3xl:py-12">
           <div className="mb-4 flex items-center gap-2 sm:mb-5 3xl:mb-10">
             <Link to={PATHS.HOME}>
               <img
@@ -227,7 +227,7 @@ function SignIn() {
             {/* Thông báo lỗi không background, không border, giữ min-height chống giật layout */}
             <div className="-mt-1.5 flex min-h-5 items-center px-3">
               {errorMessage ? (
-                <div className="flex items-center gap-1.5 text-xs font-medium text-status-error animate-in fade-in duration-150">
+                <div className="animate-in fade-in flex items-center gap-1.5 text-xs font-medium text-status-error duration-150">
                   <AlertCircle size={14} className="shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
@@ -302,7 +302,7 @@ function SignIn() {
         </div>
       </div>
 
-      <div className="relative hidden w-1/2 overflow-hidden rounded-[2rem] shadow-lg xl:block 3xl:rounded-[2.5rem]">
+      <div className="relative hidden w-1/2 overflow-hidden rounded-4xl shadow-lg xl:block 3xl:rounded-[2.5rem]">
         <img
           src={Office}
           alt="SmartHire Office"

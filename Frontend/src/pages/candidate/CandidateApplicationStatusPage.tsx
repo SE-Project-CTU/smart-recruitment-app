@@ -335,7 +335,7 @@ export default function CandidateApplicationStatusPage() {
   }, []);
 
   return (
-    <div className="min-h-full space-y-6 pb-12">
+    <div className="space-y-6">
       {/* 1. Header & Quick Stat Cards */}
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold text-text-main sm:text-2xl">

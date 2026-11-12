@@ -71,7 +71,7 @@ export default function CandidateCvManagementPage() {
   };
 
   return (
-    <div className="min-h-full space-y-8 pb-12">
+    <div className="space-y-8">
       {/* Section: Danh sách CV của bạn */}
       <section className="flex flex-col gap-6 rounded-2xl bg-bg">
         <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
