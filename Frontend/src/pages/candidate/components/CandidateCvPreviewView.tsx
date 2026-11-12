@@ -14,6 +14,8 @@ import {
 import { useCvDetail } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import { CvPreviewWorkspace, CV_PRINT_PAGE_STYLE } from "@/features/cv";
+import { useCvZoom } from "@/features/cv/builder/hooks/useCvZoom";
+import { CvZoomControls } from "@/features/cv/builder/components/CvZoomControls";
 import { getTimeAgo } from "@/utils/helper";
 
 export interface CandidateCvPreviewViewProps {
@@ -30,6 +32,16 @@ export const CandidateCvPreviewView: React.FC<CandidateCvPreviewViewProps> = ({
   const cvId = propCvId || searchParams.get("id");
 
   const printRef = useRef<HTMLDivElement>(null);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+  const {
+    zoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    setZoom,
+    canZoomIn,
+    canZoomOut,
+  } = useCvZoom({ containerRef: previewScrollRef });
 
   const {
     data: cvData,
@@ -201,20 +213,50 @@ export const CandidateCvPreviewView: React.FC<CandidateCvPreviewViewProps> = ({
       </div>
 
       {/* Khu vực trang giấy A4 trực quan */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-xs">
-        <div className="flex items-center justify-start gap-2 border-b border-border px-6 py-3.5">
-          <FileText className="size-4 text-primary" />
-          <h2 className="text-xs font-semibold text-text-muted uppercase">
-            {isSaveSuccess ? "Bản in CV vừa lưu" : "Bản xem trước CV"}
-          </h2>
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-surface shadow-xs">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6 sm:py-3.5">
+          <div className="flex items-center gap-2">
+            <FileText className="size-4 text-primary" />
+            <h2 className="text-xs font-semibold text-text-muted uppercase">
+              {isSaveSuccess ? "Bản in CV vừa lưu" : "Bản xem trước CV"}
+            </h2>
+          </div>
         </div>
 
-        <div className="bg-slate-100 p-4 md:p-8">
-          <CvPreviewWorkspace
-            content={cvData.content}
-            layout={cvData.layout}
-            contentRef={printRef}
-            className="bg-transparent! p-0!"
+        <div
+          ref={previewScrollRef}
+          className="relative flex justify-center overflow-auto bg-slate-100 p-2 sm:p-4 md:p-8"
+        >
+          <div className="h-max">
+            <div
+              className="bg-transparent"
+              style={{
+                transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+                transformOrigin: "top center",
+                marginBottom:
+                  zoom > 1
+                    ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
+                    : "2rem",
+              }}
+            >
+              <CvPreviewWorkspace
+                content={cvData.content}
+                layout={cvData.layout}
+                contentRef={printRef}
+                className="bg-transparent! p-0!"
+              />
+            </div>
+          </div>
+
+          <CvZoomControls
+            zoom={zoom}
+            onZoomIn={zoomIn}
+            onZoomOut={zoomOut}
+            onResetZoom={resetZoom}
+            onZoomChange={setZoom}
+            canZoomIn={canZoomIn}
+            canZoomOut={canZoomOut}
+            className="fixed! bottom-4! right-4! sm:bottom-6! sm:right-6!"
           />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import { Eye, AlertCircle, LayoutTemplate } from "lucide-react";
 import {
   Dialog,
@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { useCvTemplateDetail } from "@/hooks/queries/useCv";
 import { CvPreviewWorkspace, normalizeCvContentFontSizes } from "@/features/cv";
+import { useCvZoom } from "@/features/cv/builder/hooks/useCvZoom";
+import { CvZoomControls } from "@/features/cv/builder/components/CvZoomControls";
 import type { CVTemplateItemData } from "@/components/common/CVTemplateCard";
 
 export interface PreviewTemplateModalProps {
@@ -19,12 +21,14 @@ export interface PreviewTemplateModalProps {
     imageUrl?: string;
   } | null;
   onClose: () => void;
+  onUseTemplate?: (template: CVTemplateItemData) => void;
 }
 
 export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
   template,
   previewItem,
   onClose,
+  onUseTemplate,
 }) => {
   const activeTemplate = useMemo(() => {
     if (template) return template;
@@ -41,6 +45,10 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
   const isOpen = Boolean(activeTemplate || previewItem);
   const templateId = activeTemplate?.id;
   const templateTitle = activeTemplate?.name || previewItem?.title || "Mẫu CV";
+
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+  const { zoom, zoomIn, zoomOut, resetZoom, setZoom, canZoomIn, canZoomOut } =
+    useCvZoom({ containerRef: previewScrollRef });
 
   const {
     data: templateDetail,
@@ -68,20 +76,20 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
       }}
     >
       <DialogContent
-        className="flex max-h-[90vh] w-full max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-2xl sm:max-w-4xl"
+        className="flex max-h-[92vh] w-[calc(100vw-1.5rem)] max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-2xl sm:w-full sm:max-w-4xl"
         showCloseButton={true}
       >
         {/* 1. Header Dialog */}
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-border px-6 py-4 pr-12">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <LayoutTemplate className="size-5" />
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-border px-4 py-3.5 pr-12 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:size-9">
+              <LayoutTemplate className="size-4 sm:size-5" />
             </div>
-            <div>
-              <DialogTitle className="line-clamp-1 text-base font-bold text-text-main">
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-sm font-bold text-text-main sm:text-base">
                 {templateTitle}
               </DialogTitle>
-              <DialogDescription className="text-xs text-text-muted">
+              <DialogDescription className="truncate text-[11px] text-text-muted sm:text-xs">
                 Xem trước bản in A4 của mẫu CV
               </DialogDescription>
             </div>
@@ -89,7 +97,10 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
         </DialogHeader>
 
         {/* 2. Nội dung xem trước giữa màn hình */}
-        <div className="flex flex-1 justify-center overflow-auto bg-slate-100 p-4 md:p-6">
+        <div
+          ref={previewScrollRef}
+          className="relative flex flex-1 justify-center overflow-auto bg-slate-100 p-2 sm:p-4 md:p-6"
+        >
           {isLoading && (
             <div className="my-auto flex flex-col items-center justify-center p-8 text-center">
               <div className="size-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -135,11 +146,23 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
             templateContent &&
             templateDetail?.defaultLayout && (
               <div className="h-max">
-                <CvPreviewWorkspace
-                  content={templateContent}
-                  layout={templateDetail.defaultLayout}
-                  className="bg-transparent! p-0!"
-                />
+                <div
+                  className="bg-transparent"
+                  style={{
+                    transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+                    transformOrigin: "top center",
+                    marginBottom:
+                      zoom > 1
+                        ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
+                        : "2rem",
+                  }}
+                >
+                  <CvPreviewWorkspace
+                    content={templateContent}
+                    layout={templateDetail.defaultLayout}
+                    className="bg-transparent! p-0!"
+                  />
+                </div>
               </div>
             )}
 
@@ -153,6 +176,19 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
                 </p>
               </div>
             )}
+
+          {!isLoading && !isError && templateContent && (
+            <CvZoomControls
+              zoom={zoom}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+              onResetZoom={resetZoom}
+              onZoomChange={setZoom}
+              canZoomIn={canZoomIn}
+              canZoomOut={canZoomOut}
+              className="fixed! right-4! bottom-4! sm:right-6! sm:bottom-6!"
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>

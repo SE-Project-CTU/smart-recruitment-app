@@ -144,20 +144,42 @@ export function CVTemplateCard({
         </p>
       </div>
 
-      {/* Chân card: Custom footer cho Admin hoặc Nút mobile cho Candidate */}
+      {/* Chân card: Custom footer cho Admin hoặc Cụm nút bấm cảm ứng trên mobile cho Candidate */}
       {footerExtra ? (
         <div className="border-t border-border bg-slate-50/50 p-3">
           {footerExtra}
         </div>
-      ) : onUseTemplate ? (
-        <div className="p-4 pt-0">
-          <Button
-            variant="secondary"
-            onClick={() => onUseTemplate(template)}
-            className="hidden! w-full justify-center rounded-lg! py-2! text-xs font-semibold! text-primary! hover:bg-primary/10 hover:text-primary md:hidden! md:text-sm!"
-          >
-            Dùng mẫu này
-          </Button>
+      ) : onUseTemplate || onPreview || onEdit ? (
+        <div className="flex items-center gap-2 border-t border-border/60 bg-slate-50/50 p-3 md:hidden">
+          {onPreview && (
+            <Button
+              variant="secondary"
+              icon={Eye}
+              onClick={() => onPreview(template)}
+              className="flex-1 justify-center rounded-xl! py-2! text-xs! font-medium! bg-white shadow-2xs"
+            >
+              Xem trước
+            </Button>
+          )}
+          {onUseTemplate && (
+            <Button
+              variant="primary"
+              onClick={() => onUseTemplate(template)}
+              className="flex-1 justify-center rounded-xl! py-2! text-xs! font-semibold!"
+            >
+              Dùng mẫu
+            </Button>
+          )}
+          {onEdit && (
+            <Button
+              variant="primary"
+              icon={Pencil}
+              onClick={() => onEdit(template)}
+              className="flex-1 justify-center rounded-xl! py-2! text-xs! font-semibold!"
+            >
+              Chỉnh sửa
+            </Button>
+          )}
         </div>
       ) : null}
     </div>

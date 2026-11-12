@@ -78,6 +78,7 @@ export default function CandidateCvTemplatesPage() {
       <PreviewTemplateModal
         template={previewTemplate}
         onClose={() => setPreviewTemplate(null)}
+        onUseTemplate={setSelectedTemplate}
       />
     </div>
   );
