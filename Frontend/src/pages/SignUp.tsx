@@ -323,7 +323,7 @@ function SignUp() {
     <div className="mx-auto flex min-h-screen flex-col gap-4 bg-surface p-3 font-sans sm:p-4 md:max-w-[92%] xl:flex-row xl:gap-5 xl:py-4 3xl:max-w-[88%] 3xl:gap-6 3xl:p-6">
       {/* Left */}
       <div className="flex w-full flex-col gap-4 xl:w-1/2 3xl:gap-6">
-        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-5 shadow-sm sm:p-7 xl:rounded-[2rem] xl:px-10 xl:py-5 2xl:px-14 3xl:rounded-[2.5rem] 3xl:px-20 3xl:py-10">
+        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border/40 bg-linear-to-br from-white via-secondary/40 to-secondary-dark/80 p-5 shadow-sm sm:p-7 xl:px-10 xl:py-5 2xl:px-14 3xl:px-20 3xl:py-10">
           <div className="mb-3 flex items-center gap-2 sm:mb-4 3xl:mb-6">
             <Link to={PATHS.HOME}>
               <img
@@ -391,7 +391,7 @@ function SignUp() {
       </div>
 
       {/* Right */}
-      <div className="relative hidden w-1/2 overflow-hidden rounded-[2rem] p-8 text-white shadow-lg xl:flex xl:flex-col xl:justify-between 3xl:rounded-[2.5rem] 3xl:p-12">
+      <div className="relative hidden w-1/2 overflow-hidden rounded-3xl p-8 text-white shadow-lg xl:flex xl:flex-col xl:justify-between 3xl:p-12">
         {role === "candidate" && (
           <Blur key="candidate-img" asChild initialBlur={10} blur={0}>
             <img
