@@ -549,7 +549,7 @@ export default function CandidateApplicationStatusPage() {
           if (!open) setSelectedApplication(null);
         }}
       >
-        <DialogContent className="min-w-fit sm:max-w-lg">
+        <DialogContent className="max-h-[90dvh] w-[calc(100vw-2rem)] overflow-y-auto p-4 sm:w-full sm:max-w-lg sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-900">
               Chi tiết tiến trình hồ sơ
@@ -560,9 +560,9 @@ export default function CandidateApplicationStatusPage() {
           </DialogHeader>
 
           {selectedApplication && (
-            <div className="space-y-4 pt-2">
+            <div className="w-full min-w-0 space-y-4 pt-2">
               {/* Job summary card */}
-              <div className="flex items-start gap-3 rounded-2xl border border-border bg-slate-50/70 p-3.5">
+              <div className="flex w-full min-w-0 items-start gap-3 rounded-2xl border border-border bg-slate-50/70 p-3 sm:p-3.5">
                 <img
                   src={
                     selectedApplication.companyLogoUrl ||
@@ -582,24 +582,26 @@ export default function CandidateApplicationStatusPage() {
                   }}
                   className="size-11 shrink-0 rounded-xl border border-border object-cover"
                 />
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <h4 className="truncate text-sm font-bold text-slate-900">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <h4 className="text-sm font-bold leading-snug break-words text-slate-900">
                     {selectedApplication.jobTitle}
                   </h4>
-                  <span className="truncate text-xs text-text-muted">
+                  <span className="text-xs leading-relaxed break-words text-text-muted">
                     {selectedApplication.companyName}
                   </span>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Briefcase className="size-3 text-slate-400" />
-                      {selectedApplication.salaryRange}
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                    <span className="inline-flex items-center gap-1">
+                      <Briefcase className="size-3 shrink-0 text-slate-400" />
+                      <span>{selectedApplication.salaryRange}</span>
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="size-3 text-slate-400" />
-                      Nộp ngày{" "}
-                      {dayjs(selectedApplication.appliedAt).format(
-                        "DD/MM/YYYY",
-                      )}
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="size-3 shrink-0 text-slate-400" />
+                      <span>
+                        Nộp ngày{" "}
+                        {dayjs(selectedApplication.appliedAt).format(
+                          "DD/MM/YYYY",
+                        )}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -607,18 +609,18 @@ export default function CandidateApplicationStatusPage() {
 
               {/* Cover Letter nếu có */}
               {selectedApplication.coverLetter && (
-                <div className="rounded-xl border border-border bg-surface p-3">
+                <div className="w-full min-w-0 rounded-xl border border-border bg-surface p-3">
                   <span className="text-xs font-semibold text-slate-700">
                     Thư giới thiệu của bạn:
                   </span>
-                  <p className="mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line text-slate-600">
+                  <p className="mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line break-words text-slate-600">
                     {selectedApplication.coverLetter}
                   </p>
                 </div>
               )}
 
               {/* Timeline lịch sử tiến trình */}
-              <div className="space-y-2">
+              <div className="w-full min-w-0 space-y-2">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
                   <Clock className="size-3.5 text-primary" />
                   Dòng thời gian xét duyệt
@@ -630,7 +632,7 @@ export default function CandidateApplicationStatusPage() {
                     <div className="h-8 animate-pulse rounded-lg bg-slate-100" />
                   </div>
                 ) : sortedHistory.length > 0 ? (
-                  <div className="relative ml-3 space-y-4 border-l-2 border-slate-200 py-1 pl-4">
+                  <div className="relative ml-2.5 space-y-4 border-l-2 border-slate-200 py-1 pl-3.5 sm:ml-3 sm:pl-4">
                     {sortedHistory.map(
                       (step: ApplicationStatusHistoryItem, idx: number) => {
                         const isLatest = idx === sortedHistory.length - 1;
@@ -656,22 +658,22 @@ export default function CandidateApplicationStatusPage() {
                         const oldLabel = oldConfig?.label || oldStatusKey;
 
                         return (
-                          <div key={step.id || idx} className="group relative">
+                          <div key={step.id || idx} className="group relative w-full min-w-0">
                             {/* Dot indicator */}
                             <div
-                              className={`absolute top-1 -left-5.75 size-3.5 rounded-full border-2 border-white shadow-xs ${
+                              className={`absolute top-1 -left-5.25 sm:-left-5.75 size-3.5 rounded-full border-2 border-white shadow-xs ${
                                 isLatest
                                   ? "bg-primary ring-4 ring-primary/20"
                                   : "bg-slate-400"
                               }`}
                             />
 
-                            <div className="flex flex-col gap-1">
-                              <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex w-full min-w-0 flex-col gap-1">
+                              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                                 <div className="flex flex-wrap items-center gap-1.5">
                                   <span
                                     className={cn(
-                                      "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
+                                      "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold break-words",
                                       currentConfig?.badgeClass ||
                                         "border-slate-200 bg-slate-100 text-slate-700",
                                     )}
@@ -679,21 +681,21 @@ export default function CandidateApplicationStatusPage() {
                                     {statusLabel}
                                   </span>
                                   {oldLabel && oldLabel !== statusLabel && (
-                                    <span className="text-[11px] text-text-muted">
+                                    <span className="text-[11px] text-text-muted break-words">
                                       (từ {oldLabel})
                                     </span>
                                   )}
                                 </div>
 
                                 {stepTime && (
-                                  <span className="text-[11px] text-text-muted">
+                                  <span className="text-[11px] text-text-muted shrink-0">
                                     {dayjs(stepTime).format("DD/MM/YYYY HH:mm")}
                                   </span>
                                 )}
                               </div>
 
                               {step.note && (
-                                <p className="mt-1 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
+                                <p className="mt-1 rounded-lg bg-slate-50 p-2 text-xs leading-relaxed break-words text-slate-600">
                                   {step.note}
                                 </p>
                               )}
@@ -704,7 +706,7 @@ export default function CandidateApplicationStatusPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
+                  <div className="w-full rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs leading-relaxed break-words text-slate-400">
                     Đơn ứng tuyển đang ở trạng thái ban đầu (
                     {APPLICATION_STATUS_CONFIG[selectedApplication.status]
                       ?.label ||

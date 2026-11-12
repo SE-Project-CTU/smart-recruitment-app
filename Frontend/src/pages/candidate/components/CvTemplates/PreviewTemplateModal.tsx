@@ -89,7 +89,7 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
         </DialogHeader>
 
         {/* 2. Nội dung xem trước giữa màn hình */}
-        <div className="flex flex-1 justify-center overflow-y-auto bg-slate-100 p-4 md:p-6">
+        <div className="flex flex-1 justify-center overflow-auto bg-slate-100 p-4 md:p-6">
           {isLoading && (
             <div className="my-auto flex flex-col items-center justify-center p-8 text-center">
               <div className="size-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
