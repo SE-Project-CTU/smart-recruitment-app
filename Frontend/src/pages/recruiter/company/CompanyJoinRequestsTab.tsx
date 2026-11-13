@@ -387,7 +387,7 @@ export function CompanyJoinRequestsTab() {
       <div className="rounded-2xl bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Tabs trạng thái */}
-          <div className="flex flex-wrap items-center gap-1 border-b border-slate-100 pb-2 lg:border-b-0 lg:pb-0">
+          <div className="no-scrollbar flex items-center gap-1 overflow-x-auto border-b border-border pb-2 lg:border-b-0 lg:pb-0">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.key;
               const count = counts[tab.key] ?? 0;
@@ -400,10 +400,10 @@ export function CompanyJoinRequestsTab() {
                     setActiveTab(tab.key);
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+                  className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-all ${
                     isActive
                       ? "bg-secondary-light text-primary"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      : "text-text-muted hover:bg-bg hover:text-text-main"
                   }`}
                 >
                   <span>{tab.label}</span>
@@ -411,7 +411,7 @@ export function CompanyJoinRequestsTab() {
                     className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors ${
                       isActive
                         ? "bg-primary text-white"
-                        : "bg-slate-100 text-slate-600"
+                        : "bg-bg text-text-muted"
                     }`}
                   >
                     {count < 10 && count > 0 ? `0${count}` : count}

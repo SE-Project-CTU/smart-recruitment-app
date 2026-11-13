@@ -213,30 +213,30 @@ export function CompanyDetailPage() {
         />
 
         {/* 2. Thanh Điều Hướng Tabs */}
-        <div className="mt-8 flex border-b border-border">
+        <div className="no-scrollbar mt-8 flex overflow-x-auto border-b border-border">
           <button
             type="button"
             onClick={() => setTab("overview")}
-            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition-all ${
+            className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
               currentTab === "overview"
                 ? "border-primary text-primary"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
-            <Info className="size-4" />
+            <Info className="size-4 shrink-0 sm:size-4.5" />
             <span>Giới thiệu chung</span>
           </button>
 
           <button
             type="button"
             onClick={() => setTab("jobs")}
-            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition-all ${
+            className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
               currentTab === "jobs"
                 ? "border-primary text-primary"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
-            <Briefcase className="size-4" />
+            <Briefcase className="size-4 shrink-0 sm:size-4.5" />
             <span>Việc làm đang mở ({activeJobCount})</span>
           </button>
         </div>
