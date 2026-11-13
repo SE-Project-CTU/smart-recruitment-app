@@ -260,51 +260,60 @@ export function JobDetailPage() {
                 </span>
               </div>
 
-              {/* Tên công ty có icon trỏ ra chi tiết */}
-              <div className="flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs sm:text-sm">
-                {job.companyId || job.company?.id ? (
-                  <Link
-                    to={PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
-                      ":companyId",
-                      String(job.companyId || job.company?.id),
-                    )}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group inline-flex min-w-0 max-w-full items-center gap-1 font-semibold text-text-muted transition-colors hover:text-primary sm:gap-1.5"
-                  >
-                    <span className="truncate">{compName}</span>
-                    <ExternalLink className="size-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                ) : (
-                  <span className="truncate font-semibold text-text-muted">
-                    {compName}
-                  </span>
-                )}
+              {/* Tên công ty có icon trỏ ra chi tiết & Người đăng */}
+              <div className="flex min-w-0 max-w-full flex-col gap-2 sm:gap-2.5">
+                <div className="flex min-w-0 max-w-full items-center">
+                  {job.companyId || job.company?.id ? (
+                    <Link
+                      to={PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
+                        ":companyId",
+                        String(job.companyId || job.company?.id),
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group inline-flex min-w-0 max-w-full items-center gap-1 text-xs font-semibold text-text-muted transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
+                    >
+                      <span className="break-words">{compName}</span>
+                      <ExternalLink className="size-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  ) : (
+                    <span className="break-words text-xs font-semibold text-text-muted sm:text-sm">
+                      {compName}
+                    </span>
+                  )}
+                </div>
+
                 {job.creator && (
-                  <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1.5 text-text-muted">
-                    <span className="hidden text-border sm:inline">•</span>
-                    <span className="shrink-0 text-[11px]">Đăng bởi</span>
-                    <div className="inline-flex min-w-0 max-w-full items-center gap-1">
+                  <div className="flex min-w-0 max-w-full items-start gap-2 text-text-muted">
+                    {/* Avatar */}
+                    <div className="mt-0.5 shrink-0">
                       {job.creator.avatarUrl ? (
                         <img
                           src={job.creator.avatarUrl}
                           alt={job.creator.fullName}
                           loading="lazy"
-                          className="size-4.5 shrink-0 rounded-full border border-border object-cover"
+                          className="size-6 rounded-full border border-border object-cover"
                         />
                       ) : (
-                        <div className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                        <div className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
                           {job.creator.fullName
                             ? job.creator.fullName.slice(0, 1).toUpperCase()
                             : "U"}
                         </div>
                       )}
-                      <span className="max-w-[160px] truncate text-xs font-medium text-text-main sm:max-w-[220px]">
-                        {job.creator.fullName || "Nhà tuyển dụng"}
-                      </span>
+                    </div>
+
+                    {/* Tên trên, email dưới (flex-col, wrap text, không truncate) */}
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <div className="flex flex-wrap items-center gap-1.5 leading-snug">
+                        <span className="text-[11px] text-text-muted">Đăng bởi:</span>
+                        <span className="text-xs font-semibold text-text-main break-words">
+                          {job.creator.fullName || "Nhà tuyển dụng"}
+                        </span>
+                      </div>
                       {job.creator.email && (
-                        <span className="max-w-[180px] truncate text-[11px] text-text-muted sm:max-w-[240px]">
-                          ({job.creator.email})
+                        <span className="text-[11px] text-text-muted break-all">
+                          {job.creator.email}
                         </span>
                       )}
                     </div>
