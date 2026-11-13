@@ -27,20 +27,20 @@ public sealed record CvBatchEnhanceRequest(
     IReadOnlyList<CvSectionBatchItem> Sections,
     string? TargetJobTitle = null,
     string? CvContext = null,
-    string? JobContext = null,
-    string Language = "vi"
+    string? JobContext = null
 );
 
 public sealed record CvBatchEnhanceResult(
-    IReadOnlyList<CvSectionEnhancedResult> Sections
+    IReadOnlyList<CvSectionEnhancedResult> Sections,
+    bool IsFallback = false
 );
 
 public sealed record CvSectionEnhancedResult(
     string SectionType,
     string OriginalContent,
     string EnhancedContent,
-    IReadOnlyList<string> SuggestedKeywords,
-    IReadOnlyList<string> Improvements
+    IReadOnlyList<string> Improvements,
+    IReadOnlyList<string> AdditionalSuggestions
 );
 
 public sealed record MatchAnalysisResult(

@@ -41,8 +41,8 @@ export interface EnhanceCvBatchItemResult {
   sectionType: string;
   originalContent: string;
   enhancedContent: string;
-  suggestedKeywords: string[];
   improvements: string[];
+  additionalSuggestions: string[];
 }
 
 export interface EnhanceCvBatchResult {

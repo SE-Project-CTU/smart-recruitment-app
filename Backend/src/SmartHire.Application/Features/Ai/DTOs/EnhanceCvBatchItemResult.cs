@@ -4,7 +4,7 @@ public sealed record EnhanceCvBatchItemResult(
     string SectionType,
     string OriginalContent,
     string EnhancedContent,
-    IReadOnlyList<string> SuggestedKeywords,
-    IReadOnlyList<string> Improvements
+    IReadOnlyList<string> Improvements,
+    IReadOnlyList<string> AdditionalSuggestions
 );
 

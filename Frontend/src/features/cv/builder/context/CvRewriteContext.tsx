@@ -83,7 +83,6 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
           targetJobId,
           targetJobTitle: selectedTargetJob.title,
           targetJobDescription: jobDescriptionParts.join("\n"),
-          language: "vi",
         });
 
         // Bóc tách an toàn dữ liệu từ response (hỗ trợ cả ApiResponse envelope và unwrapped result)
@@ -101,17 +100,6 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
             const sectionKey = (item.sectionType || "").toLowerCase();
             const sectionInfo = SECTION_TYPE_MAP[sectionKey];
 
-            // Ghép lý do cải thiện và từ khóa đề xuất từ AI
-            const reasonParts: string[] = [];
-            if (item.improvements?.length) {
-              reasonParts.push(item.improvements.join(" • "));
-            }
-            if (item.suggestedKeywords?.length) {
-              reasonParts.push(
-                `Từ khóa gợi ý: ${item.suggestedKeywords.join(", ")}`,
-              );
-            }
-
             return {
               id: `sug-${sectionKey}-${Date.now()}-${idx}`,
               sectionType: canonicalType,
@@ -120,7 +108,8 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
               originalText: item.originalContent,
               suggestedText: item.enhancedContent,
               status: "ready",
-              reason: reasonParts.join(" | ") || undefined,
+              reason: item.improvements?.join(" • ") || undefined,
+              additionalSuggestions: item.additionalSuggestions ?? [],
             };
           },
         );

@@ -60,6 +60,16 @@ export const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   <span className="cursor-text select-text">{item.reason}</span>
                 </div>
               )}
+              {item.additionalSuggestions && item.additionalSuggestions.length > 0 && (
+                <div className="mt-2 text-[10px] text-text-muted select-text">
+                  <p className="font-semibold text-primary">Gợi ý bổ sung:</p>
+                  <ul className="mt-1 list-disc space-y-1 pl-4">
+                    {item.additionalSuggestions.map((suggestion, index) => (
+                      <li key={`${item.id}-additional-${index}`}>{suggestion}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Nút thu gọn nằm ở body */}
