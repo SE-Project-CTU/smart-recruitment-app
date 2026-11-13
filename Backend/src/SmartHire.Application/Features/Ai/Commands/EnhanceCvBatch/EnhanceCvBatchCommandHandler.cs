@@ -15,6 +15,7 @@ using SmartHire.Application.Features.Ai.Mapping;
 namespace SmartHire.Application.Features.Ai.Commands.EnhanceCvBatch;
 
 public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatchCommand, EnhanceCvBatchResult> {
+    private const int MaxCustomPromptLength = 2000;
     private readonly IGeminiAiService _geminiAiService;
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly IDistributedCache _cache;
@@ -33,6 +34,13 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
     }
 
     public async Task<EnhanceCvBatchResult> Handle(EnhanceCvBatchCommand request, CancellationToken cancellationToken) {
+        var customPrompt = request.CustomPrompt?.Trim();
+        if (customPrompt?.Length > MaxCustomPromptLength) {
+            throw AiExceptions.Validation("Chỉ dẫn bổ sung quá dài.", [
+                new AppErrorDetail("customPrompt", ValidationReasons.MaxLength, "Chỉ dẫn bổ sung không được vượt quá 2.000 ký tự.")
+            ]);
+        }
+
         if (request.Sections == null || request.Sections.Count == 0) {
             throw AiExceptions.Validation("Dữ liệu yêu cầu không hợp lệ.", [
                 new AppErrorDetail("sections", "REQUIRED", "Danh sách các mục cần tối ưu không được để trống.")
@@ -74,7 +82,8 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
         var batchRequest = new CvBatchEnhanceRequest(
             Sections: batchSections,
             TargetJobTitle: targetJobTitle,
-            JobContext: jobContext
+            JobContext: jobContext,
+            CustomPrompt: string.IsNullOrWhiteSpace(customPrompt) ? null : customPrompt
         );
 
         // 4. Kiểm tra Cache
@@ -110,6 +119,6 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
         using var sha = SHA256.Create();
         var bytes = Encoding.UTF8.GetBytes(rawKey);
         var hash = sha.ComputeHash(bytes);
-        return $"ai:enhance:batch:v6:{Convert.ToHexString(hash).ToLowerInvariant()}";
+        return $"ai:enhance:batch:v9:{Convert.ToHexString(hash).ToLowerInvariant()}";
     }
 }

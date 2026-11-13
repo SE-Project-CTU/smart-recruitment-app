@@ -27,7 +27,8 @@ public sealed record CvBatchEnhanceRequest(
     IReadOnlyList<CvSectionBatchItem> Sections,
     string? TargetJobTitle = null,
     string? CvContext = null,
-    string? JobContext = null
+    string? JobContext = null,
+    string? CustomPrompt = null
 );
 
 public sealed record CvBatchEnhanceResult(

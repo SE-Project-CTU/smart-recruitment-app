@@ -91,6 +91,13 @@ export function extractFormattedTextFromTiptap(
   return "";
 }
 
+function getSectionTitle(
+  title: CvTiptapDocument | CvTiptapNode | null | undefined,
+  fallback: string,
+): string {
+  return extractPlainTextFromTiptap(title).trim() || fallback;
+}
+
 /**
  * Gom tất cả các item trong cùng một Section thành MỘT chuỗi content có cấu trúc,
  * giữ ranh giới rõ ràng giữa các item để gửi lên AI batching API (POST /api/v1/ai/cv/enhance/batch).
@@ -110,7 +117,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (text.trim()) {
       result.push({
         sectionType: "OBJECTIVE",
-        sectionTitle: "Mục tiêu nghề nghiệp",
+        sectionTitle: getSectionTitle(sections.objective.title, "Mục tiêu nghề nghiệp"),
         sectionKey: "objective",
         content: text.trim(),
       });
@@ -152,7 +159,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (expBlocks.length > 0) {
       result.push({
         sectionType: "EXPERIENCE",
-        sectionTitle: "Kinh nghiệm làm việc",
+        sectionTitle: getSectionTitle(sections.experience.title, "Kinh nghiệm làm việc"),
         sectionKey: "experience",
         content: expBlocks.join("\n\n---\n\n"),
       });
@@ -173,7 +180,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (skillLines.length > 0) {
       result.push({
         sectionType: "SKILLS",
-        sectionTitle: "Kỹ năng chuyên môn",
+        sectionTitle: getSectionTitle(sections.skills.title, "Kỹ năng chuyên môn"),
         sectionKey: "skills",
         content: skillLines.join("\n"),
       });
@@ -215,7 +222,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (projectBlocks.length > 0) {
       result.push({
         sectionType: "PROJECTS",
-        sectionTitle: "Dự án tiêu biểu",
+        sectionTitle: getSectionTitle(sections.projects.title, "Dự án tiêu biểu"),
         sectionKey: "projects",
         content: projectBlocks.join("\n\n---\n\n"),
       });
@@ -257,7 +264,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (eduBlocks.length > 0) {
       result.push({
         sectionType: "EDUCATION",
-        sectionTitle: "Học vấn",
+        sectionTitle: getSectionTitle(sections.education.title, "Học vấn"),
         sectionKey: "education",
         content: eduBlocks.join("\n\n---\n\n"),
       });
@@ -281,7 +288,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (certLines.length > 0) {
       result.push({
         sectionType: "CERTIFICATIONS",
-        sectionTitle: "Chứng chỉ",
+        sectionTitle: getSectionTitle(sections.certifications.title, "Chứng chỉ"),
         sectionKey: "certifications",
         content: certLines.join("\n"),
       });
@@ -302,7 +309,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (awardLines.length > 0) {
       result.push({
         sectionType: "AWARDS",
-        sectionTitle: "Giải thưởng",
+        sectionTitle: getSectionTitle(sections.awards.title, "Giải thưởng"),
         sectionKey: "awards",
         content: awardLines.join("\n"),
       });

@@ -28,6 +28,8 @@ export const RewriteTab: React.FC = () => {
 
   const {
     selectedTargetJob,
+    customPrompt,
+    setCustomPrompt,
     suggestions,
     isGenerating,
     hasGenerated,
@@ -79,6 +81,24 @@ export const RewriteTab: React.FC = () => {
         modalDescription="Đối chiếu và tối ưu hóa nội dung CV theo chuẩn Google XYZ dựa trên bản mô tả công việc"
         modalConfirmText="Xác nhận chọn công việc mục tiêu"
       >
+        <div className="space-y-1.5 pt-2">
+          <label htmlFor="cv-enhance-custom-prompt" className="block text-xs font-semibold text-text-main">
+            Mong muốn hoặc thông tin bổ sung
+          </label>
+          <textarea
+            id="cv-enhance-custom-prompt"
+            value={customPrompt}
+            onChange={(event) => setCustomPrompt(event.target.value)}
+            maxLength={2000}
+            rows={3}
+            placeholder="Ví dụ: Viết mục tiêu ngắn hơn. Ở dự án SmartHire, tôi đã viết 28 API. Tôi từng sử dụng Redux Toolkit."
+            className="w-full min-h-14 max-h-96 resize-y rounded-md border border-border bg-surface px-2.5 py-2 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none"
+          />
+          <p className="text-[10px] text-text-muted">
+            Áp dụng cho mọi mục CV; chỉ cung cấp dữ kiện bạn có thể xác nhận. {customPrompt.length}/2000 ký tự
+          </p>
+        </div>
+
         {/* Nút Tạo gợi ý */}
         <div className="pt-1">
           <Button
@@ -143,19 +163,7 @@ export const RewriteTab: React.FC = () => {
               <span>Đề xuất theo mục ({activeSuggestions.length})</span>
             </div>
 
-            {activeSuggestions.length > 0 && (
-              <Button
-                variant="secondary"
-                icon={RefreshCw}
-                iconSize={12}
-                isLoading={isGenerating}
-                onClick={handleRegenerateAllClick}
-                className="h-6.5! rounded-md! px-2! py-0.5! text-[11px]! font-medium!"
-                title="Tạo lại toàn bộ đề xuất"
-              >
-                Tạo lại
-              </Button>
-            )}
+
           </div>
 
           {activeSuggestions.length === 0 ? (

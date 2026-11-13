@@ -4,7 +4,6 @@ import type {
   CvSectionSuggestion,
   CanonicalSectionType,
 } from "../components/assistant/types";
-import { SECTION_TYPE_MAP } from "../components/assistant/types";
 import { prepareCvSectionsForEnhanceBatch } from "../utils/cvAssistantHelpers";
 import { useEnhanceCvBatch } from "@/hooks/queries/useAi";
 import { getApiErrorMessage } from "@/api/errorHandler";
@@ -16,12 +15,14 @@ export type GenerateFailureReason = "NO_JOB" | "NO_SECTIONS" | "API_ERROR";
 
 interface CvRewriteContextValue {
   selectedTargetJob: TargetJobOption | null;
+  customPrompt: string;
   suggestions: CvSectionSuggestion[];
   isGenerating: boolean;
   hasGenerated: boolean;
   isError: boolean;
   errorMessage: string | null;
   setSelectedTargetJob: (job: TargetJobOption | null) => void;
+  setCustomPrompt: (value: string) => void;
   generateSuggestions: (
     values?: Partial<RichTextCvEditorValues> | null,
   ) => Promise<{ success: boolean; reason?: GenerateFailureReason; sectionCount?: number }>;
@@ -42,6 +43,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [selectedTargetJob, setSelectedTargetJob] =
     useState<TargetJobOption | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
   const [suggestions, setSuggestions] = useState<CvSectionSuggestion[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
 
@@ -83,6 +85,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
           targetJobId,
           targetJobTitle: selectedTargetJob.title,
           targetJobDescription: jobDescriptionParts.join("\n"),
+          customPrompt: customPrompt.trim() || undefined,
         });
 
         // Bóc tách an toàn dữ liệu từ response (hỗ trợ cả ApiResponse envelope và unwrapped result)
@@ -98,13 +101,15 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
           (item, idx) => {
             const canonicalType = item.sectionType as CanonicalSectionType;
             const sectionKey = (item.sectionType || "").toLowerCase();
-            const sectionInfo = SECTION_TYPE_MAP[sectionKey];
+            const preparedSection = preparedSections.find(
+              (section) => section.sectionType.toLowerCase() === sectionKey,
+            );
 
             return {
               id: `sug-${sectionKey}-${Date.now()}-${idx}`,
               sectionType: canonicalType,
               sectionKey,
-              sectionTitle: sectionInfo?.label || item.sectionType || "Mục CV",
+              sectionTitle: preparedSection?.sectionTitle || item.sectionType || "Mục CV",
               originalText: item.originalContent,
               suggestedText: item.enhancedContent,
               status: "ready",
@@ -129,7 +134,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       }
     },
-    [selectedTargetJob, enhanceBatchMutation],
+    [selectedTargetJob, customPrompt, enhanceBatchMutation],
   );
 
   const generateSuggestions = useCallback(
@@ -168,12 +173,14 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
     <CvRewriteContext.Provider
       value={{
         selectedTargetJob,
+        customPrompt,
         suggestions,
         isGenerating: enhanceBatchMutation.isPending,
         hasGenerated,
         isError: enhanceBatchMutation.isError,
         errorMessage,
         setSelectedTargetJob,
+        setCustomPrompt,
         generateSuggestions,
         dismissSuggestion,
         regenerateAll,

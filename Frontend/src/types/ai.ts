@@ -34,6 +34,7 @@ export interface EnhanceCvBatchPayload {
   targetJobId?: string | null;
   targetJobTitle?: string | null;
   targetJobDescription?: string | null;
+  customPrompt?: string | null;
   language?: string | null;
 }
 
