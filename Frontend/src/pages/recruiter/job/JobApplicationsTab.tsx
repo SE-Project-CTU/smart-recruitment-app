@@ -556,7 +556,7 @@ export function JobApplicationsTab({
           if (!open) setSelectedLetterApp(null);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Thư giới thiệu của ứng viên</DialogTitle>
             <DialogDescription>
@@ -566,8 +566,8 @@ export function JobApplicationsTab({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-            <p className="text-xs leading-relaxed whitespace-pre-line text-slate-700 sm:text-sm">
+          <div className="max-h-72 overflow-y-auto rounded-xl border border-border bg-bg p-4">
+            <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
               {selectedLetterApp?.coverLetter || "Ứng viên không đính kèm thư giới thiệu."}
             </p>
           </div>
@@ -593,7 +593,7 @@ export function JobApplicationsTab({
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Xác nhận chuyển trạng thái</DialogTitle>
             <DialogDescription>
@@ -605,10 +605,10 @@ export function JobApplicationsTab({
 
           <div className="space-y-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-semibold text-text-main">
                 Ghi chú nội bộ (tùy chọn)
               </label>
-              <p className="mt-0.5 text-[11px] text-slate-400">
+              <p className="mt-0.5 text-[11px] text-text-muted">
                 Lưu lại lý do hoặc thông tin cho vòng xử lý này (tối đa 2,000 ký tự).
               </p>
               <textarea
@@ -617,7 +617,7 @@ export function JobApplicationsTab({
                 maxLength={2000}
                 rows={3}
                 placeholder="Ví dụ: Đạt yêu cầu CV, hẹn phỏng vấn kỹ thuật vào thứ 5 tuần tới..."
-                className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+                className="mt-1.5 w-full rounded-xl border border-border bg-bg p-2.5 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
               />
             </div>
           </div>
@@ -633,13 +633,11 @@ export function JobApplicationsTab({
             </Button>
             <Button
               variant="primary"
-              disabled={isSubmittingTransition}
+              isLoading={isSubmittingTransition}
               onClick={handleConfirmTransition}
               className="px-4! py-1.5! text-xs! font-semibold!"
             >
-              {isSubmittingTransition
-                ? "Đang cập nhật..."
-                : "Xác nhận chuyển"}
+              Xác nhận chuyển
             </Button>
           </div>
         </DialogContent>

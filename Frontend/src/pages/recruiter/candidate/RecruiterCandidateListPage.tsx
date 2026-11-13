@@ -577,7 +577,7 @@ export function RecruiterCandidateListPage() {
           if (!open) setSelectedLetterApp(null);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Thư giới thiệu của ứng viên</DialogTitle>
             <DialogDescription>
@@ -587,7 +587,7 @@ export function RecruiterCandidateListPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-80 overflow-y-auto rounded-xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-700 sm:text-sm">
+          <div className="max-h-80 overflow-y-auto rounded-xl border border-border bg-bg p-4 text-xs leading-relaxed text-text-main sm:text-sm">
             {selectedLetterApp?.coverLetter ||
               "Ứng viên không đính kèm thư giới thiệu."}
           </div>
@@ -613,7 +613,7 @@ export function RecruiterCandidateListPage() {
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Xác nhận thay đổi trạng thái</DialogTitle>
             <DialogDescription>
@@ -626,7 +626,7 @@ export function RecruiterCandidateListPage() {
           <div className="mt-2 space-y-2">
             <label
               htmlFor="candidate-transition-note"
-              className="text-xs font-medium text-slate-700"
+              className="text-xs font-medium text-text-main"
             >
               Ghi chú nội bộ (Tùy chọn)
             </label>
@@ -636,7 +636,7 @@ export function RecruiterCandidateListPage() {
               value={transitionNote}
               onChange={(e) => setTransitionNote(e.target.value)}
               placeholder="Nhập lý do hoặc thông tin cuộc gọi/phỏng vấn..."
-              className="w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border border-border bg-bg p-3 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
             />
           </div>
 

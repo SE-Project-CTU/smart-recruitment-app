@@ -655,9 +655,9 @@ export default function AdminCompanyModerationPage() {
         open={Boolean(approveTarget)}
         onOpenChange={(open) => !open && setApproveTarget(null)}
       >
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6">
           <DialogHeader>
-            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-status-success/10 text-status-success">
               <ShieldCheck className="size-6" />
             </div>
             <DialogTitle className="text-lg font-bold text-text-main">
@@ -665,7 +665,7 @@ export default function AdminCompanyModerationPage() {
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Bạn đang phê duyệt hồ sơ pháp lý của doanh nghiệp{" "}
-              <strong className="text-slate-800">{approveTarget?.name}</strong>{" "}
+              <strong className="text-text-main">{approveTarget?.name}</strong>{" "}
               (MST: {approveTarget?.taxCode}). Sau khi duyệt, doanh nghiệp sẽ
               được cấp tích xanh xác thực và quyền xuất bản tin tuyển dụng.
             </DialogDescription>
@@ -686,7 +686,7 @@ export default function AdminCompanyModerationPage() {
               iconSize={14}
               isLoading={verifyMutation.isPending}
               onClick={handleConfirmApprove}
-              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+              className="h-9! bg-status-success! px-4! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
             >
               Xác nhận duyệt
             </Button>
@@ -699,9 +699,9 @@ export default function AdminCompanyModerationPage() {
         open={Boolean(rejectTarget)}
         onOpenChange={(open) => !open && setRejectTarget(null)}
       >
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6">
           <DialogHeader>
-            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-status-error/10 text-status-error">
               <XCircle className="size-6" />
             </div>
             <DialogTitle className="text-lg font-bold text-text-main">
@@ -709,7 +709,7 @@ export default function AdminCompanyModerationPage() {
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Vui lòng nêu rõ lý do từ chối hồ sơ của{" "}
-              <strong className="text-slate-800">{rejectTarget?.name}</strong>.
+              <strong className="text-text-main">{rejectTarget?.name}</strong>.
               Lý do này sẽ được thông báo trực tiếp đến chủ sở hữu doanh nghiệp.
             </DialogDescription>
           </DialogHeader>
@@ -717,9 +717,9 @@ export default function AdminCompanyModerationPage() {
           <div className="mt-3 space-y-1.5">
             <label
               htmlFor="company-rejection-reason"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-text-main"
             >
-              Lý do từ chối <span className="text-rose-500">*</span>
+              Lý do từ chối <span className="text-status-error">*</span>
             </label>
             <textarea
               id="company-rejection-reason"
@@ -731,12 +731,12 @@ export default function AdminCompanyModerationPage() {
               }}
               placeholder="Ví dụ: Giấy phép ĐKKD mờ không đọc được thông tin, hoặc mã số thuế không khớp..."
               className={cn(
-                "w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs leading-relaxed text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20 focus:outline-none",
-                reasonError && "border-rose-400 focus:border-rose-500",
+                "w-full rounded-xl border border-border bg-bg p-3 text-xs leading-relaxed text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary/20 focus:outline-none",
+                reasonError && "border-status-error focus:border-status-error",
               )}
             />
             {reasonError && (
-              <p className="text-[11px] font-medium text-rose-600">
+              <p className="text-[11px] font-medium text-status-error">
                 {reasonError}
               </p>
             )}
@@ -757,7 +757,7 @@ export default function AdminCompanyModerationPage() {
               iconSize={14}
               isLoading={verifyMutation.isPending}
               onClick={handleConfirmReject}
-              className="h-9! bg-rose-600! px-4! text-xs! font-semibold! text-white! hover:bg-rose-700!"
+              className="h-9! bg-status-error! px-4! text-xs! font-semibold! text-white! hover:bg-status-error/90!"
             >
               Xác nhận từ chối
             </Button>

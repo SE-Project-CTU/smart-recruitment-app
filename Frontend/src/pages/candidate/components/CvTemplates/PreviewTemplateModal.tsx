@@ -11,6 +11,7 @@ import { useCvTemplateDetail } from "@/hooks/queries/useCv";
 import { CvPreviewWorkspace, normalizeCvContentFontSizes } from "@/features/cv";
 import { useCvZoom } from "@/features/cv/builder/hooks/useCvZoom";
 import { CvZoomControls } from "@/features/cv/builder/components/CvZoomControls";
+import { Button } from "@/components/common/Button";
 import type { CVTemplateItemData } from "@/components/common/CVTemplateCard";
 
 export interface PreviewTemplateModalProps {
@@ -80,7 +81,7 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
         showCloseButton={true}
       >
         {/* 1. Header Dialog */}
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-border px-4 py-3.5 pr-12 sm:px-6 sm:py-4">
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-border px-4 py-3.5 pr-14 sm:px-6 sm:py-4 sm:pr-14">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:size-9">
               <LayoutTemplate className="size-4 sm:size-5" />
@@ -94,6 +95,21 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
               </DialogDescription>
             </div>
           </div>
+
+          {onUseTemplate && activeTemplate && (
+            <div className="shrink-0 pl-2">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  onClose();
+                  onUseTemplate(activeTemplate);
+                }}
+                className="rounded-xl! text-xs! px-3! py-1.5! font-semibold!"
+              >
+                Dùng mẫu này
+              </Button>
+            </div>
+          )}
         </DialogHeader>
 
         {/* 2. Nội dung xem trước giữa màn hình */}

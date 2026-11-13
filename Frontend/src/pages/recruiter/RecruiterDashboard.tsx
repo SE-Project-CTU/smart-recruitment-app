@@ -1021,7 +1021,7 @@ export default function RecruiterDashboard() {
           if (!open) setSelectedLetterApp(null);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Thư giới thiệu của ứng viên</DialogTitle>
             <DialogDescription>
@@ -1031,7 +1031,7 @@ export default function RecruiterDashboard() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-80 overflow-y-auto rounded-xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-700 sm:text-sm">
+          <div className="max-h-80 overflow-y-auto rounded-xl border border-border bg-bg p-4 text-xs leading-relaxed text-text-main sm:text-sm">
             {selectedLetterApp?.coverLetter ||
               "Ứng viên không đính kèm thư giới thiệu."}
           </div>
@@ -1057,7 +1057,7 @@ export default function RecruiterDashboard() {
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Xác nhận thay đổi trạng thái</DialogTitle>
             <DialogDescription>
@@ -1071,7 +1071,7 @@ export default function RecruiterDashboard() {
             <div>
               <label
                 htmlFor="transition-note"
-                className="text-xs font-semibold text-slate-700"
+                className="text-xs font-semibold text-text-main"
               >
                 Ghi chú nội bộ (Tùy chọn)
               </label>
@@ -1081,7 +1081,7 @@ export default function RecruiterDashboard() {
                 placeholder="Nhập ghi chú hoặc lý do chuyển trạng thái hồ sơ..."
                 value={transitionNote}
                 onChange={(e) => setTransitionNote(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+                className="mt-1.5 w-full rounded-xl border border-border bg-bg p-3 text-xs text-text-main transition-colors placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
               />
             </div>
 

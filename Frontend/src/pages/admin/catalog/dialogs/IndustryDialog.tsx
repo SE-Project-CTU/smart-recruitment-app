@@ -116,7 +116,7 @@ function IndustryDialogForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-none">
+      <DialogContent className="w-full sm:max-w-md rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-none">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold text-text-main">
             {isEditing ? "Chỉnh sửa ngành nghề" : "Thêm ngành nghề mới"}
@@ -131,7 +131,7 @@ function IndustryDialogForm({
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-text-main">
-              Thuộc nhóm ngành <span className="text-rose-500">*</span>
+              Thuộc nhóm ngành <span className="text-status-error">*</span>
             </label>
             <Select.Root
               items={groupOptions}
@@ -147,7 +147,7 @@ function IndustryDialogForm({
             >
               <Select.Trigger
                 aria-label="Chọn nhóm ngành"
-                className="group flex h-9.5 w-full cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-medium text-text-main transition-colors hover:bg-slate-100/60 focus:border-primary focus:bg-surface focus:outline-none"
+                className="group flex h-9.5 w-full cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-medium text-text-main transition-colors hover:bg-bg/80 focus:border-primary focus:bg-surface focus:outline-none"
               >
                 <Select.Value placeholder="-- Chọn nhóm ngành --" />
                 <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
@@ -159,9 +159,9 @@ function IndustryDialogForm({
                 <Select.Positioner
                   alignItemWithTrigger={false}
                   sideOffset={6}
-                  className="z-60"
+                  className="z-[75]"
                 >
-                  <Select.Popup className="z-60 max-h-60 w-(--anchor-width) overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md">
+                  <Select.Popup className="z-[75] max-h-60 w-(--anchor-width) overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md">
                     <Select.List>
                       {groupOptions.map((opt) => (
                         <Select.Item
@@ -184,13 +184,13 @@ function IndustryDialogForm({
               </Select.Portal>
             </Select.Root>
             {errors.groupId && (
-              <p className="text-[11px] text-rose-500">{errors.groupId}</p>
+              <p className="text-[11px] text-status-error">{errors.groupId}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-text-main">
-              Tên ngành nghề <span className="text-rose-500">*</span>
+              Tên ngành nghề <span className="text-status-error">*</span>
             </label>
             <input
               type="text"
@@ -206,7 +206,7 @@ function IndustryDialogForm({
               autoFocus
             />
             {errors.name && (
-              <p className="text-[11px] text-rose-500">{errors.name}</p>
+              <p className="text-[11px] text-status-error">{errors.name}</p>
             )}
           </div>
 

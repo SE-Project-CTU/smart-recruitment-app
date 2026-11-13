@@ -560,9 +560,9 @@ export function CompanyInspectionSheet({
 
       {/* Modal xác nhận Duyệt doanh nghiệp: Flat Premium Style */}
       <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6">
           <DialogHeader>
-            <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-status-success/10 text-status-success">
               <ShieldCheck className="size-5" />
             </div>
             <DialogTitle className="text-base font-semibold text-text-main">
@@ -591,7 +591,7 @@ export function CompanyInspectionSheet({
               iconSize={14}
               isLoading={verifyMutation.isPending}
               onClick={handleConfirmApprove}
-              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+              className="h-9! bg-status-success! px-4! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
             >
               Xác nhận duyệt
             </Button>
@@ -601,9 +601,9 @@ export function CompanyInspectionSheet({
 
       {/* Modal nhập lý do Từ chối doanh nghiệp: Flat Premium Style */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6">
           <DialogHeader>
-            <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+            <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-status-error/10 text-status-error">
               <XCircle className="size-5" />
             </div>
             <DialogTitle className="text-base font-semibold text-text-main">
@@ -621,7 +621,7 @@ export function CompanyInspectionSheet({
               htmlFor="rejection-reason"
               className="text-xs font-semibold text-text-main"
             >
-              Lý do từ chối <span className="text-rose-500">*</span>
+              Lý do từ chối <span className="text-status-error">*</span>
             </label>
             <textarea
               id="rejection-reason"
@@ -633,12 +633,12 @@ export function CompanyInspectionSheet({
               }}
               placeholder="Ví dụ: Giấy phép ĐKKD mờ không đọc được thông tin, hoặc mã số thuế không khớp với tên doanh nghiệp..."
               className={cn(
-                "w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs leading-relaxed text-text-main placeholder:text-text-muted focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20 focus:outline-none",
-                reasonError && "border-rose-400 focus:border-rose-500",
+                "w-full rounded-xl border border-border bg-bg p-3 text-xs leading-relaxed text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary/20 focus:outline-none",
+                reasonError && "border-status-error focus:border-status-error",
               )}
             />
             {reasonError && (
-              <p className="text-[11px] font-medium text-rose-600">
+              <p className="text-[11px] font-medium text-status-error">
                 {reasonError}
               </p>
             )}
@@ -659,7 +659,7 @@ export function CompanyInspectionSheet({
               iconSize={14}
               isLoading={verifyMutation.isPending}
               onClick={handleConfirmReject}
-              className="h-9! bg-rose-600! px-4! text-xs! font-semibold! text-white! hover:bg-rose-700!"
+              className="h-9! bg-status-error! px-4! text-xs! font-semibold! text-white! hover:bg-status-error/90!"
             >
               Xác nhận từ chối
             </Button>

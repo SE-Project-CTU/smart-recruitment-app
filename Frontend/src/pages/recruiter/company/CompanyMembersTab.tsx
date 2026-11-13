@@ -190,7 +190,7 @@ export function CompanyMembersTab() {
               Chủ sở hữu
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+            <span className="inline-flex items-center rounded-md border border-border bg-bg px-2.5 py-1 text-xs font-medium text-text-muted">
               Thành viên
             </span>
           );
@@ -202,11 +202,11 @@ export function CompanyMembersTab() {
         cell: (info) => {
           const status = info.getValue();
           return status === "Active" ? (
-            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+            <span className="inline-flex items-center rounded-full border border-status-success/30 bg-status-success/10 px-2.5 py-0.5 text-xs font-semibold text-status-success">
               Hoạt động
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+            <span className="inline-flex items-center rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs font-medium text-text-muted">
               Tạm ngừng
             </span>
           );
@@ -237,7 +237,7 @@ export function CompanyMembersTab() {
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="border-slate-200! px-2.5! py-1! text-xs! font-medium! text-slate-700! ring-slate-200! hover:border-purple-300! hover:text-purple-700! hover:ring-purple-300!"
+                  className="border-border! px-2.5! py-1! text-xs! font-medium! text-text-main! ring-border! hover:border-primary/40! hover:text-primary!"
                   icon={ArrowRightLeft}
                   onClick={() => setTransferTarget(member)}
                 >
@@ -245,7 +245,7 @@ export function CompanyMembersTab() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-rose-200! px-2.5! py-1! text-xs! font-medium! text-rose-600! ring-rose-200! hover:border-rose-300! hover:bg-rose-50!"
+                  className="border-status-error/30! px-2.5! py-1! text-xs! font-medium! text-status-error! ring-status-error/20! hover:border-status-error/50! hover:bg-status-error/10!"
                   icon={UserMinus}
                   onClick={() => {
                     setRemoveError(null);
@@ -290,7 +290,7 @@ export function CompanyMembersTab() {
           ) : (
             <Button
               variant="outline"
-              className="border-rose-200! text-rose-600! hover:border-rose-300! hover:bg-rose-50!"
+              className="border-status-error/30! text-status-error! hover:border-status-error/50! hover:bg-status-error/10!"
               icon={LogOut}
               onClick={() => {
                 setLeaveError(null);
@@ -412,7 +412,7 @@ export function CompanyMembersTab() {
           </AlertDialogHeader>
 
           {transferError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <div className="rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error font-medium">
               {transferError}
             </div>
           )}
@@ -461,7 +461,7 @@ export function CompanyMembersTab() {
           </AlertDialogHeader>
 
           {removeError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <div className="rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error font-medium">
               {removeError}
             </div>
           )}
@@ -508,7 +508,7 @@ export function CompanyMembersTab() {
           </AlertDialogHeader>
 
           {leaveError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <div className="rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error font-medium">
               {leaveError}
             </div>
           )}
