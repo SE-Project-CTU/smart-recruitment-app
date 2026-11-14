@@ -573,3 +573,25 @@ export function extractJobDisplayData(job: AnyJob) {
     benefits,
   };
 }
+
+/**
+ * Định dạng chuỗi hoặc số thành chuỗi tiền tệ có dấu phẩy phân tách hàng nghìn (ví dụ: 15000000 -> "15,000,000")
+ */
+export function formatCurrencyInput(value: string | number | null | undefined): string {
+  if (value == null || value === "") return "";
+  const digits = String(value).replace(/\D/g, "");
+  if (!digits) return "";
+  return new Intl.NumberFormat("en-US").format(Number(digits));
+}
+
+/**
+ * Phân tích chuỗi tiền tệ có dấu phẩy thành giá trị số nguyên thuần túy (ví dụ: "15,000,000" -> 15000000)
+ */
+export function parseCurrencyInput(value: string | number | null | undefined): number | null {
+  if (value == null || value === "") return null;
+  const digits = String(value).replace(/\D/g, "");
+  if (!digits) return null;
+  const num = Number(digits);
+  return Number.isNaN(num) ? null : num;
+}
+

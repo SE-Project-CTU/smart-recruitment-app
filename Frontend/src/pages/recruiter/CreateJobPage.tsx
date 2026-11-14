@@ -24,6 +24,8 @@ import {
   JOB_LEVEL_OPTIONS,
   JOB_TYPE_OPTIONS,
   WORK_MODE_OPTIONS,
+  formatCurrencyInput,
+  parseCurrencyInput,
 } from "@/utils/jobHelpers";
 import type {
   CreateJobPostingPayload,
@@ -153,6 +155,42 @@ export default function CreateJobPage() {
     }
   };
 
+  const handleSalaryChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    field: "salaryMin" | "salaryMax",
+  ) => {
+    const input = event.target;
+    const rawValue = input.value;
+    const cursorPosition = input.selectionStart || 0;
+
+    // Đếm số chữ số trước con trỏ trước khi format
+    const digitsBeforeCursor = rawValue
+      .slice(0, cursorPosition)
+      .replace(/\D/g, "").length;
+
+    const formatted = formatCurrencyInput(rawValue);
+    updateForm(field, formatted);
+
+    // Bảo toàn vị trí con trỏ sau khi thêm/xóa dấu phẩy
+    requestAnimationFrame(() => {
+      let newCursorPos = 0;
+      let digitCount = 0;
+      for (let i = 0; i < formatted.length; i++) {
+        if (/\d/.test(formatted[i])) {
+          digitCount++;
+        }
+        if (digitCount === digitsBeforeCursor) {
+          newCursorPos = i + 1;
+          break;
+        }
+      }
+      if (digitCount < digitsBeforeCursor) {
+        newCursorPos = formatted.length;
+      }
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    });
+  };
+
   const handleProvinceChange = (provinceId: string) => {
     setFormData((current) => ({ ...current, provinceId, wardId: "" }));
     setFieldErrors((current) => {
@@ -188,19 +226,19 @@ export default function CreateJobPage() {
     if (!formData.deadline) errors.deadline = "Vui lòng chọn hạn nhận hồ sơ.";
 
     if (!formData.salaryNegotiable) {
-      const min = Number(formData.salaryMin);
-      const max = Number(formData.salaryMax);
+      const min = parseCurrencyInput(formData.salaryMin);
+      const max = parseCurrencyInput(formData.salaryMax);
 
       if (!formData.salaryMin && !formData.salaryMax) {
         errors.salaryMin = "Nhập mức lương hoặc chọn Lương thỏa thuận.";
       } else {
-        if (formData.salaryMin && (Number.isNaN(min) || min < 0)) {
+        if (formData.salaryMin && (min == null || min < 0)) {
           errors.salaryMin = "Mức lương tối thiểu không hợp lệ.";
         }
-        if (formData.salaryMax && (Number.isNaN(max) || max < 0)) {
+        if (formData.salaryMax && (max == null || max < 0)) {
           errors.salaryMax = "Mức lương tối đa không hợp lệ.";
         }
-        if (formData.salaryMin && formData.salaryMax && min > max) {
+        if (min != null && max != null && min > max) {
           errors.salaryMax =
             "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
         }
@@ -234,11 +272,11 @@ export default function CreateJobPage() {
       salaryMin:
         formData.salaryNegotiable || !formData.salaryMin
           ? null
-          : Number(formData.salaryMin),
+          : parseCurrencyInput(formData.salaryMin),
       salaryMax:
         formData.salaryNegotiable || !formData.salaryMax
           ? null
-          : Number(formData.salaryMax),
+          : parseCurrencyInput(formData.salaryMax),
       deadline: dayjs(formData.deadline).endOf("day").toISOString(),
       industryIds: formData.industryIds,
       skillIds: formData.skillIds,
@@ -296,11 +334,11 @@ export default function CreateJobPage() {
       </div>
 
       {isLoadingCompanies ? (
-        <div className="animate-pulse rounded-3xl border border-border bg-surface p-8 text-center text-xs text-text-muted">
+        <div className="animate-pulse rounded-2xl border border-border bg-surface p-8 text-center text-xs text-text-muted">
           Đang tải thông tin doanh nghiệp…
         </div>
       ) : isError ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-xs text-status-error">
+        <div className="rounded-2xl border border-status-error/30 bg-status-error/10 p-6 text-xs text-status-error">
           Không tải được thông tin doanh nghiệp. Vui lòng thử tải lại trang.
         </div>
       ) : companies.length === 0 ? (
@@ -335,7 +373,7 @@ export default function CreateJobPage() {
                ========================================================================= */}
             <div className="space-y-6 lg:col-span-7 xl:col-span-8">
               {/* Khối 1: Tên tin tuyển dụng & Ngành nghề & Kỹ năng */}
-              <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+              <section className="space-y-5 rounded-2xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
                   <h2 className="text-sm font-semibold text-text-main">
                     Thông tin công việc
@@ -380,7 +418,7 @@ export default function CreateJobPage() {
               </section>
 
               {/* Khối 2: Yêu cầu & Chế độ đãi ngộ */}
-              <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+              <section className="space-y-5 rounded-2xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
                   <h2 className="text-sm font-semibold text-text-main">
                     Yêu cầu tuyển dụng & Chế độ đãi ngộ
@@ -489,12 +527,11 @@ export default function CreateJobPage() {
                           <input
                             id="salaryMin"
                             name="salaryMin"
-                            type="number"
-                            min="0"
-                            step="500000"
-                            placeholder="Ví dụ: 15000000"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Ví dụ: 15,000,000"
                             value={formData.salaryMin}
-                            onChange={handleTextChange}
+                            onChange={(e) => handleSalaryChange(e, "salaryMin")}
                             className={inputClassName}
                           />
                           <FieldError message={fieldErrors.salaryMin} />
@@ -510,12 +547,11 @@ export default function CreateJobPage() {
                           <input
                             id="salaryMax"
                             name="salaryMax"
-                            type="number"
-                            min="0"
-                            step="500000"
-                            placeholder="Ví dụ: 30000000"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Ví dụ: 30,000,000"
                             value={formData.salaryMax}
-                            onChange={handleTextChange}
+                            onChange={(e) => handleSalaryChange(e, "salaryMax")}
                             className={inputClassName}
                           />
                           <FieldError message={fieldErrors.salaryMax} />
@@ -527,7 +563,7 @@ export default function CreateJobPage() {
               </section>
 
               {/* Khối 3: Mô tả công việc chi tiết */}
-              <section className="space-y-4 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+              <section className="space-y-4 rounded-2xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
                   <h2 className="text-sm font-semibold text-text-main">
                     Mô tả công việc chi tiết
@@ -602,7 +638,7 @@ export default function CreateJobPage() {
                 CỘT PHẢI (lg:col-span-5 xl:col-span-4): Thông tin Doanh nghiệp & Vị trí
                ========================================================================= */}
             <div className="space-y-6 lg:sticky lg:top-6 lg:col-span-5 xl:col-span-4">
-              <div className="space-y-5 rounded-3xl border border-border bg-surface p-5 shadow-xs sm:p-6">
+              <div className="space-y-5 rounded-2xl border border-border bg-surface p-5 shadow-xs sm:p-6">
                 {/* Header card bên phải */}
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <div className="flex items-center gap-2 text-primary">
