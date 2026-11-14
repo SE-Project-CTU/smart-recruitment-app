@@ -169,7 +169,7 @@ export function CompanyInspectionSheet({
         >
           {isMobile && (
             <div className="flex w-full justify-center pt-3 pb-1">
-              <div className="h-1 w-10 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-12 rounded-full bg-border" />
             </div>
           )}
 

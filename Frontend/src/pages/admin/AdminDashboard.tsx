@@ -862,17 +862,17 @@ export default function AdminDashboard() {
         open={Boolean(approveCompanyTarget)}
         onOpenChange={(open) => !open && setApproveCompanyTarget(null)}
       >
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6 shadow-none">
           <DialogHeader>
-            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+            <div className="mb-2 flex size-12 items-center justify-center rounded-xl bg-status-success/10 text-status-success">
               <ShieldCheck className="size-6" />
             </div>
-            <DialogTitle className="text-lg font-bold text-text-main">
+            <DialogTitle className="text-lg font-semibold text-text-main">
               Xác nhận phê duyệt doanh nghiệp
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Bạn đang phê duyệt hồ sơ pháp lý của doanh nghiệp{" "}
-              <strong className="text-slate-800">
+              <strong className="text-text-main">
                 {approveCompanyTarget?.name}
               </strong>{" "}
               (MST: {approveCompanyTarget?.taxCode}). Sau khi duyệt, doanh
@@ -896,7 +896,7 @@ export default function AdminDashboard() {
               iconSize={14}
               isLoading={verifyMutation.isPending}
               onClick={handleConfirmApproveCompany}
-              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+              className="h-9! bg-status-success! px-4! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
             >
               Xác nhận duyệt
             </Button>
@@ -908,17 +908,17 @@ export default function AdminDashboard() {
         open={Boolean(rejectCompanyTarget)}
         onOpenChange={(open) => !open && setRejectCompanyTarget(null)}
       >
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6 shadow-none">
           <DialogHeader>
-            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+            <div className="mb-2 flex size-12 items-center justify-center rounded-xl bg-status-error/10 text-status-error">
               <XCircle className="size-6" />
             </div>
-            <DialogTitle className="text-lg font-bold text-text-main">
+            <DialogTitle className="text-lg font-semibold text-text-main">
               Từ chối hồ sơ pháp lý doanh nghiệp
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Vui lòng nêu rõ lý do từ chối hồ sơ của{" "}
-              <strong className="text-slate-800">
+              <strong className="text-text-main">
                 {rejectCompanyTarget?.name}
               </strong>
               . Lý do này sẽ được thông báo trực tiếp đến chủ sở hữu doanh
@@ -929,9 +929,9 @@ export default function AdminDashboard() {
           <div className="mt-3 space-y-1.5">
             <label
               htmlFor="dashboard-company-rejection-reason"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-text-main"
             >
-              Lý do từ chối <span className="text-rose-500">*</span>
+              Lý do từ chối <span className="text-status-error">*</span>
             </label>
             <textarea
               id="dashboard-company-rejection-reason"
@@ -1004,21 +1004,21 @@ export default function AdminDashboard() {
         open={Boolean(approveJobTarget)}
         onOpenChange={(open) => !open && setApproveJobTarget(null)}
       >
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6 shadow-none">
           <DialogHeader>
-            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+            <div className="mb-2 flex size-12 items-center justify-center rounded-xl bg-status-success/10 text-status-success">
               <Sparkles className="size-6" />
             </div>
-            <DialogTitle className="text-lg font-bold text-text-main">
+            <DialogTitle className="text-lg font-semibold text-text-main">
               Xác nhận phê duyệt xuất bản
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Tin tuyển dụng{" "}
-              <strong className="text-slate-800">
+              <strong className="text-text-main">
                 {approveJobTarget?.title}
               </strong>{" "}
               của{" "}
-              <strong className="text-slate-800">
+              <strong className="text-text-main">
                 {approveJobTarget?.companyName}
               </strong>{" "}
               sẽ được xuất bản công khai ngay lập tức lên sàn việc làm
@@ -1041,7 +1041,7 @@ export default function AdminDashboard() {
               iconSize={14}
               isLoading={moderateMutation.isPending}
               onClick={handleConfirmApproveJob}
-              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+              className="h-9! bg-status-success! px-4! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
             >
               Xác nhận xuất bản
             </Button>
@@ -1053,17 +1053,17 @@ export default function AdminDashboard() {
         open={Boolean(rejectJobTarget)}
         onOpenChange={(open) => !open && setRejectJobTarget(null)}
       >
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6 shadow-none">
           <DialogHeader>
-            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+            <div className="mb-2 flex size-12 items-center justify-center rounded-xl bg-status-error/10 text-status-error">
               <XCircle className="size-6" />
             </div>
-            <DialogTitle className="text-lg font-bold text-text-main">
+            <DialogTitle className="text-lg font-semibold text-text-main">
               Từ chối tin tuyển dụng
             </DialogTitle>
             <DialogDescription className="text-xs leading-relaxed text-text-muted">
               Vui lòng nêu rõ lý do từ chối tin{" "}
-              <strong className="text-slate-800">
+              <strong className="text-text-main">
                 {rejectJobTarget?.title}
               </strong>{" "}
               để nhà tuyển dụng nắm được thông tin và chỉnh sửa lại.
@@ -1073,9 +1073,9 @@ export default function AdminDashboard() {
           <div className="mt-3 space-y-1.5">
             <label
               htmlFor="dashboard-job-rejection-reason"
-              className="text-xs font-semibold text-slate-800"
+              className="text-xs font-semibold text-text-main"
             >
-              Lý do từ chối <span className="text-rose-500">*</span>
+              Lý do từ chối <span className="text-status-error">*</span>
             </label>
             <textarea
               id="dashboard-job-rejection-reason"

@@ -115,7 +115,7 @@ export function JoinCompanyRequestModal({
           </div>
 
           {errorMsg && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-700">
+            <div className="rounded-xl border border-status-error/30 bg-status-error/10 px-3.5 py-2.5 text-xs text-status-error">
               {errorMsg}
             </div>
           )}

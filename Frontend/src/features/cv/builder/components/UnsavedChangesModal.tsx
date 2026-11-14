@@ -31,9 +31,9 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
         }
       }}
     >
-      <AlertDialogContent size="default" className="max-w-md">
+      <AlertDialogContent size="default" className="w-full sm:max-w-md">
         <AlertDialogHeader className="items-center text-center sm:items-start sm:text-left">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 sm:mx-0 mb-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-warning/10 text-status-warning sm:mx-0 mb-2">
             <AlertTriangle className="h-6 w-6" />
           </div>
           <AlertDialogTitle className="text-base font-semibold text-text-main">

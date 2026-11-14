@@ -705,17 +705,17 @@ export default function AdminUserManagementPage() {
           }
         }}
       >
-        <DialogContent className="max-w-md overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-xl">
-          <div className="p-6">
+        <DialogContent className="w-full sm:max-w-md overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-none">
+          <div className="p-5 sm:p-6">
             <div className="flex items-start gap-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-200">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-error/10 text-status-error ring-1 ring-status-error/20">
                 <AlertTriangle className="size-5" />
               </div>
               <div className="space-y-1">
-                <DialogTitle className="text-base font-bold text-slate-900">
+                <DialogTitle className="text-base font-semibold text-text-main">
                   Xác nhận khóa tài khoản
                 </DialogTitle>
-                <DialogDescription className="text-xs leading-relaxed text-slate-600">
+                <DialogDescription className="text-xs leading-relaxed text-text-muted">
                   Bạn có chắc chắn muốn khóa tài khoản này?
                 </DialogDescription>
               </div>
@@ -723,7 +723,7 @@ export default function AdminUserManagementPage() {
 
             {/* Thông tin đối tượng bị khóa */}
             {lockTarget && (
-              <div className="mt-4 rounded-xl border border-border/80 bg-slate-50/70 p-3.5">
+              <div className="mt-4 rounded-xl border border-border bg-bg/60 p-3.5">
                 <div className="flex items-center gap-3">
                   <UserAvatar
                     name={lockTarget.fullName}
@@ -813,17 +813,17 @@ export default function AdminUserManagementPage() {
           if (!open) setUnlockTarget(null);
         }}
       >
-        <DialogContent className="max-w-md overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-xl">
-          <div className="p-6">
+        <DialogContent className="w-full sm:max-w-md overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-none">
+          <div className="p-5 sm:p-6">
             <div className="flex items-start gap-3.5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-success/10 text-status-success ring-1 ring-status-success/20">
                 <ShieldCheck className="size-5" />
               </div>
               <div className="space-y-1">
-                <DialogTitle className="text-base font-bold text-slate-900">
+                <DialogTitle className="text-base font-semibold text-text-main">
                   Mở khóa tài khoản
                 </DialogTitle>
-                <DialogDescription className="text-xs leading-relaxed text-slate-600">
+                <DialogDescription className="text-xs leading-relaxed text-text-muted">
                   Bạn có chắc chắn muốn mở lại quyền truy cập cho người dùng
                   này?
                 </DialogDescription>
@@ -832,7 +832,7 @@ export default function AdminUserManagementPage() {
 
             {/* Thông tin đối tượng mở khóa */}
             {unlockTarget && (
-              <div className="mt-4 rounded-xl border border-border/80 bg-slate-50/70 p-3.5">
+              <div className="mt-4 rounded-xl border border-border bg-bg/60 p-3.5">
                 <div className="flex items-center gap-3">
                   <UserAvatar
                     name={unlockTarget.fullName}

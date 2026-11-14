@@ -65,7 +65,7 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
 
   return (
     <div
-      className="animate-in fade-in fixed inset-0 z-100 flex flex-col bg-slate-900/30 backdrop-blur-xs duration-200"
+      className="animate-in fade-in fixed inset-0 z-100 flex flex-col bg-black/50 backdrop-blur-xs duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="preview-modal-title"

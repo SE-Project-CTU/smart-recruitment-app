@@ -551,7 +551,7 @@ export default function CandidateApplicationStatusPage() {
       >
         <DialogContent className="max-h-[90dvh] w-[calc(100vw-2rem)] overflow-y-auto p-4 sm:w-full sm:max-w-lg sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-900">
+            <DialogTitle className="text-base font-semibold text-text-main">
               Chi tiết tiến trình hồ sơ
             </DialogTitle>
             <DialogDescription className="text-xs text-text-muted">
@@ -562,7 +562,7 @@ export default function CandidateApplicationStatusPage() {
           {selectedApplication && (
             <div className="w-full min-w-0 space-y-4 pt-2">
               {/* Job summary card */}
-              <div className="flex w-full min-w-0 items-start gap-3 rounded-2xl border border-border bg-slate-50/70 p-3 sm:p-3.5">
+              <div className="flex w-full min-w-0 items-start gap-3 rounded-xl border border-border bg-bg/60 p-3 sm:p-3.5">
                 <img
                   src={
                     selectedApplication.companyLogoUrl ||
@@ -583,19 +583,19 @@ export default function CandidateApplicationStatusPage() {
                   className="size-11 shrink-0 rounded-xl border border-border object-cover"
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h4 className="text-sm font-bold leading-snug break-words text-slate-900">
+                  <h4 className="text-sm font-semibold leading-snug break-words text-text-main">
                     {selectedApplication.jobTitle}
                   </h4>
                   <span className="text-xs leading-relaxed break-words text-text-muted">
                     {selectedApplication.companyName}
                   </span>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-muted">
                     <span className="inline-flex items-center gap-1">
-                      <Briefcase className="size-3 shrink-0 text-slate-400" />
+                      <Briefcase className="size-3 shrink-0 text-text-muted/70" />
                       <span>{selectedApplication.salaryRange}</span>
                     </span>
                     <span className="inline-flex items-center gap-1">
-                      <Calendar className="size-3 shrink-0 text-slate-400" />
+                      <Calendar className="size-3 shrink-0 text-text-muted/70" />
                       <span>
                         Nộp ngày{" "}
                         {dayjs(selectedApplication.appliedAt).format(
@@ -610,10 +610,10 @@ export default function CandidateApplicationStatusPage() {
               {/* Cover Letter nếu có */}
               {selectedApplication.coverLetter && (
                 <div className="w-full min-w-0 rounded-xl border border-border bg-surface p-3">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-semibold text-text-main">
                     Thư giới thiệu của bạn:
                   </span>
-                  <p className="mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line break-words text-slate-600">
+                  <p className="mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line break-words text-text-muted">
                     {selectedApplication.coverLetter}
                   </p>
                 </div>
@@ -621,18 +621,18 @@ export default function CandidateApplicationStatusPage() {
 
               {/* Timeline lịch sử tiến trình */}
               <div className="w-full min-w-0 space-y-2">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-text-main">
                   <Clock className="size-3.5 text-primary" />
                   Dòng thời gian xét duyệt
                 </span>
 
                 {isLoadingHistory ? (
                   <div className="space-y-2 py-3">
-                    <div className="h-8 animate-pulse rounded-lg bg-slate-100" />
-                    <div className="h-8 animate-pulse rounded-lg bg-slate-100" />
+                    <div className="h-8 animate-pulse rounded-lg bg-bg" />
+                    <div className="h-8 animate-pulse rounded-lg bg-bg" />
                   </div>
                 ) : sortedHistory.length > 0 ? (
-                  <div className="relative ml-2.5 space-y-4 border-l-2 border-slate-200 py-1 pl-3.5 sm:ml-3 sm:pl-4">
+                  <div className="relative ml-2.5 space-y-4 border-l-2 border-border py-1 pl-3.5 sm:ml-3 sm:pl-4">
                     {sortedHistory.map(
                       (step: ApplicationStatusHistoryItem, idx: number) => {
                         const isLatest = idx === sortedHistory.length - 1;
@@ -661,10 +661,10 @@ export default function CandidateApplicationStatusPage() {
                           <div key={step.id || idx} className="group relative w-full min-w-0">
                             {/* Dot indicator */}
                             <div
-                              className={`absolute top-1 -left-5.25 sm:-left-5.75 size-3.5 rounded-full border-2 border-white shadow-xs ${
+                              className={`absolute top-1 -left-5.25 sm:-left-5.75 size-3.5 rounded-full border-2 border-surface shadow-xs ${
                                 isLatest
                                   ? "bg-primary ring-4 ring-primary/20"
-                                  : "bg-slate-400"
+                                  : "bg-text-muted/40"
                               }`}
                             />
 
@@ -675,7 +675,7 @@ export default function CandidateApplicationStatusPage() {
                                     className={cn(
                                       "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold break-words",
                                       currentConfig?.badgeClass ||
-                                        "border-slate-200 bg-slate-100 text-slate-700",
+                                        "border-border bg-bg text-text-main",
                                     )}
                                   >
                                     {statusLabel}
@@ -695,7 +695,7 @@ export default function CandidateApplicationStatusPage() {
                               </div>
 
                               {step.note && (
-                                <p className="mt-1 rounded-lg bg-slate-50 p-2 text-xs leading-relaxed break-words text-slate-600">
+                                <p className="mt-1 rounded-lg border border-border/50 bg-bg p-2 text-xs leading-relaxed break-words text-text-muted">
                                   {step.note}
                                 </p>
                               )}
@@ -706,7 +706,7 @@ export default function CandidateApplicationStatusPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="w-full rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs leading-relaxed break-words text-slate-400">
+                  <div className="w-full rounded-xl border border-dashed border-border p-4 text-center text-xs leading-relaxed break-words text-text-muted">
                     Đơn ứng tuyển đang ở trạng thái ban đầu (
                     {APPLICATION_STATUS_CONFIG[selectedApplication.status]
                       ?.label ||

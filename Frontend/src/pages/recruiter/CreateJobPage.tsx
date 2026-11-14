@@ -6,9 +6,7 @@ import {
   ArrowLeft,
   Clock,
   DollarSign,
-  GraduationCap,
   ShieldCheck,
-  Users,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
@@ -307,7 +305,12 @@ export default function CreateJobPage() {
         </div>
       ) : companies.length === 0 ? (
         <section className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
-          <img src={EmptyStreet} alt="Empty" loading="lazy" className="h-80 w-auto md:h-100" />
+          <img
+            src={EmptyStreet}
+            alt="Empty"
+            loading="lazy"
+            className="h-80 w-auto md:h-100"
+          />
           <h2 className="text-base font-semibold text-text-main">
             Chưa có doanh nghiệp để đăng tin
           </h2>
@@ -379,7 +382,6 @@ export default function CreateJobPage() {
               {/* Khối 2: Yêu cầu & Chế độ đãi ngộ */}
               <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-                  <GraduationCap className="size-4" />
                   <h2 className="text-sm font-semibold text-text-main">
                     Yêu cầu tuyển dụng & Chế độ đãi ngộ
                   </h2>
@@ -527,7 +529,6 @@ export default function CreateJobPage() {
               {/* Khối 3: Mô tả công việc chi tiết */}
               <section className="space-y-4 rounded-3xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-                  <Users className="size-4" />
                   <h2 className="text-sm font-semibold text-text-main">
                     Mô tả công việc chi tiết
                   </h2>

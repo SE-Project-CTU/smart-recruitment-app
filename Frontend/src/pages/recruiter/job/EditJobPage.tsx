@@ -7,10 +7,8 @@ import {
   ArrowLeft,
   Building2,
   DollarSign,
-  GraduationCap,
   Save,
   ShieldCheck,
-  Users,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
@@ -268,8 +266,9 @@ function EditJobForm({
         <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
           <AlertTriangle className="size-4 shrink-0 text-amber-600" />
           <span>
-            Tin tuyển dụng này hiện đang ở trạng thái <strong>{job.status}</strong>.
-            Các thay đổi sẽ được lưu nhưng tin vẫn ở trạng thái đóng cho đến khi được mở lại.
+            Tin tuyển dụng này hiện đang ở trạng thái{" "}
+            <strong>{job.status}</strong>. Các thay đổi sẽ được lưu nhưng tin
+            vẫn ở trạng thái đóng cho đến khi được mở lại.
           </span>
         </div>
       )}
@@ -296,7 +295,8 @@ function EditJobForm({
                   htmlFor="title"
                   className="mb-1.5 block text-xs font-semibold text-text-main"
                 >
-                  Tiêu đề tin tuyển dụng <span className="text-status-error">*</span>
+                  Tiêu đề tin tuyển dụng{" "}
+                  <span className="text-status-error">*</span>
                 </label>
                 <input
                   id="title"
@@ -329,7 +329,6 @@ function EditJobForm({
           {/* Khối 2: Yêu cầu và chế độ đãi ngộ */}
           <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
             <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-              <GraduationCap className="size-4" />
               <h2 className="text-sm font-semibold text-text-main">
                 Yêu cầu tuyển dụng & Chế độ đãi ngộ
               </h2>
@@ -478,7 +477,6 @@ function EditJobForm({
           {/* Khối 3: Mô tả công việc chi tiết */}
           <section className="space-y-4 rounded-3xl border border-border bg-surface p-5 sm:p-6">
             <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-              <Users className="size-4" />
               <h2 className="text-sm font-semibold text-text-main">
                 Mô tả công việc chi tiết
               </h2>
@@ -511,7 +509,8 @@ function EditJobForm({
                   htmlFor="requirements"
                   className="mb-1.5 block text-xs font-semibold text-text-main"
                 >
-                  Yêu cầu đối với ứng viên <span className="text-status-error">*</span>
+                  Yêu cầu đối với ứng viên{" "}
+                  <span className="text-status-error">*</span>
                 </label>
                 <textarea
                   id="requirements"
@@ -582,7 +581,9 @@ function EditJobForm({
                     {company?.name || job.company?.name || "Doanh nghiệp"}
                   </p>
                   <p className="truncate text-[11px] text-text-muted">
-                    {company?.taxCode ? `MST: ${company.taxCode}` : job.company?.address || "Đã xác nhận"}
+                    {company?.taxCode
+                      ? `MST: ${company.taxCode}`
+                      : job.company?.address || "Đã xác nhận"}
                   </p>
                 </div>
               </div>
@@ -683,7 +684,8 @@ export function EditJobPage() {
   const navigate = useNavigate();
 
   const { data: job, isLoading: isLoadingJob } = useJobPostingDetail(id);
-  const { data: myCompanies = [], isLoading: isLoadingCompanies } = useMyCompanies();
+  const { data: myCompanies = [], isLoading: isLoadingCompanies } =
+    useMyCompanies();
 
   const selectedCompany = useMemo(() => {
     const targetCompanyId = job?.companyId || job?.company?.id;
@@ -737,7 +739,8 @@ export function EditJobPage() {
             Không có quyền chỉnh sửa
           </h2>
           <p className="mt-1 text-xs text-slate-600">
-            Bạn không thuộc doanh nghiệp sở hữu tin tuyển dụng này. Chỉ thành viên của công ty mới có quyền cập nhật thông tin.
+            Bạn không thuộc doanh nghiệp sở hữu tin tuyển dụng này. Chỉ thành
+            viên của công ty mới có quyền cập nhật thông tin.
           </p>
           <Button
             variant="primary"
@@ -759,7 +762,9 @@ export function EditJobPage() {
         <div>
           <button
             type="button"
-            onClick={() => navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))}
+            onClick={() =>
+              navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))
+            }
             className="mb-2 inline-flex items-center gap-1.5 text-xs text-text-muted transition-colors hover:text-primary"
           >
             <ArrowLeft className="size-3.5" />
@@ -769,7 +774,8 @@ export function EditJobPage() {
             Chỉnh sửa tin tuyển dụng
           </h1>
           <p className="text-xs text-text-muted">
-            Cập nhật nội dung mô tả, yêu cầu kỹ năng, địa điểm hoặc thời hạn nhận hồ sơ
+            Cập nhật nội dung mô tả, yêu cầu kỹ năng, địa điểm hoặc thời hạn
+            nhận hồ sơ
           </p>
         </div>
       </div>

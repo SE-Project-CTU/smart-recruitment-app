@@ -198,7 +198,7 @@ export function CreateCompanyModal({
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-      <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 sm:p-7">
+      <div className="relative max-h-[90vh] w-[calc(100vw-2rem)] sm:w-full sm:max-w-xl overflow-y-auto rounded-2xl border border-border bg-surface p-5 sm:p-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -216,7 +216,7 @@ export function CreateCompanyModal({
           <button
             onClick={onClose}
             type="button"
-            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main"
+            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg hover:text-text-main"
           >
             <X className="size-5" />
           </button>
@@ -224,8 +224,8 @@ export function CreateCompanyModal({
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-2">
           {(fieldErrors.general || fieldErrors.company) && (
-            <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700 animate-in fade-in">
-              <AlertCircle className="size-4 shrink-0 text-rose-600" />
+            <div className="flex items-center gap-2 rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs font-medium text-status-error animate-in fade-in">
+              <AlertCircle className="size-4 shrink-0 text-status-error" />
               <span>{fieldErrors.general || fieldErrors.company}</span>
             </div>
           )}
@@ -272,7 +272,7 @@ export function CreateCompanyModal({
                     icon={Trash2}
                     disabled={isUploadingLogo}
                     onClick={handleRemoveLogo}
-                    className="border-rose-200! px-3! py-1.5! text-xs! text-rose-600! ring-rose-200! hover:bg-rose-50! hover:text-rose-700!"
+                    className="border-status-error/30! px-3! py-1.5! text-xs! text-status-error! ring-status-error/20! hover:bg-status-error/10! hover:text-status-error!"
                   >
                     Gỡ
                   </Button>
@@ -306,7 +306,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.name
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -334,7 +334,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.taxCode
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -362,7 +362,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.email
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -390,7 +390,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.phone
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -418,7 +418,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.website
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -447,7 +447,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.address
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -475,7 +475,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full resize-none rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.description
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
