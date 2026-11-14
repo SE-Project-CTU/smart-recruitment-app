@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ECF5F9" />
+      <stop offset="100%" stop-color="#D6F1FC" />
+    </linearGradient>
+    <linearGradient id="primary-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B3B6F" />
+      <stop offset="100%" stop-color="#122A52" />
+    </linearGradient>
+  </defs>
+
+  <!-- Floor and Backdrop Ellipse -->
+  <g id="freepik--Floor--inject">
+    <ellipse cx="250" cy="420" rx="200" ry="40" fill="#F0F4F8" />
+    <ellipse cx="250" cy="420" rx="150" ry="25" fill="#E2E8F0" />
+    <circle cx="250" cy="230" r="160" fill="url(#bg-grad)" opacity="0.6" />
+  </g>
+
+  <!-- Floating decorative elements: speech bubbles, stars, envelopes -->
+  <g id="freepik--Decorations--inject">
+    <!-- Big Contact Speech Bubble Left -->
+    <g transform="translate(70, 110)">
+      <rect x="0" y="0" width="90" height="54" rx="14" fill="#FFFFFF" filter="drop-shadow(0px 6px 12px rgba(27,59,111,0.08))" stroke="#E2E8F0" stroke-width="1.5" />
+      <path d="M25 54 L20 66 L38 54 Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" />
+      <rect x="25" y="52" width="14" height="4" fill="#FFFFFF" />
+      <!-- Message lines -->
+      <rect x="18" y="16" width="54" height="6" rx="3" fill="#A6E1FA" />
+      <rect x="18" y="28" width="36" height="6" rx="3" fill="#1B3B6F" opacity="0.85" />
+      <circle cx="76" cy="31" r="3" fill="#22C55E" />
+    </g>
+
+    <!-- Support Chat Pill Right -->
+    <g transform="translate(340, 130)">
+      <rect x="0" y="0" width="85" height="44" rx="22" fill="#1B3B6F" filter="drop-shadow(0px 8px 16px rgba(27,59,111,0.15))" />
+      <circle cx="22" cy="22" r="12" fill="#A6E1FA" />
+      <path d="M18 20 C18 17.8 19.8 16 22 16 C24.2 16 26 17.8 26 20 C26 21.5 25 22.5 24 23 C23.5 23.3 23 24 23 25" stroke="#1B3B6F" stroke-width="2" stroke-linecap="round" fill="none" />
+      <circle cx="23" cy="27" r="1" fill="#1B3B6F" />
+      <rect x="42" y="19" width="30" height="6" rx="3" fill="#FFFFFF" />
+    </g>
+
+    <!-- Small Envelope Top Center -->
+    <g transform="translate(225, 60)">
+      <rect x="0" y="0" width="50" height="34" rx="6" fill="#FFFFFF" stroke="#1B3B6F" stroke-width="2" />
+      <path d="M0 0 L25 20 L50 0" stroke="#1B3B6F" stroke-width="2" fill="none" stroke-linejoin="round" />
+      <path d="M0 34 L18 16 M50 34 L32 16" stroke="#A6E1FA" stroke-width="1.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Sparkles -->
+    <path d="M120 70 L123 78 L131 81 L123 84 L120 92 L117 84 L109 81 L117 78 Z" fill="#6FC3E8" />
+    <path d="M380 90 L382 95 L387 97 L382 99 L380 104 L378 99 L373 97 L378 95 Z" fill="#F59E0B" />
+  </g>
+
+  <!-- Desk and Plant -->
+  <g id="freepik--Desk--inject">
+    <!-- Desk surface -->
+    <path d="M100 370 L400 370 L380 390 L120 390 Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" filter="drop-shadow(0px 8px 16px rgba(0,0,0,0.04))" />
+    <rect x="130" y="390" width="12" height="40" rx="3" fill="#CBD5E1" />
+    <rect x="358" y="390" width="12" height="40" rx="3" fill="#CBD5E1" />
+
+    <!-- Plant Pot on Left of Desk -->
+    <path d="M140 370 L146 340 L164 340 L170 370 Z" fill="#1B3B6F" />
+    <!-- Plant Leaves -->
+    <path d="M155 340 C145 315 130 320 135 305 C145 310 152 325 155 340 Z" fill="#22C55E" />
+    <path d="M155 340 C165 315 180 320 175 305 C165 310 158 325 155 340 Z" fill="#16A34A" />
+    <path d="M155 340 C155 300 162 300 155 290 C148 300 153 310 155 340 Z" fill="#86EFAC" />
+
+    <!-- Coffee Mug on Right -->
+    <rect x="330" y="350" width="16" height="20" rx="4" fill="#A6E1FA" />
+    <path d="M346 354 C351 354 351 364 346 364" stroke="#A6E1FA" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  </g>
+
+  <!-- Laptop / Screen -->
+  <g id="freepik--Laptop--inject">
+    <rect x="200" y="300" width="100" height="66" rx="6" fill="#1B3B6F" stroke="#122A52" stroke-width="2" />
+    <rect x="206" y="306" width="88" height="54" rx="3" fill="#FFFFFF" />
+    <!-- Screen content -->
+    <rect x="214" y="314" width="40" height="6" rx="3" fill="#A6E1FA" />
+    <rect x="214" y="324" width="72" height="4" rx="2" fill="#E2E8F0" />
+    <rect x="214" y="332" width="60" height="4" rx="2" fill="#E2E8F0" />
+    <circle cx="274" cy="317" r="4" fill="#22C55E" />
+    <!-- Laptop Base -->
+    <path d="M185 366 L315 366 L325 372 L175 372 Z" fill="#94A3B8" />
+  </g>
+
+  <!-- Customer Support Character (Storyset Amico Style) -->
+  <g id="freepik--Character--inject">
+    <!-- Body / Torso -->
+    <path d="M210 240 L290 240 L305 350 L195 350 Z" fill="#1B3B6F" />
+    <!-- Collar & Shirt -->
+    <path d="M235 240 L250 265 L265 240 Z" fill="#FFFFFF" />
+    <path d="M248 265 L252 265 L254 310 L246 310 Z" fill="#A6E1FA" />
+
+    <!-- Arms -->
+    <!-- Left Arm typing -->
+    <path d="M210 245 C190 270 180 315 210 335 C220 340 230 335 225 330 C205 315 205 275 220 255 Z" fill="#1B3B6F" />
+    <circle cx="225" cy="336" r="9" fill="#FBCFE8" />
+
+    <!-- Right Arm typing -->
+    <path d="M290 245 C310 270 320 315 290 335 C280 340 270 335 275 330 C295 315 295 275 280 255 Z" fill="#122A52" />
+    <circle cx="275" cy="336" r="9" fill="#FBCFE8" />
+
+    <!-- Neck -->
+    <rect x="240" y="215" width="20" height="30" fill="#FBCFE8" rx="4" />
+
+    <!-- Head -->
+    <ellipse cx="250" cy="180" rx="28" ry="32" fill="#FBCFE8" />
+
+    <!-- Hair -->
+    <path d="M222 175 C220 140 245 135 265 140 C285 145 285 170 280 185 C275 160 260 150 240 152 C228 153 223 165 222 175 Z" fill="#1E293B" />
+    <!-- Side hair / Bun -->
+    <circle cx="250" cy="132" r="16" fill="#1E293B" />
+
+    <!-- Facial Features -->
+    <!-- Eyes (Friendly smile) -->
+    <path d="M238 180 Q242 176 246 180" stroke="#1E293B" stroke-width="2" stroke-linecap="round" fill="none" />
+    <path d="M254 180 Q258 176 262 180" stroke="#1E293B" stroke-width="2" stroke-linecap="round" fill="none" />
+    <!-- Smile -->
+    <path d="M244 194 Q250 200 256 194" stroke="#1E293B" stroke-width="2" stroke-linecap="round" fill="none" />
+    <!-- Cheeks Blush -->
+    <circle cx="236" cy="188" r="4" fill="#F472B6" opacity="0.4" />
+    <circle cx="264" cy="188" r="4" fill="#F472B6" opacity="0.4" />
+
+    <!-- Customer Support Headset -->
+    <path d="M224 175 C224 150 276 150 276 175" stroke="#64748B" stroke-width="3.5" fill="none" stroke-linecap="round" />
+    <rect x="220" y="170" width="7" height="16" rx="3.5" fill="#1B3B6F" />
+    <rect x="273" y="170" width="7" height="16" rx="3.5" fill="#1B3B6F" />
+    <!-- Microphone boom & tip -->
+    <path d="M224 182 C224 200 238 202 245 200" stroke="#64748B" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    <circle cx="246" cy="200" r="3.5" fill="#22C55E" />
+  </g>
+</svg>
+
