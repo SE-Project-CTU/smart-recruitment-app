@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import type { MockJobPosting } from "@/constants/mockData";
 import type { ApplicationJobSummary } from "@/types/application";
 import type {
+  BaseJobSummary,
   JobPostingItem,
   JobPostingResult,
   JobPostingDetailResult,
@@ -12,35 +12,17 @@ import { extractJobDisplayData } from "@/utils/jobHelpers";
 /**
  * Kiểu dữ liệu linh hoạt của Job khi đưa vào Modal Ứng tuyển
  */
-export interface ApplyTargetJob {
-  id: string;
-  title: string;
-  company?: {
-    name?: string;
-    logoUrl?: string | null;
-    logoFileUrl?: string | null;
-  };
+export interface ApplyTargetJob extends BaseJobSummary {
   companyName?: string;
   companyLogoUrl?: string | null;
   salaryRange?: string | null;
-  salaryMin?: number | null;
-  salaryMax?: number | null;
-  salaryNegotiable?: boolean | null;
   currency?: string | null;
-  jobType?: string | null;
-  workMode?: string | null;
-  jobLevel?: string | null;
-  location?: {
-    provinceName?: string | null;
-    detailedLocation?: string | null;
-    wardName?: string | null;
-  };
   provinceName?: string | null;
 }
 
 export type AnyJob =
+  | BaseJobSummary
   | ApplyTargetJob
-  | MockJobPosting
   | ApplicationJobSummary
   | JobPostingItem
   | JobPostingResult

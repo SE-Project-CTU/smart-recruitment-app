@@ -47,6 +47,7 @@ import { PATHS } from "@/constants/paths";
 import { getTimeOfDayGreeting } from "@/utils/helper";
 import {
   resolveCandidateProfile,
+  type PendingStatusChange,
   type RecruiterCandidateApplicationItem,
   type UpdateJobApplicationStatus,
 } from "@/types/application";
@@ -61,12 +62,6 @@ import {
 } from "@/components/ui/dialog";
 
 dayjs.locale("vi");
-
-interface PendingStatusChange {
-  app: RecruiterCandidateApplicationItem;
-  fromStatus: string;
-  toStatus: UpdateJobApplicationStatus;
-}
 
 const trendChartConfig: ChartConfig = {
   applications: {

@@ -28,12 +28,9 @@ import {
 } from "@/hooks/queries/useJob";
 import { toast } from "@/hooks/use-toast";
 import { PATHS } from "@/constants/paths";
-import type { JobPostingItem, JobPostingSearchItem } from "@/types/job";
-import type { MockJobPosting } from "@/constants/mockData";
 import { cn } from "@/lib/utils";
 
-export type JobCardItem =
-  JobPostingItem | JobPostingSearchItem | MockJobPosting | AnyJob;
+export type JobCardItem = AnyJob;
 
 export interface JobCardProps<T extends JobCardItem = JobCardItem> {
   job: T;

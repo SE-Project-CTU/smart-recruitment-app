@@ -31,3 +31,16 @@ export interface ApiResponse<T, TMeta = Record<string, unknown>> {
 }
 
 export type ApiPagedResponse<T> = ApiResponse<T[], PaginationMeta>;
+
+/**
+ * Kiểu phân trang chuẩn hóa cho danh sách dữ liệu (CV, Template, Version, Item)
+ */
+export interface PagedResult<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages?: number;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+}

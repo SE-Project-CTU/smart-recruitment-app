@@ -1,11 +1,90 @@
 // SmartHire CV & CV Version Type Definitions
 // Ánh xạ 1:1 với Backend C# DTOs và Enums trong SmartHire.Application.Features.Cv
 
-import type {
-  CvContentDocument,
-  CvLayoutDocument,
-  CvPresentationDocument,
-} from "./application";
+// ==========================================
+// CV SNAPSHOT & LAYOUT VALUE OBJECTS
+// ==========================================
+
+export interface CvDocumentMetadata {
+  version: string;
+  templateCode: string;
+  language: string;
+  updatedAt: string;
+}
+
+export interface CvProfile {
+  fullName: string;
+  title: string;
+  avatarUrl: string;
+  email: string;
+  phone: string;
+  dob?: string;
+  address?: string;
+  website?: string;
+  socialLink?: string;
+}
+
+export interface CvContentDocument {
+  metadata?: CvDocumentMetadata;
+  profile?: CvProfile;
+  sections?: Record<string, unknown>;
+}
+
+export type CVSectionKey =
+  | "objective"
+  | "experience"
+  | "education"
+  | "skills"
+  | "projects"
+  | "certifications"
+  | "awards"
+  | "interests"
+  | "additionalInfo";
+
+export interface CvLayoutArea {
+  id: string;
+  sections: CVSectionKey[] | string[];
+}
+
+export interface CvLayoutDocument {
+  version: string;
+  areas: CvLayoutArea[];
+}
+
+export type CVLayoutArea = CvLayoutArea;
+export type CVLayoutDocument = CvLayoutDocument;
+
+export interface CvGlobalStyle {
+  fontFamily: string;
+  baseFontSize: number;
+  primaryColor: string[];
+  lineHeight: number;
+}
+
+export interface CvFieldStyle {
+  color: string;
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: string;
+  fontStyle: string;
+  textDecoration: string;
+  textAlign?: string | null;
+  listStyle?: string | null;
+}
+
+export interface CvPresentationStyles {
+  global?: CvGlobalStyle;
+  fields?: Record<string, CvFieldStyle>;
+}
+
+export interface CvPresentationDocument {
+  metadata?: {
+    version: string;
+    templateCode: string;
+    updatedAt: string;
+  };
+  styles?: CvPresentationStyles;
+}
 
 // ==========================================
 // ENUMS & SUB-MODELS
@@ -123,7 +202,6 @@ export interface CvVersionResult {
 export type CvVersionDetail = CvVersionResult;
 export type CvVersion = CvVersionResult;
 export type CVVersion = CvVersionResult;
-export type CvVersionItem = CvVersionSummaryResult;
 
 // ==========================================
 // REQUEST / PAYLOAD DTOS
@@ -150,27 +228,6 @@ export interface CvFilterParams {
   isPublic?: boolean;
   language?: string;
   search?: string;
-}
-
-export type CVSectionKey =
-  | "objective"
-  | "experience"
-  | "education"
-  | "skills"
-  | "projects"
-  | "certifications"
-  | "awards"
-  | "interests"
-  | "additionalInfo";
-
-export interface CVLayoutArea {
-  id: string;
-  sections: CVSectionKey[] | string[];
-}
-
-export interface CVLayoutDocument {
-  version: string;
-  areas: CVLayoutArea[];
 }
 
 export type CvTiptapAttributeValue = string | number | boolean | null;

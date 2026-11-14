@@ -26,6 +26,7 @@ import type { JobPostingItem } from "@/types/job";
 import {
   APPLICATION_STATUS_CONFIG,
   resolveCandidateProfile,
+  type PendingStatusChange,
   type RecruiterCandidateApplicationItem,
   type UpdateJobApplicationStatus,
 } from "@/types/application";
@@ -39,12 +40,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-interface PendingStatusChange {
-  app: RecruiterCandidateApplicationItem;
-  fromStatus: string;
-  toStatus: UpdateJobApplicationStatus;
-}
 
 export function RecruiterCandidateListPage() {
   const navigate = useNavigate();

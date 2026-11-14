@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { getLoremAvt } from "@/utils/helper";
 import dayjs from "dayjs";
-import type { MockApplication } from "@/constants/mockData";
 import {
   APPLICATION_STATUS_CONFIG,
   type CandidateMyApplicationItem,
@@ -31,9 +30,7 @@ import {
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { formatSalaryCompact, getWorkModeLabel } from "@/utils/jobHelpers";
 
-export type ApplicationTrackingItem =
-  | CandidateMyApplicationItem
-  | MockApplication;
+export type ApplicationTrackingItem = CandidateMyApplicationItem;
 
 const columnHelper =
   createColumnHelper<DataTableFeatures, ApplicationTrackingItem>();

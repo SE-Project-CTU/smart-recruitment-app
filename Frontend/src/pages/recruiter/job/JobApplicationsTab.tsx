@@ -38,6 +38,7 @@ import {
   resolveCandidateProfile,
   type JobApplicationItem,
   type JobApplicationStatus,
+  type PendingStatusChange,
   type UpdateJobApplicationStatus,
 } from "@/types/application";
 
@@ -55,12 +56,6 @@ interface JobApplicationsTabProps {
     note?: string,
   ) => Promise<void>;
   isUpdatingStatus?: boolean;
-}
-
-interface PendingStatusChange {
-  app: JobApplicationItem;
-  fromStatus: string;
-  toStatus: UpdateJobApplicationStatus;
 }
 
 export function JobApplicationsTab({

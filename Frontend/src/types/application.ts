@@ -1,6 +1,30 @@
 // SmartHire Application Type Definitions
 // Ánh xạ 1:1 với Backend C# DTOs và Enums trong SmartHire.Application.Features.Applications
 
+import type {
+  CvContentDocument,
+  CvDocumentMetadata,
+  CvFieldStyle,
+  CvGlobalStyle,
+  CvLayoutArea,
+  CvLayoutDocument,
+  CvPresentationDocument,
+  CvPresentationStyles,
+  CvProfile,
+} from "./cv";
+
+export type {
+  CvContentDocument,
+  CvDocumentMetadata,
+  CvFieldStyle,
+  CvGlobalStyle,
+  CvLayoutArea,
+  CvLayoutDocument,
+  CvPresentationDocument,
+  CvPresentationStyles,
+  CvProfile,
+};
+
 // ==========================================
 // STATUS ENUMS & TYPES
 // ==========================================
@@ -101,76 +125,18 @@ export interface ApplicationCandidateResult {
 
 export type CandidateItem = ApplicationCandidateResult;
 
+/**
+ * Trạng thái thay đổi đang chờ xác nhận trên giao diện duyệt ứng viên
+ */
+export interface PendingStatusChange<TApp = JobApplicationItem | RecruiterCandidateApplicationItem> {
+  app: TApp;
+  fromStatus: string;
+  toStatus: UpdateJobApplicationStatus;
+}
+
 // ==========================================
 // CV SNAPSHOT DOCUMENTS (Ánh xạ 1:1 ValueObjects)
 // ==========================================
-
-export interface CvDocumentMetadata {
-  version: string;
-  templateCode: string;
-  language: string;
-  updatedAt: string;
-}
-
-export interface CvProfile {
-  fullName: string;
-  title: string;
-  avatarUrl: string;
-  email: string;
-  phone: string;
-  dob?: string;
-  address?: string;
-  website?: string;
-  socialLink?: string;
-}
-
-export interface CvContentDocument {
-  metadata?: CvDocumentMetadata;
-  profile?: CvProfile;
-  sections?: Record<string, unknown>;
-}
-
-export interface CvLayoutArea {
-  id: string;
-  sections: string[];
-}
-
-export interface CvLayoutDocument {
-  version: string;
-  areas: CvLayoutArea[];
-}
-
-export interface CvGlobalStyle {
-  fontFamily: string;
-  baseFontSize: number;
-  primaryColor: string[];
-  lineHeight: number;
-}
-
-export interface CvFieldStyle {
-  color: string;
-  fontSize: number;
-  fontFamily: string;
-  fontWeight: string;
-  fontStyle: string;
-  textDecoration: string;
-  textAlign?: string | null;
-  listStyle?: string | null;
-}
-
-export interface CvPresentationStyles {
-  global?: CvGlobalStyle;
-  fields?: Record<string, CvFieldStyle>;
-}
-
-export interface CvPresentationDocument {
-  metadata?: {
-    version: string;
-    templateCode: string;
-    updatedAt: string;
-  };
-  styles?: CvPresentationStyles;
-}
 
 /**
  * Snapshot CV tại thời điểm nộp hồ sơ (Ánh xạ 1:1 ApplicationCvSnapshotResult)

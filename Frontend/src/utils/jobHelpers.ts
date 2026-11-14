@@ -477,13 +477,19 @@ export function extractJobDisplayData(job: AnyJob) {
     provinceName;
 
   const rawCreatedAt =
-    ("createdAt" in job && job.createdAt) ||
-    ("createAt" in job && job.createAt) ||
-    "";
+    ("createdAt" in job && typeof (job as { createdAt?: unknown }).createdAt === "string"
+      ? (job as { createdAt: string }).createdAt
+      : "") ||
+    ("createAt" in job && typeof (job as { createAt?: unknown }).createAt === "string"
+      ? (job as { createAt: string }).createAt
+      : "");
 
   const displayTimeAgo = rawCreatedAt ? getTimeAgo(rawCreatedAt) : "Mới đăng";
 
-  const rawDeadline = "deadline" in job ? job.deadline : null;
+  const rawDeadline =
+    "deadline" in job && typeof (job as { deadline?: unknown }).deadline === "string"
+      ? (job as { deadline: string }).deadline
+      : null;
   const formattedDeadline = rawDeadline
     ? new Date(rawDeadline).toLocaleDateString("vi-VN", {
         day: "2-digit",

@@ -59,7 +59,6 @@ import type {
   JobPostingSearchItem,
 } from "@/types/job";
 import type { AdminJobPostingItem } from "@/types/admin";
-import type { MockJobPosting } from "@/constants/mockData";
 import { cn } from "@/lib/utils";
 
 export type JobDrawerItem =
@@ -68,7 +67,6 @@ export type JobDrawerItem =
   | JobPostingResult
   | JobPostingSearchItem
   | AdminJobPostingItem
-  | MockJobPosting
   | AnyJob;
 
 export interface JobDetailDrawerProps<T extends JobDrawerItem = JobDrawerItem> {
