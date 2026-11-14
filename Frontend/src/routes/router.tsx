@@ -10,6 +10,8 @@ import {
   CandidateDashboard,
   UserProfile,
   BadRequestPage,
+  FaqPage,
+  ContactPage,
 } from "@/pages";
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -63,6 +65,8 @@ const router = createBrowserRouter([
           { path: PATHS.SEARCH_JOB, element: <SearchJob /> },
           { path: PATHS.COMPANY_DETAIL, element: <CompanyDetailPage /> },
           { path: PATHS.BLOG, element: <CareerBlogPage /> },
+          { path: PATHS.FAQS, element: <FaqPage /> },
+          { path: PATHS.CONTACT, element: <ContactPage /> },
         ],
       },
 

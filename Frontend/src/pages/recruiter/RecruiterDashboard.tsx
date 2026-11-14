@@ -32,7 +32,10 @@ import {
 } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
-import { CandidateTable } from "./candidate/CandidateTable";
+import {
+  CandidateTable,
+  ApplicationCvPreviewDialog,
+} from "./candidate";
 import { EmptyStreet } from "@/assets/images/decoration";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
@@ -131,6 +134,8 @@ export default function RecruiterDashboard() {
 
   // Modal xem thư giới thiệu & thay đổi trạng thái ứng viên
   const [selectedLetterApp, setSelectedLetterApp] =
+    useState<RecruiterCandidateApplicationItem | null>(null);
+  const [selectedCvApp, setSelectedCvApp] =
     useState<RecruiterCandidateApplicationItem | null>(null);
   const [pendingChange, setPendingChange] =
     useState<PendingStatusChange | null>(null);
@@ -995,6 +1000,7 @@ export default function RecruiterDashboard() {
             <CandidateTable
               data={recentCandidates}
               onReadCoverLetter={(app) => setSelectedLetterApp(app)}
+              onPreviewCv={setSelectedCvApp}
               onRequestChangeStatus={handleOpenConfirmTransition}
               onViewJobDetail={(jobId) =>
                 navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", jobId))
@@ -1101,6 +1107,12 @@ export default function RecruiterDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Xem CV Ứng Viên */}
+      <ApplicationCvPreviewDialog
+        application={selectedCvApp}
+        onClose={() => setSelectedCvApp(null)}
+      />
 
       {/* Modal Tạo doanh nghiệp mới */}
       <CreateCompanyModal

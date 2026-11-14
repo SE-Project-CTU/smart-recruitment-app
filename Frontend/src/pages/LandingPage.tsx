@@ -31,7 +31,7 @@ import {
 import { useEffect, useState } from "react";
 import TestimonialCard from "@/components/TestimonialCard";
 import { testimonialData } from "@/constants/mockData";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PATHS } from "@/constants/paths";
 
 const HeroSection = () => {
@@ -460,12 +460,14 @@ const CTA = () => {
               <Button className="border-none! bg-status-active! px-6! py-3! text-sm font-semibold text-primary-dark! transition-all hover:opacity-90 sm:text-base!">
                 Bắt đầu ngay
               </Button>
-              <Button
-                variant="outline"
-                className="border-white/40! px-6! py-3! text-sm text-white! hover:bg-white/10! sm:text-base!"
-              >
-                Liên hệ
-              </Button>
+              <Link to={PATHS.CONTACT}>
+                <Button
+                  variant="outline"
+                  className="border-white/40! px-6! py-3! text-sm text-white! hover:bg-white/10! sm:text-base!"
+                >
+                  Liên hệ
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -577,9 +579,9 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-primary">
+                <Link to={PATHS.CONTACT} className="transition-colors hover:text-primary">
                   Liên hệ tư vấn HR
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -595,9 +597,9 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-primary">
+                <Link to={PATHS.BLOG} className="transition-colors hover:text-primary">
                   Blog & Cẩm nang nghề nghiệp
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="transition-colors hover:text-primary">
@@ -610,9 +612,9 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-primary">
+                <Link to={PATHS.FAQS} className="transition-colors hover:text-primary">
                   Trung tâm trợ giúp (FAQs)
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

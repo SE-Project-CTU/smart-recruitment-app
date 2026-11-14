@@ -94,8 +94,8 @@ function Header() {
           ],
         },
         { title: "Blog nghề nghiệp", href: PATHS.BLOG },
-        { title: "Liên hệ", href: PATHS.HOME },
-        { title: "FAQs", href: PATHS.HOME },
+        { title: "Liên hệ", href: PATHS.CONTACT },
+        { title: "FAQs", href: PATHS.FAQS },
       ];
     }
 
@@ -117,8 +117,8 @@ function Header() {
       { title: "Việc làm", href: PATHS.SEARCH_JOB },
       secondItem,
       { title: "Blog nghề nghiệp", href: PATHS.BLOG },
-      { title: "Liên hệ", href: PATHS.HOME },
-      { title: "FAQs", href: PATHS.HOME },
+      { title: "Liên hệ", href: PATHS.CONTACT },
+      { title: "FAQs", href: PATHS.FAQS },
     ];
   }, [isCandidate, isAdmin, isRecruiter]);
 
