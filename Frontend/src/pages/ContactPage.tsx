@@ -190,8 +190,9 @@ export function ContactPage() {
                     Yêu cầu của bạn đã được ghi nhận. Đội ngũ SmartHire sẽ gửi phản hồi
                     tới hòm thư <span className="font-semibold text-text-main">{formData.email}</span>.
                   </p>
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="md"
                     onClick={() => {
                       setIsSubmitted(false);
                       setFormData({
@@ -203,10 +204,10 @@ export function ContactPage() {
                         message: "",
                       });
                     }}
-                    className="mt-6 inline-flex cursor-pointer text-xs font-semibold text-primary hover:underline"
+                    className="mt-6!"
                   >
                     Gửi yêu cầu khác
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
