@@ -293,7 +293,7 @@ export function FaqPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Tìm câu hỏi, từ khóa trợ giúp..."
-                    className="w-full min-w-0 bg-transparent px-2.5 py-2.5 text-xs text-text-main placeholder:text-text-muted focus:outline-none sm:px-4 sm:py-3.5 sm:text-base 3xl:py-4.5 3xl:text-lg"
+                    className="w-full min-w-0 bg-transparent px-2.5 py-2.5 text-sm text-text-main placeholder:text-text-muted focus:outline-none sm:px-4 sm:py-3.5 sm:text-base 3xl:py-4.5 3xl:text-lg"
                     aria-label="Tìm kiếm câu hỏi"
                   />
                   {searchQuery && (
@@ -314,15 +314,15 @@ export function FaqPage() {
                     <Button
                       variant="primary"
                       size="md"
-                      className="px-3! py-1.5! text-xs! shadow-none! sm:px-5! sm:py-2! sm:text-sm!"
+                      className="px-3.5! py-1.5! text-xs! font-medium! whitespace-nowrap! shadow-none! sm:px-5! sm:py-2! sm:text-sm!"
                     >
                       Tìm kiếm
                     </Button>
                   </div>
                 </div>
 
-                {/* Popular Keywords (Responsive wrapped items, no dangling dots) */}
-                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-xs text-text-muted sm:text-sm lg:justify-start">
+                {/* Popular Keywords: Clean, wrap-safe suggestions without dangling dots */}
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-text-muted sm:gap-2 sm:text-sm lg:justify-start">
                   <span className="shrink-0 font-medium text-text-muted">
                     Gợi ý:
                   </span>
@@ -332,27 +332,15 @@ export function FaqPage() {
                     "Xuất PDF",
                     "Tiến độ hồ sơ",
                     "Bảo mật",
-                  ].map((tag, idx, arr) => (
-                    <span
+                  ].map((tag) => (
+                    <button
                       key={tag}
-                      className="inline-flex items-center gap-1.5 whitespace-nowrap"
+                      type="button"
+                      onClick={() => setSearchQuery(tag)}
+                      className="cursor-pointer rounded-full border border-border/70 bg-surface/70 px-2.5 py-0.5 text-xs font-normal text-text-main transition-colors hover:border-primary/50 hover:bg-surface hover:text-primary focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
                     >
-                      <button
-                        type="button"
-                        onClick={() => setSearchQuery(tag)}
-                        className="cursor-pointer text-primary transition-colors hover:underline"
-                      >
-                        {tag}
-                      </button>
-                      {idx < arr.length - 1 && (
-                        <span
-                          className="text-border select-none"
-                          aria-hidden="true"
-                        >
-                          •
-                        </span>
-                      )}
-                    </span>
+                      {tag}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -378,35 +366,38 @@ export function FaqPage() {
           ===================================================================== */}
       <section className="bg-bg py-8 sm:py-12 lg:py-16 3xl:py-20">
         <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 3xl:max-w-5xl">
-          {/* Category Tabs: Scrollable on mobile with margin bleed and proper padding */}
-          <div
-            role="tablist"
-            aria-label="Danh mục câu hỏi"
-            className="no-scrollbar -mx-4 flex items-center justify-start gap-1.5 overflow-x-auto px-4 pt-1 pb-3 sm:mx-0 sm:justify-center sm:px-0 sm:pb-5"
-          >
-            {FAQ_CATEGORIES.map((cat) => {
-              const isActive = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  role="tab"
-                  aria-selected={isActive}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`relative shrink-0 cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:px-4 sm:py-2 sm:text-sm ${
-                    isActive
-                      ? "bg-primary text-surface shadow-xs"
-                      : "text-text-muted hover:bg-surface hover:text-text-main"
-                  }`}
-                >
-                  <span>{cat.label}</span>
-                </button>
-              );
-            })}
+          {/* Category Tabs: Scrollable on mobile with edge fade indicator */}
+          <div className="relative">
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-bg to-transparent sm:hidden" />
+            <div
+              role="tablist"
+              aria-label="Danh mục câu hỏi"
+              className="no-scrollbar -mx-4 flex items-center justify-start gap-1.5 overflow-x-auto px-4 pt-1 pb-3 sm:mx-0 sm:justify-center sm:px-0 sm:pb-5"
+            >
+              {FAQ_CATEGORIES.map((cat) => {
+                const isActive = selectedCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    role="tab"
+                    aria-selected={isActive}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`relative shrink-0 cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:px-4 sm:py-2 sm:text-sm ${
+                      isActive
+                        ? "bg-primary text-surface shadow-xs"
+                        : "text-text-muted hover:bg-surface hover:text-text-main"
+                    }`}
+                  >
+                    <span>{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Action Bar: Responsive Counter & Expand/Collapse without wrapping breakage */}
-          <div className="mt-2 mb-5 flex flex-col gap-2 border-t border-border pt-3.5 text-xs text-text-muted sm:mt-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:pt-4 sm:text-sm">
+          {/* Action Bar: Wrap-safe Counter & Expand/Collapse controls */}
+          <div className="mt-2 mb-5 flex flex-col gap-2.5 border-t border-border pt-3.5 text-xs text-text-muted sm:mt-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:pt-4 sm:text-sm">
             <div className="min-w-0 leading-relaxed">
               Hiển thị{" "}
               <span className="font-semibold text-primary">
@@ -414,28 +405,30 @@ export function FaqPage() {
               </span>{" "}
               câu hỏi
               {searchQuery && (
-                <span className="break-words">
+                <span>
                   {" "}
                   cho từ khóa{" "}
-                  <span className="font-medium text-text-main">
+                  <span className="font-semibold text-text-main">
                     "{searchQuery}"
                   </span>
                 </span>
               )}
             </div>
-            <div className="flex shrink-0 items-center gap-3 self-end whitespace-nowrap sm:self-auto">
+            <div className="flex shrink-0 items-center gap-3 self-end text-xs whitespace-nowrap sm:self-auto sm:text-sm">
               <button
                 type="button"
                 onClick={() => toggleAll(true)}
-                className="cursor-pointer transition-colors hover:text-primary"
+                className="cursor-pointer font-medium whitespace-nowrap text-nowrap transition-colors hover:text-primary"
               >
                 Mở tất cả
               </button>
-              <span className="text-border select-none">•</span>
+              <span className="text-border select-none" aria-hidden="true">
+                •
+              </span>
               <button
                 type="button"
                 onClick={() => toggleAll(false)}
-                className="cursor-pointer transition-colors hover:text-primary"
+                className="cursor-pointer font-medium whitespace-nowrap text-nowrap transition-colors hover:text-primary"
               >
                 Thu gọn
               </button>
@@ -473,7 +466,7 @@ export function FaqPage() {
                           aria-expanded={isOpen}
                           className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3.5 text-left focus-visible:rounded-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:gap-4 sm:px-6 sm:py-4.5"
                         >
-                          <h2 className="xs:text-sm text-xs leading-snug font-semibold break-words text-text-main sm:text-base">
+                          <h2 className="text-sm font-semibold leading-snug break-words text-text-main sm:text-base sm:leading-normal">
                             {highlightMatch(faq.question, searchQuery)}
                           </h2>
 
@@ -510,7 +503,7 @@ export function FaqPage() {
                                 </p>
 
                                 {/* Responsive Feedback Interaction */}
-                                <div className="xs:flex-row xs:items-center xs:justify-between mt-4 flex flex-col gap-2.5 border-t border-border/40 pt-3 text-xs text-text-muted">
+                                <div className="mt-4 flex flex-col gap-2.5 border-t border-border/40 pt-3 text-xs text-text-muted sm:flex-row sm:items-center sm:justify-between">
                                   <span className="leading-tight">
                                     Câu trả lời này có hữu ích không?
                                   </span>
