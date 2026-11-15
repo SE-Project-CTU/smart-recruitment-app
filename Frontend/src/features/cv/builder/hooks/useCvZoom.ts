@@ -32,53 +32,59 @@ export function useCvZoom(options?: UseCvZoomOptions) {
     return DEFAULT_CV_ZOOM;
   });
 
-  const [containerElement, setContainerElement] = useState<HTMLElement | null>(
-    () => options?.containerRef?.current ?? null,
-  );
-
-  // Theo dõi khi containerRef gắn element thực tế vào DOM (ví dụ: sau khi kết thúc loading state)
-  useEffect(() => {
-    const current = options?.containerRef?.current ?? null;
-    if (current !== containerElement) {
-      setContainerElement(current);
-    }
-  });
-
   // Tự động căn vừa chiều rộng trên thiết bị di động / màn hình nhỏ khi mount
   useEffect(() => {
-    if (options?.initialZoom !== undefined || options?.autoFitOnMobile === false)
+    if (
+      options?.initialZoom !== undefined ||
+      options?.autoFitOnMobile === false
+    )
       return;
 
-    const container = containerElement;
-    const measureAndFit = () => {
+    let ro: ResizeObserver | null = null;
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+    let initialTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const attachResizeObserver = () => {
+      const container = options?.containerRef?.current;
+      if (!container) return false;
+
       const width =
-        container?.clientWidth ||
+        container.clientWidth ||
         (typeof window !== "undefined" ? window.innerWidth : 1024);
       if (width > 0 && width < 860) {
         setZoomState(calculateFitZoom(width));
       }
+
+      if (typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            if (entry.contentRect.width > 0 && entry.contentRect.width < 860) {
+              setZoomState(calculateFitZoom(entry.contentRect.width));
+            }
+          }
+        });
+        ro.observe(container);
+      }
+      return true;
     };
 
-    // Đợi layout hoàn tất đo kích thước DOM
-    const timer = setTimeout(measureAndFit, 60);
-
-    if (container && typeof ResizeObserver !== "undefined") {
-      const ro = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.contentRect.width > 0 && entry.contentRect.width < 860) {
-            setZoomState(calculateFitZoom(entry.contentRect.width));
+    initialTimer = setTimeout(() => {
+      if (!attachResizeObserver()) {
+        pollInterval = setInterval(() => {
+          if (attachResizeObserver() && pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
           }
-        }
-      });
-      ro.observe(container);
-      return () => {
-        clearTimeout(timer);
-        ro.disconnect();
-      };
-    }
+        }, 150);
+      }
+    }, 60);
 
-    return () => clearTimeout(timer);
-  }, [containerElement, options?.initialZoom, options?.autoFitOnMobile]);
+    return () => {
+      if (initialTimer) clearTimeout(initialTimer);
+      if (pollInterval) clearInterval(pollInterval);
+      if (ro) ro.disconnect();
+    };
+  }, [options?.containerRef, options?.initialZoom, options?.autoFitOnMobile]);
 
   const zoomIn = useCallback(() => {
     setZoomState((prev) => {
@@ -110,8 +116,8 @@ export function useCvZoom(options?: UseCvZoomOptions) {
 
   // Lắng nghe Ctrl + Wheel để zoom mượt mà khi cuộn chuột trong container
   useEffect(() => {
-    const container = containerElement;
-    if (!container) return;
+    let attachedContainer: HTMLElement | null = null;
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
 
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -124,11 +130,30 @@ export function useCvZoom(options?: UseCvZoomOptions) {
       }
     };
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => {
-      container.removeEventListener("wheel", handleWheel);
+    const attachWheel = () => {
+      const container = options?.containerRef?.current;
+      if (!container) return false;
+      attachedContainer = container;
+      container.addEventListener("wheel", handleWheel, { passive: false });
+      return true;
     };
-  }, [containerElement, zoomIn, zoomOut]);
+
+    if (!attachWheel()) {
+      pollInterval = setInterval(() => {
+        if (attachWheel() && pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+      }, 150);
+    }
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+      if (attachedContainer) {
+        attachedContainer.removeEventListener("wheel", handleWheel);
+      }
+    };
+  }, [options?.containerRef, zoomIn, zoomOut]);
 
   return {
     zoom,
