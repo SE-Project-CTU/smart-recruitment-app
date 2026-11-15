@@ -581,21 +581,54 @@ export function extractJobDisplayData(job: AnyJob) {
 }
 
 /**
- * Định dạng chuỗi hoặc số thành chuỗi tiền tệ có dấu phẩy phân tách hàng nghìn (ví dụ: 15000000 -> "15,000,000")
+ * Định dạng chuỗi hoặc số thành chuỗi tiền tệ có dấu phẩy phân tách hàng nghìn (ví dụ: 15000000 -> "15,000,000").
+ * Xử lý an toàn các trường hợp số thực hoặc paste chuỗi có đuôi thập phân (ví dụ: 15,000,000.00 hoặc 15000000.5).
  */
-export function formatCurrencyInput(value: string | number | null | undefined): string {
+export function formatCurrencyInput(
+  value: string | number | null | undefined,
+): string {
   if (value == null || value === "") return "";
-  const digits = String(value).replace(/\D/g, "");
-  if (!digits) return "";
-  return new Intl.NumberFormat("en-US").format(Number(digits));
+  let intStr: string;
+
+  if (typeof value === "number") {
+    intStr = String(Math.round(value));
+  } else {
+    const trimmed = String(value).trim();
+    const dotIndex = trimmed.lastIndexOf(".");
+    const commaIndex = trimmed.lastIndexOf(",");
+    // Nếu dấu chấm xuất hiện sau dấu phẩy (chuẩn format en-US thập phân), chỉ lấy phần nguyên trước dấu chấm
+    if (dotIndex !== -1 && dotIndex > commaIndex) {
+      intStr = trimmed.slice(0, dotIndex).replace(/\D/g, "");
+    } else {
+      intStr = trimmed.replace(/\D/g, "");
+    }
+  }
+
+  if (!intStr) return "";
+  return new Intl.NumberFormat("en-US").format(Number(intStr));
 }
 
 /**
- * Phân tích chuỗi tiền tệ có dấu phẩy thành giá trị số nguyên thuần túy (ví dụ: "15,000,000" -> 15000000)
+ * Phân tích chuỗi tiền tệ có dấu phẩy thành giá trị số nguyên thuần túy (ví dụ: "15,000,000" -> 15000000).
+ * Bóc tách chính xác phần nguyên nếu có đuôi số thập phân.
  */
-export function parseCurrencyInput(value: string | number | null | undefined): number | null {
+export function parseCurrencyInput(
+  value: string | number | null | undefined,
+): number | null {
   if (value == null || value === "") return null;
-  const digits = String(value).replace(/\D/g, "");
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? Math.round(value) : null;
+  }
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+
+  const dotIndex = trimmed.lastIndexOf(".");
+  const commaIndex = trimmed.lastIndexOf(",");
+  let intStr = trimmed;
+  if (dotIndex !== -1 && dotIndex > commaIndex) {
+    intStr = trimmed.slice(0, dotIndex);
+  }
+  const digits = intStr.replace(/\D/g, "");
   if (!digits) return null;
   const num = Number(digits);
   return Number.isNaN(num) ? null : num;

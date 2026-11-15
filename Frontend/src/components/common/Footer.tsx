@@ -49,14 +49,20 @@ export const Footer: React.FC<FooterProps> = ({ className = "" }) => {
             </h3>
             <ul className="space-y-3 text-sm text-text-muted">
               <li>
-                <a href="#" className="transition-colors hover:text-primary">
+                <Link
+                  to={PATHS.CREATE_CV}
+                  className="transition-colors hover:text-primary"
+                >
                   Tạo CV AI chuẩn ATS
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-primary">
+                <Link
+                  to={PATHS.SEARCH_JOB}
+                  className="transition-colors hover:text-primary"
+                >
                   Tìm việc làm IT & Tech
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="transition-colors hover:text-primary">
@@ -64,9 +70,12 @@ export const Footer: React.FC<FooterProps> = ({ className = "" }) => {
                 </a>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-primary">
+                <Link
+                  to={PATHS.CANDIDATE.CV_TEMPLATES}
+                  className="transition-colors hover:text-primary"
+                >
                   Thư viện mẫu CV đẹp
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="transition-colors hover:text-primary">
@@ -82,9 +91,12 @@ export const Footer: React.FC<FooterProps> = ({ className = "" }) => {
             </h3>
             <ul className="space-y-3 text-sm text-text-muted">
               <li>
-                <a href="#" className="transition-colors hover:text-primary">
+                <Link
+                  to={PATHS.RECRUITER.CREATE_JOB}
+                  className="transition-colors hover:text-primary"
+                >
                   Đăng tin tuyển dụng
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="transition-colors hover:text-primary">

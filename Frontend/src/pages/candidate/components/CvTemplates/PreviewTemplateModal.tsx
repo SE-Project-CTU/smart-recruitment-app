@@ -161,12 +161,18 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
             !isError &&
             templateContent &&
             templateDetail?.defaultLayout && (
-              <div className="h-max">
+              <div
+                className="h-max"
+                style={{
+                  width: zoom > 1 ? `calc(210mm * ${zoom})` : undefined,
+                  minWidth: zoom > 1 ? `calc(210mm * ${zoom})` : undefined,
+                }}
+              >
                 <div
                   className="bg-transparent"
                   style={{
                     transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-                    transformOrigin: "top center",
+                    transformOrigin: zoom > 1 ? "top left" : "top center",
                     marginBottom:
                       zoom > 1
                         ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`

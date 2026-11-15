@@ -63,9 +63,11 @@ function Header() {
     () => user?.roles?.map((r) => r.toLowerCase()) || [],
     [user?.roles],
   );
-  const isAdmin = userRoles.includes("admin");
-  const isRecruiter = userRoles.includes("recruiter");
-  const isCandidate = isAuthenticated && !isAdmin && !isRecruiter;
+  const isAdmin =
+    userRoles.includes("admin") || userRoles.includes("superadmin");
+  const isRecruiter =
+    userRoles.includes("recruiter") || userRoles.includes("hr");
+  const isCandidate = isAuthenticated && userRoles.includes("candidate");
 
   const primaryRole = user?.roles?.[0]?.toLowerCase() || "candidate";
   const dashboardPath = getDashboardPathByRole(primaryRole);
