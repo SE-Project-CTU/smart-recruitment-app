@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, useLocation } from "react-router-dom";
 import RootLayout from "@/layouts/RootLayout";
 import BaseLayout, { CandidatePageLayout } from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
@@ -51,6 +51,11 @@ import AdminCompanyModerationPage from "@/pages/admin/company/AdminCompanyModera
 import AdminJobModerationPage from "@/pages/admin/job/AdminJobModerationPage";
 import AdminUserManagementPage from "@/pages/admin/user/AdminUserManagementPage";
 import AdminCatalogsPage from "@/pages/admin/catalog/AdminCatalogsPage";
+
+function CandidateSearchRedirect() {
+  const location = useLocation();
+  return <Navigate to={`${PATHS.SEARCH_JOB}${location.search}`} replace />;
+}
 
 const router = createBrowserRouter([
   {
@@ -106,7 +111,7 @@ const router = createBrowserRouter([
               },
               {
                 path: PATHS.CANDIDATE.SEARCH_JOBS,
-                element: <Navigate to={PATHS.SEARCH_JOB} replace />,
+                element: <CandidateSearchRedirect />,
               },
               {
                 path: PATHS.CANDIDATE.MATCHED_JOBS,

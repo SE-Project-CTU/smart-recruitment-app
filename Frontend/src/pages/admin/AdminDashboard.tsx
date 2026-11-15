@@ -896,7 +896,7 @@ export default function AdminDashboard() {
               iconSize={14}
               isLoading={verifyMutation.isPending}
               onClick={handleConfirmApproveCompany}
-              className="h-9! bg-status-success! px-4! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
+              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
             >
               Xác nhận duyệt
             </Button>
@@ -1041,7 +1041,7 @@ export default function AdminDashboard() {
               iconSize={14}
               isLoading={moderateMutation.isPending}
               onClick={handleConfirmApproveJob}
-              className="h-9! bg-status-success! px-4! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
+              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
             >
               Xác nhận xuất bản
             </Button>

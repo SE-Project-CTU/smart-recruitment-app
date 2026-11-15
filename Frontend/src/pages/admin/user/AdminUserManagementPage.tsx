@@ -705,7 +705,7 @@ export default function AdminUserManagementPage() {
           }
         }}
       >
-        <DialogContent className="w-full sm:max-w-md overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-none">
+        <DialogContent className="w-full sm:max-w-md rounded-2xl border border-border bg-surface p-0 shadow-none">
           <div className="p-5 sm:p-6">
             <div className="flex items-start gap-3.5">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-error/10 text-status-error ring-1 ring-status-error/20">
@@ -813,7 +813,7 @@ export default function AdminUserManagementPage() {
           if (!open) setUnlockTarget(null);
         }}
       >
-        <DialogContent className="w-full sm:max-w-md overflow-hidden rounded-2xl border border-border bg-surface p-0 shadow-none">
+        <DialogContent className="w-full sm:max-w-md rounded-2xl border border-border bg-surface p-0 shadow-none">
           <div className="p-5 sm:p-6">
             <div className="flex items-start gap-3.5">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-status-success/10 text-status-success ring-1 ring-status-success/20">

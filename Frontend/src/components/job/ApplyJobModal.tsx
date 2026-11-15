@@ -437,7 +437,7 @@ export function ApplyJobModal({
 
                           <div className="flex shrink-0 items-center gap-2">
                             {cv.isPublic && (
-                              <span className="rounded-full bg-status-success/10 px-2 py-0.5 text-[10px] font-semibold text-status-success">
+                              <span className="rounded-full bg-status-success/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
                                 Công khai
                               </span>
                             )}

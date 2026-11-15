@@ -121,16 +121,24 @@ export function ContactPage() {
     }));
   };
 
-  const handleCopyText = (text: string, fieldName: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(fieldName);
-    toast({
-      title: "Đã sao chép vào bộ nhớ tạm",
-      description: text,
-    });
-    setTimeout(() => {
-      setCopiedField(null);
-    }, 2000);
+  const handleCopyText = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      toast({
+        title: "Đã sao chép vào bộ nhớ tạm",
+        description: text,
+      });
+      setTimeout(() => {
+        setCopiedField(null);
+      }, 2000);
+    } catch {
+      toast({
+        title: "Không thể tự động sao chép",
+        description: `Vui lòng sao chép thủ công: ${text}`,
+        variant: "destructive",
+      });
+    }
   };
 
   const validateForm = (): boolean => {

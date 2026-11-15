@@ -63,6 +63,7 @@ export function JobDetailPage() {
   // Close job confirm modal state
   const [isClosingModalOpen, setIsClosingModalOpen] = useState(false);
   const [isClosingSuccess, setIsClosingSuccess] = useState(false);
+  const [creatorAvatarError, setCreatorAvatarError] = useState(false);
 
   // 1. Real Queries
   const { data: job, isLoading: isLoadingJob } = useJobPostingDetail(id);
@@ -273,11 +274,11 @@ export function JobDetailPage() {
                       rel="noreferrer"
                       className="group inline-flex min-w-0 max-w-full items-center gap-1 text-xs font-semibold text-text-muted transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
                     >
-                      <span className="break-words">{compName}</span>
+                      <span className="min-w-0 break-words">{compName}</span>
                       <ExternalLink className="size-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
                     </Link>
                   ) : (
-                    <span className="break-words text-xs font-semibold text-text-muted sm:text-sm">
+                    <span className="min-w-0 break-words text-xs font-semibold text-text-muted sm:text-sm">
                       {compName}
                     </span>
                   )}
@@ -287,11 +288,12 @@ export function JobDetailPage() {
                   <div className="flex min-w-0 max-w-full items-start gap-2 text-text-muted">
                     {/* Avatar */}
                     <div className="mt-0.5 shrink-0">
-                      {job.creator.avatarUrl ? (
+                      {job.creator.avatarUrl && !creatorAvatarError ? (
                         <img
                           src={job.creator.avatarUrl}
                           alt={job.creator.fullName}
                           loading="lazy"
+                          onError={() => setCreatorAvatarError(true)}
                           className="size-6 rounded-full border border-border object-cover"
                         />
                       ) : (
@@ -307,7 +309,7 @@ export function JobDetailPage() {
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <div className="flex flex-wrap items-center gap-1.5 leading-snug">
                         <span className="text-[11px] text-text-muted">Đăng bởi:</span>
-                        <span className="text-xs font-semibold text-text-main break-words">
+                        <span className="min-w-0 break-words text-xs font-semibold text-text-main">
                           {job.creator.fullName || "Nhà tuyển dụng"}
                         </span>
                       </div>

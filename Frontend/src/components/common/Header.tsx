@@ -216,13 +216,17 @@ function Header() {
                           return (
                             <MenuItem
                               key={child.href}
-                              onClick={() => navigate(child.href)}
-                              className="cursor-pointer gap-2.5"
+                              className="p-0 cursor-pointer"
                             >
-                              {Icon && (
-                                <Icon className="size-4 text-text-muted" />
-                              )}
-                              <span>{child.title}</span>
+                              <Link
+                                to={child.href}
+                                className="flex w-full items-center gap-2.5 px-2 py-1.5 text-text-main"
+                              >
+                                {Icon && (
+                                  <Icon className="size-4 text-text-muted" />
+                                )}
+                                <span>{child.title}</span>
+                              </Link>
                             </MenuItem>
                           );
                         })}

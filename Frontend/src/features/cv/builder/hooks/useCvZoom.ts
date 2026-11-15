@@ -32,13 +32,25 @@ export function useCvZoom(options?: UseCvZoomOptions) {
     return DEFAULT_CV_ZOOM;
   });
 
+  const [containerElement, setContainerElement] = useState<HTMLElement | null>(
+    () => options?.containerRef?.current ?? null,
+  );
+
+  // Theo dõi khi containerRef gắn element thực tế vào DOM (ví dụ: sau khi kết thúc loading state)
+  useEffect(() => {
+    const current = options?.containerRef?.current ?? null;
+    if (current !== containerElement) {
+      setContainerElement(current);
+    }
+  });
+
   // Tự động căn vừa chiều rộng trên thiết bị di động / màn hình nhỏ khi mount
   useEffect(() => {
     if (options?.initialZoom !== undefined || options?.autoFitOnMobile === false)
       return;
 
+    const container = containerElement;
     const measureAndFit = () => {
-      const container = options?.containerRef?.current;
       const width =
         container?.clientWidth ||
         (typeof window !== "undefined" ? window.innerWidth : 1024);
@@ -50,7 +62,6 @@ export function useCvZoom(options?: UseCvZoomOptions) {
     // Đợi layout hoàn tất đo kích thước DOM
     const timer = setTimeout(measureAndFit, 60);
 
-    const container = options?.containerRef?.current;
     if (container && typeof ResizeObserver !== "undefined") {
       const ro = new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -67,7 +78,7 @@ export function useCvZoom(options?: UseCvZoomOptions) {
     }
 
     return () => clearTimeout(timer);
-  }, [options?.containerRef, options?.initialZoom, options?.autoFitOnMobile]);
+  }, [containerElement, options?.initialZoom, options?.autoFitOnMobile]);
 
   const zoomIn = useCallback(() => {
     setZoomState((prev) => {
@@ -99,7 +110,7 @@ export function useCvZoom(options?: UseCvZoomOptions) {
 
   // Lắng nghe Ctrl + Wheel để zoom mượt mà khi cuộn chuột trong container
   useEffect(() => {
-    const container = options?.containerRef?.current;
+    const container = containerElement;
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
@@ -117,7 +128,7 @@ export function useCvZoom(options?: UseCvZoomOptions) {
     return () => {
       container.removeEventListener("wheel", handleWheel);
     };
-  }, [options?.containerRef, zoomIn, zoomOut]);
+  }, [containerElement, zoomIn, zoomOut]);
 
   return {
     zoom,
