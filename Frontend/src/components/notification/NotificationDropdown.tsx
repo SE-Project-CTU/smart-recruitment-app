@@ -302,7 +302,7 @@ export function NotificationDropdown() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-90 overflow-hidden rounded-2xl border border-border/70 bg-white p-0 shadow-xl sm:w-105"
+        className="w-90 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-border/70 bg-white p-0 shadow-xl sm:w-105"
       >
         {/* Sticky Header */}
         <div className="flex items-center justify-between border-b border-border/50 bg-slate-50/70 px-4 py-3">

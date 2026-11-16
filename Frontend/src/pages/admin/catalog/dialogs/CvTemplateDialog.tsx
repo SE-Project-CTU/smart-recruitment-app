@@ -81,7 +81,7 @@ function CvTemplateForm({
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         {/* Thông tin cố định của template */}
-        <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-bg p-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 rounded-xl border border-border bg-bg p-3 text-xs">
           <div>
             <span className="text-[11px] text-text-muted">Mã mẫu (Code):</span>
             <p className="font-semibold text-text-main">{template.code}</p>
@@ -95,7 +95,7 @@ function CvTemplateForm({
         {/* Tên mẫu CV */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-main">
-            Tên mẫu CV <span className="text-rose-500">*</span>
+            Tên mẫu CV <span className="text-status-error">*</span>
           </label>
           <input
             type="text"
@@ -108,7 +108,7 @@ function CvTemplateForm({
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-xs text-text-main transition-colors focus:border-primary focus:bg-surface focus:outline-none"
             autoFocus
           />
-          {error && <p className="text-[11px] text-rose-500">{error}</p>}
+          {error && <p className="text-[11px] text-status-error">{error}</p>}
         </div>
 
         {/* Mô tả mẫu CV */}
@@ -170,7 +170,7 @@ export function CvTemplateDialog({
 }: CvTemplateDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-none">
+      <DialogContent className="w-full sm:max-w-md p-5 sm:p-6 shadow-none">
         {open && template && (
           <CvTemplateForm
             key={template.id}

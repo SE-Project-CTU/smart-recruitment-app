@@ -56,16 +56,7 @@ export function CompanyDetailLayout() {
     ) {
       setActiveCompany(company);
     }
-  }, [
-    company,
-    activeCompanyId,
-    activeCompany?.name,
-    activeCompany?.logoUrl,
-    activeCompany?.logoFileId,
-    activeCompany?.verificationStatus,
-    activeCompany?.membership?.role,
-    setActiveCompany,
-  ]);
+  }, [company, activeCompanyId, activeCompany, setActiveCompany]);
 
   if (isLoading) {
     return (
@@ -215,33 +206,33 @@ export function CompanyDetailLayout() {
       </div>
 
       {/* 3. Thanh Navigation Tabs */}
-      <div className="flex border-b border-border">
-        <nav className="flex space-x-1 sm:space-x-3" aria-label="Tabs">
+      <div className="no-scrollbar flex overflow-x-auto border-b border-border">
+        <nav className="flex space-x-1 sm:space-x-2" aria-label="Tabs">
           <NavLink
             to="overview"
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                 isActive
                   ? "border-primary text-primary"
-                  : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                  : "border-transparent text-text-muted hover:border-border hover:text-text-main"
               }`
             }
           >
-            <Building2 className="size-4" />
+            <Building2 className="size-4 shrink-0 sm:size-4.5" />
             <span>Tổng quan</span>
           </NavLink>
 
           <NavLink
             to="members"
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                 isActive
                   ? "border-primary text-primary"
-                  : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                  : "border-transparent text-text-muted hover:border-border hover:text-text-main"
               }`
             }
           >
-            <Users className="size-4" />
+            <Users className="size-4 shrink-0 sm:size-4.5" />
             <span>Đội ngũ</span>
           </NavLink>
           {/* CHỈ HIỂN THỊ TAB YÊU CẦU GIA NHẬP VÀ CẬP NHẬT NẾU LÀ OWNER */}
@@ -250,28 +241,28 @@ export function CompanyDetailLayout() {
               <NavLink
                 to="invitations"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     isActive
                       ? "border-primary text-primary"
-                      : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                      : "border-transparent text-text-muted hover:border-border hover:text-text-main"
                   }`
                 }
               >
-                <CheckCheck className="size-4" />
+                <CheckCheck className="size-4 shrink-0 sm:size-4.5" />
                 <span>Yêu cầu gia nhập</span>
               </NavLink>
 
               <NavLink
                 to="settings"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
                     isActive
                       ? "border-primary text-primary"
-                      : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                      : "border-transparent text-text-muted hover:border-border hover:text-text-main"
                   }`
                 }
               >
-                <Settings className="size-4" />
+                <Settings className="size-4 shrink-0 sm:size-4.5" />
                 <span>Cập nhật thông tin</span>
               </NavLink>
             </>

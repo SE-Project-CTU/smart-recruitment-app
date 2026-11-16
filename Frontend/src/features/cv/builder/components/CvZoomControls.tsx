@@ -36,7 +36,7 @@ export const CvZoomControls: React.FC<CvZoomControlsProps> = ({
   return (
     <div
       className={cn(
-        "no-print absolute bottom-6 right-6 z-30 flex items-center gap-1.5 rounded-full border border-border bg-surface/95 px-3 py-1.5 shadow-lg backdrop-blur-md select-none transition-all",
+        "no-print absolute bottom-3.5 right-3.5 sm:bottom-6 sm:right-6 z-30 flex items-center gap-1 sm:gap-1.5 rounded-full border border-border bg-surface/95 px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg backdrop-blur-md select-none transition-all",
         className,
       )}
     >
@@ -46,18 +46,18 @@ export const CvZoomControls: React.FC<CvZoomControlsProps> = ({
         onClick={onZoomOut}
         disabled={!canZoomOut}
         aria-label="Thu nhỏ CV"
-        className="flex h-7 w-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+        className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
       >
-        <ZoomOut className="h-3.5 w-3.5" />
+        <ZoomOut className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
       </button>
 
       {/* Slider ở giữa */}
-      <div className="w-24 sm:w-28 flex items-center px-1">
+      <div className="w-16 sm:w-28 flex items-center px-1">
         <SliderPrimitive.Root
           value={percentage}
           onValueChange={handleSliderChange}
-          min={50}
-          max={150}
+          min={35}
+          max={160}
           step={5}
           className="w-full"
         >
@@ -65,7 +65,7 @@ export const CvZoomControls: React.FC<CvZoomControlsProps> = ({
             <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-slate-200">
               <SliderPrimitive.Indicator className="h-full bg-primary" />
             </SliderPrimitive.Track>
-            <SliderPrimitive.Thumb className="block size-3.5 shrink-0 rounded-full border-2 border-primary bg-white shadow-sm ring-primary/40 transition-[box-shadow] hover:ring-2 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50" />
+            <SliderPrimitive.Thumb className="block size-3 sm:size-3.5 shrink-0 rounded-full border-2 border-primary bg-white shadow-sm ring-primary/40 transition-[box-shadow] hover:ring-2 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50" />
           </SliderPrimitive.Control>
         </SliderPrimitive.Root>
       </div>
@@ -76,17 +76,17 @@ export const CvZoomControls: React.FC<CvZoomControlsProps> = ({
         onClick={onZoomIn}
         disabled={!canZoomIn}
         aria-label="Phóng to CV"
-        className="flex h-7 w-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+        className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg hover:text-text-main disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
       >
-        <ZoomIn className="h-3.5 w-3.5" />
+        <ZoomIn className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
       </button>
 
-      {/* Hiển thị mức % - Bấm vào để khôi phục về 100% */}
+      {/* Hiển thị mức % - Bấm vào để khôi phục về fit / 100% */}
       <button
         type="button"
         onClick={onResetZoom}
-        title="Đặt lại về 100%"
-        className="h-7 min-w-[2.75rem] px-1 text-center text-xs font-semibold text-text-main transition-colors hover:text-primary cursor-pointer rounded-sm hover:bg-bg shrink-0"
+        title="Đặt lại mức hiển thị chuẩn"
+        className="h-6 sm:h-7 min-w-[2.25rem] sm:min-w-[2.75rem] px-1 text-center text-[11px] sm:text-xs font-semibold text-text-main transition-colors hover:text-primary cursor-pointer rounded-sm hover:bg-bg shrink-0"
       >
         {percentage}%
       </button>

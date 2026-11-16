@@ -137,7 +137,7 @@ function WardForm({
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-main">
-            Thuộc Tỉnh / Thành phố <span className="text-rose-500">*</span>
+            Thuộc Tỉnh / Thành phố <span className="text-status-error">*</span>
           </label>
           <Select.Root
             items={provinceOptions}
@@ -153,7 +153,7 @@ function WardForm({
           >
             <Select.Trigger
               aria-label="Chọn Tỉnh / Thành phố"
-              className="group flex h-9.5 w-full cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-medium text-text-main transition-colors hover:bg-slate-100/60 focus:border-primary focus:bg-surface focus:outline-none"
+              className="group flex h-9.5 w-full cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-medium text-text-main transition-colors hover:bg-bg/80 focus:border-primary focus:bg-surface focus:outline-none"
             >
               <Select.Value placeholder="-- Chọn Tỉnh / Thành phố --" />
               <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
@@ -165,9 +165,9 @@ function WardForm({
               <Select.Positioner
                 alignItemWithTrigger={false}
                 sideOffset={6}
-                className="z-60"
+                className="z-[75]"
               >
-                <Select.Popup className="z-60 max-h-60 w-[var(--anchor-width)] overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md">
+                <Select.Popup className="z-[75] max-h-60 w-[var(--anchor-width)] overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md">
                   <Select.List>
                     {provinceOptions.map((opt) => (
                       <Select.Item
@@ -190,13 +190,13 @@ function WardForm({
             </Select.Portal>
           </Select.Root>
           {errors.provinceId && (
-            <p className="text-[11px] text-rose-500">{errors.provinceId}</p>
+            <p className="text-[11px] text-status-error">{errors.provinceId}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-main">
-            Tên Phường / Xã <span className="text-rose-500">*</span>
+            Tên Phường / Xã <span className="text-status-error">*</span>
           </label>
           <input
             type="text"
@@ -212,7 +212,7 @@ function WardForm({
             autoFocus
           />
           {errors.name && (
-            <p className="text-[11px] text-rose-500">{errors.name}</p>
+            <p className="text-[11px] text-status-error">{errors.name}</p>
           )}
         </div>
 

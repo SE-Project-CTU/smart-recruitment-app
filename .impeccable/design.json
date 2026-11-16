@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-29T15:13:30.000Z",
+  "generatedAt": "2026-11-14T14:07:30.000Z",
   "title": "Design System: SmartHire",
   "extensions": {
     "colorMeta": {
@@ -45,6 +45,18 @@
         "displayName": "Mist White",
         "canonical": "#f7fafc",
         "tonalRamp": ["#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f7fafc"]
+      },
+      "bg-white-blue": {
+        "role": "neutral",
+        "displayName": "White Blue Mist",
+        "canonical": "#ecf5f9",
+        "tonalRamp": ["#172630", "#2b4657", "#48708a", "#78a5c2", "#b0d2e7", "#d5e9f4", "#ecf5f9", "#f8fbfe"]
+      },
+      "bg-stone": {
+        "role": "neutral",
+        "displayName": "Stone Tint",
+        "canonical": "#f9f9f9",
+        "tonalRamp": ["#1c1917", "#292524", "#44403c", "#78716c", "#a8a29e", "#d6d3d1", "#e7e5e4", "#f9f9f9"]
       },
       "neutral-surface": {
         "role": "neutral",
@@ -93,23 +105,29 @@
         "displayName": "Info Blue",
         "canonical": "#3b82f6",
         "tonalRamp": ["#172554", "#1e3a8a", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"]
+      },
+      "status-active": {
+        "role": "secondary",
+        "displayName": "Active Sky",
+        "canonical": "#a6e1fa",
+        "tonalRamp": ["#193744", "#2a596e", "#3f819f", "#6fc3e8", "#a6e1fa", "#c8edfc", "#e4f6fe", "#f5fbff"]
       }
     },
     "typographyMeta": {
       "display": { "displayName": "Display", "purpose": "Hero headlines, đại banner trang chủ." },
       "headline": { "displayName": "Headline", "purpose": "Tiêu đề phân mục lớn của trang." },
-      "title": { "displayName": "Title", "purpose": "Tên công việc, tiêu đề thẻ card, nhóm chức năng." },
-      "body": { "displayName": "Body", "purpose": "Nội dung văn bản, chi tiết mô tả công việc, nội dung CV." },
-      "label": { "displayName": "Label", "purpose": "Nhãn badge, trạng thái, siêu dữ liệu phụ trợ." }
+      "title": { "displayName": "Title", "purpose": "Tên việc làm, tiêu đề card, tên công ty." },
+      "body": { "displayName": "Body", "purpose": "Văn bản nội dung, mô tả công việc, nội dung CV." },
+      "label": { "displayName": "Label", "purpose": "Badge kỹ năng, tag trạng thái, mức lương." }
     },
     "shadows": [
-      { "name": "flat-rest", "value": "none", "purpose": "Trạng thái phẳng tự nhiên, tuân thủ nghiêm ngặt quy tắc Zero-Shadow." },
-      { "name": "overlay-subtle", "value": "0 4px 12px rgba(0, 0, 0, 0.05)", "purpose": "Chỉ dùng cho menu thả xuống hoặc hộp thoại nổi trên nền." }
+      { "name": "shadow-xs", "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)", "purpose": "Bóng cực nhẹ cho các nút hành động nhỏ khi hover." },
+      { "name": "shadow-md", "value": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)", "purpose": "Bóng hover cho nút bấm chính và thẻ card nổi." },
+      { "name": "shadow-lg", "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)", "purpose": "Bóng nổi khối cho Modal Dialog và Bottom Sheet." }
     ],
     "motion": [
-      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Gia tốc chuyển động chuẩn cho tương tác hover và chuyển đổi trạng thái." },
-      { "name": "duration-fast", "value": "150ms", "purpose": "Thời lượng đổi màu viền, nền nút bấm." },
-      { "name": "duration-normal", "value": "200ms", "purpose": "Thời lượng mở rộng, chuyển tab, dropdown." }
+      { "name": "transition-standard", "value": "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Chuyển động hover và phản hồi trạng thái chuẩn." },
+      { "name": "active-scale", "value": "scale(0.98)", "purpose": "Hiệu ứng co nhẹ xúc giác khi nhấn nút bấm." }
     ],
     "breakpoints": [
       { "name": "sm", "value": "640px" },
@@ -124,50 +142,59 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Nút bấm hành động chính (CTA) với dáng bo viên thuốc thân thiện.",
+      "description": "Nút hành động chính (CTA, Ứng tuyển, Đăng tin) dáng viên thuốc bo tròn.",
       "html": "<button class=\"ds-btn-primary\">Ứng tuyển ngay</button>",
-      "css": ".ds-btn-primary { font-family: Montserrat, sans-serif; background: #1b3b6f; color: #ffffff; padding: 8px 16px; border-radius: 9999px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.15s; outline: none; } .ds-btn-primary:hover { background: #122a52; } .ds-btn-primary:active { transform: scale(0.98); }"
+      "css": ".ds-btn-primary { background: #1b3b6f; color: #ffffff; padding: 8px 16px; border-radius: 9999px; font-family: Montserrat, sans-serif; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: background 0.2s, transform 0.1s; } .ds-btn-primary:hover { background: #122a52; } .ds-btn-primary:active { transform: scale(0.98); }"
     },
     {
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Nút bấm hành động phụ viền mảnh, dáng viên thuốc.",
+      "description": "Nút hành động phụ viền navy thanh lịch trên nền trong suốt.",
       "html": "<button class=\"ds-btn-secondary\">Xem chi tiết</button>",
-      "css": ".ds-btn-secondary { font-family: Montserrat, sans-serif; background: transparent; color: #1b3b6f; padding: 8px 16px; border-radius: 9999px; font-size: 14px; font-weight: 500; border: 1px solid #1b3b6f; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s, transform 0.15s; outline: none; } .ds-btn-secondary:hover { background: rgba(214, 241, 252, 0.4); color: #122a52; border-color: #122a52; } .ds-btn-secondary:active { transform: scale(0.98); }"
+      "css": ".ds-btn-secondary { background: transparent; color: #1b3b6f; padding: 8px 16px; border-radius: 9999px; font-family: Montserrat, sans-serif; font-size: 14px; font-weight: 500; border: 1px solid #1b3b6f; cursor: pointer; transition: all 0.2s; } .ds-btn-secondary:hover { background: rgba(214, 241, 252, 0.4); color: #122a52; border-color: #122a52; }"
     },
     {
       "name": "Search Input",
       "kind": "input",
       "refersTo": "input-search",
-      "description": "Thanh tìm kiếm dạng viên thuốc đặc trưng trên nền trắng tinh khiết.",
-      "html": "<input type=\"text\" class=\"ds-input-search\" placeholder=\"Tìm kiếm việc làm, kỹ năng, công ty...\" />",
-      "css": ".ds-input-search { font-family: Montserrat, sans-serif; width: 100%; background: #ffffff; color: #1a202c; border: 2px solid transparent; border-radius: 9999px; padding: 12px 24px; font-size: 14px; outline: none; transition: border-color 0.2s; box-sizing: border-box; } .ds-input-search:focus { border-color: #1b3b6f; }"
+      "description": "Thanh tìm kiếm việc làm nổi bật bo viên thuốc.",
+      "html": "<input type=\"text\" class=\"ds-input-search\" placeholder=\"Vị trí tuyển dụng, kỹ năng...\" />",
+      "css": ".ds-input-search { width: 100%; background: #ffffff; color: #1a202c; padding: 12px 24px 12px 24px; border-radius: 9999px; font-family: Montserrat, sans-serif; font-size: 14px; border: 2px solid transparent; box-shadow: 0 1px 2px rgba(0,0,0,0.05); outline: none; transition: border-color 0.2s; } .ds-input-search:focus { border-color: #1b3b6f; }"
     },
     {
       "name": "Job Card",
       "kind": "card",
       "refersTo": "card-base",
-      "description": "Thẻ hiển thị tin tuyển dụng bo góc tối đa 2xl, phẳng hoàn toàn, hover chuyển sắc.",
-      "html": "<div class=\"ds-card-job\"><div class=\"ds-card-header\"><span class=\"ds-card-salary\">$1,500/tháng</span><span class=\"ds-card-badge\">Toàn thời gian</span></div><h4 class=\"ds-card-title\">Senior Frontend Engineer</h4><p class=\"ds-card-company\">SmartHire Technology</p></div>",
-      "css": ".ds-card-job { font-family: Montserrat, sans-serif; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; cursor: pointer; transition: border-color 0.25s, background 0.25s; } .ds-card-job:hover { border-color: #38bdf8; background: linear-gradient(180deg, rgba(240, 249, 255, 0.5) 0%, #bae6fd 100%); } .ds-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; } .ds-card-salary { font-size: 16px; font-weight: 600; color: #1a202c; } .ds-card-badge { font-size: 12px; font-weight: 600; color: #0284c7; background: #f0f9ff; padding: 2px 8px; border-radius: 6px; } .ds-card-title { margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #1a202c; } .ds-card-company { margin: 0; font-size: 14px; color: #64748b; font-weight: 400; }"
+      "description": "Thẻ công việc tiêu chuẩn bo tối đa 16px (rounded-2xl) với tonal layering.",
+      "html": "<div class=\"ds-card-job\"><h3 class=\"ds-card-title\">Senior Frontend Engineer</h3><p class=\"ds-card-desc\">Công ty Công nghệ Thông minh • Hà Nội</p></div>",
+      "css": ".ds-card-job { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; font-family: Montserrat, sans-serif; transition: all 0.2s; } .ds-card-job:hover { border-color: #38bdf8; background: linear-gradient(180deg, rgba(240, 249, 255, 0.5) 0%, rgba(224, 242, 254, 0.5) 100%); } .ds-card-title { font-size: 16px; font-weight: 600; color: #1a202c; margin: 0 0 6px 0; } .ds-card-desc { font-size: 13px; color: #64748b; margin: 0; }"
     },
     {
-      "name": "Status Chip",
-      "kind": "chip",
-      "refersTo": "chip-status",
-      "description": "Badge trạng thái hồ sơ tuyển dụng rõ ràng, dễ phân biệt.",
-      "html": "<span class=\"ds-badge-reviewing\">Đang xem xét</span>",
-      "css": ".ds-badge-reviewing { font-family: Montserrat, sans-serif; display: inline-flex; align-items: center; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; }"
+      "name": "Modal Dialog",
+      "kind": "custom",
+      "refersTo": "dialog-base",
+      "description": "Hộp thoại chuẩn hóa trần bo góc 16px, an toàn viền trên mobile.",
+      "html": "<div class=\"ds-dialog\"><h4 class=\"ds-dialog-title\">Xác nhận thao tác</h4><p class=\"ds-dialog-desc\">Hành động này sẽ cập nhật trạng thái ứng viên.</p></div>",
+      "css": ".ds-dialog { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; font-family: Montserrat, sans-serif; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); max-width: 440px; width: 100%; } .ds-dialog-title { font-size: 16px; font-weight: 600; color: #1a202c; margin: 0 0 8px 0; } .ds-dialog-desc { font-size: 13px; color: #64748b; margin: 0; line-height: 1.5; }"
+    },
+    {
+      "name": "FAQ Accordion Item",
+      "kind": "custom",
+      "refersTo": "faq-accordion",
+      "description": "Khối câu hỏi thường gặp bo góc rounded-2xl với hiệu ứng chuyển tiếp mềm mại.",
+      "html": "<div class=\"ds-accordion\"><div class=\"ds-accordion-header\"><span>Ứng tuyển có mất phí không?</span></div></div>",
+      "css": ".ds-accordion { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; font-family: Montserrat, sans-serif; overflow: hidden; } .ds-accordion-header { padding: 16px 20px; font-size: 14px; font-weight: 600; color: #1a202c; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }"
     }
   ],
   "narrative": {
     "northStar": "The Trust Navigator",
-    "overview": "SmartHire được thiết kế với tinh thần định vị sự nghiệp đáng tin cậy, vững chãi và hiện đại. Lấy cảm hứng từ sắc xanh thẳm của đại dương sâu thẳm kết hợp cùng những làn gió xanh băng trong trẻo, giao diện phản ánh cam kết dẫn lối ứng viên và nhà tuyển dụng tìm đến nhau một cách minh bạch, an tâm và chuẩn xác. Triết lý thị giác của hệ thống đề cao sự tinh tế, cân bằng và thanh lịch, làm chủ không gian bằng phân tầng màu nền (tonal layering), đường viền mảnh dẻ tinh tế (#e2e8f0), khoảng cách thở mạch lạc và phông chữ Montserrat đầy bản lĩnh.",
+    "overview": "SmartHire được thiết kế với tinh thần định vị sự nghiệp đáng tin cậy, vững chãi và hiện đại. Lấy cảm hứng từ sắc xanh thẳm của đại dương sâu thẳm kết hợp cùng những làn gió xanh băng trong trẻo, giao diện phản ánh cam kết dẫn lối ứng viên và nhà tuyển dụng tìm đến nhau một cách minh bạch, an tâm và chuẩn xác.\n\nTriết lý thị giác của hệ thống đề cao sự tinh tế, cân bằng và thanh lịch. Thay vì lạm dụng các hiệu ứng thị giác rườm rà hay bóng đổ phức tạp gây quá tải nhận thức, SmartHire chọn cách làm chủ không gian bằng phân tầng màu nền (tonal layering), đường viền mảnh dẻ tinh tế (#e2e8f0), khoảng cách thở mạch lạc và phông chữ Montserrat đầy bản lĩnh.",
     "keyCharacteristics": [
-      "Thân thiện & Mềm mại: Nút bấm hành động và thanh tìm kiếm chủ đạo dùng dáng bo viên thuốc (pill shape/rounded-full).",
-      "Phẳng có trật tự (Flat by Default): Tuyệt đối không spam bóng đổ; độ sâu được kiến tạo thông qua sự tương phản nền Mist White (#f7fafc), bề mặt thẻ (#ffffff) và viền mảnh (#e2e8f0).",
-      "Trọng lượng kiểu chữ kỷ luật: Tối đa mức đậm font-semibold cho nội dung thông thường, chỉ dành font-bold cho các tiêu đề lớn."
+      "Thân thiện & Mềm mại: Nút bấm hành động và thanh tìm kiếm chủ đạo dùng dáng bo viên thuốc (pill shape / rounded-full), mang đến cảm giác dễ tiếp cận và kích thích tương tác.",
+      "Phẳng có trật tự (Flat by Default): Tuyệt đối không spam bóng đổ; độ sâu được kiến tạo thông qua sự tương phản giữa nền ứng dụng (#f7fafc), bề mặt thẻ (#ffffff) và đường phân cách thanh mảnh (#e2e8f0).",
+      "Trọng lượng kiểu chữ kỷ luật: Tối đa mức đậm font-semibold cho nội dung thông thường, chỉ dành font-bold cho các tiêu đề lớn.",
+      "Trần bo góc nhất quán (The 16px Ceiling): Mọi Container, Thẻ Card, Modal Dialog, Drawer và Bảng biểu chỉ bo tối đa mức rounded-2xl (16px), loại bỏ hoàn toàn tình trạng phình bo góc quá đà."
     ],
     "rules": [
       {
@@ -181,34 +208,51 @@
         "section": "colors"
       },
       {
+        "name": "The Semantic Dialog Rule",
+        "body": "Tuyệt đối không dùng các màu thô của Tailwind palette (bg-rose-50, text-emerald-700, border-slate-200) trong Dialog, Alert Dialog và Sheets; bắt buộc sử dụng CSS variables ngữ nghĩa (bg-status-error/10, text-status-error, border-border, bg-surface).",
+        "section": "colors"
+      },
+      {
         "name": "The Semibold Ceiling Rule",
         "body": "Ngoại trừ các thẻ tiêu đề lớn (h1, h2, .section-title), độ đậm tối đa của mọi văn bản trong hệ thống chỉ được đạt mức font-semibold (600). Tuyệt đối không dùng font-bold cho văn bản body, button hay label.",
         "section": "typography"
       },
       {
+        "name": "The Currency Mask Doctrine",
+        "body": "Mọi trường nhập và hiển thị tiền tệ (VND) phải tự động áp dụng phân cách hàng nghìn bằng dấu phẩy ',' (ví dụ 15,000,000 VND), bảo toàn con trỏ khi gõ và sử dụng hàm chuyển đổi chuẩn hóa formatCurrencyInput / parseCurrencyInput.",
+        "section": "typography"
+      },
+      {
         "name": "The Zero-Shadow Doctrine",
-        "body": "Tuyệt đối không spam shadow lên các bề mặt tĩnh. Ở trạng thái nghỉ, toàn bộ thẻ và khối nội dung đều phẳng hoàn toàn (shadow: none hoặc tối đa shadow-xs). Bóng mờ chỉ xuất hiện rất nhẹ (shadow-sm) khi nhấc bề mặt tương tác.",
+        "body": "Tuyệt đối không spam shadow lên các bề mặt tĩnh. Ở trạng thái nghỉ, toàn bộ thẻ và khối nội dung đều phẳng hoàn toàn (shadow: none hoặc tối đa shadow-xs). Bóng mờ chỉ xuất hiện rất nhẹ (shadow-sm) khi nhấc bề mặt tương tác (modal nổi, dropdown menu mở).",
         "section": "elevation"
       },
       {
         "name": "The Card Radius Ceiling Rule",
         "body": "Mọi thành phần chứa nội dung (Card, Container, Dialog, Box) có bán kính bo góc tối đa là rounded-2xl (16px). Dáng rounded-full chỉ dành riêng cho Button, Search Input, Chip/Badge và Avatar.",
         "section": "shapes"
+      },
+      {
+        "name": "The Inner Radius Proportion Rule",
+        "body": "Mọi thành phần con nằm bên trong một khối rounded-2xl phải có bo góc nhỏ hơn (rounded-xl, rounded-lg, rounded-md) để triệt tiêu hiện tượng lệch tâm hình học và bất đối xứng thị giác.",
+        "section": "shapes"
       }
     ],
     "dos": [
       "Do sử dụng dáng bo viên thuốc (rounded-full) cho các nút bấm chính và thanh tìm kiếm để giữ nét thân thiện, hiện đại.",
-      "Do giới hạn bo góc cho các thẻ card ở mức tối đa rounded-2xl (16px).",
+      "Do giới hạn bo góc cho các thẻ card, dialog, drawer ở mức trần tối đa rounded-2xl (16px).",
       "Do tạo chiều sâu bằng phân tầng màu nền (Mist White #f7fafc dưới đáy, Pure Surface #ffffff phía trên) và đường viền mảnh 1px (#e2e8f0).",
       "Do giữ độ đậm nhất của văn bản ở mức font-semibold (600), ngoại trừ các tiêu đề lớn của trang.",
-      "Do sử dụng các biến CSS và token đã chuẩn hóa trong Frontend/src/index.css."
+      "Do sử dụng các biến CSS và token đã chuẩn hóa trong Frontend/src/index.css (primary, surface, border, bg, text-main, text-muted, status-*).",
+      "Do tự động format số tiền tệ VND với dấu phân cách hàng nghìn bằng dấu phẩy ',' (ví dụ 15,000,000 VND)."
     ],
     "donts": [
       "Don't spam shadow hay sử dụng các hiệu ứng đổ bóng đen đậm, bóng mờ lan rộng trên bề mặt phẳng tĩnh.",
       "Don't bo góc thẻ card vượt quá rounded-2xl (như rounded-3xl hay rounded-[32px]).",
       "Don't sử dụng font-bold (700) tràn lan trong các khối văn bản thông thường, button hay nhãn form.",
-      "Don't sử dụng inline styles hoặc tùy tiện pha trộn màu sắc nằm ngoài bảng màu chuẩn của hệ thống.",
-      "Don't thêm viền kép hoặc kết hợp cả viền đậm lẫn bóng nổi trên cùng một component gây nặng nề thị giác."
+      "Don't sử dụng các mã màu nguyên thủy của Tailwind (slate-*, rose-*, emerald-*, gray-*) trong các component hệ thống.",
+      "Don't thêm viền kép hoặc kết hợp cả viền đậm lẫn bóng nổi trên cùng một component gây nặng nề thị giác.",
+      "Don't để các Modal, Bottom Sheets hoặc Dropdowns dính sát hoặc tràn ra ngoài mép màn hình di động."
     ]
   }
 }

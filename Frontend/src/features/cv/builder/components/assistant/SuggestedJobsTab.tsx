@@ -41,7 +41,7 @@ export const SuggestedJobsTab: React.FC = () => {
   } = useCvJobRecommendations({ isActive: true });
 
   const handleGoToSearch = () => {
-    navigate(PATHS.CANDIDATE?.SEARCH_JOBS || PATHS.SEARCH_JOB);
+    navigate(PATHS.SEARCH_JOB);
   };
 
   // 1. Trạng thái đang tải dữ liệu từ AI Rerank (Skeleton loading)

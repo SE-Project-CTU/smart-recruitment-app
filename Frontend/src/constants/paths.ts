@@ -6,6 +6,8 @@ export const PATHS = {
   SEARCH_JOB: "/search-job",
   COMPANY_DETAIL: "/companies/:id",
   BLOG: "/blog",
+  FAQS: "/faqs",
+  CONTACT: "/contact",
 
   // Root aliases for CV flow
   CREATE_CV: "/candidate/cv-templates",

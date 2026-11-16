@@ -99,7 +99,7 @@ function SkillForm({ skill, onClose, onSuccess }: SkillFormProps) {
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-text-main">
-            Tên kỹ năng <span className="text-rose-500">*</span>
+            Tên kỹ năng <span className="text-status-error">*</span>
           </label>
           <input
             type="text"
@@ -112,7 +112,7 @@ function SkillForm({ skill, onClose, onSuccess }: SkillFormProps) {
             className="w-full rounded-xl border border-border bg-bg px-3.5 py-2.5 text-xs text-text-main transition-colors focus:border-primary focus:bg-surface focus:outline-none"
             autoFocus
           />
-          {error && <p className="text-[11px] text-rose-500">{error}</p>}
+          {error && <p className="text-[11px] text-status-error">{error}</p>}
         </div>
 
         {isEditing && (
@@ -161,7 +161,7 @@ export function SkillDialog({
 }: SkillDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-none">
+      <DialogContent className="w-full sm:max-w-md p-5 sm:p-6 shadow-none">
         {open && (
           <SkillForm
             key={skill?.id || "create"}

@@ -57,8 +57,7 @@ export function CompanyHeroHeader({
       ),
     );
 
-  const isVerified =
-    company.verificationStatus?.toUpperCase() === "VERIFIED";
+  const isVerified = company.verificationStatus?.toUpperCase() === "VERIFIED";
 
   // Kiểm tra nếu recruiter này đã là thành viên chính thức
   const isCompanyMember =
@@ -76,12 +75,13 @@ export function CompanyHeroHeader({
       <div className="relative px-5 pt-2 pb-6 sm:px-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           {/* Logo & Identity */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="-mt-14 shrink-0 overflow-hidden rounded-full border-4 border-surface sm:-mt-16">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end">
+            <div className="-mt-12 size-20 shrink-0 self-start rounded-xl bg-surface p-1 sm:-mt-16 sm:size-24 sm:rounded-2xl sm:p-1.5 md:size-28">
               <CompanyLogo
                 logoUrl={company.logoUrl}
                 name={company.name}
                 size="lg"
+                className="size-full rounded-lg border-0 sm:rounded-xl"
               />
             </div>
 
@@ -93,7 +93,7 @@ export function CompanyHeroHeader({
 
                 {isVerified && (
                   <Tooltip>
-                    <TooltipTrigger className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 p-1 text-xs font-semibold text-emerald-700">
+                    <TooltipTrigger className="inline-flex items-center gap-1 rounded-full border border-status-success/30 bg-status-success/10 p-1 text-xs font-semibold text-status-success">
                       <ShieldCheck className="size-3.5 shrink-0" />
                     </TooltipTrigger>
                     <TooltipPanel>

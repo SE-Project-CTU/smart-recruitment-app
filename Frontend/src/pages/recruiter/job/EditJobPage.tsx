@@ -7,10 +7,8 @@ import {
   ArrowLeft,
   Building2,
   DollarSign,
-  GraduationCap,
   Save,
   ShieldCheck,
-  Users,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
@@ -30,8 +28,10 @@ import {
   JOB_LEVEL_OPTIONS,
   JOB_TYPE_OPTIONS,
   WORK_MODE_OPTIONS,
+  formatCurrencyInput,
   normalizeEducationLevel,
   normalizeJobLevel,
+  parseCurrencyInput,
   resolveJobType,
   resolveWorkMode,
 } from "@/utils/jobHelpers";
@@ -81,8 +81,8 @@ const initialEditState = (job: JobPostingItem): EditJobFormState => ({
   description: job.description || "",
   requirements: job.requirements || "",
   benefits: job.benefits || "",
-  salaryMin: job.salaryMin != null ? String(job.salaryMin) : "",
-  salaryMax: job.salaryMax != null ? String(job.salaryMax) : "",
+  salaryMin: job.salaryMin != null ? formatCurrencyInput(job.salaryMin) : "",
+  salaryMax: job.salaryMax != null ? formatCurrencyInput(job.salaryMax) : "",
   salaryNegotiable: Boolean(job.salaryNegotiable),
   deadline: job.deadline ? dayjs(job.deadline).format("YYYY-MM-DD") : "",
   industryIds: job.industryIds || job.industries?.map((i) => i.id) || [],
@@ -148,6 +148,42 @@ function EditJobForm({
     }
   };
 
+  const handleSalaryChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    field: "salaryMin" | "salaryMax",
+  ) => {
+    const input = event.target;
+    const rawValue = input.value;
+    const cursorPosition = input.selectionStart || 0;
+
+    // Đếm số chữ số trước con trỏ trước khi format
+    const digitsBeforeCursor = rawValue
+      .slice(0, cursorPosition)
+      .replace(/\D/g, "").length;
+
+    const formatted = formatCurrencyInput(rawValue);
+    updateForm(field, formatted);
+
+    // Bảo toàn vị trí con trỏ sau khi thêm/xóa dấu phẩy
+    requestAnimationFrame(() => {
+      let newCursorPos = 0;
+      let digitCount = 0;
+      for (let i = 0; i < formatted.length; i++) {
+        if (/\d/.test(formatted[i])) {
+          digitCount++;
+        }
+        if (digitCount === digitsBeforeCursor) {
+          newCursorPos = i + 1;
+          break;
+        }
+      }
+      if (digitCount < digitsBeforeCursor) {
+        newCursorPos = formatted.length;
+      }
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    });
+  };
+
   const handleProvinceChange = (provinceId: string) => {
     setFormData((current) => ({ ...current, provinceId, wardId: "" }));
     setFieldErrors((current) => {
@@ -173,13 +209,13 @@ function EditJobForm({
     if (formData.requirements.trim().length < 20)
       errors.requirements = "Yêu cầu cần có ít nhất 20 ký tự.";
     if (!formData.salaryNegotiable) {
-      const min = Number(formData.salaryMin);
-      const max = Number(formData.salaryMax);
-      if (formData.salaryMin && min < 0)
+      const min = parseCurrencyInput(formData.salaryMin);
+      const max = parseCurrencyInput(formData.salaryMax);
+      if (formData.salaryMin && (min == null || min < 0))
         errors.salaryMin = "Mức lương không thể âm.";
-      if (formData.salaryMax && max < 0)
+      if (formData.salaryMax && (max == null || max < 0))
         errors.salaryMax = "Mức lương không thể âm.";
-      if (formData.salaryMin && formData.salaryMax && min > max) {
+      if (min != null && max != null && min > max) {
         errors.salaryMax =
           "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
       }
@@ -220,11 +256,11 @@ function EditJobForm({
       benefits: formData.benefits.trim() || null,
       salaryMin:
         !formData.salaryNegotiable && formData.salaryMin
-          ? Number(formData.salaryMin)
+          ? parseCurrencyInput(formData.salaryMin)
           : null,
       salaryMax:
         !formData.salaryNegotiable && formData.salaryMax
-          ? Number(formData.salaryMax)
+          ? parseCurrencyInput(formData.salaryMax)
           : null,
       salaryNegotiable: formData.salaryNegotiable,
       deadline: dayjs(formData.deadline).endOf("day").toISOString(),
@@ -268,8 +304,9 @@ function EditJobForm({
         <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
           <AlertTriangle className="size-4 shrink-0 text-amber-600" />
           <span>
-            Tin tuyển dụng này hiện đang ở trạng thái <strong>{job.status}</strong>.
-            Các thay đổi sẽ được lưu nhưng tin vẫn ở trạng thái đóng cho đến khi được mở lại.
+            Tin tuyển dụng này hiện đang ở trạng thái{" "}
+            <strong>{job.status}</strong>. Các thay đổi sẽ được lưu nhưng tin
+            vẫn ở trạng thái đóng cho đến khi được mở lại.
           </span>
         </div>
       )}
@@ -282,7 +319,7 @@ function EditJobForm({
            ========================================================================= */}
         <div className="space-y-6 lg:col-span-7 xl:col-span-8">
           {/* Khối 1: Tên tin tuyển dụng & Danh mục ngành nghề & Kỹ năng */}
-          <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+          <section className="space-y-5 rounded-2xl border border-border bg-surface p-5 sm:p-6">
             <div className="border-b border-border pb-3">
               <h2 className="text-sm font-semibold text-text-main">
                 Thông tin công việc
@@ -296,7 +333,8 @@ function EditJobForm({
                   htmlFor="title"
                   className="mb-1.5 block text-xs font-semibold text-text-main"
                 >
-                  Tiêu đề tin tuyển dụng <span className="text-status-error">*</span>
+                  Tiêu đề tin tuyển dụng{" "}
+                  <span className="text-status-error">*</span>
                 </label>
                 <input
                   id="title"
@@ -327,9 +365,8 @@ function EditJobForm({
           </section>
 
           {/* Khối 2: Yêu cầu và chế độ đãi ngộ */}
-          <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+          <section className="space-y-5 rounded-2xl border border-border bg-surface p-5 sm:p-6">
             <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-              <GraduationCap className="size-4" />
               <h2 className="text-sm font-semibold text-text-main">
                 Yêu cầu tuyển dụng & Chế độ đãi ngộ
               </h2>
@@ -438,12 +475,11 @@ function EditJobForm({
                       <input
                         id="salaryMin"
                         name="salaryMin"
-                        type="number"
-                        min="0"
-                        step="500000"
-                        placeholder="Ví dụ: 15000000"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Ví dụ: 15,000,000"
                         value={formData.salaryMin}
-                        onChange={handleTextChange}
+                        onChange={(e) => handleSalaryChange(e, "salaryMin")}
                         className={inputClassName}
                       />
                       <FieldError message={fieldErrors.salaryMin} />
@@ -459,12 +495,11 @@ function EditJobForm({
                       <input
                         id="salaryMax"
                         name="salaryMax"
-                        type="number"
-                        min="0"
-                        step="500000"
-                        placeholder="Ví dụ: 30000000"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Ví dụ: 30,000,000"
                         value={formData.salaryMax}
-                        onChange={handleTextChange}
+                        onChange={(e) => handleSalaryChange(e, "salaryMax")}
                         className={inputClassName}
                       />
                       <FieldError message={fieldErrors.salaryMax} />
@@ -476,9 +511,8 @@ function EditJobForm({
           </section>
 
           {/* Khối 3: Mô tả công việc chi tiết */}
-          <section className="space-y-4 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+          <section className="space-y-4 rounded-2xl border border-border bg-surface p-5 sm:p-6">
             <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-              <Users className="size-4" />
               <h2 className="text-sm font-semibold text-text-main">
                 Mô tả công việc chi tiết
               </h2>
@@ -511,7 +545,8 @@ function EditJobForm({
                   htmlFor="requirements"
                   className="mb-1.5 block text-xs font-semibold text-text-main"
                 >
-                  Yêu cầu đối với ứng viên <span className="text-status-error">*</span>
+                  Yêu cầu đối với ứng viên{" "}
+                  <span className="text-status-error">*</span>
                 </label>
                 <textarea
                   id="requirements"
@@ -552,7 +587,7 @@ function EditJobForm({
             Employer Info (Read-only), Vị trí làm việc, Môi trường, Hạn chót
            ========================================================================= */}
         <div className="space-y-6 lg:sticky lg:top-6 lg:col-span-5 xl:col-span-4">
-          <div className="space-y-5 rounded-3xl border border-border bg-surface p-5 shadow-xs sm:p-6">
+          <div className="space-y-5 rounded-2xl border border-border bg-surface p-5 shadow-xs sm:p-6">
             {/* Header card bên phải */}
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-sm font-semibold text-text-main">
@@ -582,7 +617,9 @@ function EditJobForm({
                     {company?.name || job.company?.name || "Doanh nghiệp"}
                   </p>
                   <p className="truncate text-[11px] text-text-muted">
-                    {company?.taxCode ? `MST: ${company.taxCode}` : job.company?.address || "Đã xác nhận"}
+                    {company?.taxCode
+                      ? `MST: ${company.taxCode}`
+                      : job.company?.address || "Đã xác nhận"}
                   </p>
                 </div>
               </div>
@@ -683,7 +720,8 @@ export function EditJobPage() {
   const navigate = useNavigate();
 
   const { data: job, isLoading: isLoadingJob } = useJobPostingDetail(id);
-  const { data: myCompanies = [], isLoading: isLoadingCompanies } = useMyCompanies();
+  const { data: myCompanies = [], isLoading: isLoadingCompanies } =
+    useMyCompanies();
 
   const selectedCompany = useMemo(() => {
     const targetCompanyId = job?.companyId || job?.company?.id;
@@ -698,7 +736,7 @@ export function EditJobPage() {
     return (
       <main className="mx-auto w-full max-w-7xl space-y-6 pb-12">
         <div className="h-8 w-44 animate-pulse rounded-xl bg-slate-200" />
-        <div className="h-64 animate-pulse rounded-3xl border border-border bg-surface p-6" />
+        <div className="h-64 animate-pulse rounded-2xl border border-border bg-surface p-6" />
       </main>
     );
   }
@@ -706,7 +744,7 @@ export function EditJobPage() {
   if (!job) {
     return (
       <main className="mx-auto w-full max-w-2xl space-y-4 py-16 text-center">
-        <div className="rounded-3xl border border-border bg-surface p-8 shadow-xs">
+        <div className="rounded-2xl border border-border bg-surface p-8 shadow-xs">
           <h2 className="text-base font-bold text-text-main">
             Không tìm thấy tin tuyển dụng
           </h2>
@@ -729,7 +767,7 @@ export function EditJobPage() {
   if (!isMyCompany) {
     return (
       <main className="mx-auto w-full max-w-2xl space-y-4 py-16 text-center">
-        <div className="rounded-3xl border border-amber-200 bg-amber-50/50 p-8 shadow-xs">
+        <div className="rounded-2xl border border-status-warning/30 bg-status-warning/10 p-8 shadow-xs">
           <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
             <Building2 className="size-6" />
           </div>
@@ -737,7 +775,8 @@ export function EditJobPage() {
             Không có quyền chỉnh sửa
           </h2>
           <p className="mt-1 text-xs text-slate-600">
-            Bạn không thuộc doanh nghiệp sở hữu tin tuyển dụng này. Chỉ thành viên của công ty mới có quyền cập nhật thông tin.
+            Bạn không thuộc doanh nghiệp sở hữu tin tuyển dụng này. Chỉ thành
+            viên của công ty mới có quyền cập nhật thông tin.
           </p>
           <Button
             variant="primary"
@@ -759,7 +798,9 @@ export function EditJobPage() {
         <div>
           <button
             type="button"
-            onClick={() => navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))}
+            onClick={() =>
+              navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))
+            }
             className="mb-2 inline-flex items-center gap-1.5 text-xs text-text-muted transition-colors hover:text-primary"
           >
             <ArrowLeft className="size-3.5" />
@@ -769,7 +810,8 @@ export function EditJobPage() {
             Chỉnh sửa tin tuyển dụng
           </h1>
           <p className="text-xs text-text-muted">
-            Cập nhật nội dung mô tả, yêu cầu kỹ năng, địa điểm hoặc thời hạn nhận hồ sơ
+            Cập nhật nội dung mô tả, yêu cầu kỹ năng, địa điểm hoặc thời hạn
+            nhận hồ sơ
           </p>
         </div>
       </div>

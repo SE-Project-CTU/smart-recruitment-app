@@ -19,8 +19,10 @@ export const getDashboardPathByRole = (role?: string): string => {
     case "candidate":
       return PATHS.CANDIDATE.DASHBOARD;
     case "recruiter":
+    case "hr":
       return PATHS.RECRUITER.DASHBOARD;
     case "admin":
+    case "superadmin":
       return PATHS.ADMIN.DASHBOARD;
     default:
       return PATHS.HOME;

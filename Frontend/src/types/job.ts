@@ -58,6 +58,37 @@ export interface CompanySummary {
 export type SearchJobCompanySummary = CompanySummary;
 
 /**
+ * Định nghĩa tóm tắt thông tin Job tối thiểu/chuẩn hóa cho Card, Drawer, Modal
+ */
+export interface BaseJobSummary {
+  id: string;
+  title: string;
+  company?: CompanySummary | {
+    id?: string;
+    name?: string;
+    logoUrl?: string | null;
+    logoFileUrl?: string | null;
+    verificationStatus?: string | null;
+  } | null;
+  companyName?: string;
+  companyLogoUrl?: string | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryNegotiable?: boolean | null;
+  salaryRange?: string | null;
+  currency?: string | null;
+  jobType?: JobType | string | null;
+  workMode?: WorkMode | string | null;
+  jobLevel?: JobLevel | string | null;
+  location?: {
+    provinceName?: string | null;
+    wardName?: string | null;
+    detailedLocation?: string | null;
+  } | null;
+  provinceName?: string | null;
+}
+
+/**
  * Thông tin Người tạo tin (Recruiter Membership)
  */
 export interface JobPostingCreatorResult {

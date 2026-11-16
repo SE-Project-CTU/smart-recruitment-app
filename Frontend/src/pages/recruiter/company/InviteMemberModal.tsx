@@ -109,7 +109,7 @@ export function InviteMemberModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-full sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Mời nhân sự tuyển dụng</DialogTitle>
           <DialogDescription>
@@ -138,7 +138,7 @@ export function InviteMemberModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg py-2.5 pr-3.5 pl-10 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   error
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
                 autoFocus
@@ -152,7 +152,7 @@ export function InviteMemberModal({
                 </p>
               ) : (
                 <p className="flex items-center gap-1.5 text-text-muted">
-                  <Info className="size-3.5 shrink-0 text-sky-600" />
+                  <Info className="size-3.5 shrink-0 text-primary" />
                   <span>
                     Hệ thống sẽ gửi thông báo và lời mời đến tài khoản này.
                     Người nhận cần có tài khoản vai trò Nhà tuyển dụng.
@@ -190,7 +190,7 @@ export function InviteMemberModal({
 
               <Select.Portal>
                 <Select.Positioner
-                  className="isolate z-70"
+                  className="isolate z-[75]"
                   alignItemWithTrigger={false}
                   sideOffset={4}
                 >

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <linearGradient id="success-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DCFCE7" />
+      <stop offset="100%" stop-color="#F0FDF4" />
+    </linearGradient>
+  </defs>
+
+  <!-- Backdrop circle -->
+  <circle cx="250" cy="250" r="180" fill="url(#success-bg)" opacity="0.7" />
+  <ellipse cx="250" cy="420" rx="160" ry="30" fill="#E2E8F0" opacity="0.6" />
+
+  <!-- Confetti / Floating Sparkles -->
+  <circle cx="120" cy="160" r="6" fill="#F59E0B" />
+  <circle cx="380" cy="180" r="5" fill="#22C55E" />
+  <circle cx="140" cy="300" r="4" fill="#3B82F6" />
+  <circle cx="360" cy="310" r="6" fill="#EC4899" />
+  <polygon points="170,110 176,126 192,128 180,138 184,154 170,144 156,154 160,138 148,128 164,126" fill="#FBBF24" />
+  <polygon points="330,120 334,132 346,134 337,142 340,154 330,146 320,154 323,142 314,134 326,132" fill="#60A5FA" />
+
+  <!-- Giant Mailbox Envelope -->
+  <g transform="translate(150, 150)">
+    <!-- Base Envelope Body -->
+    <rect x="0" y="40" width="200" height="130" rx="14" fill="#1B3B6F" filter="drop-shadow(0px 12px 24px rgba(27,59,111,0.2))" />
+    
+    <!-- Inner Paper sticking out -->
+    <rect x="25" y="0" width="150" height="100" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" />
+    <!-- Letter text lines -->
+    <rect x="45" y="24" width="70" height="7" rx="3.5" fill="#A6E1FA" />
+    <rect x="45" y="40" width="110" height="5" rx="2.5" fill="#E2E8F0" />
+    <rect x="45" y="52" width="90" height="5" rx="2.5" fill="#E2E8F0" />
+    <rect x="45" y="64" width="100" height="5" rx="2.5" fill="#E2E8F0" />
+
+    <!-- Green Approved Check Stamp -->
+    <g transform="translate(125, 45)">
+      <circle cx="16" cy="16" r="16" fill="#22C55E" />
+      <path d="M10 16 L14 20 L22 11" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </g>
+
+    <!-- Front flap folds of envelope -->
+    <path d="M0 40 L100 115 L200 40" fill="none" stroke="#122A52" stroke-width="3" />
+    <polygon points="0,40 100,115 0,170" fill="#152E5A" />
+    <polygon points="200,40 100,115 200,170" fill="#152E5A" />
+    <polygon points="0,170 100,115 200,170" fill="#183464" />
+  </g>
+
+  <!-- Flying Paper Plane on Right -->
+  <g transform="translate(310, 80) rotate(-15)">
+    <path d="M0 40 L90 0 L40 70 L35 45 Z" fill="#A6E1FA" stroke="#1B3B6F" stroke-width="2" stroke-linejoin="round" />
+    <path d="M35 45 L90 0 L40 70 Z" fill="#6FC3E8" stroke="#1B3B6F" stroke-width="2" stroke-linejoin="round" />
+    <!-- Trail dashed curve -->
+    <path d="M-60 80 Q-20 60 0 40" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="6,6" fill="none" stroke-linecap="round" />
+  </g>
+
+  <!-- Happy Character Standing on Left -->
+  <g transform="translate(80, 240)">
+    <!-- Legs -->
+    <path d="M45 100 L40 170" stroke="#1B3B6F" stroke-width="12" stroke-linecap="round" />
+    <path d="M65 100 L70 170" stroke="#1B3B6F" stroke-width="12" stroke-linecap="round" />
+    <ellipse cx="36" cy="174" rx="12" ry="5" fill="#1E293B" />
+    <ellipse cx="76" cy="174" rx="12" ry="5" fill="#1E293B" />
+    <!-- Body -->
+    <path d="M35 50 L75 50 L70 110 L40 110 Z" fill="#22C55E" rx="8" />
+    <!-- Cheerful Arm waving up -->
+    <path d="M35 55 C20 35 15 20 5 15" stroke="#22C55E" stroke-width="10" stroke-linecap="round" fill="none" />
+    <circle cx="5" cy="15" r="7" fill="#FBCFE8" />
+    <!-- Other arm resting on hip -->
+    <path d="M75 55 C90 65 92 80 85 90" stroke="#16A34A" stroke-width="9" stroke-linecap="round" fill="none" />
+    <!-- Head -->
+    <ellipse cx="55" cy="24" rx="18" ry="20" fill="#FBCFE8" />
+    <path d="M40 18 C40 -2 70 -2 70 18 Z" fill="#1E293B" />
+    <!-- Smiling face -->
+    <circle cx="50" cy="24" r="2" fill="#1E293B" />
+    <circle cx="60" cy="24" r="2" fill="#1E293B" />
+    <path d="M52 30 Q55 34 58 30" stroke="#1E293B" stroke-width="1.5" fill="none" stroke-linecap="round" />
+  </g>
+</svg>
+

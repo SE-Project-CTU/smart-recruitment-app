@@ -49,7 +49,7 @@ export default function CandidateCvTemplatesPage() {
   };
 
   return (
-    <div className="min-h-full space-y-6 pb-12">
+    <div className="space-y-6">
       {/* Tiêu đề & Ô tìm kiếm */}
       <CvTemplatesHeader
         searchKeyword={searchKeyword}
@@ -78,6 +78,7 @@ export default function CandidateCvTemplatesPage() {
       <PreviewTemplateModal
         template={previewTemplate}
         onClose={() => setPreviewTemplate(null)}
+        onUseTemplate={setSelectedTemplate}
       />
     </div>
   );
