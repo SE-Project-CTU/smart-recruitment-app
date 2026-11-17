@@ -2,6 +2,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Draggable, type DraggableStateSnapshot } from "@hello-pangea/dnd";
 import DraggableSectionActions from "../../builder/components/DraggableSectionActions";
+import { useCvRewriteContext } from "../../builder/context/CvRewriteContext";
 
 interface DraggableSectionCardProps {
   sectionKey: string;
@@ -56,6 +57,12 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
     onToggleVisibility,
     children,
   }) => {
+    const { activeSuggestionSectionKey } = useCvRewriteContext();
+    const isActiveSuggestion = Boolean(
+      activeSuggestionSectionKey &&
+        sectionKey.toLowerCase() === activeSuggestionSectionKey.toLowerCase(),
+    );
+
     return (
       <Draggable
         draggableId={sectionKey}
@@ -67,8 +74,13 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
             <div
               ref={dragProvided.innerRef}
               {...dragProvided.draggableProps}
+              data-section-key={sectionKey}
               style={getDraggableStyle(dragProvided.draggableProps.style, snapshot)}
-              className={`group relative rounded-sm hover:ring-1 hover:ring-slate-400 ${
+              className={`group relative rounded-lg px-1 scroll-mt-8 transition-all duration-200 ${
+                isActiveSuggestion
+                  ? "border-2 border-primary ring-2 ring-primary/20 bg-blue-50/10 shadow-xs"
+                  : "hover:ring-1 hover:ring-slate-400"
+              } ${
                 snapshot.isDragging
                   ? "z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
                   : ""
@@ -81,6 +93,7 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
                 onMoveUp={onMoveUp}
                 onMoveDown={onMoveDown}
                 onDelete={onToggleVisibility}
+                sectionKey={sectionKey}
               />
               {children}
             </div>

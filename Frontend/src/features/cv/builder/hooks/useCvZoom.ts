@@ -8,6 +8,7 @@ export const CV_ZOOM_STEP = 0.1;
 export interface UseCvZoomOptions {
   initialZoom?: number;
   containerRef?: RefObject<HTMLElement | null>;
+  disabled?: boolean;
 }
 
 export function useCvZoom(options?: UseCvZoomOptions) {
@@ -38,10 +39,10 @@ export function useCvZoom(options?: UseCvZoomOptions) {
     setZoomState(Math.round(clamped * 100) / 100);
   }, []);
 
-  // Lắng nghe Ctrl + Wheel để zoom mượt mà khi cuộn chuột trong container
+  // Lắng nghe Ctrl + Wheel để zoom mượt mà khi cuộn chuột trong container (tắt khi disabled)
   useEffect(() => {
     const container = options?.containerRef?.current;
-    if (!container) return;
+    if (!container || options?.disabled) return;
 
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -58,7 +59,7 @@ export function useCvZoom(options?: UseCvZoomOptions) {
     return () => {
       container.removeEventListener("wheel", handleWheel);
     };
-  }, [options?.containerRef, zoomIn, zoomOut]);
+  }, [options?.containerRef, options?.disabled, zoomIn, zoomOut]);
 
   return {
     zoom,

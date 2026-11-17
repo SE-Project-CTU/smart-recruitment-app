@@ -1,4 +1,4 @@
-import { useMemo, type Ref } from "react";
+import { useMemo, useEffect, type Ref } from "react";
 import { useFormContext, useWatch, type FieldPath } from "react-hook-form";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import { TiptapField } from "./TiptapField";
@@ -8,12 +8,14 @@ import type { CvFieldRenderer } from "../../templates/types";
 import type { CvTemplateCode, RichTextCVContentDocument } from "@/types/cv";
 import { TEMPLATE_REGISTRY, validateCvLayout } from "../../templates/registry";
 import { ensureValidLayout } from "../utils/richTextInitialValues";
+import { scrollCvSectionIntoView } from "../utils/cvAssistantHelpers";
 
 interface CvBuilderWorkspaceProps {
   contentRef?: Ref<HTMLDivElement>;
   className?: string;
   isReadOnly?: boolean;
   zoom?: number;
+  highlightSectionKey?: string | null;
 }
 
 export default function CvBuilderWorkspace({
@@ -21,6 +23,7 @@ export default function CvBuilderWorkspace({
   className = "",
   isReadOnly = false,
   zoom = 1.0,
+  highlightSectionKey = null,
 }: CvBuilderWorkspaceProps) {
   const { control, getValues } = useFormContext<RichTextCvEditorValues>();
 
@@ -236,6 +239,12 @@ export default function CvBuilderWorkspace({
   const normalizedLayout = useMemo(() => {
     return ensureValidLayout(currentLayout, templateCode);
   }, [currentLayout, templateCode]);
+
+  // Cuộn tới thẻ tổ tiên draggable của section khi mở chế độ so sánh
+  useEffect(() => {
+    if (!highlightSectionKey) return;
+    scrollCvSectionIntoView(highlightSectionKey);
+  }, [highlightSectionKey]);
 
   return (
     <main

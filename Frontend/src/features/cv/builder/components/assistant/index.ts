@@ -14,3 +14,5 @@ export * from "./TargetJobSelectModal";
 export * from "./TargetJobListColumn";
 export * from "./TargetJobDetailPreview";
 export * from "./TargetJobSelectorCard";
+export * from "./CvComparisonSidePanel";
+export * from "./SectionAiSuggestionButton";

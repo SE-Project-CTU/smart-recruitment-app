@@ -21,6 +21,10 @@ interface CvRewriteContextValue {
   hasGenerated: boolean;
   isError: boolean;
   errorMessage: string | null;
+  activeSuggestionSectionKey: string | null;
+  openSuggestionForSection: (sectionKey: string) => void;
+  closeFloatingSuggestion: () => void;
+  getSuggestionForSection: (sectionKey: string) => CvSectionSuggestion | undefined;
   setSelectedTargetJob: (job: TargetJobOption | null) => void;
   setCustomPrompt: (value: string) => void;
   generateSuggestions: (
@@ -46,11 +50,32 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
   const [customPrompt, setCustomPrompt] = useState("");
   const [suggestions, setSuggestions] = useState<CvSectionSuggestion[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [activeSuggestionSectionKey, setActiveSuggestionSectionKey] =
+    useState<string | null>(null);
 
   const enhanceBatchMutation = useEnhanceCvBatch();
 
+  const openSuggestionForSection = useCallback((sectionKey: string) => {
+    setActiveSuggestionSectionKey(sectionKey.toLowerCase());
+  }, []);
+
+  const closeFloatingSuggestion = useCallback(() => {
+    setActiveSuggestionSectionKey(null);
+  }, []);
+
+  const getSuggestionForSection = useCallback(
+    (sectionKey: string) => {
+      const lower = sectionKey.toLowerCase();
+      return suggestions.find(
+        (s) => s.sectionKey.toLowerCase() === lower && s.status !== "dismissed",
+      );
+    },
+    [suggestions],
+  );
+
   const executeEnhanceBatch = useCallback(
     async (values?: Partial<RichTextCvEditorValues> | null) => {
+      setActiveSuggestionSectionKey(null);
       if (!selectedTargetJob) {
         return { success: false, reason: "NO_JOB" as GenerateFailureReason };
       }
@@ -153,13 +178,23 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const dismissSuggestion = useCallback((suggestionId: string) => {
     setSuggestions((prev) =>
-      prev.map((s) => (s.id === suggestionId ? { ...s, status: "dismissed" } : s)),
+      prev.map((s) => (s.id === suggestionId ? { ...s, status: "dismissed" as const } : s)),
     );
-  }, []);
+    // Tự động đóng bảng so sánh nếu suggestion đang mở bị dismiss
+    setActiveSuggestionSectionKey((currentActiveKey: string | null) => {
+      if (!currentActiveKey) return null;
+      const target = suggestions.find((s) => s.id === suggestionId);
+      if (target && target.sectionKey.toLowerCase() === currentActiveKey.toLowerCase()) {
+        return null;
+      }
+      return currentActiveKey;
+    });
+  }, [suggestions]);
 
   const clearSuggestions = useCallback(() => {
     setSuggestions([]);
     setHasGenerated(false);
+    setActiveSuggestionSectionKey(null);
   }, []);
 
   const errorMessage = enhanceBatchMutation.error
@@ -179,6 +214,10 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
         hasGenerated,
         isError: enhanceBatchMutation.isError,
         errorMessage,
+        activeSuggestionSectionKey,
+        openSuggestionForSection,
+        closeFloatingSuggestion,
+        getSuggestionForSection,
         setSelectedTargetJob,
         setCustomPrompt,
         generateSuggestions,
