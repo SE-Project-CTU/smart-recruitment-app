@@ -64,7 +64,7 @@ export function ApplicationCvPreviewDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+      <DialogContent className="w-full sm:max-w-md">
         <DialogHeader>
           <DialogTitle>CV hệ thống</DialogTitle>
           <DialogDescription>

@@ -1,6 +1,6 @@
 import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, PagedResult } from "@/types";
 import type {
   CVItem,
   CVTemplateDetail,
@@ -13,26 +13,9 @@ import type {
   UpdateCvPayload,
 } from "@/types/cv";
 
-export interface PagedCvResult {
-  items: CVItem[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-}
-
-export interface PagedCvTemplateResult {
-  items: CVTemplateItem[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-}
-
-export interface PagedCvVersionResult {
-  items: CVVersionItem[];
-  page: number;
-  pageSize: number;
-  totalItems: number;
-}
+export type PagedCvResult = PagedResult<CVItem>;
+export type PagedCvTemplateResult = PagedResult<CVTemplateItem>;
+export type PagedCvVersionResult = PagedResult<CVVersionItem>;
 
 export const cvService = {
   /**

@@ -1,4 +1,11 @@
 import type { PaginationMeta } from "./common";
+import type {
+  ProvinceItem,
+  WardItem,
+  IndustryItem,
+  IndustryGroupItem,
+  SkillItem,
+} from "./catalog";
 
 // ==========================================
 // 1. DASHBOARD OVERVIEW
@@ -198,42 +205,26 @@ export interface ReviewJobModerationResult {
 // 5. MASTER CATALOGS
 // ==========================================
 
-export interface AdminIndustryGroup {
-  id: string;
-  name: string;
-  isActive: boolean;
+export interface AdminIndustryGroup extends IndustryGroupItem {
   industriesCount: number;
 }
 
-export interface AdminIndustry {
-  id: string;
+export interface AdminIndustry extends IndustryItem {
   groupId: string;
   groupName: string;
-  name: string;
-  isActive: boolean;
 }
 
-export interface AdminProvince {
-  id: string;
-  name: string;
-  status: string;
-  isCentrallyGoverned: boolean;
+export interface AdminProvince extends ProvinceItem {
   wardsCount: number;
 }
 
-export interface AdminWard {
-  id: string;
+export interface AdminWard extends WardItem {
   provinceId: string;
   provinceName: string;
-  name: string;
-  status: string;
   isCommune: boolean;
 }
 
-export interface AdminSkill {
-  id: string;
-  name: string;
-  isActive: boolean;
+export interface AdminSkill extends SkillItem {
   createdAt: string;
 }
 

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Globe,
   Phone,
@@ -87,6 +88,17 @@ export function CompanyDetailDrawer({
   onRejectInvitation,
   isProcessingInvitation = false,
 }: CompanyDetailDrawerProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const effectiveId =
     companyId ||
     initialCompany?.id ||
@@ -137,10 +149,20 @@ export function CompanyDetailDrawer({
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
-        side="right"
-        className="flex w-full min-w-130 flex-col gap-0 overflow-y-auto p-0 pt-5 backdrop-blur-none sm:max-w-md"
+        side={isMobile ? "bottom" : "right"}
+        className={
+          isMobile
+            ? "flex h-[90vh] max-h-[92vh] w-full flex-col gap-0 rounded-t-2xl border-t border-border bg-surface p-0 shadow-2xl backdrop-blur-none"
+            : "flex w-full flex-col gap-0 overflow-y-auto p-0 pt-5 backdrop-blur-none sm:max-w-md sm:min-w-130"
+        }
       >
-        <SheetHeader className="shrink-0 border-b border-border p-6 pb-5">
+        {isMobile && (
+          <div className="flex w-full justify-center pt-3 pb-1">
+            <div className="h-1.5 w-12 rounded-full bg-border" />
+          </div>
+        )}
+
+        <SheetHeader className="shrink-0 border-b border-border p-4 sm:p-6 sm:pb-5">
           {isLoading && !company ? (
             <div className="space-y-3 py-4">
               <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
@@ -148,13 +170,13 @@ export function CompanyDetailDrawer({
             </div>
           ) : company ? (
             <>
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3.5 sm:gap-4">
                 <CompanyLogo
                   logoUrl={company.logoUrl}
                   name={company.name}
                   size="lg"
                 />
-                <div className="min-w-0 flex-1 pt-1">
+                <div className="min-w-0 flex-1 pt-0.5 sm:pt-1">
                   <SheetTitle className="text-base leading-snug font-semibold text-text-main">
                     {company.name}
                   </SheetTitle>
@@ -167,19 +189,19 @@ export function CompanyDetailDrawer({
                     {canSeeVerification && (
                       <>
                         {company.verificationStatus === "Verified" && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-status-success/30 bg-status-success/10 px-2 py-0.5 text-[11px] font-semibold text-status-success">
                             <ShieldCheck className="size-3" />
                             Đã xác thực
                           </span>
                         )}
                         {company.verificationStatus === "Pending" && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-status-warning/30 bg-status-warning/10 px-2 py-0.5 text-[11px] font-semibold text-status-warning">
                             <Clock className="size-3" />
                             Chờ duyệt
                           </span>
                         )}
                         {company.verificationStatus === "Rejected" && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-status-error/30 bg-status-error/10 px-2 py-0.5 text-[11px] font-semibold text-status-error">
                             <AlertCircle className="size-3" />
                             Từ chối
                           </span>
@@ -190,12 +212,12 @@ export function CompanyDetailDrawer({
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center gap-2.5">
+              <div className="mt-4 flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-2.5">
                 {company.id && (
                   <Button
                     variant="secondary"
                     icon={ExternalLink}
-                    className="flex-1! text-xs!"
+                    className="flex-1! min-w-[130px] text-xs!"
                     onClick={() =>
                       window.open(
                         PATHS.COMPANY_DETAIL.replace(":id", company.id),
@@ -210,7 +232,7 @@ export function CompanyDetailDrawer({
                 {company.website && (
                   <Button
                     variant="secondary"
-                    className="flex-1! text-xs!"
+                    className="flex-1! min-w-[110px] text-xs!"
                     onClick={() => {
                       const url = company.website.startsWith("http")
                         ? company.website
@@ -228,7 +250,7 @@ export function CompanyDetailDrawer({
                       render={
                         <Button
                           variant="secondary"
-                          className="p-2.5!"
+                          className="shrink-0 p-2.5!"
                           onClick={() => onToggleBookmark(company.id)}
                         >
                           <MorphIcon
@@ -253,40 +275,40 @@ export function CompanyDetailDrawer({
         </SheetHeader>
 
         {company && (
-          <div className="flex-1 space-y-6 p-6">
+          <div className="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
             {/* Nếu mở trong ngữ cảnh lời mời gia nhập */}
             {invitation && (
-              <section className="rounded-2xl border border-border bg-slate-50 p-4 text-xs">
-                <h4 className="font-semibold text-slate-700">
+              <section className="rounded-2xl border border-border bg-bg p-4 text-xs">
+                <h4 className="font-semibold text-text-main">
                   Thông tin lời mời gia nhập
                 </h4>
-                <div className="mt-2 space-y-1.5 text-slate-600">
+                <div className="mt-2 space-y-1.5 text-text-muted">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Ngày gửi:</span>
-                    <span className="font-medium text-slate-700">
+                    <span className="text-text-muted">Ngày gửi:</span>
+                    <span className="font-medium text-text-main">
                       {dayjs(invitation.createdAt).format("DD/MM/YYYY HH:mm")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Hạn phản hồi:</span>
+                    <span className="text-text-muted">Hạn phản hồi:</span>
                     <span
                       className={`font-medium ${
-                        isExpired ? "text-rose-600" : "text-slate-700"
+                        isExpired ? "text-status-error" : "text-text-main"
                       }`}
                     >
                       {dayjs(invitation.expiresAt).format("DD/MM/YYYY HH:mm")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Trạng thái:</span>
+                    <span className="text-text-muted">Trạng thái:</span>
                     <span className="font-semibold text-primary">
                       {invitation.status}
                     </span>
                   </div>
                   {invitation.inviter && (
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Người mời:</span>
-                      <span className="font-medium text-slate-700">
+                      <span className="text-text-muted">Người mời:</span>
+                      <span className="font-medium text-text-main">
                         {invitation.inviter.fullName}
                         {invitation.inviter.email
                           ? ` (${invitation.inviter.email})`
@@ -296,8 +318,8 @@ export function CompanyDetailDrawer({
                   )}
                   {!invitation.inviter && invitation.inviterEmail && (
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Người mời:</span>
-                      <span className="font-medium text-slate-700">
+                      <span className="text-text-muted">Người mời:</span>
+                      <span className="font-medium text-text-main">
                         {invitation.inviterEmail}
                       </span>
                     </div>
@@ -305,13 +327,13 @@ export function CompanyDetailDrawer({
                 </div>
 
                 {isPending && !isExpired && (
-                  <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-200/60 pt-3">
+                  <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-3">
                     {onRejectInvitation && (
                       <Button
                         variant="secondary"
                         onClick={() => onRejectInvitation(invitation)}
                         disabled={isProcessingInvitation}
-                        className="h-8! px-3! text-xs! font-medium! text-rose-600! ring-status-error! hover:bg-rose-50!"
+                        className="h-8! px-3! text-xs! font-medium! text-status-error! ring-status-error/30! hover:bg-status-error/10!"
                       >
                         Từ chối
                       </Button>

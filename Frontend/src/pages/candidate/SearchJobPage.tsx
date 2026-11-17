@@ -67,14 +67,37 @@ export default function SearchJobPage({
   isPublicPage?: boolean;
 }) {
   const {
-    setUrlParams, currentPage, setCurrentPage, jobListTopRef,
-    searchQuery, setSearchQuery, selectedLocation, sortBy, filters,
-    isMobileFilterOpen, setIsMobileFilterOpen, selectedJob, isDetailDrawerOpen,
-    setIsDetailDrawerOpen, bookmarkedJobIds, jobList, totalPages,
-    totalItems, isFetchingJobs, isJobsError, jobDetail,
-    handleToggleArrayFilter, handleToggleSingleFilter, handleToggleIndustryGroup,
-    handleSalaryRangeChange, handleToggleNegotiable, handleResetFilters,
-    handleSearchSubmit, handlePageChange, handleSelectJob, handleToggleBookmark,
+    setUrlParams,
+    currentPage,
+    setCurrentPage,
+    jobListTopRef,
+    searchQuery,
+    setSearchQuery,
+    selectedLocation,
+    sortBy,
+    filters,
+    isMobileFilterOpen,
+    setIsMobileFilterOpen,
+    selectedJob,
+    isDetailDrawerOpen,
+    setIsDetailDrawerOpen,
+    bookmarkedJobIds,
+    jobList,
+    totalPages,
+    totalItems,
+    isFetchingJobs,
+    isJobsError,
+    jobDetail,
+    handleToggleArrayFilter,
+    handleToggleSingleFilter,
+    handleToggleIndustryGroup,
+    handleSalaryRangeChange,
+    handleToggleNegotiable,
+    handleResetFilters,
+    handleSearchSubmit,
+    handlePageChange,
+    handleSelectJob,
+    handleToggleBookmark,
     handleApply,
   } = useSearchJobPage();
   return (
@@ -208,7 +231,7 @@ export default function SearchJobPage({
             "w-56 xl:w-76 3xl:w-85",
             isPublicPage
               ? "top-25 h-[calc(100svh-7.5rem)]"
-              : "top-4 h-[calc(100svh-5rem)]",
+              : "top-22 h-[calc(100svh-5rem)]",
           )}
         >
           <JobFilterSidebar

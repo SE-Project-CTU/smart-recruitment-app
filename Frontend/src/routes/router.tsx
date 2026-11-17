@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import RootLayout from "@/layouts/RootLayout";
-import BaseLayout from "@/layouts/BaseLayout.tsx";
+import BaseLayout, { CandidatePageLayout } from "@/layouts/BaseLayout.tsx";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Page from "@/components/common/Page";
 import {
@@ -10,11 +10,12 @@ import {
   CandidateDashboard,
   UserProfile,
   BadRequestPage,
+  FaqPage,
+  ContactPage,
 } from "@/pages";
 import { PublicOnlyRoute } from "@/routes/PublicOnlyRoute.tsx";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { PATHS } from "@/constants/paths";
-import SearchJobPage from "@/pages/candidate/SearchJobPage";
 import SearchJob from "@/pages/SearchJobPublic";
 import BookmarkCompanies from "@/pages/candidate/BookmarkCompanies";
 import BookmarkJobs from "@/pages/candidate/BookmarkJobs";
@@ -50,6 +51,7 @@ import AdminCompanyModerationPage from "@/pages/admin/company/AdminCompanyModera
 import AdminJobModerationPage from "@/pages/admin/job/AdminJobModerationPage";
 import AdminUserManagementPage from "@/pages/admin/user/AdminUserManagementPage";
 import AdminCatalogsPage from "@/pages/admin/catalog/AdminCatalogsPage";
+import CandidateSearchRedirect from "./CandidateSearchRedirect";
 
 const router = createBrowserRouter([
   {
@@ -64,239 +66,249 @@ const router = createBrowserRouter([
           { path: PATHS.SEARCH_JOB, element: <SearchJob /> },
           { path: PATHS.COMPANY_DETAIL, element: <CompanyDetailPage /> },
           { path: PATHS.BLOG, element: <CareerBlogPage /> },
+          { path: PATHS.FAQS, element: <FaqPage /> },
+          { path: PATHS.CONTACT, element: <ContactPage /> },
         ],
       },
 
-  {
-    element: <PublicOnlyRoute redirectTo={PATHS.HOME} />,
-    children: [
-      { path: PATHS.SIGN_IN, element: <SignIn /> },
-      { path: PATHS.SIGN_UP, element: <SignUp /> },
-    ],
-  },
-
-  //CANDIDATE ROUTES
-  {
-    element: <ProtectedRoute allowRoles={["candidate"]} />,
-    children: [
       {
-        path: PATHS.CANDIDATE.EDIT_CV,
-        element: <CandidateCvBuilderPage />,
-      },
-      {
-        element: <DashboardLayout />,
+        element: <PublicOnlyRoute redirectTo={PATHS.HOME} />,
         children: [
-          {
-            path: "/candidate",
-            element: <Navigate to={PATHS.CANDIDATE.DASHBOARD} replace />,
-          },
-          {
-            path: "/candidate/bookmarks",
-            element: <Navigate to={PATHS.CANDIDATE.BOOKMARK_JOBS} replace />,
-          },
-          {
-            path: PATHS.CANDIDATE.DASHBOARD,
-            element: <CandidateDashboard />,
-          },
-          {
-            path: PATHS.CANDIDATE.SEARCH_JOBS,
-            element: <SearchJobPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.MATCHED_JOBS,
-            element: <MatchedJobsPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.CV_MANAGEMENT,
-            element: <CandidateCvManagementPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.CV_TEMPLATES,
-            element: <CandidateCvTemplatesPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.SAVE_CV_SUCCESS,
-            element: <CandidateSaveCvSuccessPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.PREVIEW_CV,
-            element: <CandidatePreviewCvPage />,
-          },
-
-          {
-            path: PATHS.CANDIDATE.APPLICATION_STATUS,
-            element: <CandidateApplicationStatusPage />,
-          },
-          {
-            path: PATHS.CANDIDATE.BOOKMARK_COMPANIES,
-            element: <BookmarkCompanies />,
-          },
-          {
-            path: PATHS.CANDIDATE.BOOKMARK_JOBS,
-            element: <BookmarkJobs />,
-          },
-          {
-            path: PATHS.CANDIDATE.COMPANY_REVIEWS,
-            element: <Page title="Rì viu" />,
-          },
-          {
-            path: PATHS.CANDIDATE.USER_PROFILE,
-            element: <UserProfile />,
-          },
-          {
-            path: PATHS.CANDIDATE.SETTINGS,
-            element: <Page title="Cài đặt tài khoản" />,
-          },
+          { path: PATHS.SIGN_IN, element: <SignIn /> },
+          { path: PATHS.SIGN_UP, element: <SignUp /> },
         ],
       },
-    ],
-  },
 
-  // RECRUITER
-  {
-    element: <ProtectedRoute allowRoles={["recruiter", "hr"]} />,
-    children: [
+      //CANDIDATE ROUTES
       {
-        element: <DashboardLayout />,
+        element: <ProtectedRoute allowRoles={["candidate"]} />,
         children: [
           {
-            path: "/recruiter",
-            element: <Navigate to={PATHS.RECRUITER.DASHBOARD} replace />,
+            path: PATHS.CANDIDATE.EDIT_CV,
+            element: <CandidateCvBuilderPage />,
           },
           {
-            path: PATHS.RECRUITER.JOBS,
-            element: <RecruiterJobListPage />,
-          },
-          {
-            path: PATHS.RECRUITER.JOB_DETAIL,
-            element: <JobDetailPage />,
-          },
-          {
-            path: PATHS.RECRUITER.EDIT_JOB,
-            element: <EditJobPage />,
-          },
-          {
-            path: PATHS.RECRUITER.CREATE_JOB,
-            element: <CreateJobPage />,
-          },
-          {
-            path: PATHS.RECRUITER.CANDIDATES,
-            element: <RecruiterCandidateListPage />,
-          },
-          {
-            path: PATHS.RECRUITER.DASHBOARD,
-            element: <RecruiterDashboard />,
-          },
-          {
-            path: PATHS.RECRUITER.COMPANY_MANAGEMENT,
-            element: <CompanyManagement />,
+            element: <BaseLayout />,
             children: [
               {
-                index: true,
-                element: <CompanyManagementIndex />,
-              },
-              {
-                path: ":companyId",
-                element: <CompanyDetailLayout />,
+                element: <CandidatePageLayout />,
                 children: [
                   {
-                    index: true,
-                    element: <Navigate to="overview" replace />,
+                    path: "/candidate",
+                    element: (
+                      <Navigate to={PATHS.CANDIDATE.DASHBOARD} replace />
+                    ),
                   },
                   {
-                    path: "overview",
-                    element: <CompanyOverviewTab />,
+                    path: "/candidate/bookmarks",
+                    element: (
+                      <Navigate to={PATHS.CANDIDATE.BOOKMARK_JOBS} replace />
+                    ),
                   },
                   {
-                    path: "members",
-                    element: <CompanyMembersTab />,
+                    path: PATHS.CANDIDATE.DASHBOARD,
+                    element: <CandidateDashboard />,
                   },
                   {
-                    path: "settings",
-                    element: <CompanySettingsTab />,
+                    path: PATHS.CANDIDATE.SEARCH_JOBS,
+                    element: <CandidateSearchRedirect />,
                   },
                   {
-                    path: "invitations",
-                    element: <CompanyJoinRequestsTab />,
+                    path: PATHS.CANDIDATE.MATCHED_JOBS,
+                    element: <MatchedJobsPage />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.CV_MANAGEMENT,
+                    element: <CandidateCvManagementPage />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.CV_TEMPLATES,
+                    element: <CandidateCvTemplatesPage />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.SAVE_CV_SUCCESS,
+                    element: <CandidateSaveCvSuccessPage />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.PREVIEW_CV,
+                    element: <CandidatePreviewCvPage />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.APPLICATION_STATUS,
+                    element: <CandidateApplicationStatusPage />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.BOOKMARK_COMPANIES,
+                    element: <BookmarkCompanies />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.BOOKMARK_JOBS,
+                    element: <BookmarkJobs />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.COMPANY_REVIEWS,
+                    element: <Page title="Rì viu" />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.USER_PROFILE,
+                    element: <UserProfile />,
+                  },
+                  {
+                    path: PATHS.CANDIDATE.SETTINGS,
+                    element: <Page title="Cài đặt tài khoản" />,
                   },
                 ],
               },
             ],
           },
-          {
-            path: PATHS.RECRUITER.COMPANY_INVITATION,
-            element: <CompanyInvitation />,
-          },
-          {
-            path: PATHS.RECRUITER.USER_PROFILE,
-            element: <UserProfile />,
-          },
         ],
       },
-    ],
-  },
 
-  // ADMIN ROUTES
-  {
-    element: <ProtectedRoute allowRoles={["admin", "superadmin"]} />,
-    children: [
+      // RECRUITER
       {
-        element: <DashboardLayout />,
+        element: <ProtectedRoute allowRoles={["recruiter", "hr"]} />,
         children: [
           {
-            path: "/admin",
-            element: <Navigate to={PATHS.ADMIN.DASHBOARD} replace />,
-          },
-          {
-            path: "/admin/approve",
-            element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
-          },
-          {
-            path: "/admin/aprove",
-            element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
-          },
-          {
-            path: "/admin/aprove/company",
-            element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
-          },
-          {
-            path: PATHS.ADMIN.DASHBOARD,
-            element: <AdminDashboard />,
-          },
-          {
-            path: PATHS.ADMIN.USER_PROFILE,
-            element: <UserProfile />,
-          },
-          {
-            path: PATHS.ADMIN.APPROVE_COMPANY,
-            element: <AdminCompanyModerationPage />,
-          },
-          {
-            path: PATHS.ADMIN.APPROVE_JD,
-            element: <AdminJobModerationPage />,
-          },
-          {
-            path: PATHS.ADMIN.USERS,
-            element: <AdminUserManagementPage />,
-          },
-          {
-            path: PATHS.ADMIN.CATALOGS,
-            element: <AdminCatalogsPage />,
+            element: <DashboardLayout />,
+            children: [
+              {
+                path: "/recruiter",
+                element: <Navigate to={PATHS.RECRUITER.DASHBOARD} replace />,
+              },
+              {
+                path: PATHS.RECRUITER.JOBS,
+                element: <RecruiterJobListPage />,
+              },
+              {
+                path: PATHS.RECRUITER.JOB_DETAIL,
+                element: <JobDetailPage />,
+              },
+              {
+                path: PATHS.RECRUITER.EDIT_JOB,
+                element: <EditJobPage />,
+              },
+              {
+                path: PATHS.RECRUITER.CREATE_JOB,
+                element: <CreateJobPage />,
+              },
+              {
+                path: PATHS.RECRUITER.CANDIDATES,
+                element: <RecruiterCandidateListPage />,
+              },
+              {
+                path: PATHS.RECRUITER.DASHBOARD,
+                element: <RecruiterDashboard />,
+              },
+              {
+                path: PATHS.RECRUITER.COMPANY_MANAGEMENT,
+                element: <CompanyManagement />,
+                children: [
+                  {
+                    index: true,
+                    element: <CompanyManagementIndex />,
+                  },
+                  {
+                    path: ":companyId",
+                    element: <CompanyDetailLayout />,
+                    children: [
+                      {
+                        index: true,
+                        element: <Navigate to="overview" replace />,
+                      },
+                      {
+                        path: "overview",
+                        element: <CompanyOverviewTab />,
+                      },
+                      {
+                        path: "members",
+                        element: <CompanyMembersTab />,
+                      },
+                      {
+                        path: "settings",
+                        element: <CompanySettingsTab />,
+                      },
+                      {
+                        path: "invitations",
+                        element: <CompanyJoinRequestsTab />,
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                path: PATHS.RECRUITER.COMPANY_INVITATION,
+                element: <CompanyInvitation />,
+              },
+              {
+                path: PATHS.RECRUITER.USER_PROFILE,
+                element: <UserProfile />,
+              },
+            ],
           },
         ],
       },
-    ],
-  },
 
-  // {
-  //   element: <ProtectedRoute />,
-  //   children: [
-  //     {
-  //       path: PATHS.CREATE_CV,
-  //       element: <CVBuilder />,
-  //     },
-  //   ],
-  // },
+      // ADMIN ROUTES
+      {
+        element: <ProtectedRoute allowRoles={["admin", "superadmin"]} />,
+        children: [
+          {
+            element: <DashboardLayout />,
+            children: [
+              {
+                path: "/admin",
+                element: <Navigate to={PATHS.ADMIN.DASHBOARD} replace />,
+              },
+              {
+                path: "/admin/approve",
+                element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
+              },
+              {
+                path: "/admin/aprove",
+                element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
+              },
+              {
+                path: "/admin/aprove/company",
+                element: <Navigate to={PATHS.ADMIN.APPROVE_COMPANY} replace />,
+              },
+              {
+                path: PATHS.ADMIN.DASHBOARD,
+                element: <AdminDashboard />,
+              },
+              {
+                path: PATHS.ADMIN.USER_PROFILE,
+                element: <UserProfile />,
+              },
+              {
+                path: PATHS.ADMIN.APPROVE_COMPANY,
+                element: <AdminCompanyModerationPage />,
+              },
+              {
+                path: PATHS.ADMIN.APPROVE_JD,
+                element: <AdminJobModerationPage />,
+              },
+              {
+                path: PATHS.ADMIN.USERS,
+                element: <AdminUserManagementPage />,
+              },
+              {
+                path: PATHS.ADMIN.CATALOGS,
+                element: <AdminCatalogsPage />,
+              },
+            ],
+          },
+        ],
+      },
+
+      // {
+      //   element: <ProtectedRoute />,
+      //   children: [
+      //     {
+      //       path: PATHS.CREATE_CV,
+      //       element: <CVBuilder />,
+      //     },
+      //   ],
+      // },
 
       {
         path: PATHS.FORBIDDEN,

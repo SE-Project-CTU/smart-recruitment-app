@@ -32,7 +32,10 @@ import {
 } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
-import { CandidateTable } from "./candidate/CandidateTable";
+import {
+  CandidateTable,
+  ApplicationCvPreviewDialog,
+} from "./candidate";
 import { EmptyStreet } from "@/assets/images/decoration";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
@@ -47,6 +50,7 @@ import { PATHS } from "@/constants/paths";
 import { getTimeOfDayGreeting } from "@/utils/helper";
 import {
   resolveCandidateProfile,
+  type PendingStatusChange,
   type RecruiterCandidateApplicationItem,
   type UpdateJobApplicationStatus,
 } from "@/types/application";
@@ -61,12 +65,6 @@ import {
 } from "@/components/ui/dialog";
 
 dayjs.locale("vi");
-
-interface PendingStatusChange {
-  app: RecruiterCandidateApplicationItem;
-  fromStatus: string;
-  toStatus: UpdateJobApplicationStatus;
-}
 
 const trendChartConfig: ChartConfig = {
   applications: {
@@ -136,6 +134,8 @@ export default function RecruiterDashboard() {
 
   // Modal xem thư giới thiệu & thay đổi trạng thái ứng viên
   const [selectedLetterApp, setSelectedLetterApp] =
+    useState<RecruiterCandidateApplicationItem | null>(null);
+  const [selectedCvApp, setSelectedCvApp] =
     useState<RecruiterCandidateApplicationItem | null>(null);
   const [pendingChange, setPendingChange] =
     useState<PendingStatusChange | null>(null);
@@ -1000,6 +1000,7 @@ export default function RecruiterDashboard() {
             <CandidateTable
               data={recentCandidates}
               onReadCoverLetter={(app) => setSelectedLetterApp(app)}
+              onPreviewCv={setSelectedCvApp}
               onRequestChangeStatus={handleOpenConfirmTransition}
               onViewJobDetail={(jobId) =>
                 navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", jobId))
@@ -1021,7 +1022,7 @@ export default function RecruiterDashboard() {
           if (!open) setSelectedLetterApp(null);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Thư giới thiệu của ứng viên</DialogTitle>
             <DialogDescription>
@@ -1031,7 +1032,7 @@ export default function RecruiterDashboard() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-80 overflow-y-auto rounded-xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-700 sm:text-sm">
+          <div className="max-h-80 overflow-y-auto rounded-xl border border-border bg-bg p-4 text-xs leading-relaxed text-text-main sm:text-sm">
             {selectedLetterApp?.coverLetter ||
               "Ứng viên không đính kèm thư giới thiệu."}
           </div>
@@ -1057,7 +1058,7 @@ export default function RecruiterDashboard() {
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Xác nhận thay đổi trạng thái</DialogTitle>
             <DialogDescription>
@@ -1071,7 +1072,7 @@ export default function RecruiterDashboard() {
             <div>
               <label
                 htmlFor="transition-note"
-                className="text-xs font-semibold text-slate-700"
+                className="text-xs font-semibold text-text-main"
               >
                 Ghi chú nội bộ (Tùy chọn)
               </label>
@@ -1081,7 +1082,7 @@ export default function RecruiterDashboard() {
                 placeholder="Nhập ghi chú hoặc lý do chuyển trạng thái hồ sơ..."
                 value={transitionNote}
                 onChange={(e) => setTransitionNote(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+                className="mt-1.5 w-full rounded-xl border border-border bg-bg p-3 text-xs text-text-main transition-colors placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
               />
             </div>
 
@@ -1106,6 +1107,12 @@ export default function RecruiterDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Xem CV Ứng Viên */}
+      <ApplicationCvPreviewDialog
+        application={selectedCvApp}
+        onClose={() => setSelectedCvApp(null)}
+      />
 
       {/* Modal Tạo doanh nghiệp mới */}
       <CreateCompanyModal
