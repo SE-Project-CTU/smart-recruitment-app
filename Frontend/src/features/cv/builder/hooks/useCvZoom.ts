@@ -20,6 +20,7 @@ export function calculateFitZoom(containerWidth: number): number {
 export interface UseCvZoomOptions {
   initialZoom?: number;
   containerRef?: RefObject<HTMLElement | null>;
+  autoFitOnMobile?: boolean;
   disabled?: boolean;
 }
 
