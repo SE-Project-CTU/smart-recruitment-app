@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useFormContext } from "react-hook-form";
 import {
   Sparkles,
   X,
@@ -12,7 +11,6 @@ import {
 } from "lucide-react";
 import { useCvRewriteContext } from "../../context/CvRewriteContext";
 import { scrollCvSectionIntoView } from "../../utils/cvAssistantHelpers";
-import type { RichTextCvEditorValues } from "../../schema/richTextCvSchema";
 import { cn } from "@/lib/utils";
 
 interface SectionTabItem {
@@ -51,7 +49,6 @@ const SECTION_TABS: SectionTabItem[] = [
 export const CvComparisonSidePanel: React.FC = () => {
   const {
     activeSuggestionSectionKey,
-    suggestions,
     getSuggestionForSection,
     openSuggestionForSection,
     closeFloatingSuggestion,
@@ -166,8 +163,6 @@ export const CvComparisonSidePanel: React.FC = () => {
               activeSuggestionSectionKey &&
               tab.aliasKeys.includes(activeSuggestionSectionKey),
             );
-
-          const IconComponent = tab.icon;
 
           return (
             <button
