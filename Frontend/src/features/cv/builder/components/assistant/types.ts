@@ -59,6 +59,7 @@ export interface CvSectionSuggestion {
   suggestedText: string;
   status: SuggestionStatus;
   reason?: string;
+  additionalSuggestions?: string[];
 }
 
 export interface SkillGapAnalysis {

@@ -22,6 +22,8 @@ interface CvBuilderSidebarProps {
   isLocked: boolean;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
+  forceCollapse?: boolean;
+  onExpand?: () => void;
 }
 
 /**
@@ -37,9 +39,14 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
   isLocked,
   isOpenMobile,
   onCloseMobile,
+  forceCollapse = false,
+  onExpand,
 }) => {
   const [activeTab, setActiveTab] = useState<SidebarTabId>("design");
   const [isPanelOpen, setIsPanelOpen] = useState(true);
+
+  // Khi ở chế độ so sánh (forceCollapse), tạm thời thu gọn panel
+  const effectivePanelOpen = isPanelOpen && !forceCollapse;
 
   const currentTab =
     SIDEBAR_TABS.find((tab) => tab.id === activeTab) || SIDEBAR_TABS[0];
@@ -55,11 +62,29 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpenMobile, onCloseMobile]);
 
+  // Xử lý mở rộng / thu gọn sidebar
+  const handleTogglePanel = () => {
+    if (forceCollapse) {
+      onExpand?.();
+      setIsPanelOpen(true);
+    } else {
+      setIsPanelOpen((prev) => !prev);
+    }
+  };
+
   // Click vào một tab ở danh sách tab dọc:
+  // - Nếu đang ở chế độ so sánh (forceCollapse): chọn tab, đóng gợi ý và mở sidebar ra
   // - Nếu đang collapse: chọn bất kỳ tab nào cũng mở sidebar ra
   // - Nếu đang mở và bấm lại chính tab active: thu gọn sidebar
   // - Nếu đang mở và bấm tab khác: chuyển sang tab đó
   const handleTabClick = (selected: SidebarTabId) => {
+    if (forceCollapse) {
+      setActiveTab(selected);
+      onExpand?.();
+      setIsPanelOpen(true);
+      return;
+    }
+
     if (!isPanelOpen) {
       setActiveTab(selected);
       setIsPanelOpen(true);
@@ -82,6 +107,9 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
           onValueChange={(val) => {
             if (val) {
               setActiveTab(val as SidebarTabId);
+              if (forceCollapse) {
+                onExpand?.();
+              }
               if (!isPanelOpen) setIsPanelOpen(true);
             }
           }}
@@ -105,14 +133,14 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
                             onClick={() => handleTabClick(tab.id)}
                             className={cn(
                               "group relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl p-0 transition-all",
-                              isActive && isPanelOpen
+                              isActive && effectivePanelOpen
                                 ? "bg-surface font-semibold text-primary shadow-xs"
                                 : "text-text-muted hover:bg-surface/60 hover:text-text-main",
                             )}
                             aria-label={tab.title}
                           >
                             <Icon className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
-                            {isActive && isPanelOpen && (
+                            {isActive && effectivePanelOpen && (
                               <span className="absolute top-1/2 -left-1.5 h-4 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
                             )}
                           </TabsTab>
@@ -134,11 +162,11 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
                   render={
                     <button
                       type="button"
-                      onClick={() => setIsPanelOpen((prev) => !prev)}
+                      onClick={handleTogglePanel}
                       className="group relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-text-muted transition-all hover:bg-surface hover:text-text-main hover:shadow-xs"
-                      aria-label={isPanelOpen ? "Thu gọn sidebar" : "Mở rộng sidebar"}
+                      aria-label={effectivePanelOpen ? "Thu gọn sidebar" : "Mở rộng sidebar"}
                     >
-                      {isPanelOpen ? (
+                      {effectivePanelOpen ? (
                         <PanelLeftClose className="h-4.5 w-4.5 shrink-0 transition-transform group-hover:scale-110" />
                       ) : (
                         <PanelLeftOpen className="h-4.5 w-4.5 shrink-0 transition-transform group-hover:scale-110 text-primary" />
@@ -147,7 +175,7 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
                   }
                 />
                 <TooltipPanel side="right" sideOffset={10}>
-                  {isPanelOpen ? "Thu gọn sidebar" : "Mở rộng sidebar"}
+                  {effectivePanelOpen ? "Thu gọn sidebar" : "Mở rộng sidebar"}
                 </TooltipPanel>
               </Tooltip>
             </div>
@@ -155,7 +183,7 @@ export const CvBuilderSidebar: React.FC<CvBuilderSidebarProps> = ({
 
           {/* 2. PANEL NỘI DUNG DESKTOP */}
           <CvBuilderSidebarPanel
-            isOpen={isPanelOpen}
+            isOpen={effectivePanelOpen}
             currentTab={currentTab}
             onClose={() => setIsPanelOpen(false)}
           />

@@ -4,7 +4,6 @@ import type {
   CvSectionSuggestion,
   CanonicalSectionType,
 } from "../components/assistant/types";
-import { SECTION_TYPE_MAP } from "../components/assistant/types";
 import { prepareCvSectionsForEnhanceBatch } from "../utils/cvAssistantHelpers";
 import { useEnhanceCvBatch } from "@/hooks/queries/useAi";
 import { getApiErrorMessage } from "@/api/errorHandler";
@@ -16,12 +15,18 @@ export type GenerateFailureReason = "NO_JOB" | "NO_SECTIONS" | "API_ERROR";
 
 interface CvRewriteContextValue {
   selectedTargetJob: TargetJobOption | null;
+  customPrompt: string;
   suggestions: CvSectionSuggestion[];
   isGenerating: boolean;
   hasGenerated: boolean;
   isError: boolean;
   errorMessage: string | null;
+  activeSuggestionSectionKey: string | null;
+  openSuggestionForSection: (sectionKey: string) => void;
+  closeFloatingSuggestion: () => void;
+  getSuggestionForSection: (sectionKey: string) => CvSectionSuggestion | undefined;
   setSelectedTargetJob: (job: TargetJobOption | null) => void;
+  setCustomPrompt: (value: string) => void;
   generateSuggestions: (
     values?: Partial<RichTextCvEditorValues> | null,
   ) => Promise<{ success: boolean; reason?: GenerateFailureReason; sectionCount?: number }>;
@@ -42,13 +47,35 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [selectedTargetJob, setSelectedTargetJob] =
     useState<TargetJobOption | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
   const [suggestions, setSuggestions] = useState<CvSectionSuggestion[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [activeSuggestionSectionKey, setActiveSuggestionSectionKey] =
+    useState<string | null>(null);
 
   const enhanceBatchMutation = useEnhanceCvBatch();
 
+  const openSuggestionForSection = useCallback((sectionKey: string) => {
+    setActiveSuggestionSectionKey(sectionKey.toLowerCase());
+  }, []);
+
+  const closeFloatingSuggestion = useCallback(() => {
+    setActiveSuggestionSectionKey(null);
+  }, []);
+
+  const getSuggestionForSection = useCallback(
+    (sectionKey: string) => {
+      const lower = sectionKey.toLowerCase();
+      return suggestions.find(
+        (s) => s.sectionKey.toLowerCase() === lower && s.status !== "dismissed",
+      );
+    },
+    [suggestions],
+  );
+
   const executeEnhanceBatch = useCallback(
     async (values?: Partial<RichTextCvEditorValues> | null) => {
+      setActiveSuggestionSectionKey(null);
       if (!selectedTargetJob) {
         return { success: false, reason: "NO_JOB" as GenerateFailureReason };
       }
@@ -83,7 +110,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
           targetJobId,
           targetJobTitle: selectedTargetJob.title,
           targetJobDescription: jobDescriptionParts.join("\n"),
-          language: "vi",
+          customPrompt: customPrompt.trim() || undefined,
         });
 
         // Bóc tách an toàn dữ liệu từ response (hỗ trợ cả ApiResponse envelope và unwrapped result)
@@ -99,28 +126,20 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
           (item, idx) => {
             const canonicalType = item.sectionType as CanonicalSectionType;
             const sectionKey = (item.sectionType || "").toLowerCase();
-            const sectionInfo = SECTION_TYPE_MAP[sectionKey];
-
-            // Ghép lý do cải thiện và từ khóa đề xuất từ AI
-            const reasonParts: string[] = [];
-            if (item.improvements?.length) {
-              reasonParts.push(item.improvements.join(" • "));
-            }
-            if (item.suggestedKeywords?.length) {
-              reasonParts.push(
-                `Từ khóa gợi ý: ${item.suggestedKeywords.join(", ")}`,
-              );
-            }
+            const preparedSection = preparedSections.find(
+              (section) => section.sectionType.toLowerCase() === sectionKey,
+            );
 
             return {
               id: `sug-${sectionKey}-${Date.now()}-${idx}`,
               sectionType: canonicalType,
               sectionKey,
-              sectionTitle: sectionInfo?.label || item.sectionType || "Mục CV",
+              sectionTitle: preparedSection?.sectionTitle || item.sectionType || "Mục CV",
               originalText: item.originalContent,
               suggestedText: item.enhancedContent,
               status: "ready",
-              reason: reasonParts.join(" | ") || undefined,
+              reason: item.improvements?.join(" • ") || undefined,
+              additionalSuggestions: item.additionalSuggestions ?? [],
             };
           },
         );
@@ -140,7 +159,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       }
     },
-    [selectedTargetJob, enhanceBatchMutation],
+    [selectedTargetJob, customPrompt, enhanceBatchMutation],
   );
 
   const generateSuggestions = useCallback(
@@ -159,13 +178,23 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const dismissSuggestion = useCallback((suggestionId: string) => {
     setSuggestions((prev) =>
-      prev.map((s) => (s.id === suggestionId ? { ...s, status: "dismissed" } : s)),
+      prev.map((s) => (s.id === suggestionId ? { ...s, status: "dismissed" as const } : s)),
     );
-  }, []);
+    // Tự động đóng bảng so sánh nếu suggestion đang mở bị dismiss
+    setActiveSuggestionSectionKey((currentActiveKey: string | null) => {
+      if (!currentActiveKey) return null;
+      const target = suggestions.find((s) => s.id === suggestionId);
+      if (target && target.sectionKey.toLowerCase() === currentActiveKey.toLowerCase()) {
+        return null;
+      }
+      return currentActiveKey;
+    });
+  }, [suggestions]);
 
   const clearSuggestions = useCallback(() => {
     setSuggestions([]);
     setHasGenerated(false);
+    setActiveSuggestionSectionKey(null);
   }, []);
 
   const errorMessage = enhanceBatchMutation.error
@@ -179,12 +208,18 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
     <CvRewriteContext.Provider
       value={{
         selectedTargetJob,
+        customPrompt,
         suggestions,
         isGenerating: enhanceBatchMutation.isPending,
         hasGenerated,
         isError: enhanceBatchMutation.isError,
         errorMessage,
+        activeSuggestionSectionKey,
+        openSuggestionForSection,
+        closeFloatingSuggestion,
+        getSuggestionForSection,
         setSelectedTargetJob,
+        setCustomPrompt,
         generateSuggestions,
         dismissSuggestion,
         regenerateAll,

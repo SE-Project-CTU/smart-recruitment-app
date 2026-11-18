@@ -91,6 +91,13 @@ export function extractFormattedTextFromTiptap(
   return "";
 }
 
+function getSectionTitle(
+  title: CvTiptapDocument | CvTiptapNode | null | undefined,
+  fallback: string,
+): string {
+  return extractPlainTextFromTiptap(title).trim() || fallback;
+}
+
 /**
  * Gom tất cả các item trong cùng một Section thành MỘT chuỗi content có cấu trúc,
  * giữ ranh giới rõ ràng giữa các item để gửi lên AI batching API (POST /api/v1/ai/cv/enhance/batch).
@@ -110,7 +117,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (text.trim()) {
       result.push({
         sectionType: "OBJECTIVE",
-        sectionTitle: "Mục tiêu nghề nghiệp",
+        sectionTitle: getSectionTitle(sections.objective.title, "Mục tiêu nghề nghiệp"),
         sectionKey: "objective",
         content: text.trim(),
       });
@@ -152,7 +159,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (expBlocks.length > 0) {
       result.push({
         sectionType: "EXPERIENCE",
-        sectionTitle: "Kinh nghiệm làm việc",
+        sectionTitle: getSectionTitle(sections.experience.title, "Kinh nghiệm làm việc"),
         sectionKey: "experience",
         content: expBlocks.join("\n\n---\n\n"),
       });
@@ -173,7 +180,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (skillLines.length > 0) {
       result.push({
         sectionType: "SKILLS",
-        sectionTitle: "Kỹ năng chuyên môn",
+        sectionTitle: getSectionTitle(sections.skills.title, "Kỹ năng chuyên môn"),
         sectionKey: "skills",
         content: skillLines.join("\n"),
       });
@@ -215,7 +222,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (projectBlocks.length > 0) {
       result.push({
         sectionType: "PROJECTS",
-        sectionTitle: "Dự án tiêu biểu",
+        sectionTitle: getSectionTitle(sections.projects.title, "Dự án tiêu biểu"),
         sectionKey: "projects",
         content: projectBlocks.join("\n\n---\n\n"),
       });
@@ -257,7 +264,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (eduBlocks.length > 0) {
       result.push({
         sectionType: "EDUCATION",
-        sectionTitle: "Học vấn",
+        sectionTitle: getSectionTitle(sections.education.title, "Học vấn"),
         sectionKey: "education",
         content: eduBlocks.join("\n\n---\n\n"),
       });
@@ -281,7 +288,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (certLines.length > 0) {
       result.push({
         sectionType: "CERTIFICATIONS",
-        sectionTitle: "Chứng chỉ",
+        sectionTitle: getSectionTitle(sections.certifications.title, "Chứng chỉ"),
         sectionKey: "certifications",
         content: certLines.join("\n"),
       });
@@ -302,7 +309,7 @@ export function prepareCvSectionsForEnhanceBatch(
     if (awardLines.length > 0) {
       result.push({
         sectionType: "AWARDS",
-        sectionTitle: "Giải thưởng",
+        sectionTitle: getSectionTitle(sections.awards.title, "Giải thưởng"),
         sectionKey: "awards",
         content: awardLines.join("\n"),
       });
@@ -493,4 +500,117 @@ export function isCvPlainTextEmpty(cvText: string): boolean {
     lower.split("kinh nghiệm làm việc:")[1]?.trim().length > 2;
 
   return !hasRole && !hasSkills && !hasExperience;
+}
+
+/**
+ * Tìm thẻ Draggable tổ tiên trên trang CV tương ứng với sectionKey:
+ * - Hỗ trợ alias danh mục (certificates <-> certifications, others <-> awards/interests/additionalInfo)
+ * - So sánh case-insensitive trên cả data-section-key và data-rfd-draggable-id
+ * - Ưu tiên trả về thẻ Draggable ngoài cùng mang viền, badge và actions
+ */
+export function findDraggableSectionElement(sectionKey: string): HTMLElement | null {
+  if (!sectionKey) return null;
+  const lowerKey = sectionKey.toLowerCase();
+
+  const keyAliases: Record<string, string[]> = {
+    certificates: ["certifications", "certificates"],
+    certifications: ["certificates", "certifications"],
+    others: ["awards", "interests", "additionalinfo", "others"],
+    additionalinfo: ["additionalinfo", "others"],
+  };
+
+  const targetKeys = [lowerKey, ...(keyAliases[lowerKey] || [])];
+
+  // 1. Duyệt tất cả các phần tử có data-section-key hoặc data-rfd-draggable-id
+  const draggableElements = document.querySelectorAll<HTMLElement>(
+    "[data-section-key], [data-rfd-draggable-id]",
+  );
+
+  for (const el of draggableElements) {
+    const attrKey = (
+      el.getAttribute("data-section-key") ||
+      el.getAttribute("data-rfd-draggable-id") ||
+      ""
+    ).toLowerCase();
+
+    if (targetKeys.includes(attrKey)) {
+      return el;
+    }
+  }
+
+  // 2. Fallback: tìm qua class con .section-${key} rồi lấy closest draggable ancestor
+  for (const key of targetKeys) {
+    const innerEl = document.querySelector<HTMLElement>(`.section-${key}`);
+    if (innerEl) {
+      const ancestor =
+        innerEl.closest<HTMLElement>("[data-section-key]") ||
+        innerEl.closest<HTMLElement>("[data-rfd-draggable-id]") ||
+        innerEl.parentElement;
+      if (ancestor) return ancestor;
+      return innerEl;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Tìm container cuộn (scroll container) bao bọc trang CV
+ */
+function findCvScrollContainer(el: HTMLElement): HTMLElement {
+  let parent = el.parentElement;
+  while (parent && parent !== document.body) {
+    const style = window.getComputedStyle(parent);
+    if (
+      (style.overflowY === "auto" || style.overflowY === "scroll") &&
+      parent.clientHeight > 0
+    ) {
+      return parent;
+    }
+    parent = parent.parentElement;
+  }
+  return document.documentElement;
+}
+
+/**
+ * Cuộn mượt màn hình tới thẻ tổ tiên draggable bao bọc section trên trang CV:
+ * - Đảm bảo cuộn theo thẻ Draggable tổ tiên ngoài cùng (chứa trọn viền và badge).
+ * - Sử dụng tính toán toạ độ thực tế (getBoundingClientRect) trên container cuộn,
+ *   bất chấp CSS transform scale của zoom.
+ * - Luôn chừa khoảng đệm an toàn 72px phía trên (TOP_OFFSET) để hiển thị toàn bộ
+ */
+export function scrollCvSectionIntoView(sectionKey: string) {
+  if (!sectionKey) return;
+
+  const performScroll = () => {
+    const targetEl = findDraggableSectionElement(sectionKey);
+    if (!targetEl) return;
+
+    const scrollContainer = findCvScrollContainer(targetEl);
+    const TOP_OFFSET = 72; // Khoảng đệm 72px phía trên giúp hiển thị trọn vẹn border và badge
+
+    if (scrollContainer === document.documentElement) {
+      const rect = targetEl.getBoundingClientRect();
+      const targetY = window.scrollY + rect.top - TOP_OFFSET;
+      window.scrollTo({
+        top: Math.max(0, targetY),
+        behavior: "smooth",
+      });
+    } else {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const delta = targetRect.top - containerRect.top - TOP_OFFSET;
+
+      scrollContainer.scrollBy({
+        top: delta,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Cuộn ngay lần đầu
+  performScroll();
+
+  // Cuộn căn chỉnh lại sau 100ms khi layout 2 cột hoặc zoom scale ổn định
+  setTimeout(performScroll, 100);
 }

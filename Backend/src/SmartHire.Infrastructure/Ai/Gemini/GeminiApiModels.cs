@@ -40,8 +40,8 @@ internal sealed class CvBatchEnhanceJsonResult {
 internal sealed class CvBatchSectionItemJson {
     public string? SectionType { get; set; }
     public string? EnhancedContent { get; set; }
-    public List<string>? SuggestedKeywords { get; set; }
     public List<string>? Improvements { get; set; }
+    public List<string>? AdditionalSuggestions { get; set; }
 }
 
 internal sealed class MatchAnalysisJsonResult {

@@ -34,6 +34,7 @@ export interface EnhanceCvBatchPayload {
   targetJobId?: string | null;
   targetJobTitle?: string | null;
   targetJobDescription?: string | null;
+  customPrompt?: string | null;
   language?: string | null;
 }
 
@@ -41,8 +42,8 @@ export interface EnhanceCvBatchItemResult {
   sectionType: string;
   originalContent: string;
   enhancedContent: string;
-  suggestedKeywords: string[];
   improvements: string[];
+  additionalSuggestions: string[];
 }
 
 export interface EnhanceCvBatchResult {

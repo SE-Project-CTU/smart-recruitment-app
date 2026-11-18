@@ -20,8 +20,8 @@ public static class CvEnhanceMapper {
                 SectionType: s.SectionType,
                 OriginalContent: s.OriginalContent,
                 EnhancedContent: s.EnhancedContent,
-                SuggestedKeywords: s.SuggestedKeywords,
-                Improvements: s.Improvements
+                Improvements: s.Improvements,
+                AdditionalSuggestions: s.AdditionalSuggestions
             )).ToList()
         );
     }

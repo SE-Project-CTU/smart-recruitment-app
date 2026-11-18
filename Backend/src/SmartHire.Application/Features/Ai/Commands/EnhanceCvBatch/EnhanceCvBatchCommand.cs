@@ -15,6 +15,7 @@ public sealed record EnhanceCvBatchCommand(
     Guid? TargetJobId = null,
     string? TargetJobTitle = null,
     string? TargetJobDescription = null,
-    string? Language = null
+    string? Language = null,
+    string? CustomPrompt = null
 ) : IRequest<EnhanceCvBatchResult>;
 

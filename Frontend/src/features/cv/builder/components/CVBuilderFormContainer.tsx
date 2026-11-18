@@ -37,9 +37,10 @@ import { useCvZoom } from "../hooks/useCvZoom";
 import { CV_PRINT_PAGE_STYLE } from "../../constants/print";
 import { useCvHistoryHotkeys } from "../hooks/useCvHistoryHotkeys";
 import { CvHistoryProvider, useCvHistory } from "../history";
-import { CvRewriteProvider } from "../context/CvRewriteContext";
+import { CvRewriteProvider, useCvRewriteContext } from "../context/CvRewriteContext";
 import { CvScoringProvider } from "../context/CvScoringContext";
 import { CvJobRecommendationsProvider } from "../context/CvJobRecommendationsContext";
+import { CvComparisonSidePanel } from "./assistant/CvComparisonSidePanel";
 import { useUpdateCv } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import type {
@@ -74,6 +75,12 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
   const workspaceScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const { activeSuggestionSectionKey, closeFloatingSuggestion } =
+    useCvRewriteContext();
+  const isComparisonOpen = Boolean(activeSuggestionSectionKey);
+
+  const [comparisonFitZoom, setComparisonFitZoom] = useState<number | null>(null);
+
   const {
     zoom,
     zoomIn,
@@ -82,7 +89,57 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
     setZoom,
     canZoomIn,
     canZoomOut,
-  } = useCvZoom({ containerRef: workspaceScrollRef });
+  } = useCvZoom({
+    containerRef: workspaceScrollRef,
+    disabled: isComparisonOpen,
+  });
+
+  // Tự động tính tỷ lệ vừa cột cho trang CV khi mở chế độ so sánh hai cột
+  useEffect(() => {
+    if (!isComparisonOpen) {
+      setComparisonFitZoom(null);
+      return;
+    }
+
+    const calculateFitZoom = () => {
+      const el = workspaceScrollRef.current;
+      if (!el) return;
+      const availableWidth = el.clientWidth;
+      // Khổ A4 210mm xấp xỉ 794px, cộng lề khoảng 48px
+      const a4WidthWithPadding = 794 + 48;
+      const calculated = availableWidth / a4WidthWithPadding;
+      const clamped = Math.max(0.45, Math.min(1.0, calculated));
+      setComparisonFitZoom(Math.round(clamped * 100) / 100);
+    };
+
+    calculateFitZoom();
+
+    const el = workspaceScrollRef.current;
+    let resizeObserver: ResizeObserver | null = null;
+    if (el && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        calculateFitZoom();
+      });
+      resizeObserver.observe(el);
+    }
+
+    window.addEventListener("resize", calculateFitZoom);
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", calculateFitZoom);
+    };
+  }, [isComparisonOpen]);
+
+  // Lắng nghe phím Escape để đóng chế độ so sánh
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isComparisonOpen) {
+        closeFloatingSuggestion();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isComparisonOpen, closeFloatingSuggestion]);
 
   const { mutateAsync: updateCv, isPending: isUpdatingCv } = useUpdateCv();
 
@@ -386,48 +443,66 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
                 isLocked={isLocked}
                 isOpenMobile={isMobileSidebarOpen}
                 onCloseMobile={() => setIsMobileSidebarOpen(false)}
+                forceCollapse={isComparisonOpen}
+                onExpand={() => {
+                  if (isComparisonOpen) {
+                    closeFloatingSuggestion();
+                  }
+                }}
               />
             </div>
 
-            {/* ITEM 2: CV WORKSPACE (ELEMENT DUY NHẤT CÓ SCROLL CHO TRANG CV) */}
-            <div
-              ref={workspaceScrollRef}
-              className="relative flex flex-1 flex-col h-full overflow-y-auto overflow-x-auto min-w-0"
-            >
-              {/* Banner hiển thị lỗi validation nếu có */}
-              {Object.keys(errors).length > 0 && !isLocked && (
-                <div className="no-print mx-auto mt-4 flex w-full max-w-[210mm] shrink-0 items-center gap-3 rounded-lg border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <div>
-                    <span className="font-semibold">Vui lòng kiểm tra lại: </span>
-                    {errors.title?.message ||
-                      errors.content?.profile?.fullName?.message ||
-                      errors.content?.profile?.email?.message ||
-                      errors.content?.profile?.phone?.message ||
-                      "Một số trường thông tin bắt buộc chưa hợp lệ hoặc đang để trống."}
+            {/* ITEM 2: WORKSPACE CHÍNH (NẾU MỞ SO SÁNH -> CHIA 2 CỘT: CỘT CV TRÁI + PANEL SO SÁNH PHẢI) */}
+            <div className="flex flex-1 h-full min-w-0 overflow-hidden">
+              {/* CỘT TRÁI: CV WORKSPACE (ELEMENT DUY NHẤT CÓ SCROLL CHO TRANG CV) */}
+              <div
+                ref={workspaceScrollRef}
+                className="relative flex flex-1 flex-col h-full overflow-y-auto overflow-x-auto min-w-0"
+              >
+                {/* Banner hiển thị lỗi validation nếu có */}
+                {Object.keys(errors).length > 0 && !isLocked && (
+                  <div className="no-print mx-auto mt-4 flex w-full max-w-[210mm] shrink-0 items-center gap-3 rounded-lg border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <div>
+                      <span className="font-semibold">Vui lòng kiểm tra lại: </span>
+                      {errors.title?.message ||
+                        errors.content?.profile?.fullName?.message ||
+                        errors.content?.profile?.email?.message ||
+                        errors.content?.profile?.phone?.message ||
+                        "Một số trường thông tin bắt buộc chưa hợp lệ hoặc đang để trống."}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* TRANG GIẤY A4 WYSIWYG WORKSPACE */}
-              <CvBuilderWorkspace
-                contentRef={cvPrintRef}
-                isReadOnly={isLocked}
-                zoom={zoom}
-              />
+                {/* TRANG GIẤY A4 WYSIWYG WORKSPACE */}
+                <CvBuilderWorkspace
+                  contentRef={cvPrintRef}
+                  isReadOnly={isLocked}
+                  zoom={
+                    isComparisonOpen && comparisonFitZoom !== null
+                      ? comparisonFitZoom
+                      : zoom
+                  }
+                  highlightSectionKey={activeSuggestionSectionKey}
+                />
 
-              {/* FLOATING ZOOM CONTROLS (NÚT ZOOM Ở BÊN DƯỚI GÓC PHẢI PAGE) */}
-              <CvZoomControls
-                zoom={zoom}
-                onZoomIn={zoomIn}
-                onZoomOut={zoomOut}
-                onResetZoom={resetZoom}
-                onZoomChange={setZoom}
-                canZoomIn={canZoomIn}
-                canZoomOut={canZoomOut}
-              />
+                {/* FLOATING ZOOM CONTROLS (NÚT ZOOM Ở BÊN DƯỚI GÓC PHẢI PAGE - ẨN KHI Ở CHẾ ĐỘ SO SÁNH) */}
+                {!isComparisonOpen && (
+                  <CvZoomControls
+                    zoom={zoom}
+                    onZoomIn={zoomIn}
+                    onZoomOut={zoomOut}
+                    onResetZoom={resetZoom}
+                    onZoomChange={setZoom}
+                    canZoomIn={canZoomIn}
+                    canZoomOut={canZoomOut}
+                  />
+                )}
+              </div>
+
+              {/* CỘT PHẢI: BẢNG SO SÁNH GỢI Ý (ĐỨNG YÊN, CUỘN ĐỘC LẬP) */}
+              {isComparisonOpen && <CvComparisonSidePanel />}
             </div>
-
           </div>
         </form>
 
