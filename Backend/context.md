@@ -278,6 +278,28 @@ flowchart TD
 - [x] **Kiểm tra biên dịch**:
   - Backend: `dotnet build /t:Compile Backend/src/SmartHire.API/SmartHire.Api.csproj` -> **0 Warning, 0 Error**.
   - EF Migrations: `dotnet tool run dotnet-ef migrations list` -> **Build succeeded**.
+- [x] **Backend & Frontend - Tái Cấu Trúc Toàn Diện Hệ Thống Chấm Điểm So Khớp (Matching Engine & Custom Weights)**:
+  - **Trọng số tùy biến theo từng Job Posting (`JobMatchingWeights`)**:
+    - HR chủ động thiết lập tỷ trọng 4 nhóm tiêu chí khi tạo/sửa tin tuyển dụng: Kỹ năng (`SkillWeight`), Kinh nghiệm (`ExperienceWeight`), Cấp bậc & Chức danh (`TitleWeight`), Học vấn & Địa điểm (`OtherWeight`).
+    - Tổng 4 trọng số bắt buộc = 100% (dung sai $\pm 0.015$). Mặc định: 40% - 25% - 25% - 10%.
+    - Cấu hình Value Object `JobMatchingWeights`, ánh xạ EF Core vào `job_postings`, thêm migration `20261118155004_AddJobMatchingWeights` và áp dụng vào DB.
+  - **Loại bỏ triệt để Hard Gates & Arbitrary Penalties**:
+    - Xóa Core Competence Gate (không còn chặn trần 25% khi chưa khớp kỹ năng).
+    - Xóa hệ số phạt giảm tỷ lệ khi điểm kỹ năng < 30%.
+    - Xóa rào chắn thâm niên & quản lý (khóa trần 28%, 30%, 35%).
+    - Xóa cơ chế tự động hạ cấp bậc ứng viên về Fresher/Junior.
+    - Xóa giảm trừ khi tương đồng chức danh <= 25%.
+    - Xóa điểm thưởng ngành (+5% Industry Bonus) và điểm trừ hòa (tie-breaker).
+  - **Cách ly tiêu chí (Strict Section Isolation) & Tiêu chuẩn Đạt/Không đạt Học vấn**:
+    - Đánh giá Kỹ năng (`SkillMatchEvaluator`) chỉ đối chiếu với danh mục Kỹ năng trong CV; không tìm kiếm chéo trong Dự án/Kinh nghiệm để cho điểm thành phần.
+    - Học vấn (`LocationEducationEvaluator`): Nếu Job yêu cầu trình độ học vấn, đạt/vượt mức = 100%, không đạt = 0% (nhận diện chính xác văn bằng tiếng Việt & tiếng Anh). Nếu Job không yêu cầu học vấn = 100%.
+  - **Công thức tính điểm tuyến tính, minh bạch & giải trình 100%**:
+    - Score = $\sum (w_i \times S_i) / \sum w_i$ (chuẩn hóa về thang 100).
+    - API trả về `Breakdown` gồm chi tiết điểm và trọng số của 4 thành phần (`SkillScore`, `ExperienceScore`, `TitleSeniorityScore`, `EducationLocationScore`).
+  - **Giao diện Impeccable Design**:
+    - Thêm component `JobMatchingWeightsCard` với slider mượt mà, input phần trăm, badge trạng thái hợp lệ/lỗi và 4 nút chọn nhanh (Cân bằng, Ưu tiên kỹ năng, Ưu tiên kinh nghiệm, Cấp bậc & Quản lý).
+    - Tích hợp liền mạch vào `CreateJobPage.tsx` và `EditJobPage.tsx`.
+    - Nâng cấp `CvScoringTab.tsx` trong CV Builder: hiển thị trực quan 4 thanh tiến trình tương ứng 4 tiêu chí thành phần kèm trọng số rõ ràng.
 
 ---
 

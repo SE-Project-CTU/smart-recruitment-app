@@ -50,6 +50,26 @@ internal static class CreateJobPostingCommandValidator {
         var industryIds = JobPostingValidator.ValidateIndustryIds(command.IndustryIds, details, required: true) ?? Array.Empty<Guid>();
         var skillIds = JobPostingValidator.ValidateSkillIds(command.SkillIds, details, required: true) ?? Array.Empty<Guid>();
 
+        decimal? s = command.SkillWeight;
+        decimal? e = command.ExperienceWeight;
+        decimal? t = command.TitleWeight;
+        decimal? o = command.OtherWeight;
+        if (s.HasValue || e.HasValue || t.HasValue || o.HasValue) {
+            decimal sv = s ?? 0.40m;
+            decimal ev = e ?? 0.25m;
+            decimal tv = t ?? 0.25m;
+            decimal ov = o ?? 0.10m;
+            if (sv > 1.0m || ev > 1.0m || tv > 1.0m || ov > 1.0m) {
+                sv /= 100m; ev /= 100m; tv /= 100m; ov /= 100m;
+            }
+            if (sv < 0 || ev < 0 || tv < 0 || ov < 0) {
+                details.Add(new AppErrorDetail("matchingWeights", ValidationReasons.InvalidFormat, "Weights must be non-negative."));
+            } else if (Math.Abs((sv + ev + tv + ov) - 1.0m) > 0.02m) {
+                details.Add(new AppErrorDetail("matchingWeights", ValidationReasons.InvalidFormat, "Total weights must equal 100%."));
+            }
+            s = sv; e = ev; t = tv; o = ov;
+        }
+
         if (details.Count > 0) {
             throw JobPostingExceptions.Validation(details);
         }
@@ -71,7 +91,11 @@ internal static class CreateJobPostingCommandValidator {
             deadline!.Value,
             industryIds,
             skillIds,
-            detailedLocation);
+            detailedLocation,
+            s,
+            e,
+            t,
+            o);
     }
 }
 
@@ -92,4 +116,8 @@ internal sealed record ValidatedCreateJobPosting(
     DateTimeOffset Deadline,
     IReadOnlyList<Guid> IndustryIds,
     IReadOnlyList<Guid> SkillIds,
-    string? DetailedLocation);
+    string? DetailedLocation,
+    decimal? SkillWeight = null,
+    decimal? ExperienceWeight = null,
+    decimal? TitleWeight = null,
+    decimal? OtherWeight = null);

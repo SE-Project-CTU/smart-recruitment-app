@@ -1,3 +1,5 @@
+using SmartHire.Domain.ValueObjects;
+
 namespace SmartHire.Application.Features.JobPostings.DTOs;
 
 public sealed record JobPostingResult(
@@ -25,4 +27,5 @@ public sealed record JobPostingResult(
     IReadOnlyList<IndustrySummary> Industries,
     IReadOnlyList<SkillSummary> Skills,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    JobMatchingWeights? MatchingWeights = null);

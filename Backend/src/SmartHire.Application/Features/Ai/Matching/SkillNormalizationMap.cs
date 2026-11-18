@@ -85,6 +85,10 @@ public static class SkillNormalizationMap {
         ["deep learning"] = "deep-learning",
         ["ai"] = "artificial-intelligence",
         ["trí tuệ nhân tạo"] = "artificial-intelligence",
+        ["claude"] = "claude-ai",
+        ["claude ai"] = "claude-ai",
+        ["claude.ai"] = "claude-ai",
+        ["chatgpt"] = "openai-chatgpt",
         ["automation test"] = "automation-testing",
         ["selenium"] = "automation-testing",
         ["manual test"] = "manual-testing",
@@ -332,11 +336,18 @@ public static class SkillNormalizationMap {
         var cleaned = skill.Trim().ToLowerInvariant();
         cleaned = Regex.Replace(cleaned, @"\s+", " ");
 
+        // 1. Loại bỏ các tiền tố động từ/hành động chuyên môn thông dụng trong tiếng Việt và tiếng Anh
+        cleaned = Regex.Replace(
+            cleaned,
+            @"^(sử dụng|thành thạo|quản trị|lập trình|triển khai|thiết kế|kiểm thử|phát triển|xây dựng|vận hành|cấu hình|hiểu biết|kỹ năng|nắm vững|thực hành|thao tác|kinh nghiệm|use|using|proficient in|experienced in|knowledge of|working with)\s+",
+            "",
+            RegexOptions.IgnoreCase).Trim();
+
         if (CanonicalMap.TryGetValue(cleaned, out var canonical)) {
             return canonical;
         }
 
-        // Loại bỏ ký tự phân cách, dấu chấm, gạch nối, khoảng trắng để bắt các biến thể gõ
+        // 2. Loại bỏ ký tự phân cách, dấu chấm, gạch nối, khoảng trắng để bắt các biến thể gõ
         var noPunct = Regex.Replace(cleaned, @"[.\-_/\s]", "");
         if (noPunct == "postgresql" || noPunct == "postgres" || noPunct == "pgsql" || noPunct == "postgressql" || noPunct == "postgress") {
             return "postgresql";
@@ -353,8 +364,14 @@ public static class SkillNormalizationMap {
         if (noPunct == "photoshop" || noPunct == "photoshp" || noPunct == "pts") {
             return "adobe-photoshop";
         }
+        if (noPunct == "netcore" || noPunct == "aspnetcore" || noPunct == "dotnetcore" || noPunct == "dotnet" || noPunct == "net10" || noPunct == "net8") {
+            return "dotnet";
+        }
+        if (noPunct == "claude" || noPunct == "claudeai") {
+            return "claude-ai";
+        }
 
-        // Loại bỏ tiền tố/hậu tố thông dụng
+        // 3. Loại bỏ tiền tố/hậu tố phụ thông dụng
         var stripped = cleaned
             .Replace("framework", "")
             .Replace("library", "")

@@ -33,7 +33,7 @@ ENV VITE_FIREBASE_MEASUREMENT_ID=$VITE_FIREBASE_MEASUREMENT_ID
 
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install --force
+RUN pnpm install --force --config.ignore-scripts=true
 
 COPY . .
 RUN pnpm run build

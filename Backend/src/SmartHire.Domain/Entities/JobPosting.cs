@@ -1,6 +1,7 @@
-﻿namespace SmartHire.Domain.Entities;
+namespace SmartHire.Domain.Entities;
 
 using Enums;
+using ValueObjects;
 
 public class JobPosting {
     public Guid Id { get; private set; }
@@ -40,6 +41,13 @@ public class JobPosting {
     
     public string Requirements { get; private set; } = string.Empty;
     public string Benefits { get; private set; } = string.Empty;
+
+    public decimal SkillWeight { get; private set; } = 0.40m;
+    public decimal ExperienceWeight { get; private set; } = 0.25m;
+    public decimal TitleWeight { get; private set; } = 0.25m;
+    public decimal OtherWeight { get; private set; } = 0.10m;
+
+    public JobMatchingWeights MatchingWeights => new(SkillWeight, ExperienceWeight, TitleWeight, OtherWeight);
     
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -78,7 +86,11 @@ public class JobPosting {
         decimal? salaryMax,
         bool salaryNegotiable,
         DateTimeOffset deadline,
-        DateTimeOffset now) {
+        DateTimeOffset now,
+        decimal? skillWeight = null,
+        decimal? experienceWeight = null,
+        decimal? titleWeight = null,
+        decimal? otherWeight = null) {
         if (companyId == Guid.Empty) {
             throw new ArgumentException("CompanyId is required.", nameof(companyId));
         }
@@ -106,6 +118,8 @@ public class JobPosting {
         if (string.IsNullOrWhiteSpace(requirements)) {
             throw new ArgumentException("Requirements are required.", nameof(requirements));
         }
+
+        var weights = JobMatchingWeights.FromValues(skillWeight, experienceWeight, titleWeight, otherWeight);
         
         return new JobPosting {
             CompanyId = companyId,
@@ -129,6 +143,10 @@ public class JobPosting {
             SalaryMax = salaryMax,
             SalaryNegotiable = salaryNegotiable,
             Deadline = deadline,
+            SkillWeight = weights.SkillWeight,
+            ExperienceWeight = weights.ExperienceWeight,
+            TitleWeight = weights.TitleWeight,
+            OtherWeight = weights.OtherWeight,
             Status = JobPostingStatus.PendingReview,
             CreatedAt = now,
             UpdatedAt = now
@@ -183,7 +201,12 @@ public class JobPosting {
         bool salaryMaxProvided,
         bool? salaryNegotiable,
         DateTimeOffset? deadline,
-        DateTimeOffset now) {
+        DateTimeOffset now,
+        decimal? skillWeight = null,
+        decimal? experienceWeight = null,
+        decimal? titleWeight = null,
+        decimal? otherWeight = null,
+        bool matchingWeightsProvided = false) {
         if (!string.IsNullOrWhiteSpace(title)) {
             Title = title.Trim();
         }
@@ -250,6 +273,14 @@ public class JobPosting {
 
         if (deadline.HasValue) {
             Deadline = deadline.Value;
+        }
+
+        if (matchingWeightsProvided) {
+            var weights = JobMatchingWeights.FromValues(skillWeight, experienceWeight, titleWeight, otherWeight);
+            SkillWeight = weights.SkillWeight;
+            ExperienceWeight = weights.ExperienceWeight;
+            TitleWeight = weights.TitleWeight;
+            OtherWeight = weights.OtherWeight;
         }
 
         UpdatedAt = now;

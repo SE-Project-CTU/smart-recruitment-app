@@ -195,6 +195,97 @@ export const CvScoringTab: React.FC = () => {
                   )}
                 </div>
 
+                {/* 3.1.b Chi tiết điểm thành phần theo trọng số JD */}
+                {matchResult.breakdown && (
+                  <div className="space-y-2.5 rounded-xl border border-border bg-surface p-3.5 text-xs shadow-xs">
+                    <h4 className="text-[11px] font-bold tracking-wider text-text-muted uppercase">
+                      Chi tiết điểm thành phần theo JD
+                    </h4>
+
+                    <div className="space-y-2">
+                      {/* Kỹ năng */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-text-main">
+                             Kỹ năng (Trọng số {Math.round(matchResult.breakdown.skillWeight * 100)}%)
+                          </span>
+                          <span className="font-bold text-text-main">
+                            {Math.round(matchResult.breakdown.skillScore)}%
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full bg-primary transition-all duration-300"
+                            style={{
+                              width: `${Math.min(100, Math.round(matchResult.breakdown.skillScore))}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Kinh nghiệm */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-text-main">
+                             Kinh nghiệm (Trọng số {Math.round(matchResult.breakdown.experienceWeight * 100)}%)
+                          </span>
+                          <span className="font-bold text-text-main">
+                            {Math.round(matchResult.breakdown.experienceScore)}%
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full bg-primary-light transition-all duration-300"
+                            style={{
+                              width: `${Math.min(100, Math.round(matchResult.breakdown.experienceScore))}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Chức danh & Cấp bậc */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-text-main">
+                             Chức danh (Trọng số {Math.round(matchResult.breakdown.titleWeight * 100)}%)
+                          </span>
+                          <span className="font-bold text-text-main">
+                            {Math.round(matchResult.breakdown.titleScore)}%
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full bg-secondary-dark transition-all duration-300"
+                            style={{
+                              width: `${Math.min(100, Math.round(matchResult.breakdown.titleScore))}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Học vấn & Vị trí */}
+                      <div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-semibold text-text-main">
+                            Học vấn & Vị trí (Trọng số {Math.round(matchResult.breakdown.otherWeight * 100)}%)
+                          </span>
+                          <span className="font-bold text-text-main">
+                            {Math.round(matchResult.breakdown.otherScore)}%
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full bg-emerald-500 transition-all duration-300"
+                            style={{
+                              width: `${Math.min(100, Math.round(matchResult.breakdown.otherScore))}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 3.2 Độ phủ kỹ năng (Phù hợp & Còn thiếu) */}
                 <div className="space-y-3 rounded-xl border border-border bg-surface p-3.5 text-xs shadow-xs">
                   <h4 className="text-[11px] font-bold tracking-wider text-text-muted uppercase">

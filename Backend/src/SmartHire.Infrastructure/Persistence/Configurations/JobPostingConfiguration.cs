@@ -28,6 +28,22 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting> {
         builder.Property(x => x.Status)
             .HasConversion<string>();
 
+        builder.Property(x => x.SkillWeight)
+            .HasPrecision(5, 2)
+            .HasDefaultValue(0.40m);
+
+        builder.Property(x => x.ExperienceWeight)
+            .HasPrecision(5, 2)
+            .HasDefaultValue(0.25m);
+
+        builder.Property(x => x.TitleWeight)
+            .HasPrecision(5, 2)
+            .HasDefaultValue(0.25m);
+
+        builder.Property(x => x.OtherWeight)
+            .HasPrecision(5, 2)
+            .HasDefaultValue(0.10m);
+
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.Title)
             .HasMethod("GIN")

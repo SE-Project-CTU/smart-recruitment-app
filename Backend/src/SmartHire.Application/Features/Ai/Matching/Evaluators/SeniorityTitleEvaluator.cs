@@ -23,14 +23,9 @@ public static class SeniorityTitleEvaluator {
 
         // Điểm tương đồng Cấp bậc (Seniority Similarity): 40%
         decimal seniorityScore = ComputeSeniorityScore(detectedLevel, targetLevel, targetJobTitle);
-        // Nếu chức danh hoàn toàn không liên quan (Title Similarity <= 25%), chiết giảm điểm cấp bậc
-        // vì cấp bậc chuyên môn ở ngành khác không thể tự động chuyển giao nguyên vẹn sang ngành này
-        if (titleSimilarity <= 25m) {
-            seniorityScore = Math.Min(seniorityScore, 30m);
-        }
 
         decimal finalScore = Math.Round((titleSimilarity * 0.60m) + (seniorityScore * 0.40m), 2);
-        return (Math.Clamp(finalScore, 10m, 100m), detectedSeniorityStr, targetSeniorityStr);
+        return (Math.Clamp(finalScore, 0m, 100m), detectedSeniorityStr, targetSeniorityStr);
     }
 
     private static string ExtractCvTitle(CvContentDocument? cv) {
@@ -61,15 +56,6 @@ public static class SeniorityTitleEvaluator {
         else if (text.Contains("intern") || text.Contains("thực tập")) levelFromTitle = 1;
 
         if (levelFromTitle > 0) {
-            // RÀNG BUỘC THỰC TẾ (SANITY CHECK):
-            // Số năm kinh nghiệm là bằng chứng thép. Nếu kinh nghiệm <= 1.5 năm (Fresher):
-            // Cấp bậc thực tế không thể vượt quá Junior (Level 3), bất kể chức danh có ghi Trưởng phòng hay Giám đốc.
-            if (actualYears <= 1.5m && levelFromTitle >= 4) {
-                return 2; // Khóa trần ở Fresher / Junior
-            }
-            if (actualYears <= 3.0m && levelFromTitle >= 6) {
-                return 4; // Khóa trần ở Middle
-            }
             return levelFromTitle;
         }
 

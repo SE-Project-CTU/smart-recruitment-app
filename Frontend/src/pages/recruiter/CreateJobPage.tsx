@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
+import { JobMatchingWeightsCard, type MatchingWeightsValues } from "@/components/job/JobMatchingWeightsCard";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
@@ -57,6 +58,7 @@ interface JobFormState {
   deadline: string;
   industryIds: string[];
   skillIds: string[];
+  matchingWeights: MatchingWeightsValues;
 }
 
 const initialFormState = (companyId: string): JobFormState => ({
@@ -80,6 +82,12 @@ const initialFormState = (companyId: string): JobFormState => ({
   deadline: dayjs().add(30, "day").format("YYYY-MM-DD"),
   industryIds: [],
   skillIds: [],
+  matchingWeights: {
+    skill: 40,
+    experience: 25,
+    title: 25,
+    other: 10,
+  },
 });
 
 function FieldError({ message }: { message?: string }) {
@@ -245,6 +253,15 @@ export default function CreateJobPage() {
       }
     }
 
+    const totalWeights =
+      formData.matchingWeights.skill +
+      formData.matchingWeights.experience +
+      formData.matchingWeights.title +
+      formData.matchingWeights.other;
+    if (Math.abs(totalWeights - 100) > 0.1) {
+      errors.matchingWeights = `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Vui lòng điều chỉnh để đạt chính xác 100%.`;
+    }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -280,6 +297,10 @@ export default function CreateJobPage() {
       deadline: dayjs(formData.deadline).endOf("day").toISOString(),
       industryIds: formData.industryIds,
       skillIds: formData.skillIds,
+      skillWeight: formData.matchingWeights.skill,
+      experienceWeight: formData.matchingWeights.experience,
+      titleWeight: formData.matchingWeights.title,
+      otherWeight: formData.matchingWeights.other,
     };
 
     try {
@@ -632,6 +653,13 @@ export default function CreateJobPage() {
                   </div>
                 </div>
               </section>
+
+              {/* KHỐI 4: Trọng số đánh giá ứng viên (AI Match Weights) */}
+              <JobMatchingWeightsCard
+                weights={formData.matchingWeights}
+                onChange={(weights) => updateForm("matchingWeights", weights)}
+                error={fieldErrors.matchingWeights}
+              />
             </div>
 
             {/* =========================================================================
@@ -759,26 +787,47 @@ export default function CreateJobPage() {
                   <FieldError message={fieldErrors.deadline} />
                 </div>
 
-                {/* Nút hành động */}
-                <div className="flex items-center justify-end gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => navigate(-1)}
-                    className="px-5! py-2! text-xs!"
-                  >
-                    Hủy bỏ
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    isLoading={isSubmitting}
-                    disabled={!selectedCompany || !isCompanyVerified}
-                    className="px-6! py-2! text-xs! font-semibold!"
-                  >
-                    <span>Đăng tin tuyển dụng</span>
-                  </Button>
-                </div>
+                  {/* Nút hành động */}
+                  {(() => {
+                    const totalWeights =
+                      formData.matchingWeights.skill +
+                      formData.matchingWeights.experience +
+                      formData.matchingWeights.title +
+                      formData.matchingWeights.other;
+                    const isWeightsInvalid = Math.abs(totalWeights - 100) > 0.1;
+
+                    return (
+                      <div className="flex items-center justify-end gap-3 pt-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => navigate(-1)}
+                          className="px-5! py-2! text-xs!"
+                        >
+                          Hủy bỏ
+                        </Button>
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          isLoading={isSubmitting}
+                          disabled={
+                            !selectedCompany ||
+                            !isCompanyVerified ||
+                            isWeightsInvalid ||
+                            isSubmitting
+                          }
+                          title={
+                            isWeightsInvalid
+                              ? `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Phải đạt chính xác 100% để đăng tin tuyển dụng.`
+                              : undefined
+                          }
+                          className="px-6! py-2! text-xs! font-semibold!"
+                        >
+                          <span>Đăng tin tuyển dụng</span>
+                        </Button>
+                      </div>
+                    );
+                  })()}
               </div>
             </div>
           </div>

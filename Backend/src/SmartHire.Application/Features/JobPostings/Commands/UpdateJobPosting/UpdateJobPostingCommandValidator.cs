@@ -34,7 +34,12 @@ internal sealed record ValidatedUpdateJobPosting(
     IReadOnlyList<Guid>? IndustryIds,
     bool IndustryIdsProvided,
     IReadOnlyList<Guid>? SkillIds,
-    bool SkillIdsProvided);
+    bool SkillIdsProvided,
+    decimal? SkillWeight = null,
+    decimal? ExperienceWeight = null,
+    decimal? TitleWeight = null,
+    decimal? OtherWeight = null,
+    bool MatchingWeightsProvided = false);
 
 internal static class UpdateJobPostingCommandValidator
 {
@@ -65,7 +70,8 @@ internal static class UpdateJobPostingCommandValidator
                           command.SalaryNegotiableProvided ||
                           command.DeadlineProvided ||
                           command.IndustryIdsProvided ||
-                          command.SkillIdsProvided;
+                          command.SkillIdsProvided ||
+                          command.MatchingWeightsProvided;
 
         if (!anyProvided)
         {
@@ -206,6 +212,35 @@ internal static class UpdateJobPostingCommandValidator
             }
         }
 
+        decimal? validatedSkillWeight = command.SkillWeight;
+        decimal? validatedExpWeight = command.ExperienceWeight;
+        decimal? validatedTitleWeight = command.TitleWeight;
+        decimal? validatedOtherWeight = command.OtherWeight;
+
+        if (command.MatchingWeightsProvided)
+        {
+            decimal sv = validatedSkillWeight ?? 0.40m;
+            decimal ev = validatedExpWeight ?? 0.25m;
+            decimal tv = validatedTitleWeight ?? 0.25m;
+            decimal ov = validatedOtherWeight ?? 0.10m;
+            if (sv > 1.0m || ev > 1.0m || tv > 1.0m || ov > 1.0m)
+            {
+                sv /= 100m; ev /= 100m; tv /= 100m; ov /= 100m;
+            }
+            if (sv < 0 || ev < 0 || tv < 0 || ov < 0)
+            {
+                details.Add(new AppErrorDetail("matchingWeights", ValidationReasons.InvalidFormat, "Weights must be non-negative."));
+            }
+            else if (Math.Abs((sv + ev + tv + ov) - 1.0m) > 0.02m)
+            {
+                details.Add(new AppErrorDetail("matchingWeights", ValidationReasons.InvalidFormat, "Total weights must equal 100%."));
+            }
+            validatedSkillWeight = sv;
+            validatedExpWeight = ev;
+            validatedTitleWeight = tv;
+            validatedOtherWeight = ov;
+        }
+
         if (details.Count > 0)
         {
             throw JobPostingExceptions.Validation(details);
@@ -240,6 +275,11 @@ internal static class UpdateJobPostingCommandValidator
             validatedIndustryIds,
             command.IndustryIdsProvided,
             validatedSkillIds,
-            command.SkillIdsProvided);
+            command.SkillIdsProvided,
+            validatedSkillWeight,
+            validatedExpWeight,
+            validatedTitleWeight,
+            validatedOtherWeight,
+            command.MatchingWeightsProvided);
     }
 }

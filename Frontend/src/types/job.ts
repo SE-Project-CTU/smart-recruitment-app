@@ -104,6 +104,13 @@ export interface JobPostingCreatorResult {
 /**
  * DTO tin tuyển dụng tiêu chuẩn (Dùng cho Create, Update, Company JobList)
  */
+export interface JobMatchingWeights {
+  skillWeight: number;
+  experienceWeight: number;
+  titleWeight: number;
+  otherWeight: number;
+}
+
 export interface JobPostingResult {
   id: string;
   company: CompanySummary;
@@ -130,6 +137,7 @@ export interface JobPostingResult {
   skills: SkillSummary[];
   createdAt: string;
   updatedAt: string;
+  matchingWeights?: JobMatchingWeights | null;
 
   // Flattened helpers tiện ích cho component
   companyId?: string;
@@ -139,6 +147,10 @@ export interface JobPostingResult {
   wardId?: string | null;
   industryIds?: string[];
   skillIds?: string[];
+  skillWeight?: number;
+  experienceWeight?: number;
+  titleWeight?: number;
+  otherWeight?: number;
 }
 
 /**
@@ -256,6 +268,10 @@ export interface CreateJobPostingPayload {
   deadline: string;
   industryIds: string[];
   skillIds: string[];
+  skillWeight?: number;
+  experienceWeight?: number;
+  titleWeight?: number;
+  otherWeight?: number;
 }
 
 /**
@@ -281,6 +297,10 @@ export interface UpdateJobPostingPayload {
   deadline?: string;
   industryIds?: string[];
   skillIds?: string[];
+  skillWeight?: number;
+  experienceWeight?: number;
+  titleWeight?: number;
+  otherWeight?: number;
 }
 
 /**

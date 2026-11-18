@@ -14,6 +14,11 @@ public static class CvTextExtractor {
             sb.AppendLine($"Vị trí/Chức danh: {profileTitle}");
         }
 
+        var address = CvTiptapDocument.ExtractPlainText(content.Profile.Address);
+        if (!string.IsNullOrWhiteSpace(address)) {
+            sb.AppendLine($"Địa chỉ: {address}");
+        }
+
         var objective = CvTiptapDocument.ExtractPlainText(content.Sections.Objective?.Content);
         if (!string.IsNullOrWhiteSpace(objective)) {
             sb.AppendLine($"Mục tiêu nghề nghiệp: {objective}");
@@ -36,7 +41,12 @@ public static class CvTextExtractor {
                 var position = CvTiptapDocument.ExtractPlainText(exp.Position);
                 var company = CvTiptapDocument.ExtractPlainText(exp.Company);
                 var desc = CvTiptapDocument.ExtractPlainText(exp.Description);
-                sb.AppendLine($"- {position} tại {company}: {desc}");
+                var start = CvTiptapDocument.ExtractPlainText(exp.StartDate);
+                var end = CvTiptapDocument.ExtractPlainText(exp.EndDate);
+                var dateRange = (!string.IsNullOrWhiteSpace(start) || !string.IsNullOrWhiteSpace(end))
+                    ? $"{start ?? ""} - {end ?? "Hiện tại"}: "
+                    : string.Empty;
+                sb.AppendLine($"- {dateRange}{position} tại {company}: {desc}");
             }
         }
 

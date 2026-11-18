@@ -346,6 +346,13 @@ export function convertCvFormToPlainText(
     lines.push("");
   }
 
+  // 1.1 ĐỊA CHỈ / KHU VỰC
+  const address = extractPlainTextFromTiptap(profile?.address) || "";
+  if (address) {
+    lines.push(`Địa chỉ: ${address}`);
+    lines.push("");
+  }
+
   // 2. MỤC TIÊU NGHỀ NGHIỆP
   if (sections?.objective?.visible !== false) {
     const objectiveText = extractPlainTextFromTiptap(sections?.objective?.content);

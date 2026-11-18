@@ -24,6 +24,10 @@ public sealed class UpdateJobPostingRequest
     private DateTimeOffset? _deadline;
     private IReadOnlyList<Guid>? _industryIds;
     private IReadOnlyList<Guid>? _skillIds;
+    private decimal? _skillWeight;
+    private decimal? _experienceWeight;
+    private decimal? _titleWeight;
+    private decimal? _otherWeight;
 
     public string? Title
     {
@@ -233,6 +237,47 @@ public sealed class UpdateJobPostingRequest
         }
     }
     [JsonIgnore] public bool SkillIdsProvided { get; private set; }
+
+    public decimal? SkillWeight
+    {
+        get => _skillWeight;
+        init
+        {
+            _skillWeight = value;
+            MatchingWeightsProvided = true;
+        }
+    }
+
+    public decimal? ExperienceWeight
+    {
+        get => _experienceWeight;
+        init
+        {
+            _experienceWeight = value;
+            MatchingWeightsProvided = true;
+        }
+    }
+
+    public decimal? TitleWeight
+    {
+        get => _titleWeight;
+        init
+        {
+            _titleWeight = value;
+            MatchingWeightsProvided = true;
+        }
+    }
+
+    public decimal? OtherWeight
+    {
+        get => _otherWeight;
+        init
+        {
+            _otherWeight = value;
+            MatchingWeightsProvided = true;
+        }
+    }
+    [JsonIgnore] public bool MatchingWeightsProvided { get; private set; }
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? AdditionalFields { get; init; }

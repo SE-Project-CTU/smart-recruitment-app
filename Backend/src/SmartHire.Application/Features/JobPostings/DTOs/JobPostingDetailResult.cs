@@ -1,3 +1,5 @@
+using SmartHire.Domain.ValueObjects;
+
 namespace SmartHire.Application.Features.JobPostings.DTOs;
 
 public sealed record JobPostingCreatorResult(
@@ -49,4 +51,5 @@ public sealed record JobPostingDetailResult(
     bool HasApplied,
     Guid? ApplicationId,
     bool IsFollowingCompany,
-    bool IsBookmarked = false);
+    bool IsBookmarked = false,
+    JobMatchingWeights? MatchingWeights = null);

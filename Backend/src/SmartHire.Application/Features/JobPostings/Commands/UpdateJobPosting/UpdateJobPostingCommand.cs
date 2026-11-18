@@ -42,5 +42,10 @@ public sealed record UpdateJobPostingCommand(
     IReadOnlyList<Guid>? IndustryIds,
     bool IndustryIdsProvided,
     IReadOnlyList<Guid>? SkillIds,
-    bool SkillIdsProvided
+    bool SkillIdsProvided,
+    decimal? SkillWeight = null,
+    decimal? ExperienceWeight = null,
+    decimal? TitleWeight = null,
+    decimal? OtherWeight = null,
+    bool MatchingWeightsProvided = false
 ) : IRequest<JobPostingResult>;

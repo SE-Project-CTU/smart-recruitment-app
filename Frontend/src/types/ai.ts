@@ -62,6 +62,17 @@ export interface MatchAnalysisPayload {
   jobText?: string | null;
 }
 
+export interface ScoreBreakdown {
+  skillScore: number;
+  titleScore: number;
+  experienceScore: number;
+  otherScore: number;
+  skillWeight: number;
+  titleWeight: number;
+  experienceWeight: number;
+  otherWeight: number;
+}
+
 /**
  * Kết quả phân tích độ phù hợp giữa CV và JD từ AI
  */
@@ -72,4 +83,5 @@ export interface MatchAnalysisResult {
   missingSkills: string[];
   strengths: string[];
   recommendations: string[];
+  breakdown?: ScoreBreakdown | null;
 }

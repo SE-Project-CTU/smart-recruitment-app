@@ -6,6 +6,7 @@ using SmartHire.Application.Abstractions.Persistence.ReadModels;
 using SmartHire.Application.Abstractions.Persistence.Criteria;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
+using SmartHire.Domain.ValueObjects;
 using SmartHire.Application.Features.Admin.JobPostings.DTOs;
 using SmartHire.Application.Features.JobPostings.DTOs;
 using JobPostingDetailData = SmartHire.Application.Abstractions.Persistence.ReadModels.JobPostingDetailData;
@@ -183,7 +184,12 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     .Select(js => new SkillReadModel(js.Skill.Id, js.Skill.Name))
                     .ToList(),
                 posting.CreatedAt,
-                posting.UpdatedAt))
+                posting.UpdatedAt,
+                new JobMatchingWeights(
+                    posting.SkillWeight,
+                    posting.ExperienceWeight,
+                    posting.TitleWeight,
+                    posting.OtherWeight)))
             .FirstOrDefaultAsync(cancellationToken);
     }
     
@@ -240,7 +246,12 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     .Select(js => new SkillReadModel(js.Skill.Id, js.Skill.Name))
                     .ToList(),
                 posting.CreatedAt,
-                posting.UpdatedAt))
+                posting.UpdatedAt,
+                new JobMatchingWeights(
+                    posting.SkillWeight,
+                    posting.ExperienceWeight,
+                    posting.TitleWeight,
+                    posting.OtherWeight)))
             .ToListAsync(cancellationToken);
     }
     
