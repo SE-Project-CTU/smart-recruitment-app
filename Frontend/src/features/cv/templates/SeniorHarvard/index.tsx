@@ -55,6 +55,8 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
   onReorderSections,
   onToggleSectionVisibility,
 }) => {
+  const { activeSuggestionSectionKey } = useCvRewriteContext();
+
   if (!content || !content.profile || !content.sections) {
     return (
       <div className="flex h-96 items-center justify-center rounded-xl border border-dashed border-border bg-surface text-sm text-text-muted">
@@ -70,8 +72,6 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
   const fontFamily = globalStyles?.fontFamily || DEFAULT_CV_FONT_ID;
   const lineHeight = globalStyles?.lineHeight || 1.5;
   const fontScale = globalStyles?.fontScale ?? 1.0;
-
-  const { activeSuggestionSectionKey } = useCvRewriteContext();
 
   const isSectionVisible = (key: string): boolean => {
     const sec = sections[key as keyof typeof sections];
@@ -287,7 +287,8 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                   >
                     {(dragProvided, snapshot) => {
                       const isActiveSuggestion = Boolean(
-                        activeSuggestionSectionKey &&
+                        !isReadOnly &&
+                          activeSuggestionSectionKey &&
                           sectionKey.toLowerCase() ===
                             activeSuggestionSectionKey.toLowerCase(),
                       );
@@ -363,7 +364,8 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
         <div className="space-y-2">
           {visibleSections.map((sectionKey) => {
             const isActiveSuggestion = Boolean(
-              activeSuggestionSectionKey &&
+              !isReadOnly &&
+                activeSuggestionSectionKey &&
                 sectionKey.toLowerCase() ===
                   activeSuggestionSectionKey.toLowerCase(),
             );

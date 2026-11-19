@@ -59,7 +59,8 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
   }) => {
     const { activeSuggestionSectionKey } = useCvRewriteContext();
     const isActiveSuggestion = Boolean(
-      activeSuggestionSectionKey &&
+      !isReadOnly &&
+        activeSuggestionSectionKey &&
         sectionKey.toLowerCase() === activeSuggestionSectionKey.toLowerCase(),
     );
 
