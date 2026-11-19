@@ -977,6 +977,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("education_level");
 
+                    b.Property<decimal>("ExperienceWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.25m)
+                        .HasColumnName("experience_weight");
+
                     b.Property<int?>("ExperienceYears")
                         .HasColumnType("integer")
                         .HasColumnName("experience_years");
@@ -989,6 +996,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("job_type");
+
+                    b.Property<decimal>("OtherWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.10m)
+                        .HasColumnName("other_weight");
 
                     b.Property<Guid>("ProvinceId")
                         .HasColumnType("uuid")
@@ -1017,6 +1031,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("search_vector")
                         .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(title, ''::text))", true);
 
+                    b.Property<decimal>("SkillWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.40m)
+                        .HasColumnName("skill_weight");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1026,6 +1047,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("title");
+
+                    b.Property<decimal>("TitleWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.25m)
+                        .HasColumnName("title_weight");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")

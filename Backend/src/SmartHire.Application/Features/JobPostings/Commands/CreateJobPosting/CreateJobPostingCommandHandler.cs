@@ -118,7 +118,11 @@ public sealed class CreateJobPostingCommandHandler
                 validated.SalaryMax,
                 validated.SalaryNegotiable,
                 validated.Deadline,
-                now);
+                now,
+                validated.SkillWeight,
+                validated.ExperienceWeight,
+                validated.TitleWeight,
+                validated.OtherWeight);
             
             foreach (var industryId in validated.IndustryIds)
                 jobPosting.AddIndustry(industryId);

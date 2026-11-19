@@ -175,7 +175,12 @@ public sealed class UpdateJobPostingCommandHandler
                 validated.SalaryMaxProvided,
                 validated.SalaryNegotiable,
                 validated.Deadline,
-                now);
+                now,
+                validated.SkillWeight,
+                validated.ExperienceWeight,
+                validated.TitleWeight,
+                validated.OtherWeight,
+                validated.MatchingWeightsProvided);
 
             if (validated.IndustryIdsProvided && validated.IndustryIds is not null)
             {

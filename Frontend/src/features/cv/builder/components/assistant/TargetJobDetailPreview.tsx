@@ -5,19 +5,16 @@ import {
   FileText,
   Gift,
   Loader2,
-  AlertCircle,
-  RefreshCw,
 } from "lucide-react";
-import { Button } from "@/components/common";
 import { getWorkModeLabel } from "@/utils/jobHelpers";
 import type { TargetJobOption } from "./types";
 
 interface TargetJobDetailPreviewProps {
   selectedJob: TargetJobOption | null;
-  isLoadingDetail: boolean;
-  isErrorDetail: boolean;
-  detailErrorMessage: string | null;
-  onRetryDetail: () => void;
+  isLoadingDetail?: boolean;
+  isErrorDetail?: boolean;
+  detailErrorMessage?: string | null;
+  onRetryDetail?: () => void;
 }
 
 /**
@@ -31,9 +28,6 @@ interface TargetJobDetailPreviewProps {
 export const TargetJobDetailPreview: React.FC<TargetJobDetailPreviewProps> = ({
   selectedJob,
   isLoadingDetail,
-  isErrorDetail,
-  detailErrorMessage,
-  onRetryDetail,
 }) => {
   if (!selectedJob) {
     return (
@@ -98,26 +92,7 @@ export const TargetJobDetailPreview: React.FC<TargetJobDetailPreviewProps> = ({
           </div>
         </div>
 
-        {/* 2. Banner lỗi nạp chi tiết (nếu có) */}
-        {isErrorDetail && (
-          <div className="mx-5 mt-4 flex shrink-0 items-center justify-between rounded-lg border border-status-error/40 bg-status-error/10 p-2.5 text-xs text-status-error">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="size-4 shrink-0" />
-              <span>{detailErrorMessage}</span>
-            </div>
-            <Button
-              variant="secondary"
-              icon={RefreshCw}
-              iconSize={11}
-              onClick={onRetryDetail}
-              className="h-6! rounded-md! px-2! text-[10px]!"
-            >
-              Thử lại
-            </Button>
-          </div>
-        )}
-
-        {/* 3. Nội dung JD chi tiết (Cuộn độc lập) */}
+        {/* 2. Nội dung JD chi tiết (Cuộn độc lập) */}
         <div className="flex-1 space-y-5 overflow-y-auto p-5 text-xs text-text-main">
           {/* 3.1 Kỹ năng chuyên môn yêu cầu */}
           {selectedJob.skills && selectedJob.skills.length > 0 && (

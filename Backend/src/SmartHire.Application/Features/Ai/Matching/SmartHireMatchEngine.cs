@@ -19,23 +19,23 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
         JobPostingDetailData job,
         string? rawCvSkillsText = null,
         decimal? semanticVectorSimilarity = null) {
-        // Kỹ năng chuyên môn (Mục SKILLS + FuzzySharp + pgvector Semantic)
+        // Kỹ năng chuyên môn (Mục SKILLS + pgvector Semantic)
         var (skillScore, matchingSkills, missingSkills) = SkillMatchEvaluator.Evaluate(cv, job, rawCvSkillsText, semanticVectorSimilarity);
 
         // Chức danh & Cấp bậc
         var (titleScore, detectedSeniority, targetSeniority) = SeniorityTitleEvaluator.Evaluate(cv, job);
 
-        // Thâm niên kinh nghiệm & Thưởng ngành (+5% Bonus)
-        var (expScore, actualYears, requiredYears, hasBonus, bonusPoints) = ExperienceEvaluator.Evaluate(cv, job);
+        // Thâm niên kinh nghiệm thực tế
+        var (expScore, actualYears, requiredYears) = ExperienceEvaluator.Evaluate(cv, job);
 
-        //  Địa điểm & Học vấn
+        // Địa điểm & Học vấn (Pass: 100% / Fail: 0%)
         decimal otherScore = LocationEducationEvaluator.Evaluate(cv, job);
 
-        // Tính điểm tổng hợp theo Trọng số chuẩn hóa
-        decimal wSkill = _weights.Skill;
-        decimal wTitle = _weights.Title;
-        decimal wExp = _weights.Experience;
-        decimal wOther = _weights.Other;
+        // Tính điểm tổng hợp theo Trọng số do HR cấu hình (hoặc fallback mặc định)
+        decimal wSkill = job.MatchingWeights?.SkillWeight ?? _weights.Skill;
+        decimal wTitle = job.MatchingWeights?.TitleWeight ?? _weights.Title;
+        decimal wExp = job.MatchingWeights?.ExperienceWeight ?? _weights.Experience;
+        decimal wOther = job.MatchingWeights?.OtherWeight ?? _weights.Other;
 
         decimal totalWeight = wSkill + wTitle + wExp + wOther;
         if (totalWeight <= 0) totalWeight = 1.0m;
@@ -45,47 +45,17 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
                                  (wExp * expScore) +
                                  (wOther * otherScore)) / totalWeight;
 
-        // QUY TẮC BẢO VỆ NĂNG LỰC CỐT LÕI (CORE COMPETENCE GATE):
-        // Kỹ năng chuyên môn là điều kiện tiên quyết trong tuyển dụng.
-        // Khi Job có yêu cầu kỹ năng nhưng Ứng viên đạt 0% kỹ năng (hoặc dưới 15%):
-        // Điểm tổng thể bị chặn trần tối đa 25% - 30% để phản ánh đúng sự lệch pha chuyên môn.
-        if (missingSkills.Count > 0 && matchingSkills.Count == 0) {
-            weightedScore = Math.Min(weightedScore, 25.0m);
-        } else if (skillScore < 30.0m && (missingSkills.Count + matchingSkills.Count) > 0) {
-            decimal penaltyFactor = Math.Max(0.40m, skillScore / 30.0m);
-            weightedScore = Math.Min(weightedScore, weightedScore * penaltyFactor);
-        }
-
-        // QUY TẮC RÀO CHẮN CẤP BẬC & THÂM NIÊN (SENIORITY & EXPERIENCE HARD GATE):
-        // Ứng viên Fresher (<= 1.5 năm kinh nghiệm) không thể nhảy cóc lên vị trí Quản lý / Trưởng phòng (>= 5-8 năm).
-        // Khi Job yêu cầu cấp bậc TeamLead / DepartmentHead hoặc yêu cầu >= 5 năm kinh nghiệm:
-        // Nếu số năm kinh nghiệm thực tế của ứng viên quá thấp (< 40% yêu cầu hoặc <= 1.5 năm):
-        // Điểm tổng thể BẮT BUỘC bị khóa trần tối đa 28% - 32%.
-        if (requiredYears.HasValue && requiredYears.Value >= 5 && actualYears < (requiredYears.Value * 0.40m)) {
-            weightedScore = Math.Min(weightedScore, 30.0m);
-        } else if (requiredYears.HasValue && requiredYears.Value >= 3 && actualYears < (requiredYears.Value * 0.35m)) {
-            weightedScore = Math.Min(weightedScore, 35.0m);
-        }
-
-        if ((job.JobLevel == JobLevel.DepartmentHead || job.JobLevel == JobLevel.TeamLead) && actualYears <= 1.5m) {
-            weightedScore = Math.Min(weightedScore, 28.0m);
-        }
-
-        // Áp dụng quy tắc Tie-breaker:
-        // Điểm thưởng lợi thế chỉ áp dụng khi Điểm năng lực cốt lõi >= 50%
-        if (weightedScore < 50m && hasBonus) {
-            weightedScore = Math.Max(15m, weightedScore - bonusPoints);
-        }
-
-        decimal finalScore = Math.Round(Math.Clamp(weightedScore, 10m, 100m), 2);
+        decimal finalScore = Math.Round(Math.Clamp(weightedScore, 0m, 100m), 2);
 
         var breakdown = new ScoreBreakdown(
             SkillScore: skillScore,
             TitleScore: titleScore,
             ExperienceScore: expScore,
             OtherScore: otherScore,
-            HasPreferentialBonus: hasBonus,
-            BonusPoints: bonusPoints
+            SkillWeight: wSkill,
+            TitleWeight: wTitle,
+            ExperienceWeight: wExp,
+            OtherWeight: wOther
         );
 
         string summary = GenerateRuleBasedSummary(finalScore, job, matchingSkills, missingSkills, actualYears, requiredYears, detectedSeniority, targetSeniority);
@@ -157,7 +127,8 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
 
         foreach (var line in lines) {
             var lower = line.ToLowerInvariant();
-            if (lower.StartsWith("kỹ năng chuyên môn:") || lower.StartsWith("kỹ năng:") || lower.StartsWith("skills:")) {
+            if (lower.StartsWith("kỹ năng chuyên môn:") || lower.StartsWith("kỹ năng:") || lower.StartsWith("skills:") ||
+                lower == "skills" || lower == "kỹ năng" || lower == "kỹ năng chuyên môn") {
                 inSkills = true;
                 int colonIdx = line.IndexOf(':');
                 if (colonIdx >= 0 && colonIdx < line.Length - 1) {
@@ -169,7 +140,11 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
 
             if (inSkills) {
                 if (lower.StartsWith("kinh nghiệm") || lower.StartsWith("dự án") || lower.StartsWith("mục tiêu") ||
-                    lower.StartsWith("học vấn") || lower.StartsWith("giải thưởng") || lower.StartsWith("chứng chỉ")) {
+                    lower.StartsWith("học vấn") || lower.StartsWith("giải thưởng") || lower.StartsWith("chứng chỉ") ||
+                    lower.StartsWith("work experience") || lower.StartsWith("experience") || lower.StartsWith("projects") ||
+                    lower.StartsWith("education") || lower.StartsWith("certifications") || lower.StartsWith("awards") ||
+                    lower == "education" || lower == "work experience" || lower == "projects" || lower == "certifications" ||
+                    lower == "học vấn" || lower == "kinh nghiệm làm việc") {
                     break;
                 }
                 skillsLines.Add(line);
@@ -187,25 +162,35 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
         var skillsSection = new CvItemSection<CvSkillItem>();
         var experienceSection = new CvItemSection<CvExperienceItem>();
         var projectsSection = new CvItemSection<CvProjectItem>();
+        var educationSection = new CvItemSection<CvEducationItem>();
         string profileTitle = string.Empty;
+        string profileAddress = string.Empty;
         string currentSection = string.Empty;
 
         foreach (var line in lines) {
             var lower = line.ToLowerInvariant();
 
-            if (lower.StartsWith("vị trí mục tiêu:") || lower.StartsWith("target role:")) {
+            if (lower.StartsWith("vị trí mục tiêu:") || lower.StartsWith("target role:") || lower.StartsWith("chức danh:") || lower.StartsWith("title:")) {
                 var titleVal = line.Substring(line.IndexOf(':') + 1).Trim();
                 if (!string.IsNullOrWhiteSpace(titleVal)) profileTitle = titleVal;
                 currentSection = string.Empty;
                 continue;
             }
 
-            if (lower.StartsWith("mục tiêu nghề nghiệp:") || lower.StartsWith("objective:")) {
+            if (lower.StartsWith("địa chỉ:") || lower.StartsWith("address:") || lower.StartsWith("location:") || lower.StartsWith("khu vực:")) {
+                var addrVal = line.Substring(line.IndexOf(':') + 1).Trim();
+                if (!string.IsNullOrWhiteSpace(addrVal)) profileAddress = addrVal;
+                currentSection = string.Empty;
+                continue;
+            }
+
+            if (lower.StartsWith("mục tiêu nghề nghiệp:") || lower.StartsWith("objective:") || lower == "objective" || lower == "mục tiêu nghề nghiệp") {
                 currentSection = "objective";
                 continue;
             }
 
-            if (lower.StartsWith("kỹ năng chuyên môn:") || lower.StartsWith("kỹ năng:") || lower.StartsWith("skills:")) {
+            if (lower.StartsWith("kỹ năng chuyên môn:") || lower.StartsWith("kỹ năng:") || lower.StartsWith("skills:") ||
+                lower == "skills" || lower == "kỹ năng" || lower == "kỹ năng chuyên môn") {
                 currentSection = "skills";
                 int colonIdx = line.IndexOf(':');
                 if (colonIdx >= 0 && colonIdx < line.Length - 1) {
@@ -217,17 +202,24 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
                 continue;
             }
 
-            if (lower.StartsWith("kinh nghiệm làm việc:") || lower.StartsWith("kinh nghiệm:") || lower.StartsWith("experience:")) {
+            if (lower.StartsWith("kinh nghiệm làm việc:") || lower.StartsWith("kinh nghiệm:") || lower.StartsWith("experience:") ||
+                lower == "experience" || lower == "work experience" || lower == "kinh nghiệm làm việc") {
                 currentSection = "experience";
                 continue;
             }
 
-            if (lower.StartsWith("dự án tiêu biểu:") || lower.StartsWith("dự án:") || lower.StartsWith("projects:")) {
+            if (lower.StartsWith("dự án tiêu biểu:") || lower.StartsWith("dự án:") || lower.StartsWith("projects:") ||
+                lower == "projects" || lower == "dự án") {
                 currentSection = "projects";
                 continue;
             }
 
-            if (lower.StartsWith("giải thưởng") || lower.StartsWith("học vấn") || lower.StartsWith("awards:") || lower.StartsWith("education:")) {
+            if (lower.StartsWith("học vấn:") || lower.StartsWith("education:") || lower == "education" || lower == "học vấn") {
+                currentSection = "education";
+                continue;
+            }
+
+            if (lower.StartsWith("giải thưởng") || lower.StartsWith("awards:") || lower.StartsWith("chứng chỉ") || lower.StartsWith("certifications:")) {
                 currentSection = string.Empty;
                 continue;
             }
@@ -237,13 +229,26 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
                     Name = CvTiptapDocument.FromText(line)
                 });
             } else if (currentSection == "experience") {
-                var dateMatch = Regex.Match(line, @"(\d{2}/\d{4}|\d{4})\s*[-–—]\s*(\d{2}/\d{4}|\d{4}|hiện tại|present|now)", RegexOptions.IgnoreCase);
+                // Nhận diện linh hoạt ngày tháng: yyyy-MM, yyyy/MM, MM/yyyy, MM-yyyy, yyyy, present/hiện tại
+                var dateMatch = Regex.Match(
+                    line,
+                    @"\b((?:19|20)\d{2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{4}|(?:19|20)\d{2})\s*[-–—~tođến]+\s*((?:19|20)\d{2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{4}|(?:19|20)\d{2}|hiện tại|present|now|current|nay)\b",
+                    RegexOptions.IgnoreCase);
+
                 if (dateMatch.Success) {
                     experienceSection.Items.Add(new CvExperienceItem {
                         StartDate = CvTiptapDocument.FromText(dateMatch.Groups[1].Value),
                         EndDate = CvTiptapDocument.FromText(dateMatch.Groups[2].Value),
                         Description = CvTiptapDocument.FromText(line)
                     });
+                } else if (experienceSection.Items.Count > 0) {
+                    // Ghép bullet points hoặc chi tiết mô tả vào mục kinh nghiệm gần nhất
+                    var lastItem = experienceSection.Items[^1];
+                    var currentDesc = CvTiptapDocument.ExtractPlainText(lastItem.Description);
+                    var updatedDesc = string.IsNullOrWhiteSpace(currentDesc) ? line : $"{currentDesc}\n{line}";
+                    experienceSection.Items[^1] = lastItem with {
+                        Description = CvTiptapDocument.FromText(updatedDesc)
+                    };
                 } else {
                     experienceSection.Items.Add(new CvExperienceItem {
                         Description = CvTiptapDocument.FromText(line)
@@ -253,17 +258,25 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
                 projectsSection.Items.Add(new CvProjectItem {
                     Description = CvTiptapDocument.FromText(line)
                 });
+            } else if (currentSection == "education") {
+                educationSection.Items.Add(new CvEducationItem {
+                    School = CvTiptapDocument.FromText(line),
+                    Title = CvTiptapDocument.FromText(line),
+                    Details = CvTiptapDocument.FromText(line)
+                });
             }
         }
 
         return doc with {
             Profile = doc.Profile with {
-                Title = !string.IsNullOrWhiteSpace(profileTitle) ? CvTiptapDocument.FromText(profileTitle) : doc.Profile.Title
+                Title = !string.IsNullOrWhiteSpace(profileTitle) ? CvTiptapDocument.FromText(profileTitle) : doc.Profile.Title,
+                Address = !string.IsNullOrWhiteSpace(profileAddress) ? CvTiptapDocument.FromText(profileAddress) : doc.Profile.Address
             },
             Sections = doc.Sections with {
                 Skills = skillsSection,
                 Experience = experienceSection,
-                Projects = projectsSection
+                Projects = projectsSection,
+                Education = educationSection
             }
         };
     }

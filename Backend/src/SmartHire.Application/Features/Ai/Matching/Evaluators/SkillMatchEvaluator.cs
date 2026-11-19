@@ -13,45 +13,29 @@ public static class SkillMatchEvaluator {
         // Thu thập danh sách kỹ năng yêu cầu của Job
         var targetSkills = ExtractTargetSkills(job);
         if (targetSkills.Count == 0) {
-            return (30.0m, Array.Empty<string>(), Array.Empty<string>());
+            return (100.0m, Array.Empty<string>(), Array.Empty<string>());
         }
 
-        // Thu thập danh sách kỹ năng của Ứng viên (Ưu tiên số 1: Section SKILLS)
+        // Thu thập danh sách kỹ năng của Ứng viên: Chỉ quét đúng Section SKILLS (hoặc text từ mục Skills)
         var candidateSkills = ExtractCandidateSkills(cv, rawCvSkillsText);
-
-        // Thu thập ngữ cảnh từ Projects và Experience để hỗ trợ đối soát ngữ cảnh nếu ứng viên quên ghi vào Section Skills
-        var contextualTokens = ExtractContextualSkillTokens(cv);
 
         var matchingSkills = new List<string>();
         var missingSkills = new List<string>();
-        int demonstratedContextSkillsCount = 0;
 
         foreach (var target in targetSkills) {
             bool matched = candidateSkills.Any(c => SkillNormalizationMap.IsMatch(c, target));
             if (matched) {
                 matchingSkills.Add(target);
-            } else if (contextualTokens.Any(c => SkillNormalizationMap.IsMatch(c, target))) {
-                // Kỹ năng chưa có trong Section Skills nhưng đã được chứng minh trong Dự án / Kinh nghiệm
-                demonstratedContextSkillsCount++;
-                missingSkills.Add(target); // Vẫn xếp vào missingSkills để nhắc nhở người dùng bổ sung vào Section Skills
             } else {
                 missingSkills.Add(target);
             }
         }
 
-        // Tính điểm độ khớp:
-        // - Kỹ năng có trong Section Skills: 1.0 điểm
-        // - Kỹ năng được chứng minh qua Dự án/Kinh nghiệm: 0.70 điểm (Partial credit bù đắp)
-        decimal totalMatchedPoints = (matchingSkills.Count * 1.0m) + (demonstratedContextSkillsCount * 0.70m);
-        decimal matchRate = targetSkills.Count > 0
-            ? totalMatchedPoints / targetSkills.Count
-            : 1.0m;
-
+        decimal matchRate = (decimal)matchingSkills.Count / targetSkills.Count;
         decimal lexicalScore = Math.Round(matchRate * 100m, 2);
         decimal finalScore = lexicalScore;
 
-        // Kết hợp pgvector Semantic Similarity (Hybrid Scoring)
-        // Nếu lexical score chưa đạt tối đa nhưng pgvector ghi nhận độ tương đồng ngữ nghĩa cao (ứng viên dùng từ ngữ/văn phong tương đương trong ngành)
+        // Kết hợp pgvector Semantic Similarity (Hybrid Scoring) nếu có
         if (semanticVectorSimilarity.HasValue) {
             decimal vectorScore = Math.Clamp(semanticVectorSimilarity.Value * 100m, 0m, 100m);
             if (vectorScore > lexicalScore) {
@@ -110,38 +94,32 @@ public static class SkillMatchEvaluator {
         return skills.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
-    private static List<string> ExtractContextualSkillTokens(CvContentDocument? cv) {
-        if (cv == null) return new List<string>();
-        var tokens = new List<string>();
-
-        if (cv.Sections.Experience?.Items != null) {
-            foreach (var item in cv.Sections.Experience.Items) {
-                var desc = CvTiptapDocument.ExtractPlainText(item.Description);
-                if (!string.IsNullOrWhiteSpace(desc)) {
-                    tokens.AddRange(ParseSkillsFromRawText(desc));
-                }
-            }
-        }
-
-        if (cv.Sections.Projects?.Items != null) {
-            foreach (var item in cv.Sections.Projects.Items) {
-                var desc = CvTiptapDocument.ExtractPlainText(item.Description);
-                if (!string.IsNullOrWhiteSpace(desc)) {
-                    tokens.AddRange(ParseSkillsFromRawText(desc));
-                }
-            }
-        }
-
-        return tokens.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-    }
-
     private static List<string> ParseSkillsFromRawText(string text) {
         if (string.IsNullOrWhiteSpace(text)) return new List<string>();
 
-        var delimiters = new[] { ',', ';', '\n', '\r', '•', '-', '|', '/', '+', '\t' };
-        return text.Split(delimiters, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(s => s.Length >= 2 && !IsGenericWord(s))
-            .ToList();
+        // Tách theo các ký tự phân cách thông dụng, bao gồm ngoặc đơn/kép, dấu hai chấm
+        var delimiters = new[] { ',', ';', '\n', '\r', '•', '-', '|', '/', '+', '\t', '(', ')', '[', ']', '{', '}' };
+        var rawTokens = text.Split(delimiters, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var result = new List<string>();
+
+        foreach (var raw in rawTokens) {
+            var token = raw.Trim(' ', '•', '-', '*', ':', '.', ',', '(', ')');
+
+            // Nếu token chứa dấu hai chấm (vd: "Frontend: React.js" hoặc "Languages: JavaScript")
+            if (token.Contains(':')) {
+                var colonParts = token.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                foreach (var cp in colonParts) {
+                    var cleanedCp = cp.Trim(' ', '•', '-', '*', ':', '.', ',', '(', ')');
+                    if (cleanedCp.Length >= 2 && !IsGenericCategoryWord(cleanedCp)) {
+                        result.Add(cleanedCp);
+                    }
+                }
+            } else if (token.Length >= 2 && !IsGenericCategoryWord(token)) {
+                result.Add(token);
+            }
+        }
+
+        return result;
     }
 
     private static List<string> ExtractSkillsFromText(string text) {
@@ -179,6 +157,15 @@ public static class SkillMatchEvaluator {
             return true;
         }
         return text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length > 5;
+    }
+
+    private static bool IsGenericCategoryWord(string word) {
+        var categoryWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+            "languages", "frontend", "backend", "database", "databases", "tools", "ai",
+            "tools & ai", "fundamentals", "ngôn ngữ", "công nghệ", "công cụ", "nền tảng",
+            "kỹ năng", "chuyên môn", "skills", "other", "khác"
+        };
+        return categoryWords.Contains(word) || IsGenericWord(word);
     }
 
     private static bool IsGenericWord(string word) {

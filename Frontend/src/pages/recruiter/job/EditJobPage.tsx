@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
+import { JobMatchingWeightsCard, type MatchingWeightsValues } from "@/components/job/JobMatchingWeightsCard";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
@@ -65,6 +66,7 @@ interface EditJobFormState {
   deadline: string;
   industryIds: string[];
   skillIds: string[];
+  matchingWeights: MatchingWeightsValues;
 }
 
 const initialEditState = (job: JobPostingItem): EditJobFormState => ({
@@ -87,6 +89,36 @@ const initialEditState = (job: JobPostingItem): EditJobFormState => ({
   deadline: job.deadline ? dayjs(job.deadline).format("YYYY-MM-DD") : "",
   industryIds: job.industryIds || job.industries?.map((i) => i.id) || [],
   skillIds: job.skillIds || job.skills?.map((s) => s.id) || [],
+  matchingWeights: {
+    skill:
+      job.matchingWeights?.skillWeight != null
+        ? Math.round(
+            job.matchingWeights.skillWeight *
+              (job.matchingWeights.skillWeight <= 1 ? 100 : 1),
+          )
+        : 40,
+    experience:
+      job.matchingWeights?.experienceWeight != null
+        ? Math.round(
+            job.matchingWeights.experienceWeight *
+              (job.matchingWeights.experienceWeight <= 1 ? 100 : 1),
+          )
+        : 25,
+    title:
+      job.matchingWeights?.titleWeight != null
+        ? Math.round(
+            job.matchingWeights.titleWeight *
+              (job.matchingWeights.titleWeight <= 1 ? 100 : 1),
+          )
+        : 25,
+    other:
+      job.matchingWeights?.otherWeight != null
+        ? Math.round(
+            job.matchingWeights.otherWeight *
+              (job.matchingWeights.otherWeight <= 1 ? 100 : 1),
+          )
+        : 10,
+  },
 });
 
 function FieldError({ message }: { message?: string }) {
@@ -232,6 +264,16 @@ function EditJobForm({
     if (formData.skillIds.length === 0) {
       errors.skillIds = "Vui lòng chọn ít nhất một kỹ năng chuyên môn.";
     }
+
+    const totalWeights =
+      formData.matchingWeights.skill +
+      formData.matchingWeights.experience +
+      formData.matchingWeights.title +
+      formData.matchingWeights.other;
+    if (Math.abs(totalWeights - 100) > 0.1) {
+      errors.matchingWeights = `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Vui lòng điều chỉnh để đạt chính xác 100%.`;
+    }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -266,6 +308,10 @@ function EditJobForm({
       deadline: dayjs(formData.deadline).endOf("day").toISOString(),
       industryIds: formData.industryIds,
       skillIds: formData.skillIds,
+      skillWeight: formData.matchingWeights.skill,
+      experienceWeight: formData.matchingWeights.experience,
+      titleWeight: formData.matchingWeights.title,
+      otherWeight: formData.matchingWeights.other,
     };
 
     try {
@@ -580,6 +626,13 @@ function EditJobForm({
               </div>
             </div>
           </section>
+
+          {/* KHỐI 4: Trọng số đánh giá ứng viên (AI Match Weights) */}
+          <JobMatchingWeightsCard
+            weights={formData.matchingWeights}
+            onChange={(weights) => updateForm("matchingWeights", weights)}
+            error={fieldErrors.matchingWeights}
+          />
         </div>
 
         {/* =========================================================================
@@ -683,28 +736,47 @@ function EditJobForm({
             </div>
 
             {/* Nút thao tác Lưu & Hủy */}
-            <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() =>
-                  navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))
-                }
-                className="px-4! py-2! text-xs!"
-              >
-                Hủy bỏ
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                icon={Save}
-                iconSize={15}
-                isLoading={updateJobPostingMutation.isPending}
-                className="px-5! py-2! text-xs! font-semibold!"
-              >
-                <span>Lưu thay đổi</span>
-              </Button>
-            </div>
+            {(() => {
+              const totalWeights =
+                formData.matchingWeights.skill +
+                formData.matchingWeights.experience +
+                formData.matchingWeights.title +
+                formData.matchingWeights.other;
+              const isWeightsInvalid = Math.abs(totalWeights - 100) > 0.1;
+
+              return (
+                <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() =>
+                      navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))
+                    }
+                    className="px-4! py-2! text-xs!"
+                  >
+                    Hủy bỏ
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    icon={Save}
+                    iconSize={15}
+                    isLoading={updateJobPostingMutation.isPending}
+                    disabled={
+                      isWeightsInvalid || updateJobPostingMutation.isPending
+                    }
+                    title={
+                      isWeightsInvalid
+                        ? `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Phải đạt chính xác 100% để lưu thay đổi.`
+                        : undefined
+                    }
+                    className="px-5! py-2! text-xs! font-semibold!"
+                  >
+                    <span>Lưu thay đổi</span>
+                  </Button>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
