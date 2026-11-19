@@ -278,7 +278,7 @@ export default function AdminJobModerationPage() {
         columnHelper.accessor("title", {
           id: "jobInfo",
           header: "Vị trí & Doanh nghiệp",
-          meta: { className: "min-w-[200px] max-w-[320px]" },
+          meta: { className: "min-w-50 max-w-80" },
           cell: ({ row }) => {
             const job = row.original;
             return (
@@ -297,13 +297,13 @@ export default function AdminJobModerationPage() {
                           <button
                             type="button"
                             onClick={() => handleInspect(job)}
-                            className="block max-w-[210px] cursor-pointer truncate text-left font-semibold text-slate-800 transition-colors hover:text-primary lg:max-w-[280px]"
+                            className="block max-w-52.5 cursor-pointer truncate text-left font-semibold text-slate-800 transition-colors hover:text-primary lg:max-w-70"
                           >
                             {job.title}
                           </button>
                         }
                       />
-                      <TooltipPanel className="max-w-xs break-words">
+                      <TooltipPanel className="max-w-xs wrap-break-word">
                         {job.title}
                       </TooltipPanel>
                     </Tooltip>
@@ -314,7 +314,7 @@ export default function AdminJobModerationPage() {
                     <button
                       type="button"
                       onClick={() => handleInspect(job)}
-                      className="block cursor-pointer text-left text-xs leading-snug font-semibold break-words whitespace-normal text-slate-800 transition-colors hover:text-primary"
+                      className="block cursor-pointer text-left text-xs leading-snug font-semibold wrap-break-word whitespace-normal text-slate-800 transition-colors hover:text-primary"
                     >
                       {job.title}
                     </button>
