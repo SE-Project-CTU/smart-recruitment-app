@@ -61,17 +61,20 @@ export function useSearchJobPage() {
     wardId,
   };
   const sortBy = (urlParams.get("sortBy") as SortKey) || "NEWEST";
-  const filters: JobFilterState = {
-    ...INITIAL_FILTERS,
-    industries: urlParams.getAll("industryIds"),
-    experienceRanges: urlParams.getAll("experienceRanges"),
-    jobType: urlParams.get("jobType") ?? "",
-    workMode: urlParams.get("workMode") ?? "",
-    jobLevel: urlParams.get("jobLevel") ?? "",
-    minSalary: urlParams.get("minSalary") ?? "",
-    maxSalary: urlParams.get("maxSalary") ?? "",
-    negotiableOnly: urlParams.get("negotiableOnly") === "true",
-  };
+  const filters: JobFilterState = useMemo(
+    () => ({
+      ...INITIAL_FILTERS,
+      industries: urlParams.getAll("industryIds"),
+      experienceRanges: urlParams.getAll("experienceRanges"),
+      jobType: urlParams.get("jobType") ?? "",
+      workMode: urlParams.get("workMode") ?? "",
+      jobLevel: urlParams.get("jobLevel") ?? "",
+      minSalary: urlParams.get("minSalary") ?? "",
+      maxSalary: urlParams.get("maxSalary") ?? "",
+      negotiableOnly: urlParams.get("negotiableOnly") === "true",
+    }),
+    [urlParams],
+  );
   const updateFilters = (nextFilters: JobFilterState) =>
     setUrlParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -127,32 +130,31 @@ export function useSearchJobPage() {
 
   const { openApplyModal } = useApplyJobModalStore();
 
-  const searchParams = useMemo<SearchJobPostingsRequest>(
-    () => ({
+  const searchParams = useMemo<SearchJobPostingsRequest>(() => {
+    const minSal = urlParams.get("minSalary");
+    const maxSal = urlParams.get("maxSalary");
+    const industries = urlParams.getAll("industryIds");
+    const experienceRanges = urlParams.getAll("experienceRanges");
+
+    return {
       keyword: urlParams.get("keyword") || undefined,
       provinceId: urlParams.get("provinceId") || undefined,
       wardId: urlParams.get("wardId") || undefined,
-      industryIds: filters.industries.length ? filters.industries : undefined,
-      experienceRanges: filters.experienceRanges.length
-        ? filters.experienceRanges
-        : undefined,
-      jobType: (filters.jobType || undefined) as JobType | undefined,
-      workMode: (filters.workMode || undefined) as WorkMode | undefined,
-      jobLevel: (filters.jobLevel || undefined) as JobLevel | undefined,
-      salaryMin: filters.minSalary
-        ? Number(filters.minSalary) * 1_000_000
-        : undefined,
-      salaryMax: filters.maxSalary
-        ? Number(filters.maxSalary) * 1_000_000
-        : undefined,
-      salaryNegotiableOnly: filters.negotiableOnly || undefined,
+      industryIds: industries.length ? industries : undefined,
+      experienceRanges: experienceRanges.length ? experienceRanges : undefined,
+      jobType: (urlParams.get("jobType") || undefined) as JobType | undefined,
+      workMode: (urlParams.get("workMode") || undefined) as WorkMode | undefined,
+      jobLevel: (urlParams.get("jobLevel") || undefined) as JobLevel | undefined,
+      salaryMin: minSal ? Number(minSal) * 1_000_000 : undefined,
+      salaryMax: maxSal ? Number(maxSal) * 1_000_000 : undefined,
+      salaryNegotiableOnly:
+        urlParams.get("negotiableOnly") === "true" || undefined,
       sort: sortBy === "NEWEST" ? "createdAt" : "salaryMax",
       direction: sortBy === "SALARY_ASC" ? "asc" : "desc",
       page: currentPage,
       pageSize: PAGE_SIZE,
-    }),
-    [urlParams, sortBy, currentPage],
-  );
+    };
+  }, [urlParams, sortBy, currentPage]);
 
   const {
     data: pagedData,
