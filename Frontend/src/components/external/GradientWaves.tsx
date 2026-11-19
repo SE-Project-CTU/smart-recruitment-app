@@ -32,6 +32,7 @@ export interface GradientWavesProps {
   mouseStrength?: number;
   swellOnClick?: boolean;
   paused?: boolean;
+  forceMotion?: boolean;
   dpr?: number;
   className?: string;
   style?: CSSProperties;
@@ -315,6 +316,7 @@ export default function GradientWaves({
   mouseStrength = 0.6,
   swellOnClick = true,
   paused = false,
+  forceMotion = true,
   dpr = 2,
   className = '',
   style
@@ -354,6 +356,7 @@ export default function GradientWaves({
     mouseStrength: clamp(mouseStrength, 0, 1),
     swellOnClick,
     paused,
+    forceMotion,
     dpr: Math.max(0.5, dpr)
   };
   const settingsRef = useRef(settings);
@@ -455,7 +458,7 @@ export default function GradientWaves({
       clock: 0,
       last: 0,
       raf: 0,
-      visible: false,
+      visible: true,
       introAt: -1,
       pointer: [0.5, 0.5],
       inside: false,
@@ -562,7 +565,7 @@ export default function GradientWaves({
       const s = settingsRef.current;
       const dt = state.last ? Math.min((now - state.last) / 1000, 0.1) : 0;
       state.last = now;
-      const reduced = prefersReduced();
+      const reduced = !s.forceMotion && prefersReduced();
       state.clock += dt;
       if (state.introAt < 0) state.introAt = state.clock;
       if (!s.paused && !reduced) state.time += dt * s.speed;
@@ -631,7 +634,7 @@ export default function GradientWaves({
 
     const onDown = (event: PointerEvent) => {
       const s = settingsRef.current;
-      if (!s.swellOnClick || event.button !== 0 || prefersReduced()) return;
+      if (!s.swellOnClick || event.button !== 0 || (!s.forceMotion && prefersReduced())) return;
       if (
         event.target instanceof Element &&
         event.target.closest('a, button, input, textarea, select, label, [role="button"]')
