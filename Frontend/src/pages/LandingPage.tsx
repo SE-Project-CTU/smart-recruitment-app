@@ -15,6 +15,7 @@ import {
 } from "@/components/common";
 import TextType from "@/components/external/TextType";
 import CountUp from "@/components/external/CountUp";
+import GradientWaves from "@/components/external/GradientWaves";
 import {
   SlidingLogoMarquee,
   ThreeDScrollTrigger,
@@ -37,8 +38,33 @@ import { PATHS } from "@/constants/paths";
 const HeroSection = () => {
   const navigate = useNavigate();
   return (
-    <section className="overflow-bg-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg-white-blue pt-28 pb-16 lg:pt-32">
-      <div className="container mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
+    <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg-white-blue pt-28 pb-16 lg:pt-32">
+      {/* Background Gradient Waves từ React Bits */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <GradientWaves
+          horizonColor="#1b3b6f"
+          waveColor="#6fc3e8"
+          crestColor="#d6f1fc"
+          backgroundColor="transparent"
+          lightMode={true}
+          speed={0.35}
+          amplitude={2.0}
+          waveScale={0.55}
+          waveRatio={0.9}
+          relief={0.85}
+          lightAngle={120}
+          opacity={0.8}
+          grain={0.12}
+          mouseInteraction={true}
+          swellOnClick={true}
+          quality="high"
+          className="size-full"
+        />
+        {/* Lớp phủ chuyển màu dịu nhẹ bảo toàn độ tương phản và chiều sâu */}
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-bg-white-blue/60 via-transparent to-bg-white-blue/90" />
+      </div>
+
+      <div className="container relative z-10 mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-12 lg:flex-row lg:gap-60">
           <div className="z-10 flex w-full flex-col gap-6 text-center lg:w-1/2 lg:gap-8 lg:text-left">
             <h1 className="text-4xl leading-tight font-bold sm:text-5xl lg:text-6xl xl:text-7xl">
