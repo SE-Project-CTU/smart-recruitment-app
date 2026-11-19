@@ -17,6 +17,7 @@ import {
   Check,
   X,
   AlertTriangle,
+  Ban,
 } from "lucide-react";
 import {
   Sheet,
@@ -80,6 +81,7 @@ export interface JobDetailDrawerProps<T extends JobDrawerItem = JobDrawerItem> {
   footer?: React.ReactNode;
   onApprove?: (jobId: string) => void;
   onReject?: (jobId: string) => void;
+  onCloseJob?: (jobId: string) => void;
   isModerating?: boolean;
 }
 
@@ -93,6 +95,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   footer,
   onApprove,
   onReject,
+  onCloseJob,
   isModerating = false,
 }: JobDetailDrawerProps<T>) {
   const navigate = useNavigate();
@@ -101,6 +104,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   const { user } = useAuthStore();
   const isCandidate = Boolean(
     user?.roles?.some((role) => role.toLowerCase() === "candidate"),
+  );
+  const isAdmin = Boolean(
+    user?.roles?.some((role) => role.toLowerCase() === "admin"),
   );
 
   // Tải chi tiết tin tuyển dụng nếu có ID
@@ -573,14 +579,18 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
 
         {/* FOOTER ACTIONS */}
         {footer !== undefined ? (
-          footer
+          footer ? (
+            <div className="shrink-0 border-t border-border bg-surface p-4">
+              {footer}
+            </div>
+          ) : null
         ) : onApprove || onReject ? (
-          <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
+          <div className="shrink-0 border-t border-border bg-surface p-4 shadow-xs">
             <div className="flex items-center gap-2.5">
               {onReject && (
                 <Button
                   variant="secondary"
-                  className="flex-1! justify-center! py-2.5! text-xs!"
+                  className="flex-1! justify-center! py-2.5! text-xs! font-semibold! text-rose-600! hover:bg-rose-50! hover:text-rose-700!"
                   icon={X}
                   onClick={() => onReject(job.id)}
                   disabled={isModerating}
@@ -591,7 +601,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               {onApprove && (
                 <Button
                   variant="primary"
-                  className="flex-1! justify-center! py-2.5! text-xs!"
+                  className="flex-1! justify-center! bg-emerald-600! py-2.5! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
                   icon={Check}
                   onClick={() => onApprove(job.id)}
                   disabled={isModerating}
@@ -600,6 +610,39 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                 </Button>
               )}
             </div>
+          </div>
+        ) : onCloseJob ? (
+          <div className="shrink-0 border-t border-border bg-surface p-4 shadow-xs">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
+                <span className="text-xs font-semibold text-emerald-700">
+                  Tin đang hiển thị công khai
+                </span>
+              </div>
+              <Button
+                variant="secondary"
+                icon={Ban}
+                iconSize={14}
+                className="rounded-xl px-3.5! py-2! text-xs! font-semibold!"
+                onClick={() => onCloseJob(job.id)}
+                disabled={isModerating}
+              >
+                <span>Đóng tin</span>
+              </Button>
+            </div>
+          </div>
+        ) : isAdmin ? (
+          <div className="shrink-0 border-t border-border bg-surface p-3.5 text-center">
+            <span className="text-xs font-medium text-text-muted">
+              {activeJob.status === "Closed"
+                ? "Tin tuyển dụng này đã đóng"
+                : activeJob.status === "Rejected"
+                  ? "Tin tuyển dụng đã bị từ chối"
+                  : activeJob.status === "Expired"
+                    ? "Tin tuyển dụng đã hết hạn"
+                    : "Chế độ xem quản trị"}
+            </span>
           </div>
         ) : (
           <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">

@@ -191,7 +191,7 @@ export interface AdminJobPostingFilterParams {
 }
 
 export interface ReviewJobModerationPayload {
-  status: "Published" | "Rejected" | string;
+  status: "Published" | "Rejected" | "Closed" | string;
   rejectionReason?: string;
 }
 

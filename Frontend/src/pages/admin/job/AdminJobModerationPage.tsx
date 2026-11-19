@@ -14,6 +14,7 @@ import {
   ChevronRight,
   MapPin,
   Sparkles,
+  Ban,
 } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
@@ -54,7 +55,7 @@ import { cn } from "@/lib/utils";
 
 dayjs.locale("vi");
 
-type TabKey = "PendingReview" | "Published" | "Rejected" | "All";
+type TabKey = "PendingReview" | "Published" | "Closed" | "Rejected" | "All";
 
 interface TabConfig {
   key: TabKey;
@@ -64,6 +65,7 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { key: "PendingReview", label: "Chờ phê duyệt" },
   { key: "Published", label: "Đã xuất bản" },
+  { key: "Closed", label: "Đã đóng" },
   { key: "Rejected", label: "Bị từ chối" },
   { key: "All", label: "Tất cả tin" },
 ];
@@ -101,6 +103,12 @@ export default function AdminJobModerationPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [reasonError, setReasonError] = useState("");
 
+  // Dialog xác nhận đóng tin tuyển dụng (đối với tin Published)
+  const [closeTarget, setCloseTarget] = useState<AdminJobPostingItem | null>(
+    null,
+  );
+  const [closeReason, setCloseReason] = useState("");
+
   const moderateMutation = useModerateJobPosting();
 
   // Lấy tổng quan số lượng cho Tab badge
@@ -109,15 +117,20 @@ export default function AdminJobModerationPage() {
     status: "Rejected",
     pageSize: 1,
   });
+  const { data: closedSummary } = useAdminJobPostings({
+    status: "Closed",
+    pageSize: 1,
+  });
 
   const counts = useMemo(() => {
     return {
       PendingReview: overview?.jobPostings.pendingReview ?? 0,
       Published: overview?.jobPostings.open ?? 0,
+      Closed: closedSummary?.meta?.totalItems ?? 0,
       Rejected: rejectedSummary?.meta?.totalItems ?? 0,
       All: overview?.jobPostings.total ?? 0,
     };
-  }, [overview, rejectedSummary]);
+  }, [overview, closedSummary, rejectedSummary]);
 
   // Xác định status query param
   const queryStatus =
@@ -215,6 +228,27 @@ export default function AdminJobModerationPage() {
       setRejectTarget(null);
       setRejectionReason("");
       setReasonError("");
+      setIsSheetOpen(false);
+      setInspectingJob(null);
+      refetch();
+    } catch {
+      // Toast handled by mutation hook
+    }
+  };
+
+  // Xử lý xác nhận đóng tin tuyển dụng
+  const handleConfirmClose = async () => {
+    if (!closeTarget) return;
+    try {
+      await moderateMutation.mutateAsync({
+        id: closeTarget.id,
+        payload: {
+          status: "Closed",
+          rejectionReason: closeReason.trim() || undefined,
+        },
+      });
+      setCloseTarget(null);
+      setCloseReason("");
       setIsSheetOpen(false);
       setInspectingJob(null);
       refetch();
@@ -472,7 +506,7 @@ export default function AdminJobModerationPage() {
 
             if (isPublished) {
               return (
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center justify-end gap-1.5">
                   <Button
                     variant="secondary"
                     icon={Eye}
@@ -481,16 +515,23 @@ export default function AdminJobModerationPage() {
                     onClick={() => handleInspect(job)}
                     className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-primary! shadow-none! ring-0! hover:bg-secondary-light/50! hover:text-primary-dark!"
                   />
+                  <Button
+                    variant="secondary"
+                    icon={Ban}
+                    iconSize={12}
+                    title="Đóng tin tuyển dụng"
+                    onClick={() => {
+                      setCloseTarget(job);
+                      setCloseReason("");
+                    }}
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600!"
+                  />
                 </div>
               );
             }
 
             return (
               <div className="flex items-center justify-end gap-2">
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500">
-                  <XCircle className="size-3.5" />
-                  Đã từ chối
-                </span>
                 <Button
                   variant="secondary"
                   icon={Eye}
@@ -715,18 +756,32 @@ export default function AdminJobModerationPage() {
           setIsSheetOpen(false);
           setInspectingJob(null);
         }}
-        onApprove={() => {
-          if (inspectingJob) {
-            setApproveTarget(inspectingJob);
-          }
-        }}
-        onReject={() => {
-          if (inspectingJob) {
-            setRejectTarget(inspectingJob);
-            setRejectionReason("");
-            setReasonError("");
-          }
-        }}
+        onApprove={
+          inspectingJob &&
+          (inspectingJob.status === "PendingReview" ||
+            inspectingJob.status === "PENDING_APPROVAL")
+            ? () => setApproveTarget(inspectingJob)
+            : undefined
+        }
+        onReject={
+          inspectingJob &&
+          (inspectingJob.status === "PendingReview" ||
+            inspectingJob.status === "PENDING_APPROVAL")
+            ? () => {
+                setRejectTarget(inspectingJob);
+                setRejectionReason("");
+                setReasonError("");
+              }
+            : undefined
+        }
+        onCloseJob={
+          inspectingJob && inspectingJob.status?.toUpperCase() === "PUBLISHED"
+            ? () => {
+                setCloseTarget(inspectingJob);
+                setCloseReason("");
+              }
+            : undefined
+        }
         isModerating={moderateMutation.isPending}
       />
 
@@ -735,7 +790,7 @@ export default function AdminJobModerationPage() {
         open={Boolean(approveTarget)}
         onOpenChange={(open) => !open && setApproveTarget(null)}
       >
-        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6">
+        <DialogContent className="w-full p-5 sm:max-w-md sm:p-6">
           <DialogHeader>
             <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-status-success/10 text-status-success">
               <Sparkles className="size-6" />
@@ -783,7 +838,7 @@ export default function AdminJobModerationPage() {
         open={Boolean(rejectTarget)}
         onOpenChange={(open) => !open && setRejectTarget(null)}
       >
-        <DialogContent className="w-full sm:max-w-md p-5 sm:p-6">
+        <DialogContent className="w-full p-5 sm:max-w-md sm:p-6">
           <DialogHeader>
             <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-status-error/10 text-status-error">
               <XCircle className="size-6" />
@@ -844,6 +899,71 @@ export default function AdminJobModerationPage() {
               className="h-9! bg-status-error! px-4! text-xs! font-semibold! text-white! hover:bg-status-error/90!"
             >
               Xác nhận từ chối
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal xác nhận Đóng tin tuyển dụng */}
+      <Dialog
+        open={Boolean(closeTarget)}
+        onOpenChange={(open) => !open && setCloseTarget(null)}
+      >
+        <DialogContent className="w-full p-5 sm:max-w-md sm:p-6">
+          <DialogHeader>
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-status-error/10 text-status-error">
+              <Ban className="size-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-text-main">
+              Đóng tin tuyển dụng
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-text-muted">
+              Tin tuyển dụng{" "}
+              <strong className="text-text-main">{closeTarget?.title}</strong>{" "}
+              của{" "}
+              <strong className="text-text-main">
+                {closeTarget?.companyName}
+              </strong>{" "}
+              sẽ được gỡ khỏi sàn việc làm công khai và chuyển sang trạng thái
+              đã đóng.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-3 space-y-1.5">
+            <label
+              htmlFor="job-close-reason"
+              className="text-xs font-semibold text-text-main"
+            >
+              Lý do đóng / gỡ tin (tùy chọn)
+            </label>
+            <textarea
+              id="job-close-reason"
+              rows={3}
+              value={closeReason}
+              onChange={(e) => setCloseReason(e.target.value)}
+              placeholder="Nhập lý do đóng tin tuyển dụng để thông báo cho nhà tuyển dụng..."
+              className="w-full rounded-xl border border-border bg-bg p-3 text-xs leading-relaxed text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary/20 focus:outline-none"
+            />
+          </div>
+
+          <DialogFooter className="mt-4 gap-2 sm:justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => setCloseTarget(null)}
+              disabled={moderateMutation.isPending}
+              className="h-9! px-4! text-xs! font-medium!"
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              icon={Ban}
+              iconSize={14}
+              isLoading={moderateMutation.isPending}
+              onClick={handleConfirmClose}
+              className="h-9! bg-status-error! px-4! text-xs! font-semibold! text-white! hover:bg-status-error/90!"
+            >
+              Xác nhận đóng tin
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -38,10 +38,10 @@ public sealed class ReviewCompanyVerificationCommandHandler
             throw AdminExceptions.CompanyNotFound(command.CompanyId);
         }
 
-        if (company.VerificationStatus == command.Status) {
+        if (company.VerificationStatus != CompanyVerificationStatus.Pending) {
             throw AdminExceptions.Conflict(
                 AdminErrorCodes.CompanyAlreadyVerified,
-                $"Company is already in '{company.VerificationStatus}' verification status.",
+                $"Doanh nghiệp đang ở trạng thái '{company.VerificationStatus}' và không thể xét duyệt lại.",
                 "verificationStatus");
         }
 
