@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   AlertTriangle,
@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
+import { useCompanyStore } from "@/stores";
 import {
   useJobApplications,
   useJobPostingDetail,
@@ -69,6 +70,22 @@ export function JobDetailPage() {
   const { data: job, isLoading: isLoadingJob } = useJobPostingDetail(id);
   const { data: myCompanies = [], isLoading: isLoadingCompanies } =
     useMyCompanies();
+
+  // Lấy ngữ cảnh Workspace hiện tại
+  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
+  const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
+
+  // Tự động đồng bộ Workspace Switcher khớp với doanh nghiệp sở hữu tin tuyển dụng này khi mở trang
+  useEffect(() => {
+    const targetCompanyId = job?.companyId || job?.company?.id;
+    if (!targetCompanyId || myCompanies.length === 0) return;
+    if (targetCompanyId !== activeCompanyId) {
+      const matched = myCompanies.find((c) => c.id === targetCompanyId);
+      if (matched) {
+        setActiveCompany(matched);
+      }
+    }
+  }, [job?.companyId, job?.company?.id, myCompanies, activeCompanyId, setActiveCompany]);
 
   const isMyCompany = useMemo(() => {
     const targetCompanyId = job?.companyId || job?.company?.id;
