@@ -74,6 +74,7 @@ export function RecruiterJobListPage() {
   if (prevCompanyId !== activeCompanyId) {
     setPrevCompanyId(activeCompanyId);
     setCurrentPage(1);
+    setJobToClose(null);
   }
 
   // 4. Modal confirmation state

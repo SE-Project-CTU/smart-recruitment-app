@@ -1,4 +1,4 @@
-import { useState, useMemo, type ChangeEvent, type FormEvent } from "react";
+import { useState, useMemo, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import {
@@ -20,6 +20,7 @@ import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { PATHS } from "@/constants/paths";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
+import { useCompanyStore } from "@/stores";
 import {
   useJobPostingDetail,
   useUpdateJobPosting,
@@ -794,6 +795,22 @@ export function EditJobPage() {
   const { data: job, isLoading: isLoadingJob } = useJobPostingDetail(id);
   const { data: myCompanies = [], isLoading: isLoadingCompanies } =
     useMyCompanies();
+
+  // Lấy ngữ cảnh Workspace hiện tại
+  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
+  const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
+
+  // Tự động đồng bộ Workspace Switcher khớp với doanh nghiệp sở hữu tin tuyển dụng này khi mở trang
+  useEffect(() => {
+    const targetCompanyId = job?.companyId || job?.company?.id;
+    if (!targetCompanyId || myCompanies.length === 0) return;
+    if (targetCompanyId !== activeCompanyId) {
+      const matched = myCompanies.find((c) => c.id === targetCompanyId);
+      if (matched) {
+        setActiveCompany(matched);
+      }
+    }
+  }, [job?.companyId, job?.company?.id, myCompanies, activeCompanyId, setActiveCompany]);
 
   const selectedCompany = useMemo(() => {
     const targetCompanyId = job?.companyId || job?.company?.id;
