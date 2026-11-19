@@ -62,6 +62,29 @@ export const useApplicationStatusHistory = (applicationId?: string) => {
 };
 
 /**
+ * Hook Query: Lấy toàn bộ ID các tin ứng tuyển mà Candidate đã nộp (dưới dạng Set để tra cứu O(1))
+ */
+export const useMyAppliedJobIds = (options?: { enabled?: boolean }) => {
+  const user = useAuthStore((state) => state.user);
+  const isCandidate = Boolean(
+    user?.roles?.some((role) => role.toLowerCase() === "candidate"),
+  );
+
+  return useQuery({
+    queryKey: ["applications", "my-applied-job-ids", user?.id],
+    queryFn: async () => {
+      const res = await applicationService.getMyApplications({
+        page: 1,
+        pageSize: 100,
+      });
+      return new Set<string>((res?.items ?? []).map((app) => app.jobId));
+    },
+    enabled: Boolean(user?.id) && isCandidate && (options?.enabled ?? true),
+    staleTime: 60 * 1000,
+  });
+};
+
+/**
  * Hook Mutation: Nộp đơn ứng tuyển vào một JD
  */
 export const useApplyJob = () => {
@@ -78,6 +101,9 @@ export const useApplyJob = () => {
     onSuccess: (_, variables) => {
       // Invalidate danh sách đơn nộp của candidate
       queryClient.invalidateQueries({ queryKey: ["applications", "my"] });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "my-applied-job-ids"],
+      });
       // Invalidate chi tiết JD và applications của JD đó
       queryClient.invalidateQueries({
         queryKey: ["job-postings", "detail", variables.jobId],
