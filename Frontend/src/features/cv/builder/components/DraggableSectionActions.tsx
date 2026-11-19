@@ -41,7 +41,7 @@ function DraggableSectionActions({
           : "hidden group-hover:flex focus-within:opacity-100",
       )}
     >
-      <div className="absolute left-0 bottom-0 translate-y-full w-full h-2 select-none" />
+      <div className="pointer-events-auto absolute left-0 bottom-0 h-2 w-full translate-y-full select-none" />
 
       {/* Nhóm thao tác bên trái: Khi isActive thì chỉ hiện khi hover để giao diện sạch sẽ */}
       <div
@@ -92,7 +92,6 @@ function DraggableSectionActions({
       {/* Nút Xem gợi ý bên phải */}
       {sectionKey && (
         <div className="relative pointer-events-auto">
-          <div className="absolute left-0 bottom-0 translate-y-full w-full h-2 select-none" />
           <SectionAiSuggestionButton sectionKey={sectionKey} />
         </div>
       )}
