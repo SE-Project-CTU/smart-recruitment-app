@@ -239,7 +239,7 @@ export function WorkspaceSwitcher() {
                         <TooltipPanel
                           side="right"
                           sideOffset={10}
-                          className="z-60 max-w-xs break-words"
+                          className="wrap-break-words z-60 max-w-xs"
                         >
                           {currentCompany.name}
                         </TooltipPanel>
@@ -248,7 +248,7 @@ export function WorkspaceSwitcher() {
                   </span>
 
                   {/* Mobile: Wrap text */}
-                  <span className="block text-xs font-semibold leading-snug break-words whitespace-normal text-text-main md:hidden">
+                  <span className="wrap-break-words block text-xs leading-snug font-semibold whitespace-normal text-text-main md:hidden">
                     {currentCompany?.name || "Chọn doanh nghiệp"}
                   </span>
 
@@ -329,7 +329,7 @@ export function WorkspaceSwitcher() {
                           <TooltipPanel
                             side="right"
                             sideOffset={10}
-                            className="z-60 max-w-xs break-words"
+                            className="wrap-break-words z-60 max-w-xs"
                           >
                             {displayComp.name}
                           </TooltipPanel>
@@ -337,7 +337,7 @@ export function WorkspaceSwitcher() {
                       </span>
 
                       {/* Mobile: Wrap text */}
-                      <span className="block text-xs leading-snug break-words whitespace-normal md:hidden">
+                      <span className="wrap-break-words block text-xs leading-snug whitespace-normal md:hidden">
                         {displayComp.name}
                       </span>
 
