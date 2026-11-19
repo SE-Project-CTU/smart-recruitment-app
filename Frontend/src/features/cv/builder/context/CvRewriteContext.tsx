@@ -152,7 +152,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Ánh xạ kết quả trả về từ Gemini AI sang cấu trúc giao diện
         const mappedSuggestions: CvSectionSuggestion[] = sectionsList.map(
-          (item, idx) => {
+          (item, idx): CvSectionSuggestion => {
             const canonicalType = item.sectionType as CanonicalSectionType;
             const sectionKey = (item.sectionType || "").toLowerCase();
             const preparedSection = preparedSections.find(
