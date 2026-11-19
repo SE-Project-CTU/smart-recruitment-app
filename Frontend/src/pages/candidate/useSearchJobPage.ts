@@ -10,6 +10,7 @@ import {
   useBookmarkJob,
   useUnbookmarkJob,
 } from "@/hooks/queries/useJob";
+import { useMyAppliedJobIds } from "@/hooks/queries/useApplication";
 import { toast } from "@/hooks/use-toast";
 import type {
   JobPostingSearchItem,
@@ -110,12 +111,19 @@ export function useSearchJobPage() {
   const { data: allBookmarkedIds } = useMyAllBookmarkedJobIds({
     enabled: Boolean(isCandidate),
   });
+  const { data: allAppliedIds } = useMyAppliedJobIds({
+    enabled: Boolean(isCandidate),
+  });
   const bookmarkMutation = useBookmarkJob();
   const unbookmarkMutation = useUnbookmarkJob();
 
   const bookmarkedJobIds = useMemo(() => {
     return allBookmarkedIds || new Set<string>();
   }, [allBookmarkedIds]);
+
+  const appliedJobIds = useMemo(() => {
+    return allAppliedIds || new Set<string>();
+  }, [allAppliedIds]);
 
   const { openApplyModal } = useApplyJobModalStore();
 
@@ -266,7 +274,7 @@ export function useSearchJobPage() {
     urlParams, setUrlParams, currentPage, setCurrentPage, jobListTopRef,
     searchQuery, setSearchQuery, selectedLocation, sortBy, filters,
     isMobileFilterOpen, setIsMobileFilterOpen, selectedJob, isDetailDrawerOpen,
-    setIsDetailDrawerOpen, isCandidate, bookmarkedJobIds, jobList, totalPages,
+    setIsDetailDrawerOpen, isCandidate, bookmarkedJobIds, appliedJobIds, jobList, totalPages,
     totalItems, isFetchingJobs, isJobsError, jobDetail,
     handleToggleArrayFilter, handleToggleSingleFilter, handleToggleIndustryGroup,
     handleSalaryRangeChange, handleToggleNegotiable, handleResetFilters,

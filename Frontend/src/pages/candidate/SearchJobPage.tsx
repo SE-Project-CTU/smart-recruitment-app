@@ -82,6 +82,7 @@ export default function SearchJobPage({
     isDetailDrawerOpen,
     setIsDetailDrawerOpen,
     bookmarkedJobIds,
+    appliedJobIds,
     jobList,
     totalPages,
     totalItems,
@@ -404,6 +405,7 @@ export default function SearchJobPage({
                     }
                     onSelect={handleSelectJob}
                     isBookmarked={bookmarkedJobIds.has(job.id)}
+                    isApplied={appliedJobIds.has(job.id)}
                     onToggleBookmark={handleToggleBookmark}
                     onApply={() => handleApply(job.id)}
                   />

@@ -54,7 +54,8 @@ const CAREER_FAQS = [
   },
   {
     id: "faq-4",
-    question: "Làm sao để chuyển ngành (Career Switch) thành công khi chưa có kinh nghiệm?",
+    question:
+      "Làm sao để chuyển ngành (Career Switch) thành công khi chưa có kinh nghiệm?",
     answer:
       "Tập trung làm nổi bật các 'kỹ năng chuyển giao' (Transferable Skills) như tư duy phản biện, quản lý dự án, kỹ năng phân tích và giao tiếp. Xây dựng các dự án thực tế cá nhân (Side Projects hoặc Portfolio) để chứng minh năng lực thực chiến và hoàn thành các chứng chỉ chuyên ngành có giá trị kiểm định cao.",
     imageUrl:
@@ -62,7 +63,8 @@ const CAREER_FAQS = [
   },
   {
     id: "faq-5",
-    question: "AI đang thay đổi quy trình tuyển dụng và đánh giá ứng viên như thế nào?",
+    question:
+      "AI đang thay đổi quy trình tuyển dụng và đánh giá ứng viên như thế nào?",
     answer:
       "Các nền tảng tuyển dụng hiện đại như SmartHire ứng dụng AI để phân tích ngữ nghĩa CV và so khớp độ tương đồng với JD bằng vector embeddings. Tuy nhiên, AI chỉ đóng vai trò hỗ trợ sàng lọc; quyết định phỏng vấn và đánh giá sự phù hợp về văn hóa, đạo đức nghề nghiệp và tư duy giải quyết vấn đề vẫn phụ thuộc vào con người.",
     imageUrl:
@@ -228,10 +230,10 @@ export default function CareerBlogPage() {
               </h1>
             </div>
             <div className="flex flex-col gap-2 sm:col-span-5 sm:pl-4">
-              <p className="text-xs text-text-muted leading-relaxed sm:text-sm">
+              <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
                 Chúng tôi chia sẻ các chiến lược phát triển sự nghiệp bền vững,
-                phân tích thị trường lao động và góc nhìn thực chiến từ các chuyên
-                gia nhân sự hàng đầu.
+                phân tích thị trường lao động và góc nhìn thực chiến từ các
+                chuyên gia nhân sự hàng đầu.
               </p>
               <button
                 type="button"
@@ -251,7 +253,7 @@ export default function CareerBlogPage() {
           <div className="mt-8 flex flex-col gap-4">
             <div
               onClick={() => setReadingPost(currentHeroPost)}
-              className="group relative aspect-16/9 w-full cursor-pointer overflow-hidden rounded-2xl border border-border/80 bg-slate-100 sm:aspect-21/9"
+              className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-2xl border border-border/80 bg-slate-100 sm:aspect-21/9"
             >
               <img
                 src={currentHeroPost.imageUrl}
@@ -266,10 +268,10 @@ export default function CareerBlogPage() {
                   <span className="text-xs font-semibold tracking-wider text-sky-300 uppercase">
                     {currentHeroPost.category} • {currentHeroPost.readTime}
                   </span>
-                  <h2 className="text-xl font-bold leading-tight sm:text-2xl lg:text-3xl">
+                  <h2 className="text-xl leading-tight font-bold sm:text-2xl lg:text-3xl">
                     {currentHeroPost.title}
                   </h2>
-                  <p className="hidden text-xs text-slate-200 line-clamp-2 sm:block sm:text-sm">
+                  <p className="line-clamp-2 hidden text-xs text-slate-200 sm:block sm:text-sm">
                     {currentHeroPost.excerpt}
                   </p>
                 </div>
@@ -306,9 +308,10 @@ export default function CareerBlogPage() {
           <h2 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl lg:text-4xl">
             Our Trending Article
           </h2>
-          <p className="max-w-2xl text-xs text-text-muted leading-relaxed sm:text-sm">
+          <p className="max-w-2xl text-xs leading-relaxed text-text-muted sm:text-sm">
             Tuyển tập các bài phân tích được quan tâm nhất về kỹ năng ứng tuyển,
-            tối ưu CV chuẩn hóa và xu hướng công nghệ trong thị trường tuyển dụng hiện đại.
+            tối ưu CV chuẩn hóa và xu hướng công nghệ trong thị trường tuyển
+            dụng hiện đại.
           </p>
         </div>
 
@@ -339,7 +342,7 @@ export default function CareerBlogPage() {
           </div>
 
           {/* Quick Search Input */}
-          <div className="flex w-full sm:w-72 items-center rounded-xl border border-border/80 bg-surface px-3 py-1.5 transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20">
+          <div className="flex w-full items-center rounded-xl border border-border/80 bg-surface px-3 py-1.5 transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 sm:w-72">
             <Search className="size-4 text-text-muted" />
             <input
               type="text"
@@ -372,8 +375,9 @@ export default function CareerBlogPage() {
               <h3 className="mt-4 text-base font-semibold text-text-main">
                 Không tìm thấy bài viết phù hợp
               </h3>
-              <p className="mt-1 max-w-sm text-xs text-text-muted leading-relaxed">
-                Thử tìm kiếm với từ khóa khác hoặc thiết lập lại bộ lọc để khám phá các bài viết hữu ích.
+              <p className="mt-1 max-w-sm text-xs leading-relaxed text-text-muted">
+                Thử tìm kiếm với từ khóa khác hoặc thiết lập lại bộ lọc để khám
+                phá các bài viết hữu ích.
               </p>
               <Button
                 variant="secondary"
@@ -424,11 +428,11 @@ export default function CareerBlogPage() {
                           </span>
                         </div>
 
-                        <h3 className="line-clamp-2 text-base font-bold leading-snug text-text-main transition-colors group-hover:text-primary">
+                        <h3 className="line-clamp-2 text-base leading-snug font-bold text-text-main transition-colors group-hover:text-primary">
                           {post.title}
                         </h3>
 
-                        <p className="line-clamp-2 text-xs font-normal text-text-muted leading-relaxed">
+                        <p className="line-clamp-2 text-xs leading-relaxed font-normal text-text-muted">
                           {post.excerpt}
                         </p>
                       </div>
@@ -467,9 +471,9 @@ export default function CareerBlogPage() {
       </section>
 
       {/* 4. HAVE A QUESTION? WE ARE HERE TO ANSWER (INTERACTIVE ACCORDION WITH SPLIT IMAGE) */}
-      <section className="mx-auto w-full max-w-[1600px] px-4 py-16 sm:px-6 xl:px-8 border-t border-border/80">
+      <section className="mx-auto w-full max-w-[1600px] border-t border-border/80 px-4 py-16 sm:px-6 xl:px-8">
         {/* Section Header */}
-        <div className="grid grid-cols-1 items-end gap-6 sm:grid-cols-12 pb-8">
+        <div className="grid grid-cols-1 items-end gap-6 pb-8 sm:grid-cols-12">
           <div className="sm:col-span-7">
             <h2 className="text-2xl font-bold tracking-tight text-text-main sm:text-3xl lg:text-4xl">
               Have a question?
@@ -478,9 +482,10 @@ export default function CareerBlogPage() {
             </h2>
           </div>
           <div className="sm:col-span-5 sm:pl-4">
-            <p className="text-xs text-text-muted leading-relaxed sm:text-sm">
-              Tổng hợp những giải đáp chuyên sâu và hữu ích nhất giúp bạn giải quyết
-              mọi thắc mắc trong quá trình tạo lập hồ sơ và chuẩn bị phỏng vấn tuyển dụng.
+            <p className="text-xs leading-relaxed text-text-muted sm:text-sm">
+              Tổng hợp những giải đáp chuyên sâu và hữu ích nhất giúp bạn giải
+              quyết mọi thắc mắc trong quá trình tạo lập hồ sơ và chuẩn bị phỏng
+              vấn tuyển dụng.
             </p>
           </div>
         </div>
@@ -522,7 +527,7 @@ export default function CareerBlogPage() {
                       <div className="grid grid-cols-1 gap-6 pt-5 sm:grid-cols-12 sm:gap-8 sm:pt-6">
                         {/* Text explanation */}
                         <div className="flex flex-col gap-3 sm:col-span-7">
-                          <p className="text-xs text-text-muted leading-relaxed sm:text-sm sm:leading-loose">
+                          <p className="text-xs leading-relaxed text-text-muted sm:text-sm sm:leading-loose">
                             {faq.answer}
                           </p>
                           <div className="pt-2">
@@ -564,7 +569,8 @@ export default function CareerBlogPage() {
             Từ khóa nghề nghiệp được quan tâm
           </h3>
           <p className="mt-1 text-xs text-text-muted">
-            Khám phá các chủ đề được ứng viên và nhà tuyển dụng tìm kiếm nhiều nhất hiện nay.
+            Khám phá các chủ đề được ứng viên và nhà tuyển dụng tìm kiếm nhiều
+            nhất hiện nay.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {POPULAR_TAGS.map((tag) => (
@@ -597,8 +603,8 @@ export default function CareerBlogPage() {
               Nhận bản tin hướng nghiệp hàng tuần
             </h3>
             <p className="text-xs text-slate-300 sm:text-sm">
-              Cập nhật các bài viết mới nhất, phân tích thị trường lao động và bí quyết
-              ứng tuyển thực chiến từ ban biên tập SmartHire.
+              Cập nhật các bài viết mới nhất, phân tích thị trường lao động và
+              bí quyết ứng tuyển thực chiến từ ban biên tập SmartHire.
             </p>
           </div>
 
@@ -673,10 +679,16 @@ export default function CareerBlogPage() {
                     title="Lưu bài viết"
                   >
                     <motion.div
-                      key={bookmarkedIds.has(readingPost.id) ? "saved" : "unsaved"}
+                      key={
+                        bookmarkedIds.has(readingPost.id) ? "saved" : "unsaved"
+                      }
                       initial={{ scale: 0.8 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25,
+                      }}
                     >
                       {bookmarkedIds.has(readingPost.id) ? (
                         <BookmarkCheck className="size-4 text-primary" />
@@ -700,7 +712,7 @@ export default function CareerBlogPage() {
               {/* Reader Body */}
               <div className="flex flex-col gap-6 p-6 sm:p-8">
                 <div>
-                  <h1 className="text-xl font-bold leading-snug text-text-main sm:text-2xl lg:text-3xl">
+                  <h1 className="text-xl leading-snug font-bold text-text-main sm:text-2xl lg:text-3xl">
                     {readingPost.title}
                   </h1>
 
@@ -723,7 +735,7 @@ export default function CareerBlogPage() {
                 </div>
 
                 {/* Hero image inside post */}
-                <div className="aspect-16/9 w-full overflow-hidden rounded-2xl bg-slate-100">
+                <div className="aspect-video w-full overflow-hidden rounded-2xl bg-slate-100">
                   <img
                     src={readingPost.imageUrl}
                     alt={readingPost.title}

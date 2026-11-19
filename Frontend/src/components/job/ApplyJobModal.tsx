@@ -166,8 +166,12 @@ export function ApplyJobModal({
         }
 
         try {
-          const versionsResult = await cvService.getCvVersions(effectiveSelectedCvId);
-          const latestVersion = Array.isArray(versionsResult) ? (versionsResult as unknown as Array<{ id: string }>)[0] : versionsResult?.items?.[0];
+          const versionsResult = await cvService.getCvVersions(
+            effectiveSelectedCvId,
+          );
+          const latestVersion = Array.isArray(versionsResult)
+            ? (versionsResult as unknown as Array<{ id: string }>)[0]
+            : versionsResult?.items?.[0];
           if (!latestVersion?.id) {
             toast.error({
               description:
@@ -249,7 +253,7 @@ export function ApplyJobModal({
     "Doanh nghiệp tuyển dụng";
 
   const modalNode = (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-4">
       {/* Lớp phủ */}
       <div
         onClick={!isSubmitting ? handleClose : undefined}
@@ -413,9 +417,9 @@ export function ApplyJobModal({
                             <div
                               className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${
                                 isSelected
-                              ? "border-primary bg-primary text-white"
-                              : "border-border"
-                            }`}
+                                  ? "border-primary bg-primary text-white"
+                                  : "border-border"
+                              }`}
                             >
                               {isSelected && (
                                 <div className="size-1.5 rounded-full bg-white" />
