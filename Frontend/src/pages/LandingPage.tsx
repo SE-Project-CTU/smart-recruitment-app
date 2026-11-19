@@ -43,30 +43,29 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0 overflow-hidden">
         <GradientWaves
           horizonColor="#1b3b6f"
-          waveColor="#6fc3e8"
-          crestColor="#d6f1fc"
+          waveColor="#38bdf8"
+          crestColor="#e0f2fe"
           backgroundColor="transparent"
           lightMode={true}
-          speed={0.35}
-          amplitude={2.0}
-          waveScale={0.55}
-          waveRatio={0.9}
-          relief={0.85}
-          lightAngle={120}
-          opacity={0.8}
-          grain={0.12}
+          speed={0.45}
+          amplitude={2.8}
+          relief={1.2}
+          sheen={0.4}
+          parallaxStrength={0.7}
+          mouseStrength={0.8}
           mouseInteraction={true}
           swellOnClick={true}
+          forceMotion={true}
           quality="high"
           className="size-full"
         />
-        {/* Lớp phủ chuyển màu dịu nhẹ bảo toàn độ tương phản và chiều sâu */}
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-bg-white-blue/60 via-transparent to-bg-white-blue/90" />
+        {/* Lớp gradient tinh tế chuyển tiếp mềm mại ở đáy Hero section */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-bg-white-blue to-transparent" />
       </div>
 
-      <div className="container relative z-10 mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
+      <div className="pointer-events-none relative z-10 container mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-12 lg:flex-row lg:gap-60">
-          <div className="z-10 flex w-full flex-col gap-6 text-center lg:w-1/2 lg:gap-8 lg:text-left">
+          <div className="pointer-events-auto z-10 flex w-full flex-col gap-6 text-center lg:w-1/2 lg:gap-8 lg:text-left">
             <h1 className="text-4xl leading-tight font-bold sm:text-5xl lg:text-6xl xl:text-7xl">
               <span>Make your career </span>
               <span className="mt-2 block">
@@ -109,7 +108,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="relative z-10 mt-10 flex justify-center lg:mt-0">
+          <div className="pointer-events-auto relative z-10 mt-10 flex justify-center lg:mt-0">
             <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
               <img
                 src={HumanImage}
