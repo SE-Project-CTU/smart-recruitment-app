@@ -7,6 +7,7 @@ using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Ai.Matching;
+using SmartHire.Application.Features.Ai.Matching.Models;
 using SmartHire.Application.Features.Applications.DTOs;
 using SmartHire.Application.Features.Applications.Exceptions;
 using SmartHire.Application.Features.Notifications.Constants;
@@ -29,6 +30,7 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
     private readonly ICvEmbeddingRepository _cvEmbeddingRepository;
     private readonly IJobEmbeddingRepository _jobEmbeddingRepository;
     private readonly ISmartHireMatchEngine _matchEngine;
+    private readonly IExperienceVectorMatchScorer _experienceVectorMatchScorer;
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationDispatcher? _notificationDispatcher;
     private readonly IDistributedCache? _distributedCache;
@@ -45,6 +47,7 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         ICvEmbeddingRepository cvEmbeddingRepository,
         IJobEmbeddingRepository jobEmbeddingRepository,
         ISmartHireMatchEngine matchEngine,
+        IExperienceVectorMatchScorer experienceVectorMatchScorer,
         IUnitOfWork unitOfWork,
         INotificationDispatcher? notificationDispatcher = null,
         IDistributedCache? distributedCache = null,
@@ -59,6 +62,7 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         _cvEmbeddingRepository = cvEmbeddingRepository;
         _jobEmbeddingRepository = jobEmbeddingRepository;
         _matchEngine = matchEngine;
+        _experienceVectorMatchScorer = experienceVectorMatchScorer;
         _unitOfWork = unitOfWork;
         _notificationDispatcher = notificationDispatcher;
         _distributedCache = distributedCache;
@@ -120,46 +124,51 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         var initialHistory = ApplicationStatusHistory.Create(application, candidateId, null, now);
         application.StatusHistories.Add(initialHistory);
 
+        MatchEngineResult? applicationMatchResult = null;
+        if (request.CvVersionId is Guid matchCvVersionId && cvVersion?.Content is not null) {
+            var jobDetail = await _jobPostingRepository.GetDetailByIdAsync(jobPostingId, cancellationToken);
+            if (jobDetail is not null) {
+                decimal? semanticVectorSimilarity = null;
+                try {
+                    var cvEmb = await _cvEmbeddingRepository.GetByCvVersionIdAsync(matchCvVersionId, cancellationToken);
+                    var jobEmb = await _jobEmbeddingRepository.GetByJobIdAsync(jobPostingId, cancellationToken);
+                    if (cvEmb?.Embedding != null && jobEmb?.Embedding != null) {
+                        semanticVectorSimilarity = TryComputeCosineSimilarity(cvEmb.Embedding, jobEmb.Embedding);
+                    }
+                } catch {
+                    // Skill matching can continue without the optional whole-document semantic signal.
+                }
+
+                var experienceScore = await _experienceVectorMatchScorer.ScoreAsync(cvVersion.Content, jobDetail, cancellationToken);
+                applicationMatchResult = _matchEngine.Evaluate(
+                    cvVersion.Content,
+                    jobDetail,
+                    experienceScore,
+                    semanticVectorSimilarity: semanticVectorSimilarity);
+            }
+        }
+
         try {
             await _unitOfWork.ExecuteInTransactionAsync(async ct => {
                 await _applicationRepository.AddAsync(application, ct);
                 // Lấy ID do database cấp trước khi tạo kết quả chấm điểm tham chiếu đến đơn.
                 await _unitOfWork.SaveChangesAsync(ct);
 
-                if (request.CvVersionId is Guid cvVerId && cvVersion?.Content is not null) {
-                    var jobDetail = await _jobPostingRepository.GetDetailByIdAsync(jobPostingId, ct);
-                    if (jobDetail is not null) {
-                        decimal? semanticVectorSimilarity = null;
-                        try {
-                            var cvEmb = await _cvEmbeddingRepository.GetByCvVersionIdAsync(cvVerId, ct);
-                            var jobEmb = await _jobEmbeddingRepository.GetByJobIdAsync(jobPostingId, ct);
-                            if (cvEmb?.Embedding != null && jobEmb?.Embedding != null) {
-                                semanticVectorSimilarity = TryComputeCosineSimilarity(cvEmb.Embedding, jobEmb.Embedding);
-                            }
-                        } catch {
-                            // Graceful degradation: nếu chưa có vector, Match Engine vẫn chạy chuẩn xác theo Lexical + Fuzzy
-                        }
-
-                        var matchResult = _matchEngine.Evaluate(
-                            cvVersion.Content,
-                            jobDetail,
-                            semanticVectorSimilarity: semanticVectorSimilarity);
-
-                        var analysisJson = JsonSerializer.Serialize(new {
-                            matchResult.Score,
-                            matchResult.Breakdown,
-                            matchResult.MatchingSkills,
-                            matchResult.MissingSkills,
-                            matchResult.Summary
-                        });
-                        var aiMatchResult = AiMatchResult.Create(
-                            application.Id,
-                            cvVerId,
-                            (decimal)matchResult.Score,
-                            analysisJson,
-                            now);
-                        await _aiMatchResultRepository.AddAsync(aiMatchResult, ct);
-                    }
+                if (request.CvVersionId is Guid cvVerId && applicationMatchResult is not null) {
+                    var analysisJson = JsonSerializer.Serialize(new {
+                        applicationMatchResult.Score,
+                        applicationMatchResult.Breakdown,
+                        applicationMatchResult.MatchingSkills,
+                        applicationMatchResult.MissingSkills,
+                        applicationMatchResult.Summary
+                    });
+                    var aiMatchResult = AiMatchResult.Create(
+                        application.Id,
+                        cvVerId,
+                        applicationMatchResult.Score,
+                        analysisJson,
+                        now);
+                    await _aiMatchResultRepository.AddAsync(aiMatchResult, ct);
                 }
 
                 await _unitOfWork.SaveChangesAsync(ct);

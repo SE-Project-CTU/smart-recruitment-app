@@ -17,6 +17,7 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
     public MatchEngineResult Evaluate(
         CvContentDocument? cv,
         JobPostingDetailData job,
+        decimal experienceScore,
         string? rawCvSkillsText = null,
         decimal? semanticVectorSimilarity = null) {
         // Kỹ năng chuyên môn (Mục SKILLS + pgvector Semantic)
@@ -26,7 +27,9 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
         var (titleScore, detectedSeniority, targetSeniority) = SeniorityTitleEvaluator.Evaluate(cv, job);
 
         // Thâm niên kinh nghiệm thực tế
-        var (expScore, actualYears, requiredYears) = ExperienceEvaluator.Evaluate(cv, job);
+        var expScore = Math.Round(Math.Clamp(experienceScore, 0m, 100m), 2);
+        var actualYears = ExperienceEvaluator.CalculateExperienceYears(cv);
+        var requiredYears = job.ExperienceYears;
 
         // Địa điểm & Học vấn (Pass: 100% / Fail: 0%)
         decimal otherScore = LocationEducationEvaluator.Evaluate(cv, job);
@@ -77,15 +80,17 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
     public MatchEngineResult EvaluateFromText(
         string cvText,
         JobPostingDetailData job,
+        decimal experienceScore,
         decimal? semanticVectorSimilarity = null) {
         var simulatedDoc = BuildSimulatedDocumentFromText(cvText);
         var rawSkillsText = ExtractSkillsBlock(cvText);
-        return Evaluate(simulatedDoc, job, rawCvSkillsText: rawSkillsText, semanticVectorSimilarity: semanticVectorSimilarity);
+        return Evaluate(simulatedDoc, job, experienceScore, rawCvSkillsText: rawSkillsText, semanticVectorSimilarity: semanticVectorSimilarity);
     }
 
     public IReadOnlyList<MatchEngineResult> EvaluateBatch(
         CvContentDocument? cv,
         IReadOnlyList<JobPostingDetailData> jobs,
+        IReadOnlyDictionary<Guid, decimal> experienceScores,
         string? rawCvSkillsText = null,
         IReadOnlyDictionary<Guid, decimal>? semanticVectorSimilarities = null) {
         if (jobs == null || jobs.Count == 0) {
@@ -98,7 +103,8 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
                 if (semanticVectorSimilarities != null && semanticVectorSimilarities.TryGetValue(j.Id, out var s)) {
                     sim = s;
                 }
-                return Evaluate(cv, j, rawCvSkillsText, sim);
+                var experienceScore = experienceScores.TryGetValue(j.Id, out var score) ? score : 0m;
+                return Evaluate(cv, j, experienceScore, rawCvSkillsText, sim);
             })
             .OrderByDescending(r => r.Score)
             .ThenByDescending(r => r.Breakdown.SkillScore) // Tie-breaker: ưu tiên điểm kỹ năng cao hơn
@@ -108,6 +114,7 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
     public IReadOnlyList<MatchEngineResult> EvaluateBatchFromText(
         string cvText,
         IReadOnlyList<JobPostingDetailData> jobs,
+        IReadOnlyDictionary<Guid, decimal> experienceScores,
         IReadOnlyDictionary<Guid, decimal>? semanticVectorSimilarities = null) {
         if (jobs == null || jobs.Count == 0) {
             return Array.Empty<MatchEngineResult>();
@@ -115,7 +122,7 @@ public sealed class SmartHireMatchEngine : ISmartHireMatchEngine {
 
         var simulatedDoc = BuildSimulatedDocumentFromText(cvText);
         var rawSkillsText = ExtractSkillsBlock(cvText);
-        return EvaluateBatch(simulatedDoc, jobs, rawCvSkillsText: rawSkillsText, semanticVectorSimilarities: semanticVectorSimilarities);
+        return EvaluateBatch(simulatedDoc, jobs, experienceScores, rawCvSkillsText: rawSkillsText, semanticVectorSimilarities: semanticVectorSimilarities);
     }
 
     public static string ExtractSkillsBlock(string cvText) {

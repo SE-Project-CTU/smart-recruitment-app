@@ -326,12 +326,20 @@ internal static class GeminiPrompts {
         return new CvBatchEnhanceResult(results, IsFallback: true);
     }
 
-    public static string BuildMatchAnalysisPrompt(string cvText, string jobText, decimal score) {
+    public static string BuildMatchAnalysisPrompt(string cvText, string jobText, decimal score, decimal experienceScore) {
         return $$"""
+            Experience relevance score calculated from embeddings: {{experienceScore:F2}}/100.
             Bạn là hệ thống AI phân tích tuyển dụng thông minh chuẩn quốc tế đa ngành nghề.
             Điểm tương đồng tính toán giữa CV và JD đã được xác định là: {{score:F2}}%.
             Nhiệm vụ: Phân tích chi tiết sự phù hợp giữa CV và JD dưới đây và trả về định dạng JSON nghiêm ngặt.
             Quy tắc ngôn ngữ: Nếu CV và JD chủ yếu bằng Tiếng Anh, xuất JSON bằng Tiếng Anh (English). Nếu bằng Tiếng Việt, xuất JSON bằng Tiếng Việt.
+            Quy tắc đánh giá kinh nghiệm bắt buộc:
+            - Phân biệt tổng số năm làm việc với mức độ liên quan của các nhiệm vụ đã thực hiện.
+            - Không xem nhiều năm kinh nghiệm chung là bằng chứng cho nhiều năm kinh nghiệm phù hợp với JD.
+            - Chỉ mô tả kinh nghiệm là phù hợp khi nội dung công việc trong CV có bằng chứng liên quan đến nhiệm vụ hoặc lĩnh vực trong JD.
+            - Nếu ứng viên có nhiều năm kinh nghiệm ở lĩnh vực khác, hãy nêu rõ lĩnh vực đó và chỉ ra khoảng cách liên quan một cách trung lập.
+            - Không tự tính lại, diễn giải lại thành phần hay thay đổi điểm số đã cung cấp. Nội dung nhận xét phải nhất quán với điểm số.
+            - Khi CV không nêu bằng chứng cho một yêu cầu, viết "chưa thấy thông tin trong CV"; không kết luận ứng viên chắc chắn chưa từng có kinh nghiệm đó.
             
             CV ỨNG VIÊN:
             \"\"\"{{cvText}}\"\"\"
