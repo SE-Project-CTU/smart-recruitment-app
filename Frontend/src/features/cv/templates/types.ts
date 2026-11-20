@@ -44,6 +44,7 @@ export interface CvTemplateProps {
   isReadOnly?: boolean;
   className?: string;
   sectionEditors?: CvSectionEditorsMap;
+  highlightSectionKey?: string | null;
   onReorderAreaSections?: (areaId: string, newSections: string[]) => void;
   onMoveSectionToArea?: (sectionKey: string, targetAreaId: string) => void;
   onMoveSectionBetweenAreas?: (

@@ -22,7 +22,6 @@ import { CvTiptapReadOnlyView } from "../../builder/components/CvTiptapReadOnlyV
 import { DEFAULT_CV_FONT_ID, getCvFontFamilyCss } from "../../constants/fonts";
 import type { CvTemplateProps, CvFieldRenderer } from "../types";
 import { getCvTemplateMetadata } from "../templateMetadata";
-import { useCvRewriteContext } from "../../builder/context/CvRewriteContext";
 
 const THIS_TEMPLATE_CODE = "senior_harvard";
 const THIS_MAIN_AREA_ID = "main";
@@ -50,6 +49,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
   layout,
   renderField = defaultReadOnlyRenderer,
   isReadOnly = false,
+  highlightSectionKey,
   sectionEditors,
   onReorderAreaSections,
   onReorderSections,
@@ -70,8 +70,6 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
   const fontFamily = globalStyles?.fontFamily || DEFAULT_CV_FONT_ID;
   const lineHeight = globalStyles?.lineHeight || 1.5;
   const fontScale = globalStyles?.fontScale ?? 1.0;
-
-  const { activeSuggestionSectionKey } = useCvRewriteContext();
 
   const isSectionVisible = (key: string): boolean => {
     const sec = sections[key as keyof typeof sections];
@@ -287,9 +285,10 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                   >
                     {(dragProvided, snapshot) => {
                       const isActiveSuggestion = Boolean(
-                        activeSuggestionSectionKey &&
+                        !isReadOnly &&
+                          highlightSectionKey &&
                           sectionKey.toLowerCase() ===
-                            activeSuggestionSectionKey.toLowerCase(),
+                            highlightSectionKey.toLowerCase(),
                       );
 
                       const card = (
@@ -363,9 +362,10 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
         <div className="space-y-2">
           {visibleSections.map((sectionKey) => {
             const isActiveSuggestion = Boolean(
-              activeSuggestionSectionKey &&
+              !isReadOnly &&
+                highlightSectionKey &&
                 sectionKey.toLowerCase() ===
-                  activeSuggestionSectionKey.toLowerCase(),
+                  highlightSectionKey.toLowerCase(),
             );
             return (
               <div

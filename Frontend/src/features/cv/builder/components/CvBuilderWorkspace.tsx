@@ -283,6 +283,7 @@ export default function CvBuilderWorkspace({
               layout={normalizedLayout}
               renderField={builderFieldRenderer}
               isReadOnly={isReadOnly}
+              highlightSectionKey={!isReadOnly ? highlightSectionKey : null}
               sectionEditors={!isReadOnly ? sectionEditors : undefined}
               onReorderAreaSections={
                 !isReadOnly ? reorderAreaSections : undefined
