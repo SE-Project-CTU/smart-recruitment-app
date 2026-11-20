@@ -2,6 +2,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Draggable, type DraggableStateSnapshot } from "@hello-pangea/dnd";
 import DraggableSectionActions from "../../builder/components/DraggableSectionActions";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 
 interface DraggableSectionCardProps {
   sectionKey: string;
@@ -9,7 +10,6 @@ interface DraggableSectionCardProps {
   isFirst: boolean;
   isLast: boolean;
   isReadOnly: boolean;
-  highlightSectionKey?: string | null;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onToggleVisibility: () => void;
@@ -52,16 +52,18 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
     isFirst,
     isLast,
     isReadOnly,
-    highlightSectionKey,
     onMoveUp,
     onMoveDown,
     onToggleVisibility,
     children,
   }) => {
-    const isActiveSuggestion = Boolean(
-      !isReadOnly &&
-        highlightSectionKey &&
-        sectionKey.toLowerCase() === highlightSectionKey.toLowerCase(),
+    const isActiveSuggestion = useCvHighlightStore(
+      (s) =>
+        !isReadOnly &&
+        Boolean(
+          s.highlightSectionKey &&
+            s.highlightSectionKey === sectionKey.toLowerCase(),
+        ),
     );
 
     return (

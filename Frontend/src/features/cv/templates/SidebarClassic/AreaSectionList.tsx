@@ -67,7 +67,6 @@ interface AreaSectionListProps {
   sections: RichTextCVSections;
   primaryColor?: string;
   isReadOnly?: boolean;
-  highlightSectionKey?: string | null;
   canDrag: boolean;
   activeDrag?: ActiveDragInfo | null;
   renderField: CvFieldRenderer;
@@ -138,7 +137,6 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
     sections,
     primaryColor,
     isReadOnly = false,
-    highlightSectionKey,
     canDrag,
     activeDrag,
     renderField,
@@ -309,7 +307,6 @@ export const AreaSectionList = React.memo<AreaSectionListProps>(
                       isFirst={index === 0}
                       isLast={index === visibleSections.length - 1}
                       isReadOnly={isReadOnly}
-                      highlightSectionKey={highlightSectionKey}
                       onMoveUp={() => onMoveSectionInArea(areaId, index, "up")}
                       onMoveDown={() =>
                         onMoveSectionInArea(areaId, index, "down")

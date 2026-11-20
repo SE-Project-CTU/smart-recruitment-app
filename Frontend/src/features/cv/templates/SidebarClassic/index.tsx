@@ -43,7 +43,6 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
     layout,
     renderField = defaultReadOnlyRenderer,
     isReadOnly = false,
-    highlightSectionKey,
     sectionEditors,
     onReorderAreaSections,
     onMoveSectionBetweenAreas,
@@ -279,7 +278,6 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
                   sections={sections}
                   primaryColor={primaryColor}
                   isReadOnly={isReadOnly}
-                  highlightSectionKey={!isReadOnly ? highlightSectionKey : null}
                   canDrag={canDrag}
                   activeDrag={activeDrag}
                   renderField={renderField}
@@ -298,7 +296,6 @@ export const SidebarClassicTemplate = React.memo<CvTemplateProps>(
                 sections={sections}
                 primaryColor={primaryColor}
                 isReadOnly={isReadOnly}
-                highlightSectionKey={!isReadOnly ? highlightSectionKey : null}
                 canDrag={canDrag}
                 activeDrag={activeDrag}
                 renderField={renderField}

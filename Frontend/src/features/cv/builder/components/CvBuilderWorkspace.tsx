@@ -9,13 +9,13 @@ import type { CvTemplateCode, RichTextCVContentDocument } from "@/types/cv";
 import { TEMPLATE_REGISTRY, validateCvLayout } from "../../templates/registry";
 import { ensureValidLayout } from "../utils/richTextInitialValues";
 import { scrollCvSectionIntoView } from "../utils/cvAssistantHelpers";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 
 interface CvBuilderWorkspaceProps {
   contentRef?: Ref<HTMLDivElement>;
   className?: string;
   isReadOnly?: boolean;
   zoom?: number;
-  highlightSectionKey?: string | null;
 }
 
 export default function CvBuilderWorkspace({
@@ -23,9 +23,11 @@ export default function CvBuilderWorkspace({
   className = "",
   isReadOnly = false,
   zoom = 1.0,
-  highlightSectionKey = null,
 }: CvBuilderWorkspaceProps) {
   const { control, getValues } = useFormContext<RichTextCvEditorValues>();
+  const highlightSectionKey = useCvHighlightStore(
+    (s) => s.highlightSectionKey,
+  );
 
   // Thu hẹp subscription: Chỉ watch các trường ảnh hưởng đến cấu trúc hoặc giao diện template
   const watchedTemplateCode = useWatch({
@@ -283,7 +285,6 @@ export default function CvBuilderWorkspace({
               layout={normalizedLayout}
               renderField={builderFieldRenderer}
               isReadOnly={isReadOnly}
-              highlightSectionKey={!isReadOnly ? highlightSectionKey : null}
               sectionEditors={!isReadOnly ? sectionEditors : undefined}
               onReorderAreaSections={
                 !isReadOnly ? reorderAreaSections : undefined

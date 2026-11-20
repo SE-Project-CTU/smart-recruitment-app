@@ -22,6 +22,7 @@ import { CvTiptapReadOnlyView } from "../../builder/components/CvTiptapReadOnlyV
 import { DEFAULT_CV_FONT_ID, getCvFontFamilyCss } from "../../constants/fonts";
 import type { CvTemplateProps, CvFieldRenderer } from "../types";
 import { getCvTemplateMetadata } from "../templateMetadata";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 
 const THIS_TEMPLATE_CODE = "senior_harvard";
 const THIS_MAIN_AREA_ID = "main";
@@ -49,12 +50,14 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
   layout,
   renderField = defaultReadOnlyRenderer,
   isReadOnly = false,
-  highlightSectionKey,
   sectionEditors,
   onReorderAreaSections,
   onReorderSections,
   onToggleSectionVisibility,
 }) => {
+  const highlightSectionKey = useCvHighlightStore(
+    (s) => s.highlightSectionKey,
+  );
   if (!content || !content.profile || !content.sections) {
     return (
       <div className="flex h-96 items-center justify-center rounded-xl border border-dashed border-border bg-surface text-sm text-text-muted">

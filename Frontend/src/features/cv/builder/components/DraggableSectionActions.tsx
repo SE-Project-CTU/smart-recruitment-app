@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, GripVertical, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SectionAiSuggestionButton } from "./assistant/SectionAiSuggestionButton";
-import { useCvRewriteContext } from "../context/CvRewriteContext";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 
 interface DraggableSectionActionsProps {
   dragHandleProps: React.HTMLAttributes<HTMLDivElement> | null;
@@ -22,11 +22,13 @@ function DraggableSectionActions({
   onDelete,
   sectionKey,
 }: DraggableSectionActionsProps) {
-  const { activeSuggestionSectionKey } = useCvRewriteContext();
-  const isActive = Boolean(
-    sectionKey &&
-      activeSuggestionSectionKey &&
-      sectionKey.toLowerCase() === activeSuggestionSectionKey.toLowerCase(),
+  const isActive = useCvHighlightStore(
+    (s) =>
+      Boolean(
+        sectionKey &&
+          s.highlightSectionKey &&
+          sectionKey.toLowerCase() === s.highlightSectionKey.toLowerCase(),
+      ),
   );
 
   const actionButtonClassName =
@@ -92,6 +94,7 @@ function DraggableSectionActions({
       {/* Nút Xem gợi ý bên phải */}
       {sectionKey && (
         <div className="relative pointer-events-auto">
+          <div className="pointer-events-auto absolute left-0 bottom-0 h-2 w-full translate-y-full select-none" />
           <SectionAiSuggestionButton sectionKey={sectionKey} />
         </div>
       )}
