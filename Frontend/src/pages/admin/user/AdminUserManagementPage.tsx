@@ -125,6 +125,7 @@ export default function AdminUserManagementPage() {
   // Dialog xác nhận Khóa tài khoản
   const [lockTarget, setLockTarget] = useState<AdminUserItem | null>(null);
   const [lockReason, setLockReason] = useState("");
+  const [lockReasonError, setLockReasonError] = useState<string | null>(null);
 
   // Dialog xác nhận Mở khóa tài khoản
   const [unlockTarget, setUnlockTarget] = useState<AdminUserItem | null>(null);
@@ -196,16 +197,29 @@ export default function AdminUserManagementPage() {
   // Xác nhận khóa tài khoản
   const handleConfirmLock = async () => {
     if (!lockTarget) return;
+
+    const trimmedReason = lockReason.trim();
+    if (trimmedReason.length === 0) {
+      setLockReasonError("Vui lòng nhập lý do khóa tài khoản.");
+      return;
+    }
+    if (trimmedReason.length < 5) {
+      setLockReasonError("Lý do khóa tài khoản phải có ít nhất 5 ký tự.");
+      return;
+    }
+
     try {
+      setLockReasonError(null);
       await updateUserStatusMutation.mutateAsync({
         id: lockTarget.id,
         payload: {
           status: "Locked",
-          reason: lockReason.trim() || undefined,
+          reason: trimmedReason,
         },
       });
       setLockTarget(null);
       setLockReason("");
+      setLockReasonError(null);
     } catch {
       // Toast error đã được xử lý tự động trong mutation hook
     }
@@ -445,7 +459,11 @@ export default function AdminUserManagementPage() {
                     variant="secondary"
                     icon={Lock}
                     iconSize={14}
-                    onClick={() => setLockTarget(u)}
+                    onClick={() => {
+                      setLockReasonError(null);
+                      setLockReason("");
+                      setLockTarget(u);
+                    }}
                     title="Khóa tài khoản"
                     className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600!"
                   />
@@ -675,6 +693,7 @@ export default function AdminUserManagementPage() {
           if (!open) {
             setLockTarget(null);
             setLockReason("");
+            setLockReasonError(null);
           }
         }}
       >
@@ -737,19 +756,39 @@ export default function AdminUserManagementPage() {
               </p>
             </div>
 
-            {/* Nhập lý do khóa (tùy chọn) */}
+            {/* Nhập lý do khóa (bắt buộc) */}
             <div className="mt-4 space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">
-                Lý do khóa tài khoản (tùy chọn)
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-700">
+                  Lý do khóa tài khoản <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[11px] text-slate-400">
+                  {lockReason.length}/500
+                </span>
+              </div>
               <textarea
                 value={lockReason}
-                onChange={(e) => setLockReason(e.target.value)}
-                placeholder="Ví dụ: Vi phạm chính sách tuyển dụng, nghi vấn mạo danh doanh nghiệp..."
-                rows={2}
-                maxLength={300}
-                className="w-full resize-none rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 transition-colors outline-none"
+                onChange={(e) => {
+                  setLockReason(e.target.value);
+                  if (lockReasonError && e.target.value.trim().length >= 5) {
+                    setLockReasonError(null);
+                  }
+                }}
+                placeholder="Nhập lý do khóa tài khoản (tối thiểu 5 ký tự)..."
+                rows={3}
+                maxLength={500}
+                className={cn(
+                  "w-full resize-none rounded-xl border bg-slate-50/50 p-2.5 text-xs text-slate-800 transition-colors outline-none focus:bg-white",
+                  lockReasonError
+                    ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20"
+                    : "border-border focus:border-primary focus:ring-1 focus:ring-primary/20",
+                )}
               />
+              {lockReasonError && (
+                <p className="text-[11px] font-medium text-rose-500">
+                  {lockReasonError}
+                </p>
+              )}
             </div>
           </div>
 
@@ -759,6 +798,7 @@ export default function AdminUserManagementPage() {
               onClick={() => {
                 setLockTarget(null);
                 setLockReason("");
+                setLockReasonError(null);
               }}
               disabled={updateUserStatusMutation.isPending}
               className="h-9! px-4! text-xs!"
@@ -768,6 +808,10 @@ export default function AdminUserManagementPage() {
             <Button
               variant="primary"
               onClick={handleConfirmLock}
+              disabled={
+                updateUserStatusMutation.isPending ||
+                lockReason.trim().length < 5
+              }
               isLoading={updateUserStatusMutation.isPending}
               className="h-9! bg-rose-600! px-4! text-xs! font-semibold! text-white! hover:bg-rose-700!"
             >

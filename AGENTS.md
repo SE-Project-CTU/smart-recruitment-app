@@ -61,6 +61,7 @@ Nếu Impeccable khả dụng trong môi trường agent, chạy critique sau kh
 | Lập kế hoạch cho feature, bug phức tạp hoặc refactor nhiều file        | `.agents/skills/plan-writing/SKILL.md`   |
 | Người dùng yêu cầu đơn giản hóa hoặc giảm độ phức tạp                  | `.agents/skills/simplify-code/SKILL.md`  |
 | Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng | `.agents/skills/skill-creating/SKILL.md` |
+| Thêm hoặc chỉnh component có hoạt ảnh cho React UI                     | `.agents/skills/animate-ui/SKILL.md`     |
 | Người dùng yêu cầu tạo commit code (chỉ commit, không tự ý push)       | `.agents/skills/git-commit/SKILL.md`     |
 
 Nếu `brainstorming` yêu cầu làm rõ, kiểm tra bối cảnh hiện có trước; chỉ hỏi các quyết định thực sự chặn việc triển khai.
