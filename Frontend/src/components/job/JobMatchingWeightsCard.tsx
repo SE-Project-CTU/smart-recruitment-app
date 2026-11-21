@@ -36,11 +36,8 @@ const PRESETS: Array<{
   },
 ];
 
-export const JobMatchingWeightsCard: React.FC<JobMatchingWeightsCardProps> = ({
-  weights,
-  onChange,
-  error,
-}) => {
+export const JobMatchingWeightsCard: React.FC<JobMatchingWeightsCardProps> =
+  React.memo(({ weights, onChange, error }) => {
   const total = weights.skill + weights.experience + weights.title + weights.other;
   const isValid = Math.abs(total - 100) < 0.1;
 
@@ -122,4 +119,4 @@ export const JobMatchingWeightsCard: React.FC<JobMatchingWeightsCardProps> = ({
       )}
     </section>
   );
-};
+});

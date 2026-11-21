@@ -14,6 +14,7 @@ import {
   Users,
   Award,
   Briefcase,
+  Copy,
   Laptop,
 } from "lucide-react";
 import dayjs from "dayjs";
@@ -50,6 +51,7 @@ import {
   getJobLevelLabel,
   getWorkModeLabel,
 } from "@/utils/jobHelpers";
+import { toast } from "@/hooks/use-toast";
 import { JOB_STATUS_CONFIG } from "@/types/job";
 import { JobDetailInfoTab } from "./JobDetailInfoTab";
 import { JobApplicationsTab } from "./JobApplicationsTab";
@@ -186,6 +188,23 @@ export function JobDetailPage() {
     ? "Thỏa thuận"
     : formatSalaryRange(job.salaryMin, job.salaryMax, false);
 
+  const handleCopyJobLink = async () => {
+    if (!job?.id) return;
+    const jobUrl = `${window.location.origin}/jobs/${job.id}`;
+    try {
+      await navigator.clipboard.writeText(jobUrl);
+      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = jobUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
+    }
+  };
+
   const provinceName = job.province?.name;
 
   const compName = job.company?.name || "Doanh nghiệp";
@@ -210,50 +229,68 @@ export function JobDetailPage() {
       <div className="relative rounded-2xl border border-border bg-white p-4 sm:rounded-3xl sm:p-6 lg:p-7">
         {/* Nút 3 chấm (More Actions) - Đặt Absolute góc phải trên cùng */}
         <div className="absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-7 lg:right-7">
-          {isLoadingCompanies ? null : !isMyCompany ? (
-            <span className="hidden items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 sm:inline-flex">
-              <AlertTriangle className="size-3.5" />
-              <span>Chỉ xem</span>
-            </span>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="inline-flex size-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 focus:outline-none sm:size-9"
-                aria-label="Tùy chọn thao tác"
-              >
-                <MoreVertical className="size-4" />
-              </DropdownMenuTrigger>
+          {isLoadingCompanies ? null : (
+            <div className="flex items-center gap-1.5">
+              {!isMyCompany && (
+                <span className="hidden items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 sm:inline-flex">
+                  <AlertTriangle className="size-3.5" />
+                  <span>Chỉ xem</span>
+                </span>
+              )}
 
-              <DropdownMenuContent
-                align="end"
-                className="min-w-40 rounded-xl border border-border p-1 shadow-md sm:min-w-48"
-              >
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate(PATHS.RECRUITER.EDIT_JOB.replace(":id", job.id))
-                  }
-                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100"
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="inline-flex size-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 focus:outline-none sm:size-9"
+                  aria-label="Tùy chọn thao tác"
                 >
-                  <Pencil className="size-3.5 text-slate-500" />
-                  <span>Chỉnh sửa tin</span>
-                </DropdownMenuItem>
+                  <MoreVertical className="size-4" />
+                </DropdownMenuTrigger>
 
-                <DropdownMenuItem
-                  disabled={isClosed}
-                  onClick={() => setIsClosingModalOpen(true)}
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium ${
-                    isClosed
-                      ? "pointer-events-none text-slate-400 opacity-50"
-                      : "text-rose-600 hover:bg-rose-50"
-                  }`}
+                <DropdownMenuContent
+                  align="end"
+                  className="min-w-40 rounded-xl border border-border p-1 shadow-md sm:min-w-48"
                 >
-                  <PowerOff className="size-3.5" />
-                  <span>
-                    {isClosed ? "Tin đã đóng" : "Đóng tin tuyển dụng"}
-                  </span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem
+                    onClick={handleCopyJobLink}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                  >
+                    <Copy className="size-3.5 text-slate-500" />
+                    <span>Sao chép liên kết</span>
+                  </DropdownMenuItem>
+
+                  {isMyCompany && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          navigate(
+                            PATHS.RECRUITER.EDIT_JOB.replace(":id", job.id),
+                          )
+                        }
+                        className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                      >
+                        <Pencil className="size-3.5 text-slate-500" />
+                        <span>Chỉnh sửa tin</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        disabled={isClosed}
+                        onClick={() => setIsClosingModalOpen(true)}
+                        className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium ${
+                          isClosed
+                            ? "pointer-events-none text-slate-400 opacity-50"
+                            : "text-rose-600 hover:bg-rose-50"
+                        }`}
+                      >
+                        <PowerOff className="size-3.5" />
+                        <span>
+                          {isClosed ? "Tin đã đóng" : "Đóng tin tuyển dụng"}
+                        </span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )}
         </div>
 

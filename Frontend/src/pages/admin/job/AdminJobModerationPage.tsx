@@ -212,8 +212,21 @@ export default function AdminJobModerationPage() {
   // Xử lý xác nhận từ chối tin
   const handleConfirmReject = async () => {
     if (!rejectTarget) return;
-    if (!rejectionReason.trim()) {
+    const reason = rejectionReason.trim();
+    if (!reason) {
       setReasonError("Vui lòng nêu rõ lý do từ chối tin tuyển dụng.");
+      return;
+    }
+    if (reason.length < 5) {
+      setReasonError(
+        `Lý do từ chối cần tối thiểu 5 ký tự (hiện có ${reason.length}/5 ký tự).`,
+      );
+      return;
+    }
+    if (reason.length > 1000) {
+      setReasonError(
+        `Lý do từ chối không được vượt quá 1,000 ký tự (hiện có ${reason.length} ký tự).`,
+      );
       return;
     }
 
@@ -222,7 +235,7 @@ export default function AdminJobModerationPage() {
         id: rejectTarget.id,
         payload: {
           status: "Rejected",
-          rejectionReason: rejectionReason.trim(),
+          rejectionReason: reason,
         },
       });
       setRejectTarget(null);
@@ -854,15 +867,21 @@ export default function AdminJobModerationPage() {
           </DialogHeader>
 
           <div className="mt-3 space-y-1.5">
-            <label
-              htmlFor="job-rejection-reason"
-              className="text-xs font-semibold text-text-main"
-            >
-              Lý do từ chối <span className="text-status-error">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="job-rejection-reason"
+                className="text-xs font-semibold text-text-main"
+              >
+                Lý do từ chối <span className="text-status-error">*</span>
+              </label>
+              <span className="text-[11px] text-text-muted">
+                {rejectionReason.length}/1000
+              </span>
+            </div>
             <textarea
               id="job-rejection-reason"
               rows={4}
+              maxLength={1000}
               value={rejectionReason}
               onChange={(e) => {
                 setRejectionReason(e.target.value);
@@ -930,15 +949,21 @@ export default function AdminJobModerationPage() {
           </DialogHeader>
 
           <div className="mt-3 space-y-1.5">
-            <label
-              htmlFor="job-close-reason"
-              className="text-xs font-semibold text-text-main"
-            >
-              Lý do đóng / gỡ tin (tùy chọn)
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="job-close-reason"
+                className="text-xs font-semibold text-text-main"
+              >
+                Lý do đóng / gỡ tin (tùy chọn)
+              </label>
+              <span className="text-[11px] text-text-muted">
+                {closeReason.length}/1000
+              </span>
+            </div>
             <textarea
               id="job-close-reason"
               rows={3}
+              maxLength={1000}
               value={closeReason}
               onChange={(e) => setCloseReason(e.target.value)}
               placeholder="Nhập lý do đóng tin tuyển dụng để thông báo cho nhà tuyển dụng..."
