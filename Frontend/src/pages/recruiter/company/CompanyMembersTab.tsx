@@ -29,6 +29,7 @@ import {
   useLeaveCompany,
 } from "@/hooks/queries/useCompany";
 import { PATHS } from "@/constants/paths";
+import { toast } from "@/components/ui/toast";
 import { InviteMemberModal } from "./InviteMemberModal";
 import {
   AlertDialog,
@@ -77,7 +78,6 @@ export function CompanyMembersTab() {
   const [transferTarget, setTransferTarget] = useState<CompanyMember | null>(
     null,
   );
-  const [transferMessage, setTransferMessage] = useState<string | null>(null);
   const [transferError, setTransferError] = useState<string | null>(null);
 
   // Remove member modal state
@@ -90,20 +90,20 @@ export function CompanyMembersTab() {
 
   const handleTransferOwnership = async () => {
     if (!transferTarget) return;
+    const targetName = transferTarget.user.fullName;
     try {
       setTransferError(null);
       await transferOwnership({
         companyId: company.id,
         newOwnerId: transferTarget.user.id,
       });
-      setTransferMessage(
-        `Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`,
-      );
-      setTimeout(async () => {
-        setTransferTarget(null);
-        setTransferMessage(null);
-        await refreshCompany();
-      }, 1500);
+      setTransferTarget(null);
+      toast.add({
+        type: "success",
+        title: "Ủy quyền thành công",
+        description: `Đã chuyển quyền Chủ sở hữu cho ${targetName}!`,
+      });
+      await refreshCompany();
     } catch (err: unknown) {
       setTransferError(
         getApiErrorMessage(err, "Chuyển quyền thất bại. Vui lòng thử lại!"),
@@ -239,7 +239,10 @@ export function CompanyMembersTab() {
                   variant="outline"
                   className="border-border! px-2.5! py-1! text-xs! font-medium! text-text-main! ring-border! hover:border-primary/40! hover:text-primary!"
                   icon={ArrowRightLeft}
-                  onClick={() => setTransferTarget(member)}
+                  onClick={() => {
+                    setTransferError(null);
+                    setTransferTarget(member);
+                  }}
                 >
                   Ủy quyền Owner
                 </Button>
@@ -397,7 +400,6 @@ export function CompanyMembersTab() {
           if (!open) {
             setTransferTarget(null);
             setTransferError(null);
-            setTransferMessage(null);
           }
         }}
       >
@@ -405,9 +407,7 @@ export function CompanyMembersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận ủy quyền chủ sở hữu</AlertDialogTitle>
             <AlertDialogDescription>
-              {transferMessage
-                ? transferMessage
-                : `Bạn có chắc chắn muốn chuyển giao toàn bộ quyền chủ sở hữu của công ty ${company.name} cho thành viên ${transferTarget?.user.fullName} (${transferTarget?.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành thành viên thông thường.`}
+              {`Bạn có chắc chắn muốn chuyển giao toàn bộ quyền chủ sở hữu của công ty ${company.name} cho thành viên ${transferTarget?.user.fullName} (${transferTarget?.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành thành viên thông thường.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -423,7 +423,6 @@ export function CompanyMembersTab() {
               onClick={() => {
                 setTransferTarget(null);
                 setTransferError(null);
-                setTransferMessage(null);
               }}
             >
               Hủy bỏ
