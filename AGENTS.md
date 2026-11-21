@@ -1,148 +1,101 @@
-# AGENTS.md
+# AGENTS.md — SmartHire
 
-File này hướng dẫn các AI agent (Antigravity, Claude Code, Codex, Cursor, Copilot...) cách làm việc trong repo này.
+Hướng dẫn chung cho mọi AI coding agent làm việc trong repository này: Antigravity, Claude Code, Codex, Cursor, Copilot và sub-agent. Đọc file này trước khi khảo sát, sửa code hoặc phân công công việc.
 
----
+## 1. Phạm vi và tài liệu bắt buộc
 
-## CỔNG KIỂM SOÁT BẮT BUỘC (MANDATORY GATEWAY RULE)
+- Repository: `smart-recruitment-app/`.
+- Chính sách chi tiết nằm trong repository:
+  - Frontend: `.agents/rules/frontend.md`
+  - Backend: `.agents/rules/backend.md`
+  - Skills: `.agents/skills/`
+- Nếu yêu cầu chạm vào `Frontend/`, phải đọc toàn bộ `.agents/rules/frontend.md` trước khi đọc sâu hoặc sửa code Frontend.
+- Nếu yêu cầu chạm vào `Backend/`, phải đọc toàn bộ `.agents/rules/backend.md` trước khi đọc sâu hoặc sửa code Backend.
+- Công việc full-stack phải đọc cả hai rule. Agent chính phải chuyển các rule liên quan cho mọi sub-agent.
+- Rule theo thư mục cụ thể (nếu có) luôn ưu tiên hơn file này.
 
-**MỌI AGENT VÀ SUB-AGENT PHẢI ĐỌC ĐIỀU NÀY TRƯỚC TIÊN:**
+## 2. Ngôn ngữ và cách giao tiếp
 
-Bất cứ khi nào nhận yêu cầu liên quan đến **Frontend** hoặc chuẩn bị đọc/sửa file trong thư mục `Frontend/`:
+- Trả lời người dùng và viết tài liệu Markdown bằng tiếng Việt, trừ khi họ yêu cầu ngôn ngữ khác.
+- Giải thích ngắn, rõ; giải thích thuật ngữ chuyên môn khi lần đầu xuất hiện nếu cần.
+- Khi người dùng nói “hướng dẫn tôi làm”, chỉ hướng dẫn từng bước, không tự thay đổi code.
+- Tên file, code, biến, hàm và API giữ tiếng Anh theo quy ước dự án.
 
-> 1. **BẮT BUỘC PHẢI ĐỌC** file hướng dẫn chi tiết tại [.agent/rules/frontend.md](.agent/rules/frontend.md) trước khi thực hiện bất kỳ thao tác viết code nào.
-> 2. **Agent Leader (Agent chính)** khi gọi Sub-agent hoặc tự mình xử lý Frontend **phải đảm bảo toàn bộ quy tắc trong `.agent/rules/frontend.md` được tuân thủ nghiêm ngặt**.
+## 3. Bản đồ dự án
 
-Bất cứ khi nào nhận yêu cầu liên quan đến **Backend** hoặc chuẩn bị đọc/sửa/tạo file trong thư mục `Backend/`:
+| Khu vực        | Công nghệ / vai trò                                                     |
+| -------------- | ----------------------------------------------------------------------- |
+| `Frontend/`    | React, Vite, TypeScript, Tailwind v4                                    |
+| `Backend/`     | .NET 10, Clean Architecture, CQRS, EF Core, PostgreSQL                  |
+| `compose.yaml` | Chạy các dịch vụ bằng Docker Compose                                    |
+| `.codegraph/`  | Chỉ mục CodeGraph cục bộ, không chỉnh sửa hoặc commit dữ liệu phát sinh |
+| `.impeccable/` | Cấu hình và critique cho thiết kế giao diện                             |
 
-> 1. **BẮT BUỘC PHẢI ĐỌC** file hướng dẫn chi tiết tại [.agent/rules/backend.md](.agent/rules/backend.md) trước khi thực hiện bất kỳ thao tác viết code nào.
-> 2. **Agent Leader** khi gọi Sub-agent hoặc tự mình xử lý Backend **phải đảm bảo toàn bộ quy tắc trong `.agent/rules/backend.md` được tuân thủ nghiêm ngặt**.
+SmartHire phục vụ ba vai trò: `Candidate`, `Recruiter`, `Admin`. `user.roles` là mảng string; không mặc định đọc bằng `user.roles[0]` khi logic cần kiểm tra nhiều vai trò.
 
----
+## 4. Khảo sát code và công cụ
 
-## Quy tắc giao tiếp
+### CodeGraph
 
-- **Luôn trả lời bằng tiếng Việt**, trừ khi người dùng yêu cầu khác.
-- **Nói đơn giản, dễ hiểu.** Thuật ngữ tiếng Anh bắt buộc (ví dụ `JWT`, `hook`, `CQRS`, `MediatR`) thì giải thích ngắn lần đầu.
-- **Giải thích phức tạp phải có ví dụ** cụ thể.
-- **File `.md` do AI viết phải bằng tiếng Việt.** Tên file, biến, code giữ nguyên tiếng Anh.
+Khi cần tìm hoặc hiểu code, ưu tiên CodeGraph trước `grep`, `find` hoặc đọc nhiều file thủ công:
 
----
+1. Dùng MCP `codegraph_explore` nếu agent có tool này.
+2. Nếu không có MCP, dùng `codegraph explore "<symbol, file hoặc câu hỏi>"`.
+3. Chỉ dùng tìm kiếm văn bản thông thường khi CodeGraph không có sẵn, chỉ mục không trả lời được câu hỏi, hoặc cần tìm nội dung không phải code.
 
-## 1. Tổng quan dự án
+Không sửa hay commit `.codegraph/` vì đây là dữ liệu cục bộ do công cụ tạo ra.
 
-**SmartHire** — ứng dụng tuyển dụng thông minh, gợi ý job cho ứng viên dựa trên cơ chế chấm match giữa CV và JD. Có chức năng AI gợi ý chỉnh sửa câu từ/ngữ pháp trên CV (chỉ gợi ý, không tự sửa).
+### Impeccable
 
-**Vai trò (Roles):** Candidate, Recruiter, Admin. Backend trả về mảng string (`user.roles`), không phải lúc nào cũng truy cập bằng `user.roles[0]` — tùy ngữ cảnh mà chọn cách đọc phù hợp.
+Với thay đổi giao diện đáng kể, đọc `.impeccable/design.json` trước khi thiết kế hoặc chỉnh style. Giữ đúng design system đã định nghĩa: dùng token trong `Frontend/src/index.css`, hạn chế shadow, card/dialog tối đa `rounded-2xl`, và không dùng màu Tailwind thô trong component hệ thống.
 
-**Cấu trúc repo:**
+Nếu Impeccable khả dụng trong môi trường agent, chạy critique sau khi hoàn thành thay đổi UI và xử lý các lỗi phù hợp với phạm vi yêu cầu. Không chỉnh sửa `.impeccable/config.local.json`.
 
-| Khu vực        | Vai trò                             | Hướng dẫn chi tiết                                                         |
-| -------------- | ----------------------------------- | -------------------------------------------------------------------------- |
-| `Frontend/`    | Web app (React + Vite + TypeScript) | **ĐỌC BẮT BUỘC TẠI:** [.agent/rules/frontend.md](.agent/rules/frontend.md) |
-| `Backend/`     | API server (.NET 10 C#)             | **ĐỌC BẮT BUỘC TẠI:** [.agent/rules/backend.md](.agent/rules/backend.md)   |
-| `compose.yaml` | Docker Compose                      | Cấu hình chạy toàn bộ ứng dụng                                             |
+## 5. Skills dùng theo ngữ cảnh
 
----
+Đọc đúng `SKILL.md` trước khi áp dụng skill. Không dùng skill chỉ vì tên gần giống yêu cầu.
 
-## 2. Quy tắc bắt buộc
+| Tình huống                                                             | Skill bắt buộc                           |
+| ---------------------------------------------------------------------- | ---------------------------------------- |
+| Yêu cầu mới, phức tạp hoặc mơ hồ; cần quyết định thiết kế              | `.agents/skills/brainstorming/SKILL.md`  |
+| Lập kế hoạch cho feature, bug phức tạp hoặc refactor nhiều file        | `.agents/skills/plan-writing/SKILL.md`   |
+| Người dùng yêu cầu đơn giản hóa hoặc giảm độ phức tạp                  | `.agents/skills/simplify-code/SKILL.md`  |
+| Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng | `.agents/skills/skill-creating/SKILL.md` |
+| Người dùng yêu cầu tạo commit code (chỉ commit, không tự ý push)       | `.agents/skills/git-commit/SKILL.md`     |
 
-1. **Trả lời và viết tài liệu bằng tiếng Việt.**
-2. **Tuân thủ tuyệt đối [.agent/rules/frontend.md](.agent/rules/frontend.md)** khi làm việc với Frontend.
-3. **Tuân thủ tuyệt đối [.agent/rules/backend.md](.agent/rules/backend.md)** khi làm việc với Backend (.NET C#).
-4. **Không tự ý cài package mới (npm hoặc NuGet)** khi chưa hỏi và được user cho phép.
-5. **Chỉ commit/push khi user yêu cầu.** Nhánh phát triển: `develop`, nhánh chính: `main`.
-6. **Không tự ý sửa code ngoài phạm vi phụ trách** (làm Frontend thì không tự sửa code `Backend/`, và ngược lại, trừ khi có yêu cầu full-stack cụ thể).
-7. **Test:** Chỉ viết khi user yêu cầu.
-8. **Phát hiện bug ngoài vùng phụ trách:** Ghi nhận rõ ràng, báo user, không tự ý sửa lan man.
-9. **Khi user nói "hướng dẫn tôi làm":** Chỉ giải thích từng bước, không tự thực hiện.
+Nếu `brainstorming` yêu cầu làm rõ, kiểm tra bối cảnh hiện có trước; chỉ hỏi các quyết định thực sự chặn việc triển khai.
 
----
+## 6. Quy trình thực hiện
 
-## 3. Quy ước Git & Nhánh
+1. Xác định phạm vi: Frontend, Backend hay full-stack; đọc rule và skill tương ứng.
+2. Dùng CodeGraph để lần theo luồng xử lý, symbol liên quan và code có sẵn.
+3. Với yêu cầu đủ rõ, lập kế hoạch ngắn cho thay đổi có nhiều bước; với yêu cầu chưa rõ, làm rõ theo skill `brainstorming`.
+4. Thực hiện thay đổi nhỏ, tập trung; tái sử dụng pattern, helper và component hiện có.
+5. Review diff để phát hiện sửa ngoài phạm vi, bí mật hoặc file sinh tự động.
+6. Kiểm tra tương ứng với phần đã đổi khi người dùng yêu cầu xác minh hoặc khi rule khu vực bắt buộc:
+   - Frontend: chạy `pnpm build` trong `Frontend/`.
+   - Backend: chạy `dotnet build` trong `Backend/`.
+   - UI đáng kể: chạy Impeccable critique nếu có thể.
+7. Báo cáo chính xác: thay đổi nào đã xong, cách kiểm tra, và điều gì còn chưa thực hiện.
 
-- **Commit:** Kiểu `loại: mô tả ngắn`, ví dụ: `feat: thêm trang danh sách job`, `fix: sửa lỗi filter`, `feat: thêm api bookmark job`.
-- **Nhánh:** Tách từ `develop`, PR vào `develop`.
-  - Feature: `feat/<mô-tả-ngắn>`
-  - Sửa lỗi: `fix/<mô-tả-ngắn>`
-  - Khác: `chore/...`, `docs/...`
+## 7. Ranh giới thay đổi
 
----
+- Không cài package npm/NuGet, nâng phiên bản framework, hoặc sửa cấu hình deploy (`Dockerfile`, `compose.yaml`) khi chưa được người dùng chấp thuận.
+- Không tự sửa code ngoài phạm vi được giao; lỗi ở khu vực khác phải ghi nhận và báo lại.
+- Không tự viết test khi người dùng không yêu cầu, trừ khi rule khu vực bắt buộc.
+- Không commit, push, tạo hoặc xóa branch khi người dùng chưa yêu cầu.
+- Không commit `.env`, token, mật khẩu, khóa bí mật, chuỗi kết nối thật, dữ liệu CodeGraph hay cấu hình local.
+- Không chạy `git push --force`, `git reset --hard`, xóa branch hoặc xóa dữ liệu thật nếu chưa có chấp thuận rõ ràng.
 
-## 4. Quy trình làm việc tổng quát
+## 8. Git
 
-Khi nhận yêu cầu:
+- Nhánh chính: `main`; nhánh phát triển: `develop`.
+- Feature tách từ `develop` và tạo PR về `develop`.
+- Đặt tên nhánh: `feat/<mo-ta>`, `fix/<mo-ta>`, `chore/<mo-ta>`, `docs/<mo-ta>`.
+- Commit dùng dạng `type: mô tả ngắn`, ví dụ `feat: thêm trang danh sách việc làm`.
 
-1. **Hiểu yêu cầu:** Xác định rõ input, output (goal). Thiếu thông tin → hỏi user trước khi làm.
-2. **Đọc hướng dẫn theo vùng:**
-   - Làm việc với Frontend → đọc ngay [.agent/rules/frontend.md](.agent/rules/frontend.md).
-   - Làm việc với Backend → đọc ngay [.agent/rules/backend.md](.agent/rules/backend.md).
-3. **Xem code hiện có:** Đọc file liên quan, nắm cách làm của code xung quanh (sử dụng CodeGraph hoặc công cụ tìm kiếm chuẩn).
-4. **Lập kế hoạch:** Lên kế hoạch các bước sửa đổi rõ ràng.
-5. **Thực hiện đúng phạm vi:** Làm thay đổi nhỏ gọn, bám sát kiến trúc và chuẩn mực quy định.
-6. **Kiểm tra chất lượng:**
-   - Frontend: Chạy `pnpm build` (`tsc -b && vite build`) đảm bảo 0 lỗi type/lint.
-   - Backend: Chạy `dotnet build` đảm bảo 0 errors, 0 warnings.
-7. **Báo cáo trung thực:** Nói rõ đã làm gì, cái gì chưa xong hoặc phát hiện lỗi phát sinh.
+## 9. Phối hợp sub-agent
 
----
-
-## 5. Ranh giới an toàn
-
-**Tuyệt đối không:**
-
-- Commit file `.env`, mật khẩu, khóa bí mật, token thật, chuỗi kết nối database có pass thật.
-- Tự ý sửa code chéo vùng khi chưa có chỉ định rõ ràng.
-- `git push --force`, `git reset --hard`, xóa nhánh khi chưa được user đồng ý.
-
-**Phải hỏi user trước khi:**
-
-- Cài thêm thư viện mới (npm package, NuGet package) hoặc thay đổi phiên bản framework.
-- Sửa cấu hình deploy (`Dockerfile`, `compose.yaml`).
-- Thao tác xóa dữ liệu database thật hoặc gửi thông tin ra dịch vụ ngoài.
-
----
-
-## 6. Mô hình Sub-agent
-
-### Agent chính (Leader / Orchestrator)
-
-- Tiếp nhận yêu cầu, phân tích bài toán, phân chia công việc.
-- Khi làm task Frontend, **Leader có trách nhiệm nạp file `.agent/rules/frontend.md`** cho Sub-agent.
-- Khi làm task Backend, **Leader có trách nhiệm nạp file `.agent/rules/backend.md`** cho Sub-agent.
-- Review diff trước khi chấp nhận, tự chạy lệnh kiểm tra (`pnpm build`, `dotnet build`). Không coi báo cáo suông của sub-agent là bằng chứng đã xong.
-
-### Sub-agent: FE Developer
-
-- Chuyên trách code frontend trong `Frontend/src/`.
-- **Quy tắc:** Tuân thủ 100% tất cả các mục trong [.agent/rules/frontend.md](.agent/rules/frontend.md).
-- Không tự ý cài thư viện npm, không tự ý sửa cấu hình ngoài `Frontend/src/`.
-
-### Sub-agent: BE Developer
-
-- Chuyên trách code backend trong `Backend/src/`.
-- **Quy tắc:** Tuân thủ 100% tất cả các mục trong [.agent/rules/backend.md](.agent/rules/backend.md).
-- Tuân thủ Clean Architecture 4 tầng, CQRS (MediatR), Explicit Validated Record Pattern, `AppException`, `ApiResponseFactory`, Rich Domain Model và `IUnitOfWork`.
-- Không tự ý thêm package NuGet khi chưa hỏi user.
-
----
-
-## 7. Chuẩn mực Backend (.NET C#)
-
-> **TÀI LIỆU GỐC BẮT BUỘC**: Tất cả chi tiết, ví dụ code mẫu và checklist kiểm thử được định nghĩa đầy đủ tại **[.agent/rules/backend.md](.agent/rules/backend.md)**.
-
-### Tóm tắt cốt lõi:
-
-1. **Mô hình kiến trúc Clean Architecture 4 tầng**:
-   - `SmartHire.Domain`: Entities, Value Objects, Enums thuần C#, độc lập 100%.
-   - `SmartHire.Application`: Use cases, CQRS Commands/Queries (MediatR), Validators, DTOs, Interface Abstractions.
-   - `SmartHire.Infrastructure`: EF Core DbContext, Repositories, Entity Configurations, Hangfire, Npgsql.
-   - `SmartHire.API`: Controllers, Request Contracts, Middleware, `ApiResponseFactory`.
-2. **Quy tắc phụ thuộc**: `Domain` $\leftarrow$ `Application` $\leftarrow$ `Infrastructure` & `API`. Tuyệt đối không để `Domain` hay `Application` phụ thuộc trực tiếp vào `Infrastructure`.
-3. **Response Envelope chuẩn**: Mọi API trả kết quả qua `_responseFactory.Success(data)` hoặc `_responseFactory.PagedOneBased(...)`.
-4. **Exception & Error Handling**: Ném `AppException` kết hợp `AppErrorKind` (Validation: 422, NotFound: 404, Forbidden: 403, Conflict: 409...) và để `ApiExceptionHandler` middleware tự đóng gói format JSON chuẩn.
-5. **Validation Pattern**: Sử dụng **Static Explicit Validator + Validated Record**, không dùng ngầm định qua Pipeline.
-6. **Domain Model**: Rich Domain Model, private setter, khởi tạo qua Static Factory `Create(...)`, thay đổi trạng thái qua domain methods.
-7. **Transaction**: Nghiệp vụ ghi nhiều bảng hoặc liên chuỗi bắt buộc bọc trong `IUnitOfWork.ExecuteInTransactionAsync`.
-8. **Quy trình 7 bước khi mở rộng tính năng mới**:
-   `Domain Entity` $\rightarrow$ `EF Configuration & Migration` $\rightarrow$ `Application Abstraction (IRepository)` $\rightarrow$ `Infrastructure Repository` $\rightarrow$ `Application Feature (DTOs, Exceptions, Commands/Queries & Handlers)` $\rightarrow$ `API Request Contract & Controller Action` $\rightarrow$ `Viết tài liệu API (.md)`.
+- Agent chính chịu trách nhiệm phân chia phạm vi, truyền rule/skill bắt buộc và review diff của sub-agent.
+- Sub-agent chỉ sửa khu vực được giao; không mở rộng sang Frontend/Backend còn lại nếu chưa được giao rõ.
+- Hoàn thành chỉ được xác nhận sau khi agent chính kiểm tra diff và kết quả xác minh phù hợp; không chỉ dựa vào báo cáo của sub-agent.
