@@ -70,7 +70,11 @@ Follow the project's commit message format:
   - `style`: Changes that do not affect the meaning of code (formatting, missing semicolons, etc.)
   - `chore`: Build tasks, auxiliary tools, configuration, or dependency updates
   - `docs`: Documentation changes only
-- Keep the message clear, concise, and written in the imperative mood (or Vietnamese as defined in project rules, e.g., `feat: thêm trang danh sách việc làm`, `fix(drawer): sửa lỗi alert copy link`).
+- **Default Language**: Commit messages **MUST be in English by default** (concise, imperative mood, lowercase). Only write commit messages in Vietnamese if the user explicitly requests it in their prompt.
+  - Good: `feat(auth): add google oauth login`
+  - Good: `fix(admin): enforce mandatory lock reason`
+  - Good: `refactor(pagination): unify dashboard and base pagination with animate-ui`
+  - Only when explicitly asked for Vietnamese: `feat: thêm trang danh sách việc làm`
 
 ### Step 4: Execute Commit
 

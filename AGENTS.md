@@ -55,14 +55,19 @@ Nếu Impeccable khả dụng trong môi trường agent, chạy critique sau kh
 
 Đọc đúng `SKILL.md` trước khi áp dụng skill. Không dùng skill chỉ vì tên gần giống yêu cầu.
 
-| Tình huống                                                             | Skill bắt buộc                           |
-| ---------------------------------------------------------------------- | ---------------------------------------- |
-| Yêu cầu mới, phức tạp hoặc mơ hồ; cần quyết định thiết kế              | `.agents/skills/brainstorming/SKILL.md`  |
-| Lập kế hoạch cho feature, bug phức tạp hoặc refactor nhiều file        | `.agents/skills/plan-writing/SKILL.md`   |
-| Người dùng yêu cầu đơn giản hóa hoặc giảm độ phức tạp                  | `.agents/skills/simplify-code/SKILL.md`  |
-| Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng | `.agents/skills/skill-creating/SKILL.md` |
-| Thêm hoặc chỉnh component có hoạt ảnh cho React UI                     | `.agents/skills/animate-ui/SKILL.md`     |
-| Người dùng yêu cầu tạo commit code (chỉ commit, không tự ý push)       | `.agents/skills/git-commit/SKILL.md`     |
+| Tình huống                                                                                     | Skill bắt buộc                             |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Yêu cầu mới, phức tạp hoặc mơ hồ; cần quyết định thiết kế                                      | `.agents/skills/brainstorming/SKILL.md`    |
+| Lập kế hoạch cho feature, bug phức tạp hoặc refactor nhiều file                                | `.agents/skills/plan-writing/SKILL.md`     |
+| Người dùng yêu cầu đơn giản hóa hoặc giảm độ phức tạp                                          | `.agents/skills/simplify-code/SKILL.md`    |
+| Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng                         | `.agents/skills/skill-creating/SKILL.md`   |
+| Tạo mới, sửa đổi hoặc đồng bộ API giữa Backend (FluentValidation/DTO) và Frontend (Service/UI)  | `.agents/skills/api-contract-sync/SKILL.md`|
+| Tích hợp hoặc sửa component UI có sẵn hoạt ảnh (animated primitives từ `@animate-ui/react`)   | `.agents/skills/animate-ui/SKILL.md`       |
+| Người dùng yêu cầu tạo commit code (chỉ commit, không tự ý push)                               | `.agents/skills/git-commit/SKILL.md`       |
+
+> **Lưu ý về Animation & Motion trong dự án:**
+> - **`animate-ui` (`@animate-ui/react`)**: Dành riêng cho các **component UI có hoạt ảnh dựng sẵn** (Select, Pagination indicator, Tabs highlight, Tooltip, Dialog...).
+> - **Motion Engine chuẩn hóa**: Thư viện motion chính thức của dự án là **`motion` (`import { motion, AnimatePresence } from "motion/react"`**) (thế hệ mới của Framer Motion). Tránh dùng trực tiếp `framer-motion` cho code mới và ưu tiên chuyển dần các import cũ sang `motion/react` để tối ưu kích thước bundle.
 
 Nếu `brainstorming` yêu cầu làm rõ, kiểm tra bối cảnh hiện có trước; chỉ hỏi các quyết định thực sự chặn việc triển khai.
 
@@ -93,7 +98,7 @@ Nếu `brainstorming` yêu cầu làm rõ, kiểm tra bối cảnh hiện có tr
 - Nhánh chính: `main`; nhánh phát triển: `develop`.
 - Feature tách từ `develop` và tạo PR về `develop`.
 - Đặt tên nhánh: `feat/<mo-ta>`, `fix/<mo-ta>`, `chore/<mo-ta>`, `docs/<mo-ta>`.
-- Commit dùng dạng `type: mô tả ngắn`, ví dụ `feat: thêm trang danh sách việc làm`.
+- Commit mặc định viết bằng tiếng Anh theo chuẩn Conventional Commits: `<type>(<scope>): <short english description>`, ví dụ: `feat(jobs): add job list page`, `fix(admin): enforce mandatory lock reason`. Chỉ dùng tiếng Việt khi người dùng có yêu cầu cụ thể.
 
 ## 9. Phối hợp sub-agent
 
