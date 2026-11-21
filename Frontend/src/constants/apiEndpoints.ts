@@ -68,6 +68,7 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/applications/${id}`,
     UPDATE_STATUS: (id: string) => `/applications/${id}/status`,
     STATUS_HISTORY: (id: string) => `/applications/${id}/status-history`,
+    WITHDRAW: (id: string) => `/applications/${id}/withdraw`,
   },
   CV: {
     LIST: "/cvs",

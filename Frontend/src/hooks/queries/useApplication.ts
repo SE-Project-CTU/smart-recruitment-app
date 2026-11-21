@@ -121,3 +121,42 @@ export const useApplyJob = () => {
     },
   });
 };
+
+/**
+ * Hook Mutation: Ứng viên rút đơn ứng tuyển
+ */
+export const useWithdrawApplication = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      applicationId,
+      reason,
+    }: {
+      applicationId: string;
+      reason?: string;
+    }) => applicationService.withdrawApplication(applicationId, reason),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["applications", "my"] });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "my-applied-job-ids"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "detail", variables.applicationId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "history", variables.applicationId],
+      });
+      toast.success({
+        description: "Rút hồ sơ ứng tuyển thành công.",
+      });
+    },
+    onError: (err: unknown) => {
+      const message = getApiErrorMessage(
+        err,
+        "Không thể rút hồ sơ ứng tuyển. Vui lòng thử lại.",
+      );
+      toast.error({ description: message });
+    },
+  });
+};

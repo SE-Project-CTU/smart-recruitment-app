@@ -79,6 +79,13 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   const bookmarkMutation = useBookmarkJob();
   const unbookmarkMutation = useUnbookmarkJob();
 
+  // Xác định trạng thái đã đóng / đã tuyển đủ
+  const isClosed =
+    "status" in job &&
+    typeof (job as { status?: unknown }).status === "string" &&
+    ((job as { status: string }).status.toLowerCase() === "closed" ||
+      (job as { status: string }).status.toLowerCase() === "expired");
+
   // Xác định trạng thái đã nộp hồ sơ
   const isApplied =
     externalIsApplied !== undefined
@@ -282,7 +289,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
         <div className="mt-4 flex items-center gap-2">
           <Button
             variant="secondary"
-            className="flex-1 justify-center py-2! text-xs! font-medium! text-emerald-800! hover:bg-emerald-100! hover:text-emerald-900! sm:py-2.5!"
+            className="flex-1 justify-center py-2! text-xs! font-medium! text-status-success! ring-status-success/30! hover:bg-status-success/10! hover:text-status-success! sm:py-2.5!"
             icon={CheckCircle2}
             onClick={(e) => {
               e.stopPropagation();
@@ -290,6 +297,35 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
             }}
           >
             Đã nộp hồ sơ
+          </Button>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="secondary"
+                  className="p-2! sm:p-2.5!"
+                  aria-label="Lưu công việc"
+                  onClick={handleBookmarkClick}
+                >
+                  <MorphIcon
+                    className="size-4"
+                    icon={isMarked ? BookmarkCheck : Bookmark}
+                  />
+                </Button>
+              }
+            />
+            <TooltipPanel>{isMarked ? "Bỏ lưu" : "Lưu tin"}</TooltipPanel>
+          </Tooltip>
+        </div>
+      ) : isClosed ? (
+        <div className="mt-4 flex items-center gap-2">
+          <Button
+            variant="secondary"
+            disabled
+            className="flex-1 justify-center py-2! text-xs! sm:py-2.5! cursor-not-allowed text-text-muted bg-bg border border-border"
+          >
+            Đã nhận đủ hồ sơ
           </Button>
 
           <Tooltip>

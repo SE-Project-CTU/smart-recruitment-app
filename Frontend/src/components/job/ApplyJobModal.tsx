@@ -78,6 +78,14 @@ export function ApplyJobModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [coverLetter, setCoverLetter] = useState<string>("");
+
+  const isJobClosed = Boolean(
+    currentJob &&
+      "status" in currentJob &&
+      typeof (currentJob as { status?: unknown }).status === "string" &&
+      ((currentJob as { status: string }).status.toLowerCase() === "closed" ||
+        (currentJob as { status: string }).status.toLowerCase() === "expired"),
+  );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const handleClose = useCallback(() => {
@@ -139,6 +147,13 @@ export function ApplyJobModal({
   const handleSubmitApplication = async () => {
     if (!currentJob?.id) {
       toast.warning({ description: "Không tìm thấy thông tin công việc." });
+      return;
+    }
+
+    if (isJobClosed) {
+      toast.warning({
+        description: "Vị trí tuyển dụng này đã nhận đủ số lượng nhân sự hoặc đã đóng.",
+      });
       return;
     }
 
@@ -594,11 +609,12 @@ export function ApplyJobModal({
             isLoading={isSubmitting}
             disabled={
               isSubmitting ||
+              isJobClosed ||
               (effectiveCvMethod === "online" && !effectiveSelectedCvId) ||
               (effectiveCvMethod === "upload" && !uploadedFile)
             }
           >
-            <span>Nộp hồ sơ ngay</span>
+            <span>{isJobClosed ? "Đã nhận đủ hồ sơ" : "Nộp hồ sơ ngay"}</span>
           </Button>
         </div>
       </div>

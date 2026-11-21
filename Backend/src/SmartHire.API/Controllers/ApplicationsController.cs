@@ -8,6 +8,7 @@ using SmartHire.Application.Common.Validation;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Applications.Commands.UpdateApplicationStatus;
+using SmartHire.Application.Features.Applications.Commands.WithdrawApplication;
 using SmartHire.Application.Features.Applications.Queries.GetApplicationDetail;
 using SmartHire.Application.Features.Applications.Queries.ListApplicationStatusHistory;
 using SmartHire.Application.Features.Applications.Queries.ListMyApplications;
@@ -80,6 +81,18 @@ public sealed class ApplicationsController(ISender sender, ApiResponseFactory re
 
         var result = await sender.Send(
             new UpdateApplicationStatusCommand(id, request.Status, request.Note),
+            cancellationToken);
+        return Ok(responseFactory.Success(result));
+    }
+
+    [Authorize(Roles = RoleNames.Candidate)]
+    [HttpPost("{id}/withdraw")]
+    public async Task<IActionResult> Withdraw(
+        Guid id,
+        [FromBody] WithdrawApplicationRequest? request,
+        CancellationToken cancellationToken) {
+        var result = await sender.Send(
+            new WithdrawApplicationCommand(id, request?.Reason),
             cancellationToken);
         return Ok(responseFactory.Success(result));
     }

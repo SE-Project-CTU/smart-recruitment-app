@@ -87,6 +87,14 @@ public sealed class UpdateApplicationStatusCommandHandler
 
                 var notification = ApplicationStatusUpdateNotificationFactory.Create(application, now);
                 await _notificationRepository.AddAsync(notification, ct);
+
+                if (validated.Status == ApplicationStatus.Hired) {
+                    var hiredCount = await _applicationRepository.CountByJobIdAsync(application.JobId, ApplicationStatus.Hired, ct);
+                    if (hiredCount + 1 >= application.Job.Vacancies && application.Job.Status == JobPostingStatus.Published) {
+                        application.Job.Close(now);
+                    }
+                }
+
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 return (

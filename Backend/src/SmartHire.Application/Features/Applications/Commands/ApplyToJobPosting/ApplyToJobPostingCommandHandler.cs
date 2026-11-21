@@ -84,6 +84,15 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
             throw ApplicationExceptions.JobNotAcceptingApplications();
         }
 
+        var hiredCount = await _applicationRepository.CountByJobIdAsync(jobPostingId, ApplicationStatus.Hired, cancellationToken);
+        if (hiredCount >= posting.Vacancies) {
+            if (posting.Status == JobPostingStatus.Published) {
+                posting.Close(now);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            throw ApplicationExceptions.JobNotAcceptingApplications("Vị trí tuyển dụng này đã nhận đủ số lượng nhân sự.");
+        }
+
         if (await _applicationRepository.ExistsForCandidateAsync(jobPostingId, candidateId, cancellationToken)) {
             throw ApplicationExceptions.DuplicateApplication();
         }
