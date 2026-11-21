@@ -356,7 +356,10 @@ export default function AdminUserManagementPage() {
             );
           },
           cell: ({ row }) => {
-            const statusKey = row.original.status ?? "Active";
+            // Capitalize status key để lấy config
+            const lowerStatus = row.original.status?.toLowerCase() || "";
+            const statusKey = lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1);
+            console.log("statusKey", statusKey);
             const statusConfig =
               STATUS_BADGE_CONFIG[statusKey] ?? STATUS_BADGE_CONFIG.Active;
             const StatusIcon = statusConfig.icon;

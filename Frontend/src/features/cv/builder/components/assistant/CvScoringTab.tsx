@@ -207,7 +207,7 @@ export const CvScoringTab: React.FC = () => {
                       <div>
                         <div className="flex items-center justify-between text-[11px]">
                           <span className="font-semibold text-text-main">
-                             Kỹ năng (Trọng số {Math.round(matchResult.breakdown.skillWeight * 100)}%)
+                             Kỹ năng
                           </span>
                           <span className="font-bold text-text-main">
                             {Math.round(matchResult.breakdown.skillScore)}%
@@ -227,7 +227,7 @@ export const CvScoringTab: React.FC = () => {
                       <div>
                         <div className="flex items-center justify-between text-[11px]">
                           <span className="font-semibold text-text-main">
-                             Kinh nghiệm (Trọng số {Math.round(matchResult.breakdown.experienceWeight * 100)}%)
+                             Kinh nghiệm
                           </span>
                           <span className="font-bold text-text-main">
                             {Math.round(matchResult.breakdown.experienceScore)}%
@@ -247,7 +247,7 @@ export const CvScoringTab: React.FC = () => {
                       <div>
                         <div className="flex items-center justify-between text-[11px]">
                           <span className="font-semibold text-text-main">
-                             Chức danh (Trọng số {Math.round(matchResult.breakdown.titleWeight * 100)}%)
+                             Chức danh
                           </span>
                           <span className="font-bold text-text-main">
                             {Math.round(matchResult.breakdown.titleScore)}%
@@ -267,7 +267,7 @@ export const CvScoringTab: React.FC = () => {
                       <div>
                         <div className="flex items-center justify-between text-[11px]">
                           <span className="font-semibold text-text-main">
-                            Học vấn & Vị trí (Trọng số {Math.round(matchResult.breakdown.otherWeight * 100)}%)
+                            Học vấn & Vị trí
                           </span>
                           <span className="font-bold text-text-main">
                             {Math.round(matchResult.breakdown.otherScore)}%
@@ -289,7 +289,7 @@ export const CvScoringTab: React.FC = () => {
                 {/* 3.2 Độ phủ kỹ năng (Phù hợp & Còn thiếu) */}
                 <div className="space-y-3 rounded-xl border border-border bg-surface p-3.5 text-xs shadow-xs">
                   <h4 className="text-[11px] font-bold tracking-wider text-text-muted uppercase">
-                    Độ phủ kỹ năng chuyên môn
+                    Kỹ năng nên bổ sung
                   </h4>
 
                   {/* Kỹ năng phù hợp */}
