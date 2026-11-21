@@ -6,11 +6,11 @@ Hướng dẫn chung cho mọi AI coding agent làm việc trong repository này
 
 - Repository: `smart-recruitment-app/`.
 - Chính sách chi tiết nằm trong repository:
-  - Frontend: `.agent/rules/frontend.md`
-  - Backend: `.agent/rules/backend.md`
-  - Skills: `.agent/skills/`
-- Nếu yêu cầu chạm vào `Frontend/`, phải đọc toàn bộ `.agent/rules/frontend.md` trước khi đọc sâu hoặc sửa code Frontend.
-- Nếu yêu cầu chạm vào `Backend/`, phải đọc toàn bộ `.agent/rules/backend.md` trước khi đọc sâu hoặc sửa code Backend.
+  - Frontend: `.agents/rules/frontend.md`
+  - Backend: `.agents/rules/backend.md`
+  - Skills: `.agents/skills/`
+- Nếu yêu cầu chạm vào `Frontend/`, phải đọc toàn bộ `.agents/rules/frontend.md` trước khi đọc sâu hoặc sửa code Frontend.
+- Nếu yêu cầu chạm vào `Backend/`, phải đọc toàn bộ `.agents/rules/backend.md` trước khi đọc sâu hoặc sửa code Backend.
 - Công việc full-stack phải đọc cả hai rule. Agent chính phải chuyển các rule liên quan cho mọi sub-agent.
 - Rule theo thư mục cụ thể (nếu có) luôn ưu tiên hơn file này.
 
@@ -23,13 +23,13 @@ Hướng dẫn chung cho mọi AI coding agent làm việc trong repository này
 
 ## 3. Bản đồ dự án
 
-| Khu vực | Công nghệ / vai trò |
-| --- | --- |
-| `Frontend/` | React, Vite, TypeScript, Tailwind v4 |
-| `Backend/` | .NET 10, Clean Architecture, CQRS, EF Core, PostgreSQL |
-| `compose.yaml` | Chạy các dịch vụ bằng Docker Compose |
-| `.codegraph/` | Chỉ mục CodeGraph cục bộ, không chỉnh sửa hoặc commit dữ liệu phát sinh |
-| `.impeccable/` | Cấu hình và critique cho thiết kế giao diện |
+| Khu vực        | Công nghệ / vai trò                                                     |
+| -------------- | ----------------------------------------------------------------------- |
+| `Frontend/`    | React, Vite, TypeScript, Tailwind v4                                    |
+| `Backend/`     | .NET 10, Clean Architecture, CQRS, EF Core, PostgreSQL                  |
+| `compose.yaml` | Chạy các dịch vụ bằng Docker Compose                                    |
+| `.codegraph/`  | Chỉ mục CodeGraph cục bộ, không chỉnh sửa hoặc commit dữ liệu phát sinh |
+| `.impeccable/` | Cấu hình và critique cho thiết kế giao diện                             |
 
 SmartHire phục vụ ba vai trò: `Candidate`, `Recruiter`, `Admin`. `user.roles` là mảng string; không mặc định đọc bằng `user.roles[0]` khi logic cần kiểm tra nhiều vai trò.
 
@@ -55,12 +55,13 @@ Nếu Impeccable khả dụng trong môi trường agent, chạy critique sau kh
 
 Đọc đúng `SKILL.md` trước khi áp dụng skill. Không dùng skill chỉ vì tên gần giống yêu cầu.
 
-| Tình huống | Skill bắt buộc |
-| --- | --- |
-| Yêu cầu mới, phức tạp hoặc mơ hồ; cần quyết định thiết kế | `.agent/skills/brainstorming/SKILL.md` |
-| Lập kế hoạch cho feature, bug phức tạp hoặc refactor nhiều file | `.agent/skills/plan-writing/SKILL.md` |
-| Người dùng yêu cầu đơn giản hóa hoặc giảm độ phức tạp | `.agent/skills/simplify-code/SKILL.md` |
-| Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng | `.agent/skills/skill-creating/SKILL.md` |
+| Tình huống                                                             | Skill bắt buộc                           |
+| ---------------------------------------------------------------------- | ---------------------------------------- |
+| Yêu cầu mới, phức tạp hoặc mơ hồ; cần quyết định thiết kế              | `.agents/skills/brainstorming/SKILL.md`  |
+| Lập kế hoạch cho feature, bug phức tạp hoặc refactor nhiều file        | `.agents/skills/plan-writing/SKILL.md`   |
+| Người dùng yêu cầu đơn giản hóa hoặc giảm độ phức tạp                  | `.agents/skills/simplify-code/SKILL.md`  |
+| Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng | `.agents/skills/skill-creating/SKILL.md` |
+| Người dùng yêu cầu tạo commit code (chỉ commit, không tự ý push)       | `.agents/skills/git-commit/SKILL.md`     |
 
 Nếu `brainstorming` yêu cầu làm rõ, kiểm tra bối cảnh hiện có trước; chỉ hỏi các quyết định thực sự chặn việc triển khai.
 
