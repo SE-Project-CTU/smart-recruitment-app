@@ -122,10 +122,20 @@ export const companyService = {
       { params },
     );
 
+    const rawItems = response.data || [];
+    const items: CompanyMember[] = rawItems.map((m) => {
+      const resolvedId = m.membershipId || m.id;
+      return {
+        ...m,
+        id: resolvedId,
+        membershipId: resolvedId,
+      };
+    });
+
     return {
-      items: response.data || [],
+      items,
       totalCount:
-        (response.meta?.totalItems as number) || (response.data?.length ?? 0),
+        (response.meta?.totalItems as number) || (rawItems.length ?? 0),
     };
   },
 

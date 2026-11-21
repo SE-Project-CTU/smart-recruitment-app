@@ -52,7 +52,7 @@ const HeroSection = () => {
           relief={1.2}
           sheen={0.4}
           parallaxStrength={0.7}
-          mouseInteraction={true}
+          mouseInteraction={false}
           swellOnClick={false}
           forceMotion={true}
           quality="high"
