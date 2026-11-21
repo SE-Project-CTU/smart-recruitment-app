@@ -48,3 +48,6 @@ export { default as LoadingScreen } from "./LoadingScreen";
 
 export * from "./DatePicker";
 export { default as DatePicker } from "./DatePicker";
+
+export * from "./BasePagination";
+export * from "./DashboardPagination";

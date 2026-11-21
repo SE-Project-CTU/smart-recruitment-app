@@ -2,8 +2,6 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   LibraryBig,
   Plus,
@@ -12,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import { Button, TableSkeleton } from "@/components/common";
+import { Button, DashboardPagination, TableSkeleton } from "@/components/common";
 import { PATHS } from "@/constants/paths";
 import {
   AlertDialog,
@@ -443,66 +441,15 @@ export function RecruiterJobListPage() {
       )}
 
       {/* 5. Pagination Bar */}
-      {totalPages > 1 && (
-        <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3 shadow-2xs sm:flex-row">
-          <span className="text-xs text-slate-500">
-            Hiển thị{" "}
-            <span className="font-semibold text-slate-700">
-              {(currentPage - 1) * pageSize + 1}
-            </span>{" "}
-            -{" "}
-            <span className="font-semibold text-slate-700">
-              {Math.min(currentPage * pageSize, totalItems)}
-            </span>{" "}
-            trong tổng số{" "}
-            <span className="font-semibold text-slate-700">{totalItems}</span>{" "}
-            tin tuyển dụng
-          </span>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="secondary"
-              icon={ChevronLeft}
-              iconSize={14}
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="h-8! px-2.5! text-xs! font-medium!"
-            >
-              Trước
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`size-8 cursor-pointer rounded-lg text-xs font-semibold transition-colors ${
-                      currentPage === page
-                        ? "bg-primary text-white"
-                        : "text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ),
-              )}
-            </div>
-
-            <Button
-              variant="secondary"
-              icon={ChevronRight}
-              iconSize={14}
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="h-8! px-2.5! text-xs! font-medium!"
-            >
-              Tiếp
-            </Button>
-          </div>
-        </div>
-      )}
+      <DashboardPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        entityLabel="tin tuyển dụng"
+        className="mt-0 rounded-2xl border border-border bg-white px-4 py-3 shadow-2xs"
+      />
 
       {/* 6. Modal Xác nhận Tắt / Đóng tin tuyển dụng */}
       <AlertDialog
