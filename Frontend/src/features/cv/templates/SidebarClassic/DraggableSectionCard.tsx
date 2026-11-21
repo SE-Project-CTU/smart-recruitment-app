@@ -2,7 +2,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Draggable, type DraggableStateSnapshot } from "@hello-pangea/dnd";
 import DraggableSectionActions from "../../builder/components/DraggableSectionActions";
-import { useCvRewriteContext } from "../../builder/context/CvRewriteContext";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 
 interface DraggableSectionCardProps {
   sectionKey: string;
@@ -57,10 +57,13 @@ export const DraggableSectionCard = React.memo<DraggableSectionCardProps>(
     onToggleVisibility,
     children,
   }) => {
-    const { activeSuggestionSectionKey } = useCvRewriteContext();
-    const isActiveSuggestion = Boolean(
-      activeSuggestionSectionKey &&
-        sectionKey.toLowerCase() === activeSuggestionSectionKey.toLowerCase(),
+    const isActiveSuggestion = useCvHighlightStore(
+      (s) =>
+        !isReadOnly &&
+        Boolean(
+          s.highlightSectionKey &&
+            s.highlightSectionKey === sectionKey.toLowerCase(),
+        ),
     );
 
     return (

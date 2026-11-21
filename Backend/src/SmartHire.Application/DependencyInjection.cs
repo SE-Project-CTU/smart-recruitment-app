@@ -15,6 +15,7 @@ public static class DependencyInjection {
     ) {
         services.AddScoped<RegisterAccountWorkflow>();
         services.AddScoped<ISmartHireMatchEngine, SmartHireMatchEngine>();
+        services.AddScoped<IExperienceVectorMatchScorer, ExperienceVectorMatchScorer>();
         
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly)

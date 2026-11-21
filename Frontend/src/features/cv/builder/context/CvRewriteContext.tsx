@@ -7,6 +7,7 @@ import type {
 import { prepareCvSectionsForEnhanceBatch } from "../utils/cvAssistantHelpers";
 import { useEnhanceCvBatch } from "@/hooks/queries/useAi";
 import { getApiErrorMessage } from "@/api/errorHandler";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 import type { ApiResponse } from "@/types";
 import type { EnhanceCvBatchResult } from "@/types/ai";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
@@ -50,18 +51,23 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
   const [customPrompt, setCustomPrompt] = useState("");
   const [suggestions, setSuggestions] = useState<CvSectionSuggestion[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
-  const [activeSuggestionSectionKey, setActiveSuggestionSectionKey] =
-    useState<string | null>(null);
+  const activeSuggestionSectionKey = useCvHighlightStore(
+    (s) => s.highlightSectionKey,
+  );
+  const setHighlightSectionKey = useCvHighlightStore(
+    (s) => s.setHighlightSectionKey,
+  );
+  const clearHighlight = useCvHighlightStore((s) => s.clearHighlight);
 
   const enhanceBatchMutation = useEnhanceCvBatch();
 
   const openSuggestionForSection = useCallback((sectionKey: string) => {
-    setActiveSuggestionSectionKey(sectionKey.toLowerCase());
-  }, []);
+    setHighlightSectionKey(sectionKey);
+  }, [setHighlightSectionKey]);
 
   const closeFloatingSuggestion = useCallback(() => {
-    setActiveSuggestionSectionKey(null);
-  }, []);
+    clearHighlight();
+  }, [clearHighlight]);
 
   const getSuggestionForSection = useCallback(
     (sectionKey: string) => {
@@ -75,7 +81,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const executeEnhanceBatch = useCallback(
     async (values?: Partial<RichTextCvEditorValues> | null) => {
-      setActiveSuggestionSectionKey(null);
+      clearHighlight();
       if (!selectedTargetJob) {
         return { success: false, reason: "NO_JOB" as GenerateFailureReason };
       }
@@ -176,26 +182,34 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
     [executeEnhanceBatch],
   );
 
-  const dismissSuggestion = useCallback((suggestionId: string) => {
-    setSuggestions((prev) =>
-      prev.map((s) => (s.id === suggestionId ? { ...s, status: "dismissed" as const } : s)),
-    );
-    // Tự động đóng bảng so sánh nếu suggestion đang mở bị dismiss
-    setActiveSuggestionSectionKey((currentActiveKey: string | null) => {
-      if (!currentActiveKey) return null;
-      const target = suggestions.find((s) => s.id === suggestionId);
-      if (target && target.sectionKey.toLowerCase() === currentActiveKey.toLowerCase()) {
-        return null;
+  const dismissSuggestion = useCallback(
+    (suggestionId: string) => {
+      setSuggestions((prev) =>
+        prev.map((s) =>
+          s.id === suggestionId ? { ...s, status: "dismissed" as const } : s,
+        ),
+      );
+      // Tự động đóng bảng so sánh nếu suggestion đang mở bị dismiss
+      const currentActiveKey =
+        useCvHighlightStore.getState().highlightSectionKey;
+      if (currentActiveKey) {
+        const target = suggestions.find((s) => s.id === suggestionId);
+        if (
+          target &&
+          target.sectionKey.toLowerCase() === currentActiveKey.toLowerCase()
+        ) {
+          clearHighlight();
+        }
       }
-      return currentActiveKey;
-    });
-  }, [suggestions]);
+    },
+    [suggestions, clearHighlight],
+  );
 
   const clearSuggestions = useCallback(() => {
     setSuggestions([]);
     setHasGenerated(false);
-    setActiveSuggestionSectionKey(null);
-  }, []);
+    clearHighlight();
+  }, [clearHighlight]);
 
   const errorMessage = enhanceBatchMutation.error
     ? getApiErrorMessage(

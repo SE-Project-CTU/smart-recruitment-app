@@ -1,5 +1,5 @@
 import React from "react";
-import { Sliders, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 export interface MatchingWeightsValues {
   skill: number;
@@ -56,256 +56,70 @@ export const JobMatchingWeightsCard: React.FC<JobMatchingWeightsCardProps> = ({
     onChange(presetWeights);
   };
 
+  const criteria: Array<{ key: keyof MatchingWeightsValues; label: string; description: string }> = [
+    { key: "skill", label: "Kỹ năng chuyên môn", description: "Mức độ phù hợp của các kỹ năng trong CV." },
+    { key: "experience", label: "Kinh nghiệm làm việc", description: "Mức độ phù hợp của kinh nghiệm làm việc." },
+    { key: "title", label: "Chức danh và cấp bậc", description: "Mức độ tương đồng về chức danh và cấp bậc." },
+    { key: "other", label: "Học vấn và địa điểm", description: "Mức độ đáp ứng yêu cầu học vấn và địa điểm làm việc." },
+  ];
+
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs transition-all">
-      {/* Header */}
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Sliders className="size-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-text-main">
-              Trọng số đánh giá ứng viên (AI Match Weights)
-            </h3>
-            <p className="text-[11px] text-text-muted">
-              Doanh nghiệp chủ động phân bổ tỷ trọng đánh giá độ phù hợp của hồ sơ theo nhu cầu tuyển dụng.
-            </p>
-          </div>
+    <section className="rounded-lg border border-border bg-surface p-4 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-text-main">Trọng số đánh giá ứng viên</h3>
+          <p className="mt-1 text-sm text-text-muted">Điều chỉnh mức độ quan trọng của từng tiêu chí khi đánh giá hồ sơ.</p>
         </div>
-
-        {/* Live Total Indicator Badge */}
-        <div className="mt-2 sm:mt-0">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-all ${
-              isValid
-                ? "border border-status-success/30 bg-status-success/10 text-status-success"
-                : "border border-status-warning/30 bg-status-warning/10 text-status-warning"
-            }`}
-          >
-            {isValid ? (
-              <CheckCircle2 className="size-3.5" />
-            ) : (
-              <AlertCircle className="size-3.5" />
-            )}
-            Tổng trọng số: {total}% / 100%
-          </span>
+        <div className="text-sm" aria-live="polite">
+          <span className="text-text-muted">Tổng trọng số: </span>
+          <span className={isValid ? "font-semibold text-primary" : "font-semibold text-status-error"}>{total}%</span>
+          <span className="text-text-muted"> / 100%</span>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="mt-3.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-        <div
-          className={`h-full transition-all duration-300 ${
-            isValid
-              ? "bg-status-success"
-              : total > 100
-                ? "bg-status-error"
-                : "bg-status-warning"
-          }`}
-          style={{ width: `${Math.min(100, total)}%` }}
-        />
-      </div>
-
-      {/* Preset Buttons */}
-      <div className="mt-3.5 flex flex-wrap items-center gap-2">
-        <span className="flex items-center gap-1 text-[11px] font-semibold text-text-muted">
-          <Sparkles className="size-3 text-primary" /> Mẫu thiết lập nhanh:
-        </span>
-        {PRESETS.map((p) => {
-          const isSelected =
-            weights.skill === p.weights.skill &&
-            weights.experience === p.weights.experience &&
-            weights.title === p.weights.title &&
-            weights.other === p.weights.other;
-
-          return (
-            <button
-              key={p.name}
-              type="button"
-              onClick={() => applyPreset(p.weights)}
-              title={p.desc}
-              className={`cursor-pointer rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-all ${
-                isSelected
-                  ? "border-primary bg-primary text-white shadow-xs"
-                  : "border-border bg-bg text-text-main hover:border-primary/40 hover:bg-surface"
-              }`}
-            >
-              {p.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 4 Weight Criteria Controls */}
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {/* 1. Kỹ năng chuyên môn */}
-        <div className="rounded-xl border border-border/80 bg-bg/50 p-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-text-main">
-              Kỹ năng chuyên môn
-            </label>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={5}
-                value={weights.skill}
-                onChange={(e) =>
-                  handleWeightChange("skill", parseInt(e.target.value, 10))
-                }
-                className="w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right text-xs font-bold text-text-main focus:border-primary focus:outline-none"
-              />
-              <span className="text-xs text-text-muted">%</span>
-            </div>
-          </div>
-          <p className="mt-1 text-[10px] text-text-muted">
-            So khớp từ khóa kỹ năng trực tiếp từ mục Kỹ năng trong CV.
-          </p>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={weights.skill}
-            onChange={(e) =>
-              handleWeightChange("skill", parseInt(e.target.value, 10))
-            }
-            className="mt-2 w-full accent-primary"
-          />
-        </div>
-
-        {/* 2. Kinh nghiệm làm việc */}
-        <div className="rounded-xl border border-border/80 bg-bg/50 p-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-text-main">
-              Kinh nghiệm làm việc
-            </label>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={5}
-                value={weights.experience}
-                onChange={(e) =>
-                  handleWeightChange("experience", parseInt(e.target.value, 10))
-                }
-                className="w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right text-xs font-bold text-text-main focus:border-primary focus:outline-none"
-              />
-              <span className="text-xs text-text-muted">%</span>
-            </div>
-          </div>
-          <p className="mt-1 text-[10px] text-text-muted">
-            Tỷ lệ thời gian làm việc thực tế so với số năm yêu cầu của JD.
-          </p>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={weights.experience}
-            onChange={(e) =>
-              handleWeightChange("experience", parseInt(e.target.value, 10))
-            }
-            className="mt-2 w-full accent-primary"
-          />
-        </div>
-
-        {/* 3. Chức danh & Cấp bậc */}
-        <div className="rounded-xl border border-border/80 bg-bg/50 p-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-text-main">
-              Chức danh & Cấp bậc
-            </label>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={5}
-                value={weights.title}
-                onChange={(e) =>
-                  handleWeightChange("title", parseInt(e.target.value, 10))
-                }
-                className="w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right text-xs font-bold text-text-main focus:border-primary focus:outline-none"
-              />
-              <span className="text-xs text-text-muted">%</span>
-            </div>
-          </div>
-          <p className="mt-1 text-[10px] text-text-muted">
-            Độ tương đồng chức danh công việc và cấp bậc thâm niên mong muốn.
-          </p>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={weights.title}
-            onChange={(e) =>
-              handleWeightChange("title", parseInt(e.target.value, 10))
-            }
-            className="mt-2 w-full accent-primary"
-          />
-        </div>
-
-        {/* 4. Học vấn & Vị trí */}
-        <div className="rounded-xl border border-border/80 bg-bg/50 p-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-text-main">
-              Học vấn & Vị trí làm việc
-            </label>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={5}
-                value={weights.other}
-                onChange={(e) =>
-                  handleWeightChange("other", parseInt(e.target.value, 10))
-                }
-                className="w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right text-xs font-bold text-text-main focus:border-primary focus:outline-none"
-              />
-              <span className="text-xs text-text-muted">%</span>
-            </div>
-          </div>
-          <p className="mt-1 text-[10px] text-text-muted">
-            Bằng cấp đạt yêu cầu (100% / 0%) và mức độ đáp ứng vị trí địa lý.
-          </p>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={weights.other}
-            onChange={(e) =>
-              handleWeightChange("other", parseInt(e.target.value, 10))
-            }
-            className="mt-2 w-full accent-primary"
-          />
+      <div className="mt-6">
+        <p className="mb-2 text-sm font-semibold text-text-main">Thiết lập nhanh</p>
+        <div className="flex flex-wrap gap-2">
+          {PRESETS.map((preset) => {
+            const selected = (Object.keys(preset.weights) as Array<keyof MatchingWeightsValues>)
+              .every((key) => weights[key] === preset.weights[key]);
+            return (
+              <button key={preset.name} type="button" title={preset.desc} aria-pressed={selected}
+                onClick={() => applyPreset(preset.weights)}
+                className={`cursor-pointer rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selected ? "border-primary bg-primary text-white" : "border-border text-text-main hover:border-primary hover:text-primary"}`}>
+                {preset.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Error / Warning Alert */}
+      <div className="mt-5 divide-y divide-border border-t border-border">
+        {criteria.map(({ key, label, description }) => (
+          <div key={key} className="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(120px,0.7fr)_80px] sm:items-center sm:gap-5">
+            <div>
+              <label htmlFor={`weight-${key}`} className="text-sm font-semibold text-text-main">{label}</label>
+              <p className="mt-1 text-xs leading-relaxed text-text-muted">{description}</p>
+            </div>
+            <input type="range" min={0} max={100} step={5} value={weights[key]}
+              aria-label={`Điều chỉnh ${label}`} onChange={(e) => handleWeightChange(key, Number(e.target.value))}
+              className="w-full accent-primary" />
+            <div className="flex items-center gap-2">
+              <input id={`weight-${key}`} type="number" min={0} max={100} step={5} value={weights[key]}
+                onChange={(e) => handleWeightChange(key, parseInt(e.target.value, 10))}
+                className="w-16 rounded-md border border-border bg-surface px-2 py-1.5 text-right text-sm text-text-main focus:border-primary focus:outline-none" />
+              <span className="text-sm text-text-muted">%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {(!isValid || error) && (
-        <div
-          className={`mt-3 flex items-center gap-2 rounded-lg border p-2.5 text-xs ${
-            total > 100
-              ? "border-status-error/40 bg-status-error/10 text-status-error"
-              : "border-status-warning/40 bg-status-warning/10 text-status-warning"
-          }`}
-        >
-          <AlertCircle className="size-4 shrink-0" />
-          <span className="font-medium">
-            {error ||
-              (total > 100
-                ? `Tổng trọng số hiện tại là ${total}% (vượt quá 100%). Nút tạo/lưu tin tuyển dụng sẽ bị vô hiệu hóa cho đến khi đạt chính xác 100%.`
-                : `Tổng trọng số hiện tại là ${total}%. Vui lòng điều chỉnh để tổng các tiêu chí đạt chính xác 100% để có thể lưu/đăng tin.`)}
-          </span>
+        <div role="alert" className="mt-2 flex items-start gap-2 text-sm text-status-error">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          <span>{error || "Vui lòng điều chỉnh để tổng trọng số bằng 100%."}</span>
         </div>
       )}
-    </div>
+    </section>
   );
 };

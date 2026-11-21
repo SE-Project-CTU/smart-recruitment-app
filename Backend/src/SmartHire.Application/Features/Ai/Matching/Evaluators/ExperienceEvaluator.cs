@@ -5,29 +5,6 @@ using SmartHire.Domain.ValueObjects.Cv;
 namespace SmartHire.Application.Features.Ai.Matching.Evaluators;
 
 public static class ExperienceEvaluator {
-    public static (decimal Score, decimal ActualYears, int? RequiredYears) Evaluate(
-        CvContentDocument? cv,
-        JobPostingDetailData job) {
-        decimal actualYears = CalculateExperienceYears(cv);
-        int? requiredYears = job.ExperienceYears;
-
-        decimal baseScore;
-        if (!requiredYears.HasValue || requiredYears.Value <= 0) {
-            // Job không yêu cầu số năm kinh nghiệm cụ thể
-            baseScore = 100m;
-        } else {
-            decimal req = requiredYears.Value;
-            if (actualYears >= req) {
-                baseScore = 100m;
-            } else {
-                decimal ratio = actualYears / req;
-                baseScore = Math.Round(Math.Clamp(ratio * 100m, 0m, 100m), 2);
-            }
-        }
-
-        return (baseScore, actualYears, requiredYears);
-    }
-
     public static decimal CalculateExperienceYears(CvContentDocument? cv) {
         if (cv?.Sections.Experience?.Items == null || cv.Sections.Experience.Items.Count == 0) {
             return 0m;
