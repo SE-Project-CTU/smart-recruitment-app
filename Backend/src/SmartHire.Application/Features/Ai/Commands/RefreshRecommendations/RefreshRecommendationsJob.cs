@@ -14,6 +14,7 @@ public sealed class RefreshRecommendationsJob : IBackgroundJob<RefreshRecommenda
     private readonly IJobEmbeddingRepository _jobEmbeddingRepository;
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly ISmartHireMatchEngine _matchEngine;
+    private readonly IExperienceVectorMatchScorer _experienceVectorMatchScorer;
     private readonly IJobRecommendationRepository _recommendationRepository;
     private readonly ILogger<RefreshRecommendationsJob> _logger;
 
@@ -22,12 +23,14 @@ public sealed class RefreshRecommendationsJob : IBackgroundJob<RefreshRecommenda
         IJobEmbeddingRepository jobEmbeddingRepository,
         IJobPostingRepository jobPostingRepository,
         ISmartHireMatchEngine matchEngine,
+        IExperienceVectorMatchScorer experienceVectorMatchScorer,
         IJobRecommendationRepository recommendationRepository,
         ILogger<RefreshRecommendationsJob> logger) {
         _cvEmbeddingRepository = cvEmbeddingRepository;
         _jobEmbeddingRepository = jobEmbeddingRepository;
         _jobPostingRepository = jobPostingRepository;
         _matchEngine = matchEngine;
+        _experienceVectorMatchScorer = experienceVectorMatchScorer;
         _recommendationRepository = recommendationRepository;
         _logger = logger;
     }
@@ -70,9 +73,14 @@ public sealed class RefreshRecommendationsJob : IBackgroundJob<RefreshRecommenda
             x => (decimal)Math.Max(0.0, 1.0 - x.Distance));
 
         // Stage 3: Đánh giá bằng SmartHire In-House Match Engine (Thuần In-Memory, < 5ms)
+        var experienceScores = await _experienceVectorMatchScorer.ScoreBatchAsync(
+            latestCvEmbedding.CvVersion.Content,
+            publishedJobs,
+            cancellationToken);
         var rankedResults = _matchEngine.EvaluateBatch(
             latestCvEmbedding.CvVersion.Content,
             publishedJobs,
+            experienceScores,
             semanticVectorSimilarities: similarities);
 
         // Lấy Top 20 việc làm tương thích cao nhất

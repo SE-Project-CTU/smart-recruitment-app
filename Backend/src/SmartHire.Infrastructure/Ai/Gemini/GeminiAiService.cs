@@ -411,6 +411,7 @@ public sealed class GeminiAiService : IGeminiAiService {
         string cvText,
         string jobText,
         decimal score,
+        decimal experienceScore,
         CancellationToken cancellationToken = default) {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) {
             return GeminiPrompts.CreateFallbackMatchAnalysis(score);
@@ -423,7 +424,7 @@ public sealed class GeminiAiService : IGeminiAiService {
             var model = NormalizeModelName(_options.Model);
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
-            var prompt = GeminiPrompts.BuildMatchAnalysisPrompt(cvText, jobText, score);
+            var prompt = GeminiPrompts.BuildMatchAnalysisPrompt(cvText, jobText, score, experienceScore);
 
             var payload = new {
                 contents = new[] {

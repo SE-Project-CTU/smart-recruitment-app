@@ -262,7 +262,7 @@ export const CvComparisonSidePanel: React.FC = () => {
           >
             <div className="flex items-center gap-2">
               <Info className="size-3.5 text-slate-500" />
-              <span>Cần bổ sung thông tin</span>
+              <span>Đề xuất tối ưu</span>
             </div>
             <ChevronDown
               className={cn(
