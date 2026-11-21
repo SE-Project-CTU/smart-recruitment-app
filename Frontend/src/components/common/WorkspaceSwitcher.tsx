@@ -40,42 +40,30 @@ export function WorkspaceSwitcher() {
   // Lấy danh sách các công ty mà recruiter tham gia
   const { data: companies = [], isLoading } = useMyCompanies();
 
-  // Khởi tạo & đồng bộ an toàn: tự chọn công ty đầu tiên nếu chưa chọn hoặc id cũ không còn hợp lệ
+  // Tạo key chuỗi ID để tránh re-run effect do reference mảng mới
+  const companiesKey = useMemo(
+    () => companies.map((c) => c.id).join(","),
+    [companies],
+  );
+
+  // Khởi tạo an toàn: chỉ tự động chọn công ty đầu tiên nếu chưa có công ty nào được chọn hoặc ID cũ không còn trong danh sách
   useEffect(() => {
     if (isLoading) return;
 
     if (companies.length === 0) {
-      if (activeCompanyId !== null || activeCompany !== null) {
+      if (activeCompanyId !== null) {
         clearActiveCompany();
       }
       return;
     }
 
-    const matched = companies.find((c) => c.id === activeCompanyId);
-    if (!matched) {
-      // Nếu chưa có hoặc id lưu không khớp công ty nào trong danh sách, chọn công ty đầu tiên
+    const currentIdValid = companies.some((c) => c.id === activeCompanyId);
+    if (!activeCompanyId || !currentIdValid) {
       setActiveCompany(companies[0]);
-    } else if (
-      !activeCompany ||
-      activeCompany.id !== matched.id ||
-      activeCompany.name !== matched.name ||
-      activeCompany.logoUrl !== matched.logoUrl ||
-      activeCompany.logoFileId !== matched.logoFileId ||
-      activeCompany.verificationStatus !== matched.verificationStatus ||
-      activeCompany.membership?.role !== matched.membership?.role
-    ) {
-      // Giữ thông tin tóm tắt luôn đồng bộ mới nhất
-      setActiveCompany(matched);
     }
   }, [
-    companies,
+    companiesKey,
     activeCompanyId,
-    activeCompany?.id,
-    activeCompany?.name,
-    activeCompany?.logoUrl,
-    activeCompany?.logoFileId,
-    activeCompany?.verificationStatus,
-    activeCompany?.membership?.role,
     isLoading,
     setActiveCompany,
     clearActiveCompany,

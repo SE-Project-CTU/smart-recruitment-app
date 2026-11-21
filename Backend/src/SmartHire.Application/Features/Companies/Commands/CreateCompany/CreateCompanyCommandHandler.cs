@@ -40,10 +40,11 @@ public sealed class CreateCompanyCommandHandler : IRequestHandler<CreateCompanyC
             throw CompanyExceptions.CompanyTaxCodeAlreadyExists();
         }
 
-        // Giới hạn số lượng công ty một Recruiter được phép tạo <=5
+        // Giới hạn số lượng công ty một Recruiter được phép tạo hoặc tham gia <=5
         const int maxOwnedCompanies = 5;
         var ownedCompanyCount = await _companyRepository.CountOwnedCompaniesAsync(userId, cancellationToken);
-        if (ownedCompanyCount >= maxOwnedCompanies) {
+        var activeCompanyCount = await _companyRepository.CountActiveCompaniesAsync(userId, cancellationToken);
+        if (ownedCompanyCount >= maxOwnedCompanies || activeCompanyCount >= maxOwnedCompanies) {
             throw CompanyExceptions.MaxOwnedCompaniesReached(maxOwnedCompanies);
         }
 

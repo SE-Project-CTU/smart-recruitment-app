@@ -31,7 +31,6 @@ export function CompanyDetailLayout() {
   const navigate = useNavigate();
 
   const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
-  const activeCompany = useCompanyStore((s) => s.activeCompany);
   const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
 
   const {
@@ -44,19 +43,26 @@ export function CompanyDetailLayout() {
   // Tự động đồng bộ Active Company trong store nếu truy cập trực tiếp bằng URL của công ty hoặc thông tin cập nhật
   useEffect(() => {
     if (!company) return;
-    if (company.id !== activeCompanyId) {
-      setActiveCompany(company);
-    } else if (
-      !activeCompany ||
-      activeCompany.name !== company.name ||
-      activeCompany.logoUrl !== company.logoUrl ||
-      activeCompany.logoFileId !== company.logoFileId ||
-      activeCompany.verificationStatus !== company.verificationStatus ||
-      activeCompany.membership?.role !== company.membership?.role
+    const current = useCompanyStore.getState().activeCompany;
+    if (
+      company.id !== activeCompanyId ||
+      !current ||
+      current.name !== company.name ||
+      current.logoUrl !== company.logoUrl ||
+      current.verificationStatus !== company.verificationStatus ||
+      current.membership?.role !== company.membership?.role
     ) {
       setActiveCompany(company);
     }
-  }, [company, activeCompanyId, activeCompany, setActiveCompany]);
+  }, [
+    company?.id,
+    company?.name,
+    company?.logoUrl,
+    company?.verificationStatus,
+    company?.membership?.role,
+    activeCompanyId,
+    setActiveCompany,
+  ]);
 
   if (isLoading) {
     return (

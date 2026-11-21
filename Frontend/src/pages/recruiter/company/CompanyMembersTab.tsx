@@ -21,6 +21,7 @@ import {
   TableSkeleton,
   UserAvatar,
 } from "@/components/common";
+import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import {
   useCompanyMembers,
@@ -89,42 +90,69 @@ export function CompanyMembersTab() {
   const [leaveError, setLeaveError] = useState<string | null>(null);
 
   const handleTransferOwnership = async () => {
-    if (!transferTarget) return;
+    if (!transferTarget || transferTarget.status !== "Active") return;
     try {
       setTransferError(null);
       await transferOwnership({
         companyId: company.id,
         newOwnerId: transferTarget.user.id,
       });
-      setTransferMessage(
-        `Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`,
-      );
+      const successMsg = `Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`;
+      setTransferMessage(successMsg);
+      toast.add({
+        type: "success",
+        title: "Chuyển quyền thành công",
+        description: successMsg,
+      });
       setTimeout(async () => {
         setTransferTarget(null);
         setTransferMessage(null);
         await refreshCompany();
       }, 1500);
     } catch (err: unknown) {
-      setTransferError(
-        getApiErrorMessage(err, "Chuyển quyền thất bại. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Chuyển quyền thất bại. Vui lòng thử lại!",
       );
+      setTransferError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Không thể chuyển quyền",
+        description: errorMsg,
+      });
     }
   };
 
   const handleRemoveMember = async () => {
-    if (!removeTarget) return;
+    if (!removeTarget || removeTarget.status !== "Active") return;
+    const targetMemberId =
+      removeTarget.membershipId || removeTarget.id || removeTarget.user.id;
+    if (!targetMemberId) return;
+
     try {
       setRemoveError(null);
       await removeMember({
         companyId: company.id,
-        memberId: removeTarget.id,
+        memberId: targetMemberId,
+      });
+      toast.add({
+        type: "success",
+        title: "Đã xóa thành viên",
+        description: `Đã loại bỏ ${removeTarget.user.fullName} khỏi công ty thành công.`,
       });
       setRemoveTarget(null);
       await refetchMembers();
     } catch (err: unknown) {
-      setRemoveError(
-        getApiErrorMessage(err, "Không thể xóa thành viên. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Không thể xóa thành viên. Vui lòng thử lại!",
       );
+      setRemoveError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Xóa thành viên thất bại",
+        description: errorMsg,
+      });
     }
   };
 
@@ -132,12 +160,24 @@ export function CompanyMembersTab() {
     try {
       setLeaveError(null);
       await leaveCompany(company.id);
+      toast.add({
+        type: "info",
+        title: "Đã rời công ty",
+        description: `Bạn đã rời khỏi công ty ${company.name}.`,
+      });
       setIsLeaveModalOpen(false);
       navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT);
     } catch (err: unknown) {
-      setLeaveError(
-        getApiErrorMessage(err, "Không thể rời công ty. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Không thể rời công ty. Vui lòng thử lại!",
       );
+      setLeaveError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Không thể rời công ty",
+        description: errorMsg,
+      });
     }
   };
 
@@ -205,6 +245,10 @@ export function CompanyMembersTab() {
             <span className="inline-flex items-center rounded-full border border-status-success/30 bg-status-success/10 px-2.5 py-0.5 text-xs font-semibold text-status-success">
               Hoạt động
             </span>
+          ) : status === "Left" ? (
+            <span className="inline-flex items-center rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs font-medium text-text-muted">
+              Đã rời đi
+            </span>
           ) : (
             <span className="inline-flex items-center rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs font-medium text-text-muted">
               Tạm ngừng
@@ -231,8 +275,8 @@ export function CompanyMembersTab() {
         header: "Thao tác",
         cell: (info) => {
           const member = info.row.original;
-          // Chỉ Owner hiện tại mới có quyền chuyển giao quyền hoặc loại bỏ member khác
-          if (isOwner && member.role !== "Owner") {
+          // Chỉ Owner hiện tại mới có quyền chuyển giao quyền hoặc loại bỏ member khác khi thành viên còn hoạt động
+          if (isOwner && member.role !== "Owner" && member.status === "Active") {
             return (
               <div className="flex items-center gap-2">
                 <Button

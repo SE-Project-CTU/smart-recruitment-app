@@ -80,7 +80,7 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   COMPANY_LOGO_ALREADY_IN_USE:
     "Logo này đã được gán cho một doanh nghiệp khác.",
   MAX_OWNED_COMPANIES_REACHED:
-    "Bạn đã đạt giới hạn tối đa số lượng doanh nghiệp được sở hữu (tối đa 5 doanh nghiệp).",
+    "Nhà tuyển dụng đã đạt giới hạn tối đa tham gia hoặc sở hữu doanh nghiệp.",
   INVITEE_ROLE_REQUIRED:
     "Tài khoản được mời phải có vai trò Nhà tuyển dụng (Recruiter).",
   INVALID_JOB_POSTING_DATA:
@@ -212,6 +212,8 @@ export const FIELD_LABELS: Record<string, string> = {
   title: "tiêu đề tin tuyển dụng",
   company: "doanh nghiệp",
   companyId: "doanh nghiệp",
+  memberId: "thành viên",
+  member: "thành viên",
   logoFileId: "ảnh logo",
   provinceId: "tỉnh/thành phố",
   wardId: "phường/xã",
