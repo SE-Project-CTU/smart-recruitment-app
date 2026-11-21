@@ -481,7 +481,7 @@ export function CreateCompanyModal({
                   Giới thiệu về doanh nghiệp
                 </label>
                 <span className="text-[11px] text-text-muted">
-                  {formData.description.length}/2000
+                  {(formData.description || "").length}/2000
                 </span>
               </div>
               <textarea

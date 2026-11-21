@@ -87,7 +87,13 @@ export function JobDetailPage() {
         setActiveCompany(matched);
       }
     }
-  }, [job?.companyId, job?.company?.id, myCompanies, activeCompanyId, setActiveCompany]);
+  }, [
+    job?.companyId,
+    job?.company?.id,
+    myCompanies,
+    activeCompanyId,
+    setActiveCompany,
+  ]);
 
   const isMyCompany = useMemo(() => {
     const targetCompanyId = job?.companyId || job?.company?.id;
@@ -190,10 +196,12 @@ export function JobDetailPage() {
 
   const handleCopyJobLink = async () => {
     if (!job?.id) return;
-    const jobUrl = `${window.location.origin}/jobs/${job.id}`;
+    const jobUrl = `${window.location.origin}/search-job?jobId=${job.id}`;
     try {
       await navigator.clipboard.writeText(jobUrl);
-      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
+      toast.success({
+        description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!",
+      });
     } catch {
       const textArea = document.createElement("textarea");
       textArea.value = jobUrl;
@@ -201,7 +209,9 @@ export function JobDetailPage() {
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
+      toast.success({
+        description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!",
+      });
     }
   };
 
@@ -304,8 +314,8 @@ export function JobDetailPage() {
 
             <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5 sm:gap-2">
               {/* Tiêu đề & Trạng thái */}
-              <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 pr-8 sm:gap-2.5 sm:pr-10 lg:pr-0">
-                <h1 className="max-w-full text-xl leading-tight font-bold tracking-tight text-text-main break-words sm:text-2xl">
+              <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2 pr-8 sm:gap-2.5 sm:pr-10 lg:pr-0">
+                <h1 className="wrap-break-words max-w-full text-xl leading-tight font-bold tracking-tight text-text-main sm:text-2xl">
                   {job.title}
                 </h1>
                 <span
@@ -316,8 +326,8 @@ export function JobDetailPage() {
               </div>
 
               {/* Tên công ty có icon trỏ ra chi tiết & Người đăng */}
-              <div className="flex min-w-0 max-w-full flex-col gap-2 sm:gap-2.5">
-                <div className="flex min-w-0 max-w-full items-center">
+              <div className="flex max-w-full min-w-0 flex-col gap-2 sm:gap-2.5">
+                <div className="flex max-w-full min-w-0 items-center">
                   {job.companyId || job.company?.id ? (
                     <Link
                       to={PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
@@ -326,20 +336,22 @@ export function JobDetailPage() {
                       )}
                       target="_blank"
                       rel="noreferrer"
-                      className="group inline-flex min-w-0 max-w-full items-center gap-1 text-xs font-semibold text-text-muted transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
+                      className="group inline-flex max-w-full min-w-0 items-center gap-1 text-xs font-semibold text-text-muted transition-colors hover:text-primary sm:gap-1.5 sm:text-sm"
                     >
-                      <span className="min-w-0 break-words">{compName}</span>
+                      <span className="wrap-break-words min-w-0">
+                        {compName}
+                      </span>
                       <ExternalLink className="size-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
                     </Link>
                   ) : (
-                    <span className="min-w-0 break-words text-xs font-semibold text-text-muted sm:text-sm">
+                    <span className="wrap-break-words min-w-0 text-xs font-semibold text-text-muted sm:text-sm">
                       {compName}
                     </span>
                   )}
                 </div>
 
                 {job.creator && (
-                  <div className="flex min-w-0 max-w-full items-start gap-2 text-text-muted">
+                  <div className="flex max-w-full min-w-0 items-start gap-2 text-text-muted">
                     {/* Avatar */}
                     <div className="mt-0.5 shrink-0">
                       {job.creator.avatarUrl && !creatorAvatarError ? (
@@ -362,13 +374,15 @@ export function JobDetailPage() {
                     {/* Tên trên, email dưới (flex-col, wrap text, không truncate) */}
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <div className="flex flex-wrap items-center gap-1.5 leading-snug">
-                        <span className="text-[11px] text-text-muted">Đăng bởi:</span>
-                        <span className="min-w-0 break-words text-xs font-semibold text-text-main">
+                        <span className="text-[11px] text-text-muted">
+                          Đăng bởi:
+                        </span>
+                        <span className="wrap-break-words min-w-0 text-xs font-semibold text-text-main">
                           {job.creator.fullName || "Nhà tuyển dụng"}
                         </span>
                       </div>
                       {job.creator.email && (
-                        <span className="text-[11px] text-text-muted break-all">
+                        <span className="text-[11px] break-all text-text-muted">
                           {job.creator.email}
                         </span>
                       )}
@@ -496,7 +510,7 @@ export function JobDetailPage() {
         <button
           type="button"
           onClick={() => setActiveTab("info")}
-          className={`flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors sm:px-5 ${
+          className={`flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs font-semibold whitespace-nowrap transition-colors sm:px-5 sm:text-sm ${
             activeTab === "info"
               ? "border-primary text-primary"
               : "border-transparent text-text-muted hover:text-text-main"
@@ -509,7 +523,7 @@ export function JobDetailPage() {
         <button
           type="button"
           onClick={() => setActiveTab("applications")}
-          className={`flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors sm:px-5 ${
+          className={`flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs font-semibold whitespace-nowrap transition-colors sm:px-5 sm:text-sm ${
             activeTab === "applications"
               ? "border-primary text-primary"
               : "border-transparent text-text-muted hover:text-text-main"
@@ -587,7 +601,9 @@ export function JobDetailPage() {
                 disabled={updateJobStatusMutation.isPending}
                 onClick={handleExecuteCloseJob}
               >
-                {updateJobStatusMutation.isPending ? "Đang đóng tin..." : "Xác nhận đóng tin"}
+                {updateJobStatusMutation.isPending
+                  ? "Đang đóng tin..."
+                  : "Xác nhận đóng tin"}
               </AlertDialogAction>
             </AlertDialogFooter>
           )}

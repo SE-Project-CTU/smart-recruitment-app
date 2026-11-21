@@ -1,4 +1,11 @@
-import { useState, useMemo, useEffect, useCallback, type ChangeEvent, type FormEvent } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import {
@@ -11,7 +18,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
-import { JobMatchingWeightsCard, type MatchingWeightsValues } from "@/components/job/JobMatchingWeightsCard";
+import {
+  JobMatchingWeightsCard,
+  type MatchingWeightsValues,
+} from "@/components/job/JobMatchingWeightsCard";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
@@ -46,6 +56,7 @@ import type {
   WorkMode,
 } from "@/types";
 import type { CompanyItem } from "@/types/company";
+import { cn } from "@/lib/utils";
 
 interface EditJobFormState {
   title: string;
@@ -156,10 +167,7 @@ function EditJobForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const updateForm = useCallback(
-    <K extends keyof EditJobFormState>(
-      key: K,
-      value: EditJobFormState[K],
-    ) => {
+    <K extends keyof EditJobFormState>(key: K, value: EditJobFormState[K]) => {
       setFormData((current) => ({ ...current, [key]: value }));
       setFieldErrors((current) => {
         if (!(key in current)) return current;
@@ -315,8 +323,12 @@ function EditJobForm({
       errors.requirements = `Yêu cầu công việc cần tối thiểu 20 ký tự (hiện có ${reqTrim.length}/20 ký tự).`;
     }
 
-    if (formData.detailedLocation && formData.detailedLocation.trim().length > 500) {
-      errors.detailedLocation = "Địa chỉ làm việc chi tiết không được vượt quá 500 ký tự.";
+    if (
+      formData.detailedLocation &&
+      formData.detailedLocation.trim().length > 500
+    ) {
+      errors.detailedLocation =
+        "Địa chỉ làm việc chi tiết không được vượt quá 500 ký tự.";
     }
 
     if (formData.benefits && formData.benefits.trim().length > 10000) {
@@ -671,7 +683,7 @@ function EditJobForm({
                         : "text-text-muted",
                     )}
                   >
-                    {formData.description.trim().length}/20 ký tự tối thiểu
+                    Đạt tối thiểu {formData.description.trim().length}/20 ký tự
                   </span>
                 </div>
                 <textarea
@@ -704,7 +716,7 @@ function EditJobForm({
                         : "text-text-muted",
                     )}
                   >
-                    {formData.requirements.trim().length}/20 ký tự tối thiểu
+                    Đạt {formData.requirements.trim().length}/20 ký tự
                   </span>
                 </div>
                 <textarea
@@ -860,7 +872,9 @@ function EditJobForm({
                     type="button"
                     variant="secondary"
                     onClick={() =>
-                      navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))
+                      navigate(
+                        PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id),
+                      )
                     }
                     className="px-4! py-2! text-xs!"
                   >
@@ -919,7 +933,13 @@ export function EditJobPage() {
         setActiveCompany(matched);
       }
     }
-  }, [job?.companyId, job?.company?.id, myCompanies, activeCompanyId, setActiveCompany]);
+  }, [
+    job?.companyId,
+    job?.company?.id,
+    myCompanies,
+    activeCompanyId,
+    setActiveCompany,
+  ]);
 
   const selectedCompany = useMemo(() => {
     const targetCompanyId = job?.companyId || job?.company?.id;

@@ -69,6 +69,10 @@ export function RecruiterJobListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
+  // 4. Modal confirmation state
+  const [jobToClose, setJobToClose] = useState<JobPostingItem | null>(null);
+  const [isClosingSuccess, setIsClosingSuccess] = useState(false);
+
   // Điều chỉnh state khi chuyển đổi Workspace công ty (tránh cascading render effect)
   const [prevCompanyId, setPrevCompanyId] = useState(activeCompanyId);
   if (prevCompanyId !== activeCompanyId) {
@@ -76,10 +80,6 @@ export function RecruiterJobListPage() {
     setCurrentPage(1);
     setJobToClose(null);
   }
-
-  // 4. Modal confirmation state
-  const [jobToClose, setJobToClose] = useState<JobPostingItem | null>(null);
-  const [isClosingSuccess, setIsClosingSuccess] = useState(false);
 
   // 5. Mappings for province and company logos
   const provinceMap = useMemo(() => {
