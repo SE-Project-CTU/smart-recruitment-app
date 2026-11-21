@@ -48,6 +48,9 @@ export function WorkspaceSwitcher() {
       if (activeCompanyId !== null) {
         clearActiveCompany();
       }
+      if (location.pathname.includes("/recruiter/companies/")) {
+        navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT, { replace: true });
+      }
       return;
     }
 
@@ -55,11 +58,21 @@ export function WorkspaceSwitcher() {
     if (!matched) {
       // Nếu chưa có hoặc id lưu không khớp công ty nào trong danh sách, chọn công ty đầu tiên
       setActiveCompany(companies[0]);
+
+      if (location.pathname.includes("/recruiter/companies/")) {
+        const newPath = location.pathname.replace(
+          /\/recruiter\/companies\/[^/]+/,
+          `/recruiter/companies/${companies[0].id}`,
+        );
+        navigate(newPath, { replace: true });
+      }
     }
   }, [
     companies,
     activeCompanyId,
     isLoading,
+    location.pathname,
+    navigate,
     setActiveCompany,
     clearActiveCompany,
   ]);

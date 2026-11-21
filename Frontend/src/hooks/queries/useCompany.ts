@@ -40,7 +40,7 @@ export const useCompanyDetail = (companyId?: string) => {
     queryKey: ["companies", "detail", companyId, user?.id ?? "anonymous"],
     queryFn: () => companyService.getCompanyDetail(companyId!),
     enabled: Boolean(companyId) && !isInitializing,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 };
 
@@ -284,7 +284,7 @@ export const useAcceptInvitation = () => {
       companyService.acceptInvitation(invitationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-invitations"] });
-      queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
     },
   });
 };
@@ -300,6 +300,7 @@ export const useRejectInvitation = () => {
       companyService.rejectInvitation(invitationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
     },
   });
 };
