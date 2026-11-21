@@ -359,7 +359,6 @@ export default function AdminUserManagementPage() {
             // Capitalize status key để lấy config
             const lowerStatus = row.original.status?.toLowerCase() || "";
             const statusKey = lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1);
-            console.log("statusKey", statusKey);
             const statusConfig =
               STATUS_BADGE_CONFIG[statusKey] ?? STATUS_BADGE_CONFIG.Active;
             const StatusIcon = statusConfig.icon;
@@ -424,6 +423,7 @@ export default function AdminUserManagementPage() {
           cell: ({ row }) => {
             const u = row.original;
             const isCurrent = currentUser?.id === u.id;
+            const status = u.status?.toLowerCase();
             return (
               <div className="flex items-center justify-end gap-1">
                 {isCurrent ? (
@@ -435,7 +435,7 @@ export default function AdminUserManagementPage() {
                     title="Không thể tự khóa tài khoản của chính bạn"
                     className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-slate-300! shadow-none! ring-0!"
                   />
-                ) : u.status === "Locked" ? (
+                ) : status === "locked" ? (
                   <Button
                     variant="primary"
                     icon={Unlock}
@@ -444,7 +444,7 @@ export default function AdminUserManagementPage() {
                     title="Mở khóa tài khoản"
                     className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700!"
                   />
-                ) : (
+                ) : status === "active" ? (
                   <Button
                     variant="secondary"
                     icon={Lock}
@@ -453,6 +453,8 @@ export default function AdminUserManagementPage() {
                     title="Khóa tài khoản"
                     className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600!"
                   />
+                ) : (
+                  <span className="text-xs text-text-muted" aria-label="Không có thao tác">—</span>
                 )}
               </div>
             );
