@@ -10,8 +10,6 @@ import {
   Lock,
   Unlock,
   AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
   ShieldCheck,
   Shield,
@@ -25,6 +23,7 @@ import "dayjs/locale/vi";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import {
   Button,
+  DashboardPagination,
   DataTable,
   type DataTableFeatures,
   TableSkeleton,
@@ -653,42 +652,16 @@ export default function AdminUserManagementPage() {
             />
 
             {/* Thanh phân trang Pagination */}
-            {totalPages > 1 && (
-              <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-5 py-3.5 sm:flex-row">
-                <span className="text-xs text-text-muted">
-                  Hiển thị <strong>{(page - 1) * pageSize + 1}</strong> –{" "}
-                  <strong>{Math.min(page * pageSize, totalItems)}</strong> trong
-                  tổng số <strong>{totalItems}</strong> người dùng
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="secondary"
-                    icon={ChevronLeft}
-                    iconSize={14}
-                    disabled={page <= 1}
-                    onClick={() =>
-                      updateParams({ page: (page - 1).toString() })
-                    }
-                    className="h-8! w-8! p-0!"
-                    title="Trang trước"
-                  />
-                  <span className="px-2 text-xs font-semibold text-slate-700">
-                    {page} / {totalPages}
-                  </span>
-                  <Button
-                    variant="secondary"
-                    icon={ChevronRight}
-                    iconSize={14}
-                    disabled={page >= totalPages}
-                    onClick={() =>
-                      updateParams({ page: (page + 1).toString() })
-                    }
-                    className="h-8! w-8! p-0!"
-                    title="Trang sau"
-                  />
-                </div>
-              </div>
-            )}
+            <DashboardPagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={(newPage) =>
+                updateParams({ page: newPage.toString() })
+              }
+              entityLabel="người dùng"
+            />
           </div>
         )}
       </div>

@@ -11,8 +11,6 @@ import {
   Globe,
   ChevronDown,
   Search,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Briefcase,
   Calendar,
@@ -20,6 +18,7 @@ import {
 import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
 import {
+  BasePagination,
   Button,
   DataTable,
   TableSkeleton,
@@ -77,7 +76,10 @@ export default function CandidateApplicationStatusPage() {
     page: 1,
     pageSize: 100,
   });
-  const allApplications = useMemo(() => allAppsData?.items ?? [], [allAppsData?.items]);
+  const allApplications = useMemo(
+    () => allAppsData?.items ?? [],
+    [allAppsData?.items],
+  );
 
   // Client-side search & status filter theo tên công việc, công ty và trạng thái
   const filteredApplications = useMemo(() => {
@@ -178,160 +180,158 @@ export default function CandidateApplicationStatusPage() {
       );
 
     return columnHelper.columns([
-        columnHelper.accessor("jobTitle", {
-          id: "jobInfo",
-          header: "Vị trí & Công ty",
-          cell: ({ row }) => {
-            const app = row.original;
-            return (
-              <div className="flex max-w-72 min-w-48 items-center gap-3">
-                <img
-                  src={app.companyLogoUrl || getLoremAvt(app.companyName)}
-                  alt={app.companyName || "Logo"}
-                  loading="lazy"
-                  onError={(event) => {
-                    const fallback = getLoremAvt(app.companyName);
-                    const img = event.currentTarget;
-                    if (img.src !== new URL(fallback, img.baseURI).href) {
-                      img.onerror = null;
-                      img.src = fallback;
-                    }
-                  }}
-                  className="size-10 shrink-0 rounded-xl border border-border object-cover"
-                />
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <span className="truncate text-sm font-bold text-slate-800 transition-colors hover:text-primary">
-                          {app.jobTitle}
-                        </span>
-                      }
-                    />
-                    <TooltipPanel>{app.jobTitle}</TooltipPanel>
-                  </Tooltip>
-                  <span className="truncate text-xs text-text-muted">
-                    {app.companyName}
-                  </span>
-                  {app.locationName && (
-                    <span className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400 md:hidden">
-                      <MapPin className="size-3" />
-                      {app.locationName}
-                    </span>
-                  )}
-                  <div className="mt-1.5 flex items-center lg:hidden">
-                    {renderCvAction(app)}
-                  </div>
-                </div>
-              </div>
-            );
-          },
-        }),
-
-        columnHelper.display({
-          id: "location",
-          header: "Địa điểm & Mức lương",
-          meta: { className: "hidden md:table-cell" },
-          cell: ({ row }) => {
-            const app = row.original;
-            return (
-              <div className="flex flex-col gap-0.5 text-xs">
-                <span className="font-semibold text-slate-800">
-                  {app.salaryRange || "Thỏa thuận"}
-                </span>
-                <span className="text-text-muted">
-                  {app.locationName || "Toàn quốc"}
-                </span>
-              </div>
-            );
-          },
-        }),
-
-        columnHelper.display({
-          id: "documents",
-          header: "Hồ sơ ứng tuyển",
-          meta: { className: "hidden lg:table-cell" },
-          cell: ({ row }) => (
-            <div className="flex items-center gap-1.5">
-              {renderCvAction(row.original)}
-            </div>
-          ),
-        }),
-
-        columnHelper.accessor("appliedAt", {
-          header: ({ column }) => (
-            <button
-              type="button"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-primary"
-            >
-              <span>Ngày nộp</span>
-              <ArrowUpDown className="size-3.5" />
-            </button>
-          ),
-          cell: ({ row }) => {
-            const iso = row.original.appliedAt;
-            return (
-              <div className="flex flex-col text-xs">
-                <span className="font-medium text-slate-700">
-                  {dayjs(iso).format("DD/MM/YYYY")}
-                </span>
-                <span className="text-[11px] text-text-muted">
-                  {dayjs(iso).format("HH:mm")}
-                </span>
-              </div>
-            );
-          },
-        }),
-
-        columnHelper.accessor("status", {
-          header: "Trạng thái",
-          filterFn: "includesString",
-          cell: ({ row }) => {
-            const statusKey = (row.original.status as string) || "";
-            const cfg = APPLICATION_STATUS_CONFIG[statusKey] ||
-              APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
-                label: statusKey,
-                badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-              };
-            return (
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
-              >
-                {cfg.label}
-              </span>
-            );
-          },
-        }),
-
-        columnHelper.display({
-          id: "actions",
-          header: () => <div className="text-center">Chi tiết</div>,
-          cell: ({ row }) => {
-            const app = row.original;
-            return (
-              <div className="flex justify-center">
+      columnHelper.accessor("jobTitle", {
+        id: "jobInfo",
+        header: "Vị trí & Công ty",
+        cell: ({ row }) => {
+          const app = row.original;
+          return (
+            <div className="flex max-w-72 min-w-48 items-center gap-3">
+              <img
+                src={app.companyLogoUrl || getLoremAvt(app.companyName)}
+                alt={app.companyName || "Logo"}
+                loading="lazy"
+                onError={(event) => {
+                  const fallback = getLoremAvt(app.companyName);
+                  const img = event.currentTarget;
+                  if (img.src !== new URL(fallback, img.baseURI).href) {
+                    img.onerror = null;
+                    img.src = fallback;
+                  }
+                }}
+                className="size-10 shrink-0 rounded-xl border border-border object-cover"
+              />
+              <div className="flex min-w-0 flex-col gap-0.5">
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <Button
-                        variant="secondary"
-                        icon={Eye}
-                        iconSize={16}
-                        onClick={() => setSelectedApplication(app)}
-                        className="p-1.5! text-xs! ring-0!"
-                      />
+                      <span className="truncate text-sm font-bold text-slate-800 transition-colors hover:text-primary">
+                        {app.jobTitle}
+                      </span>
                     }
                   />
-                  <TooltipPanel>Xem tiến trình hồ sơ</TooltipPanel>
+                  <TooltipPanel>{app.jobTitle}</TooltipPanel>
                 </Tooltip>
+                <span className="truncate text-xs text-text-muted">
+                  {app.companyName}
+                </span>
+                {app.locationName && (
+                  <span className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400 md:hidden">
+                    <MapPin className="size-3" />
+                    {app.locationName}
+                  </span>
+                )}
+                <div className="mt-1.5 flex items-center lg:hidden">
+                  {renderCvAction(app)}
+                </div>
               </div>
-            );
-          },
-        }),
-      ]);
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.display({
+        id: "location",
+        header: "Địa điểm & Mức lương",
+        meta: { className: "hidden md:table-cell" },
+        cell: ({ row }) => {
+          const app = row.original;
+          return (
+            <div className="flex flex-col gap-0.5 text-xs">
+              <span className="font-semibold text-slate-800">
+                {app.salaryRange || "Thỏa thuận"}
+              </span>
+              <span className="text-text-muted">
+                {app.locationName || "Toàn quốc"}
+              </span>
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.display({
+        id: "documents",
+        header: "Hồ sơ ứng tuyển",
+        meta: { className: "hidden lg:table-cell" },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            {renderCvAction(row.original)}
+          </div>
+        ),
+      }),
+
+      columnHelper.accessor("appliedAt", {
+        header: ({ column }) => (
+          <button
+            type="button"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-primary"
+          >
+            <span>Ngày nộp</span>
+            <ArrowUpDown className="size-3.5" />
+          </button>
+        ),
+        cell: ({ row }) => {
+          const iso = row.original.appliedAt;
+          return (
+            <div className="flex flex-col text-xs">
+              <span className="font-medium text-slate-700">
+                {dayjs(iso).format("DD/MM/YYYY")}
+              </span>
+              <span className="text-[11px] text-text-muted">
+                {dayjs(iso).format("HH:mm")}
+              </span>
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.accessor("status", {
+        header: "Trạng thái",
+        filterFn: "includesString",
+        cell: ({ row }) => {
+          const statusKey = (row.original.status as string) || "";
+          const cfg = APPLICATION_STATUS_CONFIG[statusKey] ||
+            APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
+              label: statusKey,
+              badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+            };
+          return (
+            <span
+              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
+            >
+              {cfg.label}
+            </span>
+          );
+        },
+      }),
+
+      columnHelper.display({
+        id: "actions",
+        header: () => <div className="text-center">Chi tiết</div>,
+        cell: ({ row }) => {
+          const app = row.original;
+          return (
+            <div className="flex justify-center">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="secondary"
+                      icon={Eye}
+                      iconSize={16}
+                      onClick={() => setSelectedApplication(app)}
+                      className="p-1.5! text-xs! ring-0!"
+                    />
+                  }
+                />
+                <TooltipPanel>Xem tiến trình hồ sơ</TooltipPanel>
+              </Tooltip>
+            </div>
+          );
+        },
+      }),
+    ]);
   }, []);
 
   return (
@@ -477,50 +477,12 @@ export default function CandidateApplicationStatusPage() {
                   đơn
                 </span>
 
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="secondary"
-                    icon={ChevronLeft}
-                    iconSize={14}
-                    disabled={currentPage <= 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="h-8! px-2.5! text-xs!"
-                  >
-                    Trước
-                  </Button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() => setCurrentPage(page)}
-                          className={`size-8 cursor-pointer rounded-lg text-xs font-semibold transition-colors ${
-                            currentPage === page
-                              ? "bg-primary text-white"
-                              : "text-slate-600 hover:bg-slate-100"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ),
-                    )}
-                  </div>
-
-                  <Button
-                    variant="secondary"
-                    icon={ChevronRight}
-                    iconSize={14}
-                    disabled={currentPage >= totalPages}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    className="h-8! px-2.5! text-xs!"
-                  >
-                    Sau
-                  </Button>
-                </div>
+                <BasePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  className="mx-0 w-auto justify-end"
+                />
               </div>
             )}
           </>
@@ -583,10 +545,10 @@ export default function CandidateApplicationStatusPage() {
                   className="size-11 shrink-0 rounded-xl border border-border object-cover"
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h4 className="text-sm font-semibold leading-snug break-words text-text-main">
+                  <h4 className="wrap-break-words text-sm leading-snug font-semibold text-text-main">
                     {selectedApplication.jobTitle}
                   </h4>
-                  <span className="text-xs leading-relaxed break-words text-text-muted">
+                  <span className="wrap-break-words text-xs leading-relaxed text-text-muted">
                     {selectedApplication.companyName}
                   </span>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-muted">
@@ -613,7 +575,7 @@ export default function CandidateApplicationStatusPage() {
                   <span className="text-xs font-semibold text-text-main">
                     Thư giới thiệu của bạn:
                   </span>
-                  <p className="mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line break-words text-text-muted">
+                  <p className="wrap-break-words mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line text-text-muted">
                     {selectedApplication.coverLetter}
                   </p>
                 </div>
@@ -658,10 +620,13 @@ export default function CandidateApplicationStatusPage() {
                         const oldLabel = oldConfig?.label || oldStatusKey;
 
                         return (
-                          <div key={step.id || idx} className="group relative w-full min-w-0">
+                          <div
+                            key={step.id || idx}
+                            className="group relative w-full min-w-0"
+                          >
                             {/* Dot indicator */}
                             <div
-                              className={`absolute top-1 -left-5.25 sm:-left-5.75 size-3.5 rounded-full border-2 border-surface shadow-xs ${
+                              className={`absolute top-1 -left-5.25 size-3.5 rounded-full border-2 border-surface shadow-xs sm:-left-5.75 ${
                                 isLatest
                                   ? "bg-primary ring-4 ring-primary/20"
                                   : "bg-text-muted/40"
@@ -673,7 +638,7 @@ export default function CandidateApplicationStatusPage() {
                                 <div className="flex flex-wrap items-center gap-1.5">
                                   <span
                                     className={cn(
-                                      "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold break-words",
+                                      "wrap-break-words inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
                                       currentConfig?.badgeClass ||
                                         "border-border bg-bg text-text-main",
                                     )}
@@ -681,21 +646,21 @@ export default function CandidateApplicationStatusPage() {
                                     {statusLabel}
                                   </span>
                                   {oldLabel && oldLabel !== statusLabel && (
-                                    <span className="text-[11px] text-text-muted break-words">
+                                    <span className="wrap-break-words text-[11px] text-text-muted">
                                       (từ {oldLabel})
                                     </span>
                                   )}
                                 </div>
 
                                 {stepTime && (
-                                  <span className="text-[11px] text-text-muted shrink-0">
+                                  <span className="shrink-0 text-[11px] text-text-muted">
                                     {dayjs(stepTime).format("DD/MM/YYYY HH:mm")}
                                   </span>
                                 )}
                               </div>
 
                               {step.note && (
-                                <p className="mt-1 rounded-lg border border-border/50 bg-bg p-2 text-xs leading-relaxed break-words text-text-muted">
+                                <p className="wrap-break-words mt-1 rounded-lg border border-border/50 bg-bg p-2 text-xs leading-relaxed text-text-muted">
                                   {step.note}
                                 </p>
                               )}
@@ -706,7 +671,7 @@ export default function CandidateApplicationStatusPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="w-full rounded-xl border border-dashed border-border p-4 text-center text-xs leading-relaxed break-words text-text-muted">
+                  <div className="wrap-break-words w-full rounded-xl border border-dashed border-border p-4 text-center text-xs leading-relaxed text-text-muted">
                     Đơn ứng tuyển đang ở trạng thái ban đầu (
                     {APPLICATION_STATUS_CONFIG[selectedApplication.status]
                       ?.label ||

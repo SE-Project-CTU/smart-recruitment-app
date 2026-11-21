@@ -10,8 +10,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ChevronLeft,
-  ChevronRight,
   MapPin,
   Sparkles,
   Ban,
@@ -21,6 +19,7 @@ import "dayjs/locale/vi";
 
 import {
   Button,
+  DashboardPagination,
   DataTable,
   type DataTableFeatures,
   TableSkeleton,
@@ -695,70 +694,14 @@ export default function AdminJobModerationPage() {
         </div>
 
         {/* 4. Thanh phân trang đồng bộ */}
-        {totalItems > 0 && (
-          <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row">
-            <span className="text-xs text-text-muted">
-              Hiển thị{" "}
-              <span className="font-semibold text-slate-700">
-                {(page - 1) * pageSize + 1}
-              </span>{" "}
-              -{" "}
-              <span className="font-semibold text-slate-700">
-                {Math.min(page * pageSize, totalItems)}
-              </span>{" "}
-              trong tổng số{" "}
-              <span className="font-semibold text-slate-700">{totalItems}</span>{" "}
-              tin tuyển dụng
-            </span>
-
-            <div className="flex items-center gap-1">
-              <Button
-                variant="secondary"
-                icon={ChevronLeft}
-                iconSize={14}
-                disabled={page <= 1}
-                onClick={() => handlePageChange(page - 1)}
-                className="h-8! px-2.5! text-xs! font-medium!"
-              >
-                Trước
-              </Button>
-
-              <div className="flex items-center gap-1 px-1">
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const pageNum = idx + 1;
-                  const isCurrent = pageNum === page;
-                  return (
-                    <button
-                      key={pageNum}
-                      type="button"
-                      onClick={() => handlePageChange(pageNum)}
-                      className={cn(
-                        "size-8 rounded-lg text-xs font-semibold transition-colors",
-                        isCurrent
-                          ? "bg-primary text-white"
-                          : "text-slate-600 hover:bg-slate-100",
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant="secondary"
-                icon={ChevronRight}
-                iconPosition="right"
-                iconSize={14}
-                disabled={page >= totalPages}
-                onClick={() => handlePageChange(page + 1)}
-                className="h-8! px-2.5! text-xs! font-medium!"
-              >
-                Sau
-              </Button>
-            </div>
-          </div>
-        )}
+        <DashboardPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          entityLabel="tin tuyển dụng"
+        />
       </div>
 
       {/* Drawer thẩm định chi tiết tin tuyển dụng tái sử dụng JobDetailDrawer */}

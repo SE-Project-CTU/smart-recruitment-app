@@ -3,12 +3,9 @@ import {
   Search,
   X,
   BookmarkCheck,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { EmptyStreet } from "@/assets/images/decoration";
-import { JobCard } from "@/components/common";
-import Button from "@/components/common/Button";
+import { BasePagination, JobCard } from "@/components/common";
 import { JobDetailDrawer } from "@/components/job";
 import { useMyBookmarkedJobs, useUnbookmarkJob } from "@/hooks/queries/useJob";
 import type { BookmarkedJobResult } from "@/types/job";
@@ -134,48 +131,12 @@ export default function BookmarkJobs() {
                 việc làm đã lưu
               </span>
 
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="secondary"
-                  icon={ChevronLeft}
-                  iconSize={14}
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="h-8! px-2.5! text-xs!"
-                >
-                  Trước
-                </Button>
-
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setPage(p)}
-                        className={`size-8 cursor-pointer rounded-lg text-xs font-semibold transition-colors ${
-                          page === p
-                            ? "bg-primary text-white"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ),
-                  )}
-                </div>
-
-                <Button
-                  variant="secondary"
-                  icon={ChevronRight}
-                  iconSize={14}
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="h-8! px-2.5! text-xs!"
-                >
-                  Sau
-                </Button>
-              </div>
+              <BasePagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                className="mx-0 w-auto justify-end"
+              />
             </div>
           )}
         </div>

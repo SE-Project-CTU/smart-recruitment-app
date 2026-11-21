@@ -6,11 +6,9 @@ import {
   ArrowUpDown,
   ChevronDown,
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import { Button, CTAMeshGradient, JobCard } from "@/components/common";
+import { BasePagination, Button, CTAMeshGradient, JobCard } from "@/components/common";
 import { JobFilterSidebar } from "@/components/JobFilterSidebar";
 import { LocationCombobox } from "@/components/LocationCombobox";
 import { JobDetailDrawer } from "@/components/job";
@@ -25,41 +23,6 @@ const SORT_OPTIONS = [
   { value: "SALARY_ASC", label: "Mức lương: Thấp đến cao" },
 ];
 const PAGE_SIZE = 30;
-
-function getPaginationRange(
-  currentPage: number,
-  totalPages: number,
-): (number | "...")[] {
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
-
-  if (currentPage <= 4) {
-    return [1, 2, 3, 4, 5, "...", totalPages];
-  }
-
-  if (currentPage >= totalPages - 3) {
-    return [
-      1,
-      "...",
-      totalPages - 4,
-      totalPages - 3,
-      totalPages - 2,
-      totalPages - 1,
-      totalPages,
-    ];
-  }
-
-  return [
-    1,
-    "...",
-    currentPage - 1,
-    currentPage,
-    currentPage + 1,
-    "...",
-    totalPages,
-  ];
-}
 
 export default function SearchJobPage({
   isPublicPage = false,
@@ -428,61 +391,12 @@ export default function SearchJobPage({
                     việc làm
                   </span>
 
-                  <div className="flex items-center gap-1.5">
-                    {/* Nút Về trước */}
-                    <button
-                      type="button"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-slate-300 hover:text-text-main disabled:pointer-events-none disabled:opacity-40"
-                      aria-label="Trang trước"
-                    >
-                      <ChevronLeft className="size-4" />
-                    </button>
-
-                    {/* Danh sách nút số trang */}
-                    {getPaginationRange(currentPage, totalPages).map(
-                      (p, idx) => {
-                        if (p === "...") {
-                          return (
-                            <span
-                              key={`ellipsis-${idx}`}
-                              className="px-1 text-xs font-bold text-text-muted select-none"
-                            >
-                              ...
-                            </span>
-                          );
-                        }
-
-                        const isCurrent = p === currentPage;
-                        return (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => handlePageChange(p)}
-                            className={`flex size-8 cursor-pointer items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
-                              isCurrent
-                                ? "bg-primary text-white"
-                                : "border border-border bg-surface text-text-main hover:border-slate-300 hover:bg-bg"
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        );
-                      },
-                    )}
-
-                    {/* Nút Kế tiếp */}
-                    <button
-                      type="button"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-slate-300 hover:text-text-main disabled:pointer-events-none disabled:opacity-40"
-                      aria-label="Trang tiếp theo"
-                    >
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
+                  <BasePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    className="mx-0 w-auto justify-end"
+                  />
                 </div>
               )}
             </>
