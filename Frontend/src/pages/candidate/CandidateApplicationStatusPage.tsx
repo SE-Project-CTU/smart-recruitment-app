@@ -14,6 +14,7 @@ import {
   Clock,
   Briefcase,
   Calendar,
+  UserMinus,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ import {
 import {
   useMyApplications,
   useApplicationStatusHistory,
+  useWithdrawApplication,
 } from "@/hooks/queries/useApplication";
 import {
   APPLICATION_STATUS_CONFIG,
@@ -117,6 +119,29 @@ export default function CandidateApplicationStatusPage() {
   // Modal xem trước CV hệ thống
   const [previewCvApp, setPreviewCvApp] =
     useState<CandidateMyApplicationItem | null>(null);
+  // State rút hồ sơ ứng tuyển
+  const [withdrawTargetApp, setWithdrawTargetApp] =
+    useState<CandidateMyApplicationItem | null>(null);
+  const [withdrawReason, setWithdrawReason] = useState<string>("");
+  const { mutate: withdrawApplication, isPending: isWithdrawing } =
+    useWithdrawApplication();
+
+  const canWithdraw = (status?: string | null) => {
+    const s = (status || "").toUpperCase();
+    return (
+      s === "SUBMITTED" ||
+      s === "APPLIED" ||
+      s === "RECEIVED" ||
+      s === "REVIEWING" ||
+      s === "SHORTLISTED" ||
+      s === "APPROVED"
+    );
+  };
+
+  const isAlreadyWithdrawn = (status?: string | null) => {
+    const s = (status || "").toUpperCase();
+    return s === "WITHDRAWN";
+  };
 
   // Hook lấy lịch sử trạng thái của application đang xem
   const { data: historyList = [], isLoading: isLoadingHistory } =
@@ -205,7 +230,7 @@ export default function CandidateApplicationStatusPage() {
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <span className="truncate text-sm font-bold text-slate-800 transition-colors hover:text-primary">
+                      <span className="truncate text-sm font-semibold text-text-main transition-colors hover:text-primary">
                         {app.jobTitle}
                       </span>
                     }
@@ -216,7 +241,7 @@ export default function CandidateApplicationStatusPage() {
                   {app.companyName}
                 </span>
                 {app.locationName && (
-                  <span className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400 md:hidden">
+                  <span className="mt-0.5 flex items-center gap-1 text-[11px] text-text-muted md:hidden">
                     <MapPin className="size-3" />
                     {app.locationName}
                   </span>
@@ -238,7 +263,7 @@ export default function CandidateApplicationStatusPage() {
           const app = row.original;
           return (
             <div className="flex flex-col gap-0.5 text-xs">
-              <span className="font-semibold text-slate-800">
+              <span className="font-semibold text-text-main">
                 {app.salaryRange || "Thỏa thuận"}
               </span>
               <span className="text-text-muted">
@@ -265,7 +290,7 @@ export default function CandidateApplicationStatusPage() {
           <button
             type="button"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-primary"
+            className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-text-muted transition-colors hover:text-primary"
           >
             <span>Ngày nộp</span>
             <ArrowUpDown className="size-3.5" />
@@ -275,7 +300,7 @@ export default function CandidateApplicationStatusPage() {
           const iso = row.original.appliedAt;
           return (
             <div className="flex flex-col text-xs">
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-text-main">
                 {dayjs(iso).format("DD/MM/YYYY")}
               </span>
               <span className="text-[11px] text-text-muted">
@@ -294,7 +319,7 @@ export default function CandidateApplicationStatusPage() {
           const cfg = APPLICATION_STATUS_CONFIG[statusKey] ||
             APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
               label: statusKey,
-              badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+              badgeClass: "bg-bg text-text-main border-border",
             };
           return (
             <span
@@ -308,11 +333,14 @@ export default function CandidateApplicationStatusPage() {
 
       columnHelper.display({
         id: "actions",
-        header: () => <div className="text-center">Chi tiết</div>,
+        header: () => <div className="text-center">Thao tác</div>,
         cell: ({ row }) => {
           const app = row.original;
+          const allowed = canWithdraw(app.status);
+          const withdrawn = isAlreadyWithdrawn(app.status);
+
           return (
-            <div className="flex justify-center">
+            <div className="flex items-center justify-center gap-1.5">
               <Tooltip>
                 <TooltipTrigger
                   render={
@@ -326,6 +354,38 @@ export default function CandidateApplicationStatusPage() {
                   }
                 />
                 <TooltipPanel>Xem tiến trình hồ sơ</TooltipPanel>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span className="inline-block">
+                      <Button
+                        variant="secondary"
+                        icon={UserMinus}
+                        iconSize={15}
+                        disabled={!allowed}
+                        onClick={() => {
+                          setWithdrawTargetApp(app);
+                          setWithdrawReason("");
+                        }}
+                        className={cn(
+                          "p-1.5! text-xs! ring-0!",
+                          allowed
+                            ? "text-status-error hover:bg-status-error/10 hover:text-status-error"
+                            : "cursor-not-allowed text-text-muted/40",
+                        )}
+                      />
+                    </span>
+                  }
+                />
+                <TooltipPanel>
+                  {withdrawn
+                    ? "Hồ sơ đã được rút"
+                    : allowed
+                      ? "Rút hồ sơ ứng tuyển"
+                      : "Không thể rút hồ sơ sau khi đã bước vào vòng phỏng vấn"}
+                </TooltipPanel>
               </Tooltip>
             </div>
           );
@@ -682,6 +742,96 @@ export default function CandidateApplicationStatusPage() {
                     ). Nhà tuyển dụng chưa có ghi nhận thay đổi mới.
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog Xác nhận rút hồ sơ ứng tuyển */}
+      <Dialog
+        open={Boolean(withdrawTargetApp)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setWithdrawTargetApp(null);
+            setWithdrawReason("");
+          }
+        }}
+      >
+        <DialogContent className="w-[calc(100vw-2rem)] p-4 sm:w-full sm:max-w-md sm:p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-status-error">
+              Xác nhận rút hồ sơ ứng tuyển
+            </DialogTitle>
+            <DialogDescription className="text-xs text-text-muted">
+              Sau khi rút hồ sơ, nhà tuyển dụng sẽ không tiếp tục xét duyệt đơn
+              này của bạn nữa.
+            </DialogDescription>
+          </DialogHeader>
+
+          {withdrawTargetApp && (
+            <div className="space-y-4 pt-1">
+              <div className="rounded-xl border border-border bg-bg/60 p-3 text-xs">
+                <p className="font-semibold text-text-main">
+                  {withdrawTargetApp.jobTitle}
+                </p>
+                <p className="text-text-muted">
+                  {withdrawTargetApp.companyName}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="withdraw-reason"
+                  className="text-xs font-medium text-text-main"
+                >
+                  Lý do rút hồ sơ (không bắt buộc):
+                </label>
+                <textarea
+                  id="withdraw-reason"
+                  value={withdrawReason}
+                  onChange={(e) => setWithdrawReason(e.target.value)}
+                  placeholder="Ví dụ: Đã tìm được công việc phù hợp hơn, có kế hoạch khác..."
+                  rows={3}
+                  maxLength={500}
+                  className="w-full resize-none rounded-lg border border-border bg-surface p-2.5 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setWithdrawTargetApp(null);
+                    setWithdrawReason("");
+                  }}
+                  disabled={isWithdrawing}
+                  className="text-xs"
+                >
+                  Hủy bỏ
+                </Button>
+                <Button
+                  variant="primary"
+                  disabled={isWithdrawing}
+                  onClick={() => {
+                    if (!withdrawTargetApp) return;
+                    withdrawApplication(
+                      {
+                        applicationId: withdrawTargetApp.id,
+                        reason: withdrawReason.trim() || undefined,
+                      },
+                      {
+                        onSuccess: () => {
+                          setWithdrawTargetApp(null);
+                          setWithdrawReason("");
+                        },
+                      },
+                    );
+                  }}
+                  className="bg-status-error! text-xs text-white! hover:bg-status-error/90!"
+                >
+                  {isWithdrawing ? "Đang xử lý..." : "Xác nhận rút hồ sơ"}
+                </Button>
               </div>
             </div>
           )}

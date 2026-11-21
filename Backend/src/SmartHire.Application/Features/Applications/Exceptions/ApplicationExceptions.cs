@@ -70,10 +70,16 @@ internal static class ApplicationExceptions {
         [new AppErrorDetail("jobPostingId", ErrorDetailReasons.NotFound,
             $"No job posting with ID '{id}' exists.")]);
 
-    public static AppException JobNotAcceptingApplications() => new(
+    public static AppException JobNotAcceptingApplications(string? message = null) => new(
         AppErrorKind.Conflict,
         ApplicationErrorCodes.JobNotAcceptingApplications,
-        "This job posting is not currently accepting applications.");
+        message ?? "This job posting is not currently accepting applications.");
+
+    public static AppException CannotWithdrawApplication(string message) => new(
+        AppErrorKind.Conflict,
+        ApplicationErrorCodes.CannotWithdrawApplication,
+        message,
+        [new AppErrorDetail("status", ValidationReasons.NotAllowed, message)]);
 
     public static AppException DuplicateApplication() => new(
         AppErrorKind.Conflict,

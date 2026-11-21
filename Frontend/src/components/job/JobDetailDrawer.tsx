@@ -175,6 +175,10 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
         : Boolean(bookmarkedData?.items?.some((b) => b.id === currentJobId));
 
   // Trạng thái tin
+  const isClosed =
+    activeJob.status?.toLowerCase() === "closed" ||
+    activeJob.status?.toLowerCase() === "expired";
+
   const statusInfo = activeJob.status
     ? getJobStatusBadge(activeJob.status)
     : null;
@@ -398,12 +402,12 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
         <div className="flex-1 space-y-5 overflow-y-auto p-5 pb-6">
           {/* Cảnh báo lý do từ chối nếu có */}
           {Boolean(activeJob.rejectionReason) && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-800">
-              <div className="mb-1 flex items-center gap-1.5 font-semibold text-rose-900">
-                <AlertTriangle className="size-4 shrink-0 text-rose-600" />
+            <div className="rounded-xl border border-status-error/20 bg-status-error/10 p-3.5 text-xs text-status-error">
+              <div className="mb-1 flex items-center gap-1.5 font-semibold text-status-error">
+                <AlertTriangle className="size-4 shrink-0 text-status-error" />
                 <span>Lý do từ chối kiểm duyệt</span>
               </div>
-              <p className="whitespace-pre-line text-rose-700">
+              <p className="whitespace-pre-line text-status-error/90">
                 {activeJob.rejectionReason}
               </p>
             </div>
@@ -627,7 +631,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               {onReject && (
                 <Button
                   variant="secondary"
-                  className="flex-1! justify-center! py-2.5! text-xs! font-semibold! text-rose-600! hover:bg-rose-50! hover:text-rose-700!"
+                  className="flex-1! justify-center! py-2.5! text-xs! font-semibold! text-status-error! hover:bg-status-error/10! hover:text-status-error!"
                   icon={X}
                   onClick={() => currentJobId && onReject(currentJobId)}
                   disabled={isModerating}
@@ -638,7 +642,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               {onApprove && (
                 <Button
                   variant="primary"
-                  className="flex-1! justify-center! bg-emerald-600! py-2.5! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+                  className="flex-1! justify-center! bg-status-success! py-2.5! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
                   icon={Check}
                   onClick={() => currentJobId && onApprove(currentJobId)}
                   disabled={isModerating}
@@ -652,8 +656,8 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
           <div className="shrink-0 border-t border-border bg-surface p-4 shadow-xs">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
-                <span className="text-xs font-semibold text-emerald-700">
+                <span className="size-2 animate-pulse rounded-full bg-status-success" />
+                <span className="text-xs font-semibold text-status-success">
                   Tin đang hiển thị công khai
                 </span>
               </div>
@@ -682,7 +686,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
             </span>
           </div>
         ) : (
-          <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
+          <div className="shrink-0 border-t border-border bg-surface p-4 shadow-sm">
             <div className="flex items-center gap-2.5">
               {isAlreadyApplied ? (
                 <Button
@@ -694,6 +698,14 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                   }}
                 >
                   <span>Đã nộp hồ sơ</span>
+                </Button>
+              ) : isClosed ? (
+                <Button
+                  variant="secondary"
+                  disabled
+                  className="flex-1 justify-center rounded-xl py-2.5 text-xs font-semibold text-text-muted cursor-not-allowed bg-bg border border-border"
+                >
+                  <span>Đã nhận đủ hồ sơ</span>
                 </Button>
               ) : (
                 <Button
