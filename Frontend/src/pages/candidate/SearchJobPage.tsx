@@ -67,6 +67,7 @@ export default function SearchJobPage({
   isPublicPage?: boolean;
 }) {
   const {
+    urlJobId,
     setUrlParams,
     currentPage,
     setCurrentPage,
@@ -80,7 +81,6 @@ export default function SearchJobPage({
     setIsMobileFilterOpen,
     selectedJob,
     isDetailDrawerOpen,
-    setIsDetailDrawerOpen,
     bookmarkedJobIds,
     appliedJobIds,
     jobList,
@@ -88,7 +88,6 @@ export default function SearchJobPage({
     totalItems,
     isFetchingJobs,
     isJobsError,
-    jobDetail,
     handleToggleArrayFilter,
     handleToggleSingleFilter,
     handleToggleIndustryGroup,
@@ -98,6 +97,7 @@ export default function SearchJobPage({
     handleSearchSubmit,
     handlePageChange,
     handleSelectJob,
+    handleCloseDrawer,
     handleToggleBookmark,
     handleApply,
   } = useSearchJobPage();
@@ -491,15 +491,14 @@ export default function SearchJobPage({
       </div>
 
       <JobDetailDrawer
-        job={jobDetail || selectedJob}
+        jobId={urlJobId}
+        job={selectedJob}
         open={isDetailDrawerOpen}
-        onClose={() => setIsDetailDrawerOpen(false)}
+        onClose={handleCloseDrawer}
         isBookmarked={
-          jobDetail?.isBookmarked !== undefined
-            ? jobDetail.isBookmarked
-            : selectedJob
-              ? bookmarkedJobIds.has(selectedJob.id)
-              : false
+          urlJobId
+            ? bookmarkedJobIds.has(urlJobId)
+            : false
         }
         onToggleBookmark={handleToggleBookmark}
         onApply={handleApply}

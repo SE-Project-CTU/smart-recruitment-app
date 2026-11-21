@@ -71,12 +71,13 @@ export type JobDrawerItem =
   | AnyJob;
 
 export interface JobDetailDrawerProps<T extends JobDrawerItem = JobDrawerItem> {
-  job: T | null;
+  jobId?: string | null;
+  job?: T | null;
   open: boolean;
   onClose: () => void;
   isBookmarked?: boolean;
   onToggleBookmark?: (jobId: string) => void;
-  onApply?: (jobId: string) => void;
+  onApply?: (jobId: string, jobData?: AnyJob) => void;
   // Custom moderation actions for Admin / Recruiter
   footer?: React.ReactNode;
   onApprove?: (jobId: string) => void;
@@ -86,6 +87,7 @@ export interface JobDetailDrawerProps<T extends JobDrawerItem = JobDrawerItem> {
 }
 
 export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
+  jobId: propJobId,
   job,
   open,
   onClose,
@@ -109,14 +111,16 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     user?.roles?.some((role) => role.toLowerCase() === "admin"),
   );
 
+  const effectiveJobId = propJobId || job?.id;
+
   // Tải chi tiết tin tuyển dụng nếu có ID
   const { data: detailData, isLoading: isLoadingDetail } = useJobPostingDetail(
-    open && job?.id ? job.id : undefined,
+    open && effectiveJobId ? effectiveJobId : undefined,
   );
 
   const { data: myAppsData } = useMyApplications(
     { pageSize: 50 },
-    { enabled: isCandidate && open },
+    { enabled: isCandidate && open && Boolean(effectiveJobId) },
   );
   const myApplications = myAppsData?.items ?? [];
 
@@ -135,12 +139,12 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  if (!job) return null;
+  if (!job && !effectiveJobId) return null;
 
   // Hợp nhất dữ liệu chi tiết khi query thành công
   const activeJob = (detailData
-    ? { ...job, ...detailData }
-    : job) as unknown as AnyJob & {
+    ? { ...(job || {}), ...detailData }
+    : job || ({ id: effectiveJobId } as AnyJob)) as unknown as AnyJob & {
     status?: string;
     educationLevel?: string | null;
     industries?: Array<{ name: string } | string>;
@@ -153,12 +157,14 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     rejectionReason?: string | null;
   };
 
+  const currentJobId = effectiveJobId || activeJob?.id;
+
   const data = extractJobDisplayData(activeJob);
 
   const isAlreadyApplied = Boolean(
-    job &&
+    currentJobId &&
     (("hasApplied" in activeJob && activeJob.hasApplied) ||
-      myApplications.some((app) => app.jobId === job.id)),
+      myApplications.some((app) => app.jobId === currentJobId)),
   );
 
   const isMarked =
@@ -166,7 +172,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
       ? externalIsBookmarked
       : "isBookmarked" in activeJob && activeJob.isBookmarked !== undefined
         ? Boolean(activeJob.isBookmarked)
-        : Boolean(bookmarkedData?.items?.some((b) => b.id === job.id));
+        : Boolean(bookmarkedData?.items?.some((b) => b.id === currentJobId));
 
   // Trạng thái tin
   const statusInfo = activeJob.status
@@ -192,16 +198,18 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     getEducationLevelLabel(activeJob.educationLevel) || "Không yêu cầu";
 
   const handleApplyClick = () => {
+    if (!currentJobId) return;
     if (onApply) {
-      onApply(job.id);
+      onApply(currentJobId, activeJob);
     } else {
-      openApplyModal(job);
+      openApplyModal(activeJob);
     }
   };
 
   const handleBookmarkClick = () => {
+    if (!currentJobId) return;
     if (onToggleBookmark) {
-      onToggleBookmark(job.id);
+      onToggleBookmark(currentJobId);
       return;
     }
 
@@ -213,15 +221,15 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     }
 
     if (isMarked) {
-      unbookmarkMutation.mutate(job.id);
+      unbookmarkMutation.mutate(currentJobId);
     } else {
-      bookmarkMutation.mutate(job.id);
+      bookmarkMutation.mutate(currentJobId);
     }
   };
 
   const handleShareClick = async () => {
-    if (!job?.id) return;
-    const jobUrl = `${window.location.origin}/jobs/${job.id}`;
+    if (!currentJobId) return;
+    const jobUrl = `${window.location.origin}/search-job?jobId=${currentJobId}`;
     try {
       await navigator.clipboard.writeText(jobUrl);
       toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
@@ -276,7 +284,10 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <SheetTitle className="text-base leading-snug font-semibold text-text-main">
-                    {job.title}
+                    {activeJob?.title ||
+                      (isLoadingDetail
+                        ? "Đang tải tin tuyển dụng..."
+                        : "Chi tiết tin tuyển dụng")}
                   </SheetTitle>
                   {statusInfo && (
                     <span
@@ -618,7 +629,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                   variant="secondary"
                   className="flex-1! justify-center! py-2.5! text-xs! font-semibold! text-rose-600! hover:bg-rose-50! hover:text-rose-700!"
                   icon={X}
-                  onClick={() => onReject(job.id)}
+                  onClick={() => currentJobId && onReject(currentJobId)}
                   disabled={isModerating}
                 >
                   <span>Từ chối</span>
@@ -629,7 +640,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                   variant="primary"
                   className="flex-1! justify-center! bg-emerald-600! py-2.5! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
                   icon={Check}
-                  onClick={() => onApprove(job.id)}
+                  onClick={() => currentJobId && onApprove(currentJobId)}
                   disabled={isModerating}
                 >
                   <span>Xuất bản</span>
@@ -651,7 +662,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                 icon={Ban}
                 iconSize={14}
                 className="rounded-xl px-3.5! py-2! text-xs! font-semibold!"
-                onClick={() => onCloseJob(job.id)}
+                onClick={() => currentJobId && onCloseJob(currentJobId)}
                 disabled={isModerating}
               >
                 <span>Đóng tin</span>

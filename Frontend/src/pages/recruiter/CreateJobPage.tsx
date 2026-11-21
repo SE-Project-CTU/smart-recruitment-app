@@ -1,4 +1,10 @@
-import { useState, useMemo, useCallback, type ChangeEvent, type FormEvent } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -10,7 +16,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
-import { JobMatchingWeightsCard, type MatchingWeightsValues } from "@/components/job/JobMatchingWeightsCard";
+import {
+  JobMatchingWeightsCard,
+  type MatchingWeightsValues,
+} from "@/components/job/JobMatchingWeightsCard";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
@@ -310,8 +319,12 @@ export default function CreateJobPage() {
       errors.requirements = `Yêu cầu công việc cần tối thiểu 20 ký tự (hiện có ${reqTrim.length}/20 ký tự).`;
     }
 
-    if (formData.detailedLocation && formData.detailedLocation.trim().length > 500) {
-      errors.detailedLocation = "Địa chỉ làm việc chi tiết không được vượt quá 500 ký tự.";
+    if (
+      formData.detailedLocation &&
+      formData.detailedLocation.trim().length > 500
+    ) {
+      errors.detailedLocation =
+        "Địa chỉ làm việc chi tiết không được vượt quá 500 ký tự.";
     }
 
     if (formData.benefits && formData.benefits.trim().length > 10000) {
@@ -696,7 +709,8 @@ export default function CreateJobPage() {
                         htmlFor="description"
                         className="block text-xs font-semibold text-text-main"
                       >
-                        Mô tả vai trò <span className="text-status-error">*</span>
+                        Mô tả vai trò{" "}
+                        <span className="text-status-error">*</span>
                       </label>
                       <span
                         className={cn(
@@ -706,7 +720,8 @@ export default function CreateJobPage() {
                             : "text-text-muted",
                         )}
                       >
-                        {formData.description.trim().length}/20 ký tự tối thiểu
+                        Đạt tối thiểu {formData.description.trim().length}/20 ký
+                        tự
                       </span>
                     </div>
                     <textarea
@@ -739,7 +754,8 @@ export default function CreateJobPage() {
                             : "text-text-muted",
                         )}
                       >
-                        {formData.requirements.trim().length}/20 ký tự tối thiểu
+                        Đạt tối thiểu {formData.requirements.trim().length}/20
+                        ký tự
                       </span>
                     </div>
                     <textarea
@@ -905,47 +921,47 @@ export default function CreateJobPage() {
                   <FieldError message={fieldErrors.deadline} />
                 </div>
 
-                  {/* Nút hành động */}
-                  {(() => {
-                    const totalWeights =
-                      formData.matchingWeights.skill +
-                      formData.matchingWeights.experience +
-                      formData.matchingWeights.title +
-                      formData.matchingWeights.other;
-                    const isWeightsInvalid = Math.abs(totalWeights - 100) > 0.1;
+                {/* Nút hành động */}
+                {(() => {
+                  const totalWeights =
+                    formData.matchingWeights.skill +
+                    formData.matchingWeights.experience +
+                    formData.matchingWeights.title +
+                    formData.matchingWeights.other;
+                  const isWeightsInvalid = Math.abs(totalWeights - 100) > 0.1;
 
-                    return (
-                      <div className="flex items-center justify-end gap-3 pt-2">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => navigate(-1)}
-                          className="px-5! py-2! text-xs!"
-                        >
-                          Hủy bỏ
-                        </Button>
-                        <Button
-                          type="submit"
-                          variant="primary"
-                          isLoading={isSubmitting}
-                          disabled={
-                            !selectedCompany ||
-                            !isCompanyVerified ||
-                            isWeightsInvalid ||
-                            isSubmitting
-                          }
-                          title={
-                            isWeightsInvalid
-                              ? `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Phải đạt chính xác 100% để đăng tin tuyển dụng.`
-                              : undefined
-                          }
-                          className="px-6! py-2! text-xs! font-semibold!"
-                        >
-                          <span>Đăng tin tuyển dụng</span>
-                        </Button>
-                      </div>
-                    );
-                  })()}
+                  return (
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => navigate(-1)}
+                        className="px-5! py-2! text-xs!"
+                      >
+                        Hủy bỏ
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        isLoading={isSubmitting}
+                        disabled={
+                          !selectedCompany ||
+                          !isCompanyVerified ||
+                          isWeightsInvalid ||
+                          isSubmitting
+                        }
+                        title={
+                          isWeightsInvalid
+                            ? `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Phải đạt chính xác 100% để đăng tin tuyển dụng.`
+                            : undefined
+                        }
+                        className="px-6! py-2! text-xs! font-semibold!"
+                      >
+                        <span>Đăng tin tuyển dụng</span>
+                      </Button>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
