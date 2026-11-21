@@ -30,8 +30,6 @@ export function CompanyDetailLayout() {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
 
-  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
-  const activeCompany = useCompanyStore((s) => s.activeCompany);
   const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
 
   const {
@@ -41,25 +39,28 @@ export function CompanyDetailLayout() {
     refetch: refreshCompany,
   } = useCompanyDetail(companyId);
 
-  // Tự động đồng bộ Active Company trong store nếu truy cập trực tiếp bằng URL của công ty hoặc thông tin cập nhật
+  // Tự động đồng bộ Active Company trong store khi truy cập trực tiếp qua URL (chỉ khi là thành viên Active)
   useEffect(() => {
-    if (!company) return;
-    if (company.membership?.status !== "Active") {
+    if (!company || company.membership?.status !== "Active") {
       return;
     }
-    if (company.id !== activeCompanyId) {
+    const currentStoreId = useCompanyStore.getState().activeCompanyId;
+    if (currentStoreId !== company.id) {
       setActiveCompany(company);
-    } else if (
-      !activeCompany ||
-      activeCompany.name !== company.name ||
-      activeCompany.logoUrl !== company.logoUrl ||
-      activeCompany.logoFileId !== company.logoFileId ||
-      activeCompany.verificationStatus !== company.verificationStatus ||
-      activeCompany.membership?.role !== company.membership?.role
-    ) {
-      setActiveCompany(company);
+    } else {
+      const currentActive = useCompanyStore.getState().activeCompany;
+      if (
+        !currentActive ||
+        currentActive.name !== company.name ||
+        currentActive.logoUrl !== company.logoUrl ||
+        currentActive.logoFileId !== company.logoFileId ||
+        currentActive.verificationStatus !== company.verificationStatus ||
+        currentActive.membership?.role !== company.membership?.role
+      ) {
+        setActiveCompany(company);
+      }
     }
-  }, [company, activeCompanyId, activeCompany, setActiveCompany]);
+  }, [company, setActiveCompany]);
 
   if (isLoading) {
     return (
