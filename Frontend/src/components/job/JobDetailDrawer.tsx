@@ -220,11 +220,19 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   };
 
   const handleShareClick = async () => {
+    if (!job?.id) return;
+    const jobUrl = `${window.location.origin}/jobs/${job.id}`;
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng." });
+      await navigator.clipboard.writeText(jobUrl);
+      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
     } catch {
-      toast.warning({ description: "Không thể sao chép liên kết." });
+      const textArea = document.createElement("textarea");
+      textArea.value = jobUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
     }
   };
 
@@ -316,19 +324,37 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               </div>
             </div>
 
-            {data.aiScore != null && (
+            <div className="flex shrink-0 items-center gap-1.5">
+              {data.aiScore != null && (
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
+                        <Zap className="size-3" />
+                        <span>{data.aiScore}%</span>
+                      </div>
+                    }
+                  />
+                  <TooltipPanel>Độ tương thích hồ sơ</TooltipPanel>
+                </Tooltip>
+              )}
+
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
-                      <Zap className="size-3" />
-                      <span>{data.aiScore}%</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleShareClick}
+                      className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-primary"
+                      aria-label="Sao chép liên kết tin tuyển dụng"
+                    >
+                      <Share2 className="size-3.5" />
+                    </button>
                   }
                 />
-                <TooltipPanel>Độ tương thích hồ sơ</TooltipPanel>
+                <TooltipPanel>Sao chép liên kết</TooltipPanel>
               </Tooltip>
-            )}
+            </div>
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-3.5">
