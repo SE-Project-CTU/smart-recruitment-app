@@ -45,7 +45,7 @@ export function WorkspaceSwitcher() {
     if (isLoading) return;
 
     if (companies.length === 0) {
-      if (activeCompanyId !== null || activeCompany !== null) {
+      if (activeCompanyId !== null) {
         clearActiveCompany();
       }
       return;
@@ -55,22 +55,10 @@ export function WorkspaceSwitcher() {
     if (!matched) {
       // Nếu chưa có hoặc id lưu không khớp công ty nào trong danh sách, chọn công ty đầu tiên
       setActiveCompany(companies[0]);
-    } else if (
-      !activeCompany ||
-      activeCompany.id !== matched.id ||
-      activeCompany.name !== matched.name ||
-      activeCompany.logoUrl !== matched.logoUrl ||
-      activeCompany.logoFileId !== matched.logoFileId ||
-      activeCompany.verificationStatus !== matched.verificationStatus ||
-      activeCompany.membership?.role !== matched.membership?.role
-    ) {
-      // Giữ thông tin tóm tắt luôn đồng bộ mới nhất
-      setActiveCompany(matched);
     }
   }, [
     companies,
     activeCompanyId,
-    activeCompany,
     isLoading,
     setActiveCompany,
     clearActiveCompany,

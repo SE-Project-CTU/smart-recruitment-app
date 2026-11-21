@@ -32,10 +32,7 @@ import {
 } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
-import {
-  CandidateTable,
-  ApplicationCvPreviewDialog,
-} from "./candidate";
+import { CandidateTable, ApplicationCvPreviewDialog } from "./candidate";
 import { EmptyStreet } from "@/assets/images/decoration";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
@@ -181,32 +178,23 @@ export default function RecruiterDashboard() {
   const isLoadingData =
     isLoadingCompanies || isLoadingJobs || isLoadingApplications;
 
-  // Tự động đồng bộ và chọn doanh nghiệp hoạt động nếu chưa có hoặc dữ liệu server thay đổi
+  // Tự động đồng bộ và chọn doanh nghiệp hoạt động nếu chưa có hoặc id lưu không còn tồn tại
   useEffect(() => {
     if (isLoadingCompanies) return;
 
     if (companies.length === 0) {
-      if (activeCompany !== null || activeCompanyId !== null) {
+      if (activeCompanyId !== null) {
         clearActiveCompany();
       }
       return;
     }
 
     const found = companies.find((c) => c.id === activeCompanyId);
-    if (found) {
-      if (
-        found.verificationStatus !== activeCompany?.verificationStatus ||
-        found.name !== activeCompany?.name ||
-        found.logoUrl !== activeCompany?.logoUrl
-      ) {
-        setActiveCompany(found);
-      }
-    } else {
+    if (!found) {
       setActiveCompany(companies[0]);
     }
   }, [
     companies,
-    activeCompany,
     activeCompanyId,
     isLoadingCompanies,
     setActiveCompany,

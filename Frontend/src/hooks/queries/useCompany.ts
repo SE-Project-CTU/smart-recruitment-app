@@ -378,6 +378,9 @@ export const useRemoveCompanyMember = () => {
       queryClient.invalidateQueries({
         queryKey: ["companies", "members", variables.companyId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["companies", "detail", variables.companyId],
+      });
       queryClient.invalidateQueries({ queryKey: ["companies", "my"] });
     },
   });
