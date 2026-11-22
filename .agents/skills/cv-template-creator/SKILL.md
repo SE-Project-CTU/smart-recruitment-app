@@ -1,22 +1,22 @@
 ---
 name: cv-template-creator
-description: End-to-end protocol to create and register a new CV template from a mockup image. Covers visual breakdown, schema inspection, Cloudinary admin upload via Backend API, idempotent SQL seeding, and Frontend Code-driven Registry integration with Tiptap WYSIWYG, DnD, AI highlight store, and A4 print pagination.
+description: End-to-end protocol to create and register a new CV template from a mockup image. Covers visual breakdown, cross-stack schema inspection, Cloudinary admin upload via Backend API, idempotent SQL seeding, and Frontend Code-driven Registry integration with Tiptap WYSIWYG, DnD, AI highlight store, dual primary colors, conditional avatar crop upload, and React performance memoization.
 when_to_use: "When asked to create, add, or implement a new CV template from an image, mockup, or specification. Follows the Code-driven Registry + Admin Metadata architecture. NOT for modifying existing template styles or general CV builder fixes."
 allowed-tools: Read, Write, Edit, Grep, Glob, run_command
-version: 1.2.1
+version: 1.3.1
 effort: medium
 ---
 
 # cv-template-creator — Standardized CV Template Creation Protocol
 
 > **Core Architectural Principle:** **Code-driven Registry + Admin Metadata**.  
-> Never build a free-form DOM/CSS drag-and-drop builder for the Admin Client. All presentation layouts, A4 PDF print pagination rules, AI Rewrite section highlight tracking (`useCvHighlightStore`), and ATS parser compatibility must be managed strictly via Frontend React code paired with seed metadata in the Database.
+> Never build a free-form DOM/CSS drag-and-drop builder for the Admin Client. All presentation layouts, dual primary color bridges, avatar crop upload, A4 PDF print pagination rules, AI Rewrite section highlight tracking (`useCvHighlightStore`), and ATS parser compatibility must be managed strictly via Frontend React code paired with seed metadata in the Database.
 
 ---
 
 ## 1. Mandatory Input Ingestion & Naming Conventions
 
-Before starting the implementation, collect or derive these 4 standardized identifiers from the mockup image filename (e.g., `classic_harvard.webp`):
+Before starting implementation, collect or derive these 4 standardized identifiers from the mockup image filename (e.g., `classic_harvard.webp`):
 
 1. **Template Mockup Image (`imagePath`)**:
    - Supported extensions: `.webp`, `.png`, `.jpg`, `.jpeg`.
@@ -30,343 +30,292 @@ Before starting the implementation, collect or derive these 4 standardized ident
 
 ---
 
-## 2. End-to-End Implementation Workflow
+## 2. Phased Implementation Protocol
+
+Execute the 6 phases sequentially. Verify every acceptance checkbox in the current phase before moving to the next phase.
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ Step 1: Mockup Analysis & Visual Breakdown                  │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Step 2: Reference & Schema Inspection (Frontend + Backend)  │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Step 3: Upload Thumbnail via Backend Media API              │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Step 4: Generate & Apply Idempotent Database SQL Seed       │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Step 5: Implement Frontend Component & Code-driven Registry │
-└──────────────────────────────┬──────────────────────────────┘
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Step 6: Type-Check, Build Verification & E2E Testing        │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│ Phase 1: Visual Breakdown & Cross-Stack Schema Inspection              │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ Phase 2: Upload Thumbnail via Backend Media API & Idempotent SQL Seed  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ Phase 3: Frontend Type Definitions & Dual Primary Colors Bridge        │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ Phase 4: Component Hierarchy, Avatar Crop Upload & Section Styling     │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ Phase 5: Rules of Hooks Compliance, Memoization & Template Registry    │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ Phase 6: Build Verification, ESLint Check & Visual Acceptance          │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Step 1: Mockup Analysis & Visual Breakdown
+### Phase 1: Mockup Analysis & Cross-Stack Schema Inspection
 
-Inspect the template mockup image using the `Read` tool on `imagePath`:
-
-- **Determine Area Layout**:
-  - Single-column flow: `supportedAreaIds: ["main"]`.
-  - Two-column flow (sidebar + main): `supportedAreaIds: ["sidebar", "main"]`.
-- **Profile Header Breakdown**:
-  - Avatar styling: circular (`rounded-full`), rounded square (`rounded-xl`), or no avatar.
-  - Contact details layout: 2-column or 3-column grid, icon lists, or inline separator bars.
-- **Section Presentations**:
-  - Section heading styling: full-width tinted banner, bottom accent border, or badge pills.
-  - Content presentation: two-column layout (left: dates/period, right: company/role/bullet list) or sequential block layout.
-  - Specific `skills` presentation: 2-column bulleted grid or inline skill badge tags.
+- [ ] **Inspect Template Mockup (`imagePath`) using `Read`**:
+  - **Area Layout**: Single-column (`supportedAreaIds: ["main"]`) or two-column (`supportedAreaIds: ["sidebar", "main"]`).
+  - **Profile Header**: Circular avatar (`rounded-full`), rounded square (`rounded-xl`), or text-only header without avatar; contact details layout (2-column grid, 3-column grid, or inline separator bar).
+  - **Section Titles**: Full-width tinted banner, bottom accent border, or solid badge block.
+  - **Section Items**: Two-column split (`col-span-3` period / `col-span-9` details) or sequential vertical stack; `skills` rendered as a 2-column bulleted grid or inline skill pills.
+- [ ] **Cross-Stack Schema & Codebase Inspection**:
+  - Run `Grep` for `senior_harvard` across `Frontend/` and `Backend/` to find every file referencing template codes.
+  - Inspect `Frontend/src/types/cv.ts` and `Frontend/src/features/cv/templates/templateMetadata.ts` to confirm exact schemas for `defaultLayout`, `defaultContent`, `metadata.defaultStyle`, `profile`, and `sections`.
+  - Inspect Backend whitelist validator: `Backend/src/SmartHire.Application/CVs/Validators/CvDocumentUpdateValidator.cs` $\rightarrow$ add `"<templateCode>"` if allowed template codes are validated there.
+  - Inspect reference template components: `Frontend/src/features/cv/templates/SeniorHarvard/*` (1-column) or `Frontend/src/features/cv/templates/SidebarClassic/*` (2-column).
 
 ---
 
-### Step 2: Reference & Schema Inspection (Mandatory Before SQL & Code)
+### Phase 2: Upload Thumbnail via Backend Media API & Idempotent SQL Seed
 
-Before writing any SQL seed JSON or React component, inspect the existing codebase so schemas, validators, and prop signatures match 100%:
+> **Strict Security & Pipeline Rules:**
+>
+> 1. Never read `Cloudinary__ApiKey` or `Cloudinary__ApiSecret` from `Backend/.env` to call `api.cloudinary.com` directly. Always upload through `POST /api/v1/media/upload/image` so Backend routes the asset to `folder: "images"` and creates a valid foreign key record in `media_files`.
+> 2. Never hardcode or fallback `ADMIN_EMAIL` or `ADMIN_PASSWORD`. Load them from `Backend/.env` (or active environment variables); if missing or still set to placeholders (`<...>`), halt immediately and ask the user.
 
-1. **Cross-Stack Code Search**:
-   - Run `Grep` for `senior_harvard` across both `Frontend/` and `Backend/` to locate every file referencing template codes (e.g., TypeScript unions, Zod schemas, Backend seeders/initializers, or validators).
-2. **Inspect Frontend Types & Metadata**:
-   - Use `Read` on `Frontend/src/types/cv.ts` and `Frontend/src/features/cv/templates/templateMetadata.ts` to verify the exact structure of `defaultLayout`, `defaultContent`, `metadata.defaultStyle`, `profile`, and `sections`.
-3. **Inspect Reference Template Components**:
-   - If implementing a **1-column** template $\rightarrow$ inspect `Frontend/src/features/cv/templates/SeniorHarvard/*`.
-   - If implementing a **2-column** template $\rightarrow$ inspect `Frontend/src/features/cv/templates/SidebarClassic/*`.
+- [ ] **Authenticate & Upload Mockup Thumbnail**:
 
----
+  ```powershell
+  # 1. Parse Backend/.env into current process environment (stripping surrounding quotes)
+  $envFile = "Backend\.env"
+  if (Test-Path $envFile) {
+      Get-Content $envFile | ForEach-Object {
+          if ($_ -match '^\s*([^#][^=]+?)\s*=\s*(.*)\s*$') {
+              $key = $matches[1].Trim()
+              $val = $matches[2].Trim() -replace '^[''"]|[''"]$', ''
+              if (-not [Environment]::GetEnvironmentVariable($key)) {
+                  [Environment]::SetEnvironmentVariable($key, $val, "Process")
+              }
+          }
+      }
+  }
 
-### Step 3: Upload Thumbnail via Backend Media API
+  $adminEmail = $env:ADMIN_EMAIL
+  $adminPassword = $env:ADMIN_PASSWORD
 
-Every row in `cv_templates` enforces a foreign key constraint `thumbnail_file_id -> media_files(id)`.
+  if ([string]::IsNullOrWhiteSpace($adminEmail) -or $adminEmail -like "<*>" -or
+      [string]::IsNullOrWhiteSpace($adminPassword) -or $adminPassword -like "<*>") {
+      throw "Missing or unconfigured ADMIN_EMAIL / ADMIN_PASSWORD in Backend/.env. Stop and ask the user before proceeding."
+  }
 
-**Strict Security & Pipeline Rules:**
+  $apiPort = if ($env:API_HOST_PORT) { $env:API_HOST_PORT } else { "5190" }
+  $apiBaseUrl = if ($env:VITE_API_BASE_URL) { $env:VITE_API_BASE_URL.TrimEnd('/') } else { "http://localhost:$apiPort/api/v1" }
 
-1. **Never Bypass Backend API:** Do **NOT** read `Cloudinary__ApiKey` or `Cloudinary__ApiSecret` from `Backend/.env` to upload directly to `api.cloudinary.com`. Always upload through `POST /api/v1/media/upload/image` so Backend handles folder routing (`images`) and inserts the `media_files` row.
-2. **Zero Hardcoded Credentials:** Load `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `API_HOST_PORT` directly from `Backend/.env` (or active process environment variables). If missing or still set to placeholders (`<...>`), halt immediately and ask the user.
-3. **Backend Reachability Gate:** If the Backend API is unreachable, halt immediately and ask the user to start the Backend server before retrying.
+  # 2. Authenticate as Admin (halting if Backend is unreachable)
+  $loginBody = @{
+      email    = $adminEmail
+      password = $adminPassword
+  } | ConvertTo-Json
 
-```powershell
-# 1. Parse Backend/.env into current process environment (stripping surrounding quotes)
-$envFile = "Backend\.env"
-if (Test-Path $envFile) {
-    Get-Content $envFile | ForEach-Object {
-        if ($_ -match '^\s*([^#][^=]+?)\s*=\s*(.*)\s*$') {
-            $key = $matches[1].Trim()
-            $val = $matches[2].Trim() -replace '^[''"]|[''"]$', ''
-            if (-not [Environment]::GetEnvironmentVariable($key)) {
-                [Environment]::SetEnvironmentVariable($key, $val, "Process")
-            }
-        }
-    }
-}
+  try {
+      $loginRes = Invoke-RestMethod -Uri "$apiBaseUrl/auth/login" `
+          -Method Post -Body $loginBody -ContentType "application/json" -ErrorAction Stop
+  } catch {
+      throw "Failed to authenticate against $apiBaseUrl/auth/login. Ensure the Backend server is running and credentials in Backend/.env are valid. Do NOT call Cloudinary API directly."
+  }
 
-$adminEmail = $env:ADMIN_EMAIL
-$adminPassword = $env:ADMIN_PASSWORD
+  $adminToken = $loginRes.data.tokens.accessToken
 
-if ([string]::IsNullOrWhiteSpace($adminEmail) -or $adminEmail -like "<*>" -or
-    [string]::IsNullOrWhiteSpace($adminPassword) -or $adminPassword -like "<*>") {
-    throw "Missing or unconfigured ADMIN_EMAIL / ADMIN_PASSWORD in Backend/.env. Stop and ask the user before proceeding."
-}
+  # 3. Upload template mockup image via Backend Media Controller
+  $imagePath = "temp\cv-templates\<file_name>.<ext>"
+  $form = @{
+      file = Get-Item $imagePath
+  }
 
-$apiPort = if ($env:API_HOST_PORT) { $env:API_HOST_PORT } else { "5190" }
-$apiBaseUrl = if ($env:VITE_API_BASE_URL) { $env:VITE_API_BASE_URL.TrimEnd('/') } else { "http://localhost:$apiPort/api/v1" }
+  $uploadRes = Invoke-RestMethod -Uri "$apiBaseUrl/media/upload/image" `
+      -Method Post -Headers @{ Authorization = "Bearer $adminToken" } `
+      -Form $form -ErrorAction Stop
 
-# 2. Authenticate as Admin (halting if Backend is not running)
-$loginBody = @{
-    email    = $adminEmail
-    password = $adminPassword
-} | ConvertTo-Json
-
-try {
-    $loginRes = Invoke-RestMethod -Uri "$apiBaseUrl/auth/login" `
-        -Method Post -Body $loginBody -ContentType "application/json" -ErrorAction Stop
-} catch {
-    throw "Failed to authenticate against $apiBaseUrl/auth/login. Ensure the Backend server is running and credentials in Backend/.env are valid. Do NOT call Cloudinary API directly."
-}
-
-$adminToken = $loginRes.data.tokens.accessToken
-
-# 3. Upload template mockup image via Backend Media Controller (routes to folder: "images")
-$imagePath = "temp\cv-templates\<file_name>.<ext>"
-$form = @{
-    file = Get-Item $imagePath
-}
-
-$uploadRes = Invoke-RestMethod -Uri "$apiBaseUrl/media/upload/image" `
-    -Method Post -Headers @{ Authorization = "Bearer $adminToken" } `
-    -Form $form -ErrorAction Stop
-
-$thumbnailFileId = $uploadRes.data.id
-# Preserve $thumbnailFileId (GUID) for Step 4
-```
-
----
-
-### Step 4: Generate & Apply Idempotent Database SQL Seed
-
-> **Repository Boundary Rule:** Always keep all project files strictly within the repository boundary. Never access or output to external folders like `smart-recruitment-docs/`.  
-> **Git Tracking Rule:** While temporary mockup images stay in `temp/cv-templates/`, save the `.sql` seed file in a Git-tracked directory (`temp/cv-templates/scripts/seeds/cv_template_<templateCode>.sql`) so all team members receive the template metadata upon pulling code.
-
-1. **`default_layout` JSON Structure**:
-   - Must include all 9 standard sections (`FIXED_SECTION_KEYS`) without duplicates or omissions, matching the template's `supportedAreaIds`:
-
-   - **Option A — Single-Column (`["main"]`)**:
-
-     ```json
-     {
-       "version": "1.0",
-       "areas": [
-         {
-           "id": "main",
-           "sections": [
-             "objective",
-             "education",
-             "experience",
-             "projects",
-             "skills",
-             "certifications",
-             "awards",
-             "interests",
-             "additionalInfo"
-           ]
-         }
-       ]
-     }
-     ```
-
-   - **Option B — Two-Column (`["sidebar", "main"]`)**:
-     ```json
-     {
-       "version": "1.0",
-       "areas": [
-         {
-           "id": "sidebar",
-           "sections": ["skills", "certifications", "awards", "interests"]
-         },
-         {
-           "id": "main",
-           "sections": [
-             "objective",
-             "experience",
-             "education",
-             "projects",
-             "additionalInfo"
-           ]
-         }
-       ]
-     }
-     ```
-
-2. **`default_content` Tiptap JSON Structure & Sample Data Hygiene**:
-   - Follow the exact `default_content` schema verified in Step 2.
-   - `profile.phone` MUST be a valid 10-digit Vietnamese phone number without spaces or hyphens (e.g., `"0912345678"`).
-   - `profile.email` MUST be a valid realistic email address (e.g., `"nguyenvana.dev@example.com"`).
-   - `metadata.defaultStyle` MUST explicitly define an allowed `fontFamily` matching `DEFAULT_CV_FONT_ID` in the Frontend codebase.
-   - Wrap rich-text fields as valid Tiptap documents:
-     ```json
-     {
-       "type": "doc",
-       "attrs": { "fontSize": 12 },
-       "content": [
-         {
-           "type": "paragraph",
-           "content": [
-             { "type": "text", "text": "Sample professional text..." }
-           ]
-         }
-       ]
-     }
-     ```
-
-3. **Write & Execute Idempotent SQL Upsert**:
-   - Use PostgreSQL dollar-quoting (`$json$ ... $json$::jsonb`) to prevent apostrophe (`'`) syntax errors, and use a `DO $$ ... $$` block so the script is safely re-runnable regardless of whether `code` has a `UNIQUE` constraint:
-     ```sql
-     DO $$
-     BEGIN
-         IF EXISTS (SELECT 1 FROM public.cv_templates WHERE code = '<templateCode>') THEN
-             UPDATE public.cv_templates
-             SET name = '<templateName>',
-                 description = '<Concise and description of roles style target template the>',
-                 version = '1.0',
-                 default_layout = $json$<DEFAULT_LAYOUT_JSON>$json$::jsonb,
-                 default_content = $json$<DEFAULT_CONTENT_JSON>$json$::jsonb,
-                 thumbnail_file_id = '<THUMBNAIL_MEDIA_FILE_ID>',
-                 is_active = true,
-                 updated_at = NOW()
-             WHERE code = '<templateCode>';
-         ELSE
-             INSERT INTO public.cv_templates (
-                 id, code, name, description, version,
-                 default_layout, default_content,
-                 language, is_active, created_at, updated_at,
-                 thumbnail_file_id
-             ) VALUES (
-                 gen_random_uuid(),
-                 '<templateCode>',
-                 '<templateName>',
-                 '<Concise and description of roles style target template the>',
-                 '1.0',
-                 $json$<DEFAULT_LAYOUT_JSON>$json$::jsonb,
-                 $json$<DEFAULT_CONTENT_JSON>$json$::jsonb,
-                 'vi',
-                 true,
-                 NOW(), NOW(),
-                 '<THUMBNAIL_MEDIA_FILE_ID>'
-             );
-         END IF;
-     END $$;
-     ```
-   - Execute this SQL file against the local PostgreSQL database configured in `Backend/.env` (`POSTGRES_DB`, `POSTGRES_USER`) via `psql` or `docker exec` (and update any C# Backend seed initializer if discovered during Step 2).
-
----
-
-### Step 5: Implement Frontend Component & Code-driven Registry
-
-#### 5.1. Update Type Definitions
-
-In `Frontend/src/types/cv.ts`:
-
-- Append `"<templateCode>"` to the `CvTemplateCode` union type.
-
-#### 5.2. Declare Metadata & Layout Rules
-
-In `Frontend/src/features/cv/templates/templateMetadata.ts`:
-
-- Register `<templateCode>` in `CV_TEMPLATE_METADATA` matching the exact `areas` structure from Step 4.1:
-  ```typescript
-  <templateCode>: {
-    code: "<templateCode>",
-    name: "<templateName>",
-    supportedAreaIds: ["main"] as const, // Or ["sidebar", "main"] as const
-    defaultLayout: {
-      version: "1.0",
-      areas: [
-        // Must match Step 4.1 (1-column or 2-column distribution of all 9 FIXED_SECTION_KEYS)
-      ],
-    },
-  },
+  $thumbnailFileId = $uploadRes.data.id
+  # Preserve $thumbnailFileId (GUID) for the SQL seed step
   ```
 
-#### 5.3. Implement Template React Component Hierarchy
+- [ ] **Generate & Apply Idempotent SQL Seed**:
+  - Save the SQL seed inside a Git-tracked directory: `temp/scripts/seeds/cv_template_<templateCode>.sql` (keep mockup images in `temp/cv-templates/`).
+  - **Mandatory JSON & Data Hygiene Rules**:
+    - Table column: `language = 'vi'`.
+    - Inside `default_content.metadata`: set `"language": "vi"` as a string literal (never use an integer such as `1`, which crashes `CvDocumentFontSizeBackfiller` in EF Core).
+    - Configure dual primary colors in `default_content.metadata.defaultStyle`: `"primaryColors": ["#Color1", "#Color2"]`.
+    - Explicitly set `metadata.defaultStyle.fontFamily` to a valid ID matching `DEFAULT_CV_FONT_ID`.
+    - Include all 9 standard keys from `FIXED_SECTION_KEYS` (`objective`, `education`, `experience`, `projects`, `skills`, `certifications`, `awards`, `interests`, `additionalInfo`) in `default_layout.areas` without duplicates or omissions.
+    - `profile.phone` MUST be a valid 10-digit Vietnamese phone number without spaces or hyphens (e.g., `"0912345678"`).
+  - **Self-Contained & Idempotent SQL Upsert Template**:
+
+    > **Foreign Key Safety Rule:** Template enforces `FOREIGN KEY (thumbnail_file_id) REFERENCES media_files(id)`. To guarantee the seed runs cleanly on fresh databases (CI/CD or teammates' machines), the script must automatically create the `media_files` record (linked to an existing Admin user) if it does not already exist.
+
+    ```sql
+    DO $$
+    DECLARE
+        v_admin_id uuid;
+        v_media_id uuid := '<THUMBNAIL_MEDIA_FILE_ID>';
+    BEGIN
+        -- 1. BẢO ĐẢM KHÓA NGOẠI: Tạo bản ghi media_files nếu chưa có (tránh lỗi FK trên DB mới)
+        IF NOT EXISTS (SELECT 1 FROM public.media_files WHERE id = v_media_id) THEN
+            SELECT u.id INTO v_admin_id
+            FROM public.users u
+            LEFT JOIN public.user_roles ur ON u.id = ur.user_id
+            ORDER BY ur.role_id NULLS LAST
+            LIMIT 1;
+
+            IF v_admin_id IS NOT NULL THEN
+                INSERT INTO public.media_files (
+                    id, owner_id, file_name, file_url, file_type, file_size, public_id, created_at
+                ) VALUES (
+                    v_media_id,
+                    v_admin_id,
+                    '<templateCode>.webp',
+                    '<CLOUDINARY_FILE_URL>',
+                    'image/webp',
+                    124118,
+                    '<CLOUDINARY_PUBLIC_ID>',
+                    NOW()
+                );
+            END IF;
+        END IF;
+
+        -- 2. UPSERT BẢNG cv_templates
+        IF EXISTS (SELECT 1 FROM public.cv_templates WHERE code = '<templateCode>') THEN
+            UPDATE public.cv_templates
+            SET name = '<templateName>',
+                description = '<Concise and description of roles style target template>',
+                version = '1.0',
+                default_layout = $json$<DEFAULT_LAYOUT_JSON>$json$::jsonb,
+                default_content = $json$<DEFAULT_CONTENT_JSON>$json$::jsonb,
+                thumbnail_file_id = v_media_id,
+                language = 'vi',
+                is_active = true,
+                updated_at = NOW()
+            WHERE code = '<templateCode>';
+        ELSE
+            INSERT INTO public.cv_templates (
+                id, code, name, description, version,
+                default_layout, default_content,
+                language, is_active, created_at, updated_at,
+                thumbnail_file_id
+            ) VALUES (
+                gen_random_uuid(),
+                '<templateCode>',
+                '<templateName>',
+                '<Concise and description of roles style target template>',
+                '1.0',
+                $json$<DEFAULT_LAYOUT_JSON>$json$::jsonb,
+                $json$<DEFAULT_CONTENT_JSON>$json$::jsonb,
+                'vi',
+                true,
+                NOW(), NOW(),
+                v_media_id
+            );
+        END IF;
+    END $$;
+    ```
+
+  - Execute the script against the local PostgreSQL database configured in `Backend/.env` (`POSTGRES_DB`, `POSTGRES_USER`) via `psql` or `docker exec` (check active container name via `docker ps`, e.g., `smarthire-db-1`).
+
+---
+
+### Phase 3: Frontend Type Definitions & Dual Primary Colors Bridge
+
+- [ ] **Update Type Definitions & Metadata**:
+  - `Frontend/src/types/cv.ts`: Append `"<templateCode>"` to the `CvTemplateCode` union type.
+  - `Frontend/src/features/cv/templates/templateMetadata.ts`: Register `<templateCode>` in `CV_TEMPLATE_METADATA` matching `supportedAreaIds` and `defaultLayout.areas` from Phase 2.
+- [ ] **Dual Primary Colors & CSS Custom Properties Bridge**:
+  - `Color 1` (`--cv-primary-1`): Section headings (`h3`), candidate full name, and title accent borders.
+  - `Color 2` (`--cv-primary-2`): Section title banner fill or sidebar background fill.
+  - Define CSS Custom Properties on **both** the root `.cv-page-container` and the `@hello-pangea/dnd` dragging snapshot portal wrapper (since dragged items portal to `document.body` and lose ancestor CSS variables):
+
+    ```tsx
+    const primaryColor = globalStyles?.primaryColors?.[0] || "#0F172A";
+    const bannerBgColor = globalStyles?.primaryColors?.[1] || "#F1F5F9";
+
+    const cssVars = {
+      fontFamily: getCvFontFamilyCss(fontFamily),
+      lineHeight,
+      ["--cv-font-scale" as string]: fontScale,
+      ["--cv-line-height" as string]: lineHeight,
+      ["--cv-primary-1" as string]: `var(--cv-preview-primary-1, ${primaryColor})`,
+      ["--cv-primary-2" as string]: `var(--cv-preview-primary-2, ${bannerBgColor})`,
+    } as React.CSSProperties;
+
+    // Apply cssVars to root container AND to dragged item wrapper when snapshot.isDragging === true
+    ```
+
+---
+
+### Phase 4: Component Hierarchy, Avatar Handling & Section Styling
 
 Create directory `Frontend/src/features/cv/templates/<componentDirName>/`:
 
-- **`index.tsx` (Root Template Component)**:
-  - Accepts standard `CvTemplateProps`.
-  - Wraps droppables using `@hello-pangea/dnd` matching `supportedAreaIds`.
-  - Integrates AI highlight state: `const highlightSectionKey = useCvHighlightStore((s) => s.highlightSectionKey)`.
-  - Applies theme styling and fonts from `metadata.defaultStyle` via `DEFAULT_CV_FONT_ID` and `getCvFontFamilyCss`.
-  - Enforces visibility checks (`sec.visible !== false`).
-- **`ProfileHeader.tsx`**:
-  - Renders Avatar, Full Name, Title, and Contact Grid.
-  - Passes fields through `renderField({ name: "profile.fullName", document: profile.fullName, placeholder: "Full Name" })`.
-- **`SectionTitle.tsx` (or `SectionHeading.tsx` matching codebase convention)**:
-  - Displays section titles styled to match the template visual identity.
-  - **Mandatory CSS Rule:** Must include `break-after-avoid` to prevent orphan headings at the bottom of printed pages.
-- **Dedicated Section Files (`*Section.tsx`)**:
+- [ ] **`ProfileHeader.tsx` (Header & Conditional Avatar Crop Upload)**:
+  - Render candidate name, title, and contact fields via `renderField(...)`.
+  - **If the mockup design includes an avatar**:
+    - Integrate `useImageCropUpload` + `ImageUploadDialog` (`aspectRatio={1}`, `shape="circle"`, `maxOutputDimension={512}`).
+    - Upload cropped file via `mediaService.uploadImage(croppedFile)` and clean up replaced temporary uploads in the same session via `useDeleteMedia`.
+    - Update form state with `useFormContext().setValue("content.profile.avatarUrl", url, { shouldDirty: true, shouldValidate: true })`.
+    - Provide clean UX states: empty state (`Camera` icon + _"Chọn ảnh"_), uploading state (`Loader2` spinner + _"Đang tải..."_), hover overlay (_"Đổi ảnh"_ with keyboard accessibility), and hide interactive overlays during print/read-only mode (`no-print`).
+  - **If the mockup design is text-only (no avatar)**: omit avatar upload hooks and imports cleanly so ESLint reports zero unused variables.
+- [ ] **`SectionTitle.tsx` (or `SectionHeading.tsx` matching codebase convention)**:
+  - Must include `break-after-avoid` to prevent orphaned headings at the bottom of printed A4 pages.
+  - Apply `backgroundColor: var(--cv-primary-2, ${bannerBgColor})` and `color: var(--cv-primary-1, ${primaryColor})`.
+- [ ] **9 Dedicated Section Components (`*Section.tsx`)**:
   - `ObjectiveSection.tsx`, `EducationSection.tsx`, `ExperienceSection.tsx`, `SkillsSection.tsx`, `ProjectsSection.tsx`, `CertificationsSection.tsx`, `AwardsSection.tsx`, `InterestsSection.tsx`, `AdditionalInfoSection.tsx`.
-  - **Mandatory CSS Rule:** Every repeating item (job, school, project) must include `break-inside-avoid` to prevent split lines across A4 pages.
-  - Integrates `ItemActions` from `builder/components/ItemActions` via `sectionEditors` for adding, deleting, and reordering items.
-
-#### 5.4. Register in Template Registry
-
-In `Frontend/src/features/cv/templates/registry.ts`:
-
-- Import `<componentDirName>Template`.
-- Add to `TEMPLATE_REGISTRY`:
-  ```typescript
-  export const TEMPLATE_REGISTRY: Record<CvTemplateCode, ComponentType<CvTemplateProps>> = {
-    senior_harvard: SeniorHarvardTemplate,
-    sidebar_classic: SidebarClassicTemplate,
-    <templateCode>: <componentDirName>Template,
-  };
-  ```
+  - Every repeating entry (job, school, project, award) must include `break-inside-avoid` to prevent split items across A4 pages.
+  - Integrate `ItemActions` via `sectionEditors` for adding, removing, and reordering entries in edit mode.
 
 ---
 
-### Step 6: Type-Check, Build Verification & End-to-End Testing
+### Phase 5: Rules of Hooks Compliance, Memoization & Template Registry
 
-1. **Static Analysis & Type Checking**:
+- [ ] **Strict Rules of Hooks Compliance**:
+  - **NEVER** call any React Hook (`useCvHighlightStore`, `useMemo`, `useCallback`, `useState`, `useRef`, `useFormContext`) after an early return (`if (!content) return null`, `if (!mainArea) return null`).
+  - Declare all Hooks unconditionally at the top of the component function; place early-return guards **after** all Hooks.
+- [ ] **Performance Optimization & Derived State**:
+  - Use `useMemo` for derived values (`visibleSections`, `mainArea`, `supportedAreaIds`, `unknownAreas`, `avatarSrc`, `cssVars`).
+  - Use `useCallback` for event handlers and render helpers (`isSectionVisible`, `handleDragEnd`, `moveSection`, `renderSectionContent`, `handleCropConfirm`, `handleRemoveAvatar`).
+- [ ] **Prevent Cascading Re-renders (`React.memo`)**:
+  - Wrap `<componentDirName>Template`, `ProfileHeader`, `SectionTitle`, and all 9 section components in `React.memo` and assign explicit `.displayName` properties.
+- [ ] **Register in `registry.ts`**:
+  - Add `<templateCode>: <componentDirName>Template` to `TEMPLATE_REGISTRY` in `Frontend/src/features/cv/templates/registry.ts`.
 
-   ```powershell
-   cd Frontend
-   pnpm exec tsc --noEmit && pnpm run build
-   ```
+---
 
-   _Requirement:_ Must pass full TypeScript checking and Vite build with 0 Errors.
+### Phase 6: Build Verification, ESLint Check & Visual Acceptance
 
-2. **Functional & Visual Verification**:
-   - **Candidate CV Gallery (`/cv/templates`)**: Card displays proper thumbnail, title, and description.
-   - **Creation Flow ("Tạo CV từ mẫu")**: Initializes a new CV with all 9 standard sections pre-filled with valid seed content.
-   - **Tiptap WYSIWYG Editor**: Interactive inline toolbar appears on focus with rich-text controls.
-   - **AI Rewrite Assistant**: Highlights sections with accent border/ring when suggestions are focused.
-   - **Admin Catalog (`/admin/catalogs`)**: Preview modal renders the exact React component; toggle active switch functions properly.
-   - **A4 PDF Print Preview (`Ctrl + P`)**: Output respects `8mm` margins with clean page breaks and zero orphaned headings.
+- [ ] **Static Type-Checking & Linting**:
+  ```powershell
+  cd Frontend
+  pnpm exec tsc --noEmit
+  pnpm exec eslint src/features/cv/templates/<componentDirName>
+  ```
+  _Requirement:_ 0 errors and 0 warnings (specifically zero `react-hooks/rules-of-hooks` or unused import issues).
+- [ ] **Production Bundle Build**:
+  ```powershell
+  pnpm run build
+  ```
+  _Requirement:_ Vite production build completes cleanly with 0 errors.
+- [ ] **End-to-End Visual & Functional Verification**:
+  - **Admin Catalog (`/admin/catalogs?tab=cv-templates`)**: New template displays proper thumbnail, title, and description; preview modal and active toggle work properly.
+  - **Candidate Gallery (`/cv/templates`) & Builder**: Creating a CV initializes all 9 sections with valid Vietnamese seed content; switching **Color 1** and **Color 2** updates headings and banners immediately; DnD reordering preserves colors mid-drag; AI Rewrite highlights targeted sections.
+  - **A4 Print Preview (`Ctrl + P`)**: Clean page breaks (`break-inside-avoid`, `break-after-avoid`) with all editor controls hidden (`no-print`).
 
 ---
 
 ## 3. Inviolable Guardrails
 
-1. **ATS Compatibility**: All text content must be rendered as real DOM text nodes; never replace text with canvas or SVG imagery.
-2. **Fixed Section Keys**: Strictly retain all 9 predefined keys from `FIXED_SECTION_KEYS` (`objective`, `experience`, `education`, `skills`, `projects`, `certifications`, `awards`, `interests`, `additionalInfo`) across `defaultLayout.areas`.
-3. **No Direct Admin Free-Form Builder**: Do not create generic WYSIWYG canvas/DOM editors for the admin client.
-4. **Print Pagination Protection**: Repeating section items must always carry `break-inside-avoid`, and section headings must carry `break-after-avoid`.
-5. **Valid Sample Data**: Seeded `default_content` must use a valid 10-digit Vietnamese phone number (e.g., `0912345678`) and an allowed `fontFamily` ID.
-6. **Zero Hardcoded or Fallback Credentials**: Never hardcode or fallback `ADMIN_EMAIL` or `ADMIN_PASSWORD`. Always load them from `Backend/.env` or process environment variables, and stop to ask the user if unset.
-7. **Mandatory Backend Media Pipeline**: Never bypass `POST /api/v1/media/upload/image` with direct Cloudinary API calls using `Cloudinary__*` secrets from `.env`.
+1. **ATS Compatibility**: Render all CV text as real DOM text nodes; never replace text with canvas or SVG imagery.
+2. **Fixed Section Keys**: Retain all 9 keys from `FIXED_SECTION_KEYS` (`objective`, `experience`, `education`, `skills`, `projects`, `certifications`, `awards`, `interests`, `additionalInfo`) across `defaultLayout.areas`.
+3. **No Direct Admin Free-Form Builder**: Never build generic DOM/CSS canvas editors for the admin client.
+4. **Print Pagination Protection**: Repeating section items must carry `break-inside-avoid`, and section headings must carry `break-after-avoid`.
+5. **Valid Seed Data & Language String**: Seeded `default_content` must use a valid 10-digit Vietnamese phone number (`0912345678`), an allowed `fontFamily` ID, and string `"language": "vi"` (never integer `1`).
+6. **Zero Hardcoded or Fallback Credentials**: Never hardcode or fallback `ADMIN_EMAIL` or `ADMIN_PASSWORD`. Load them from `Backend/.env` or process environment variables, and stop to ask the user if unset.
+7. **Mandatory Backend Media API Pipeline**: Never bypass `POST /api/v1/media/upload/image` with direct Cloudinary API calls using `Cloudinary__*` secrets from `.env`.
