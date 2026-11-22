@@ -1,9 +1,9 @@
 ---
 name: cv-template-creator
-description: End-to-end protocol to create and register a new CV template from a mockup image. Covers visual breakdown, schema inspection, Cloudinary admin upload via Backend/.env, idempotent SQL seeding, and Frontend Code-driven Registry integration with Tiptap WYSIWYG, DnD, AI highlight store, and A4 print pagination.
+description: End-to-end protocol to create and register a new CV template from a mockup image. Covers visual breakdown, schema inspection, Cloudinary admin upload via Backend API, idempotent SQL seeding, and Frontend Code-driven Registry integration with Tiptap WYSIWYG, DnD, AI highlight store, and A4 print pagination.
 when_to_use: "When asked to create, add, or implement a new CV template from an image, mockup, or specification. Follows the Code-driven Registry + Admin Metadata architecture. NOT for modifying existing template styles or general CV builder fixes."
 allowed-tools: Read, Write, Edit, Grep, Glob, run_command
-version: 1.2.0
+version: 1.2.1
 effort: medium
 ---
 
@@ -20,7 +20,7 @@ Before starting the implementation, collect or derive these 4 standardized ident
 
 1. **Template Mockup Image (`imagePath`)**:
    - Supported extensions: `.webp`, `.png`, `.jpg`, `.jpeg`.
-   - Recommended temporary directory: `smart-recruitment-app/temp/cv-templates/<file_name>.<ext>`.
+   - Recommended temporary directory: `temp/cv-templates/<file_name>.<ext>`.
 2. **Template Code (`templateCode` — `snake_case`)**:
    - Derived from the image filename converted to lowercase with underscores (e.g., `classic_harvard`).
 3. **Template Display Name (`templateName` — `Title Case`)**:
@@ -42,7 +42,7 @@ Before starting the implementation, collect or derive these 4 standardized ident
 └──────────────────────────────┬──────────────────────────────┘
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Step 3: Upload Thumbnail to Cloudinary via Backend/.env     │
+│ Step 3: Upload Thumbnail via Backend Media API              │
 └──────────────────────────────┬──────────────────────────────┘
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
@@ -91,15 +91,19 @@ Before writing any SQL seed JSON or React component, inspect the existing codeba
 
 ---
 
-### Step 3: Upload Thumbnail to Cloudinary via Admin API
+### Step 3: Upload Thumbnail via Backend Media API
 
 Every row in `cv_templates` enforces a foreign key constraint `thumbnail_file_id -> media_files(id)`.
 
-**Strict Security Rule:** Load `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `API_HOST_PORT` directly from `Backend/.env` (or active process environment variables). **Never hardcode or fallback to default admin credentials.** If `ADMIN_EMAIL` or `ADMIN_PASSWORD` is missing or still contains a placeholder (`<...>`), halt immediately and ask the user.
+**Strict Security & Pipeline Rules:**
+
+1. **Never Bypass Backend API:** Do **NOT** read `Cloudinary__ApiKey` or `Cloudinary__ApiSecret` from `Backend/.env` to upload directly to `api.cloudinary.com`. Always upload through `POST /api/v1/media/upload/image` so Backend handles folder routing (`images`) and inserts the `media_files` row.
+2. **Zero Hardcoded Credentials:** Load `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `API_HOST_PORT` directly from `Backend/.env` (or active process environment variables). If missing or still set to placeholders (`<...>`), halt immediately and ask the user.
+3. **Backend Reachability Gate:** If the Backend API is unreachable, halt immediately and ask the user to start the Backend server before retrying.
 
 ```powershell
 # 1. Parse Backend/.env into current process environment (stripping surrounding quotes)
-$envFile = "smart-recruitment-app\Backend\.env"
+$envFile = "Backend\.env"
 if (Test-Path $envFile) {
     Get-Content $envFile | ForEach-Object {
         if ($_ -match '^\s*([^#][^=]+?)\s*=\s*(.*)\s*$') {
@@ -123,26 +127,30 @@ if ([string]::IsNullOrWhiteSpace($adminEmail) -or $adminEmail -like "<*>" -or
 $apiPort = if ($env:API_HOST_PORT) { $env:API_HOST_PORT } else { "5190" }
 $apiBaseUrl = if ($env:VITE_API_BASE_URL) { $env:VITE_API_BASE_URL.TrimEnd('/') } else { "http://localhost:$apiPort/api/v1" }
 
-# 2. Authenticate as Admin
+# 2. Authenticate as Admin (halting if Backend is not running)
 $loginBody = @{
     email    = $adminEmail
     password = $adminPassword
 } | ConvertTo-Json
 
-$loginRes = Invoke-RestMethod -Uri "$apiBaseUrl/auth/login" `
-    -Method Post -Body $loginBody -ContentType "application/json"
+try {
+    $loginRes = Invoke-RestMethod -Uri "$apiBaseUrl/auth/login" `
+        -Method Post -Body $loginBody -ContentType "application/json" -ErrorAction Stop
+} catch {
+    throw "Failed to authenticate against $apiBaseUrl/auth/login. Ensure the Backend server is running and credentials in Backend/.env are valid. Do NOT call Cloudinary API directly."
+}
 
 $adminToken = $loginRes.data.tokens.accessToken
 
-# 3. Upload template mockup image via Media Controller
-$imagePath = "smart-recruitment-app\temp\cv-templates\<file_name>.<ext>"
+# 3. Upload template mockup image via Backend Media Controller (routes to folder: "images")
+$imagePath = "temp\cv-templates\<file_name>.<ext>"
 $form = @{
     file = Get-Item $imagePath
 }
 
 $uploadRes = Invoke-RestMethod -Uri "$apiBaseUrl/media/upload/image" `
     -Method Post -Headers @{ Authorization = "Bearer $adminToken" } `
-    -Form $form
+    -Form $form -ErrorAction Stop
 
 $thumbnailFileId = $uploadRes.data.id
 # Preserve $thumbnailFileId (GUID) for Step 4
@@ -152,8 +160,8 @@ $thumbnailFileId = $uploadRes.data.id
 
 ### Step 4: Generate & Apply Idempotent Database SQL Seed
 
-> **Repository Boundary Rule:** Always keep all project files strictly within the `smart-recruitment-app` repository boundary. Never access or output to external folders like `smart-recruitment-docs/`.  
-> **Git Tracking Rule:** While temporary mockup images stay in `smart-recruitment-app/temp/cv-templates/`, save the `.sql` seed file in a Git-tracked directory (`smart-recruitment-app/Backend/scripts/seeds/cv_template_<templateCode>.sql`) so all team members receive the template metadata upon pulling code.
+> **Repository Boundary Rule:** Always keep all project files strictly within the repository boundary. Never access or output to external folders like `smart-recruitment-docs/`.  
+> **Git Tracking Rule:** While temporary mockup images stay in `temp/cv-templates/`, save the `.sql` seed file in a Git-tracked directory (`temp/cv-templates/scripts/seeds/cv_template_<templateCode>.sql`) so all team members receive the template metadata upon pulling code.
 
 1. **`default_layout` JSON Structure**:
    - Must include all 9 standard sections (`FIXED_SECTION_KEYS`) without duplicates or omissions, matching the template's `supportedAreaIds`:
@@ -337,7 +345,7 @@ In `Frontend/src/features/cv/templates/registry.ts`:
 1. **Static Analysis & Type Checking**:
 
    ```powershell
-   cd smart-recruitment-app\Frontend
+   cd Frontend
    pnpm exec tsc --noEmit && pnpm run build
    ```
 
@@ -361,3 +369,4 @@ In `Frontend/src/features/cv/templates/registry.ts`:
 4. **Print Pagination Protection**: Repeating section items must always carry `break-inside-avoid`, and section headings must carry `break-after-avoid`.
 5. **Valid Sample Data**: Seeded `default_content` must use a valid 10-digit Vietnamese phone number (e.g., `0912345678`) and an allowed `fontFamily` ID.
 6. **Zero Hardcoded or Fallback Credentials**: Never hardcode or fallback `ADMIN_EMAIL` or `ADMIN_PASSWORD`. Always load them from `Backend/.env` or process environment variables, and stop to ask the user if unset.
+7. **Mandatory Backend Media Pipeline**: Never bypass `POST /api/v1/media/upload/image` with direct Cloudinary API calls using `Cloudinary__*` secrets from `.env`.
