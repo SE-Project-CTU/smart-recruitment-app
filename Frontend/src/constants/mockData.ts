@@ -1,5 +1,6 @@
 import type { CVItem } from "@/types/cv";
 import type { BaseJobSummary } from "@/types/job";
+import type { ApplicationStatus } from "@/types/application";
 
 export const isLoggedIn = false;
 
@@ -75,14 +76,6 @@ export interface MockJobPosting extends Partial<BaseJobSummary> {
   aiMatchScore?: number; // Điểm gợi ý tương thích ảo cho Dashboard
 }
 
-/**
- * @deprecated Dùng ApplicationStatus từ @/types/application
- */
-export type MockApplicationStatus =
-  "APPLIED" | "REVIEWING" | "INTERVIEW" | "OFFERED" | "ACCEPTED" | "REJECTED";
-/** @deprecated Dùng MockApplicationStatus */
-export type ApplicationStatus = MockApplicationStatus;
-
 export interface MockApplication {
   id: string;
   jobId: string;
@@ -90,7 +83,7 @@ export interface MockApplication {
   cvVersionId: string | null;
   uploadedCvUrl: string | null;
   coverLetter: string;
-  status: MockApplicationStatus;
+  status: ApplicationStatus | string;
   appliedAt: string;
   updatedAt: string;
   job: MockJobPosting;

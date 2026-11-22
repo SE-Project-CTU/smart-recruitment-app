@@ -344,36 +344,36 @@ export const JOB_STATUS_CONFIG: Record<
 > = {
   Published: {
     label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   PendingReview: {
     label: "Chờ duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   Closed: {
     label: "Đã đóng",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Expired: {
     label: "Hết hạn",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 
   // Fallbacks chữ hoa tương thích code cũ
   PUBLISHED: {
     label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   CLOSED: {
     label: "Đã đóng",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   PENDING_REVIEW: {
     label: "Chờ duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   EXPIRED: {
     label: "Hết hạn",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 };

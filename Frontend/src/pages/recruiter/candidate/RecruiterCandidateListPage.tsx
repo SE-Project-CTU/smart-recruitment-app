@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Briefcase,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   Plus,
   RotateCcw,
@@ -14,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
-import { Button, TableSkeleton } from "@/components/common";
+import { Button, DashboardPagination, TableSkeleton } from "@/components/common";
 import { PATHS } from "@/constants/paths";
 import {
   useCompanyJobPostings,
@@ -24,7 +22,9 @@ import {
 import { useCompanyStore } from "@/stores";
 import type { JobPostingItem } from "@/types/job";
 import {
+  APPLICATION_STATUS,
   APPLICATION_STATUS_CONFIG,
+  normalizeApplicationStatus,
   resolveCandidateProfile,
   type PendingStatusChange,
   type RecruiterCandidateApplicationItem,
@@ -50,11 +50,19 @@ export function RecruiterCandidateListPage() {
 
   // 2. Data queries: Lấy trực tiếp JD và Ứng viên của công ty active (API 15 chuẩn Workspace)
   const { data: jobResponse, isLoading: isLoadingJobs } =
-    useCompanyJobPostings(activeCompanyId);
+    useCompanyJobPostings(activeCompanyId, { pageSize: 100 });
 
   const allJobs: JobPostingItem[] = useMemo(() => {
     return jobResponse?.items || [];
   }, [jobResponse]);
+
+  const closedJobIds = useMemo(() => {
+    return new Set(
+      allJobs
+        .filter((j) => (j.status || "").toUpperCase() === "CLOSED")
+        .map((j) => j.id),
+    );
+  }, [allJobs]);
 
   const {
     data: allApplications = [],
@@ -111,41 +119,9 @@ export function RecruiterCandidateListPage() {
 
       // Lọc theo trạng thái hồ sơ
       if (statusFilter !== "ALL") {
-        const s = (app.status || "").toUpperCase();
-        const sf = statusFilter.toUpperCase();
-
-        if (
-          (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") &&
-          s !== "SUBMITTED" &&
-          s !== "APPLIED" &&
-          s !== "RECEIVED"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "INTERVIEW" || sf === "INTERVIEWING") &&
-          s !== "INTERVIEW" &&
-          s !== "INTERVIEWING"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "HIRED" || sf === "ACCEPTED") &&
-          s !== "HIRED" &&
-          s !== "ACCEPTED"
-        ) {
-          return false;
-        }
-        if (
-          sf !== "SUBMITTED" &&
-          sf !== "APPLIED" &&
-          sf !== "RECEIVED" &&
-          sf !== "INTERVIEW" &&
-          sf !== "INTERVIEWING" &&
-          sf !== "HIRED" &&
-          sf !== "ACCEPTED" &&
-          s !== sf
-        ) {
+        const normApp = normalizeApplicationStatus(app.status);
+        const normFilter = normalizeApplicationStatus(statusFilter);
+        if (normApp !== normFilter) {
           return false;
         }
       }
@@ -177,23 +153,21 @@ export function RecruiterCandidateListPage() {
 
   // Quick stat counters
   const reviewingCount = allApplications.filter(
-    (a) => (a.status || "").toUpperCase() === "REVIEWING",
+    (a) => normalizeApplicationStatus(a.status) === APPLICATION_STATUS.REVIEWING,
   ).length;
-  const interviewCount = allApplications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "INTERVIEW" || s === "INTERVIEWING";
-  }).length;
-  const hiredCount = allApplications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "HIRED" || s === "ACCEPTED";
-  }).length;
+  const interviewCount = allApplications.filter(
+    (a) => normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING,
+  ).length;
+  const hiredCount = allApplications.filter(
+    (a) => normalizeApplicationStatus(a.status) === APPLICATION_STATUS.HIRED,
+  ).length;
 
   // Handlers
   const handleOpenConfirmTransition = (
     app: RecruiterCandidateApplicationItem,
     targetStatus: UpdateJobApplicationStatus,
   ) => {
-    const currentStatus = (app.status || "SUBMITTED").toUpperCase();
+    const currentStatus = normalizeApplicationStatus(app.status);
     setPendingChange({
       app,
       fromStatus: currentStatus,
@@ -286,52 +260,52 @@ export function RecruiterCandidateListPage() {
 
       {/* 2. 4 Quick Stat Counters */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-white p-4">
           <span className="text-xs font-medium text-text-muted">
             Tổng số ứng viên
           </span>
-          <p className="mt-1 text-xl font-bold text-text-main">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {allApplications.length}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
-          <span className="text-xs font-medium text-sky-600">Đang xem xét</span>
-          <p className="mt-1 text-xl font-bold text-sky-700">
+        <div className="rounded-2xl border border-border bg-white p-4">
+          <span className="text-xs font-medium text-text-muted">Đang xem xét</span>
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {reviewingCount}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
-          <span className="text-xs font-medium text-amber-600">
+        <div className="rounded-2xl border border-border bg-white p-4">
+          <span className="text-xs font-medium text-text-muted">
             Mời phỏng vấn
           </span>
-          <p className="mt-1 text-xl font-bold text-amber-700">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {interviewCount}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
-          <span className="text-xs font-medium text-emerald-600">
+        <div className="rounded-2xl border border-border bg-white p-4">
+          <span className="text-xs font-medium text-text-muted">
             Đã tuyển dụng
           </span>
-          <p className="mt-1 text-xl font-bold text-emerald-700">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {hiredCount}
           </p>
         </div>
       </div>
 
       {/* 3. Toolbar & Bộ lọc đa chiều */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-3.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-3.5 sm:flex-row sm:items-center sm:justify-between">
         {/* Search Input */}
         <div className="relative max-w-md flex-1">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
-            placeholder="Tìm theo tên ứng viên, email, hoặc vị trí tuyển dụng..."
+            placeholder="Tìm theo tên ứng viên, email, hoặc vị trí..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+            className="w-full rounded-xl border border-border bg-bg py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
           />
           {searchQuery && (
             <button
@@ -340,7 +314,7 @@ export function RecruiterCandidateListPage() {
                 setSearchQuery("");
                 setCurrentPage(1);
               }}
-              className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-600"
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-text-muted hover:text-text-main"
             >
               <X className="size-3.5" />
             </button>
@@ -350,9 +324,9 @@ export function RecruiterCandidateListPage() {
         {/* Dropdown Filters: Vị trí & Trạng thái */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Bộ lọc Vị trí tuyển dụng (JD) */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-            <Briefcase className="size-3.5 text-slate-400" />
-            <span className="text-xs text-slate-500">Vị trí:</span>
+          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5">
+            <Briefcase className="size-3.5 text-text-muted" />
+            <span className="text-xs text-text-muted">Vị trí:</span>
             <Select.Root
               items={jobFilterOptions}
               value={selectedJobId}
@@ -363,10 +337,10 @@ export function RecruiterCandidateListPage() {
             >
               <Select.Trigger
                 aria-label="Lọc theo tin tuyển dụng"
-                className="flex max-w-44 cursor-pointer items-center gap-1 text-xs font-semibold text-slate-800 focus:outline-none"
+                className="flex max-w-44 cursor-pointer items-center gap-1 text-xs font-semibold text-text-main focus:outline-none"
               >
                 <Select.Value />
-                <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                   <ChevronDown className="size-3.5" />
                 </Select.Icon>
               </Select.Trigger>
@@ -378,7 +352,7 @@ export function RecruiterCandidateListPage() {
                         <Select.Item
                           key={opt.value}
                           value={opt.value}
-                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                         >
                           <Select.ItemText>{opt.label}</Select.ItemText>
                           <Select.ItemIndicator
@@ -397,9 +371,9 @@ export function RecruiterCandidateListPage() {
           </div>
 
           {/* Bộ lọc Trạng thái */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-            <Filter className="size-3.5 text-slate-400" />
-            <span className="text-xs text-slate-500">Trạng thái:</span>
+          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5">
+            <Filter className="size-3.5 text-text-muted" />
+            <span className="text-xs text-text-muted">Trạng thái:</span>
             <Select.Root
               items={[
                 { value: "ALL", label: "Tất cả trạng thái" },
@@ -417,10 +391,10 @@ export function RecruiterCandidateListPage() {
             >
               <Select.Trigger
                 aria-label="Lọc theo trạng thái ứng viên"
-                className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-slate-800 focus:outline-none"
+                className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-text-main focus:outline-none"
               >
                 <Select.Value />
-                <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                   <ChevronDown className="size-3.5" />
                 </Select.Icon>
               </Select.Trigger>
@@ -439,7 +413,7 @@ export function RecruiterCandidateListPage() {
                         <Select.Item
                           key={opt.value}
                           value={opt.value}
-                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                         >
                           <Select.ItemText>{opt.label}</Select.ItemText>
                           <Select.ItemIndicator
@@ -491,6 +465,7 @@ export function RecruiterCandidateListPage() {
           }
           onPreviewCv={setSelectedCvApp}
           isUpdatingStatus={updateStatusMutation.isPending}
+          closedJobIds={closedJobIds}
           emptyMessage={
             searchQuery || selectedJobId !== "ALL" || statusFilter !== "ALL"
               ? "Không tìm thấy hồ sơ ứng viên nào phù hợp với bộ lọc."
@@ -504,66 +479,15 @@ export function RecruiterCandidateListPage() {
         application={selectedCvApp}
         onClose={() => setSelectedCvApp(null)}
       />
-      {totalPages > 1 && (
-        <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3 shadow-2xs sm:flex-row">
-          <span className="text-xs text-slate-500">
-            Hiển thị{" "}
-            <span className="font-semibold text-slate-700">
-              {(currentPage - 1) * pageSize + 1}
-            </span>{" "}
-            -{" "}
-            <span className="font-semibold text-slate-700">
-              {Math.min(currentPage * pageSize, totalItems)}
-            </span>{" "}
-            trong tổng số{" "}
-            <span className="font-semibold text-slate-700">{totalItems}</span>{" "}
-            ứng viên
-          </span>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="secondary"
-              icon={ChevronLeft}
-              iconSize={14}
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="h-8! px-2.5! text-xs! font-medium!"
-            >
-              Trước
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`size-8 cursor-pointer rounded-lg text-xs font-semibold transition-colors ${
-                      currentPage === page
-                        ? "bg-primary text-white"
-                        : "text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ),
-              )}
-            </div>
-
-            <Button
-              variant="secondary"
-              icon={ChevronRight}
-              iconSize={14}
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="h-8! px-2.5! text-xs! font-medium!"
-            >
-              Tiếp
-            </Button>
-          </div>
-        </div>
-      )}
+      <DashboardPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        entityLabel="ứng viên"
+        className="mt-0 rounded-2xl border border-border bg-white px-4 py-3 shadow-2xs"
+      />
 
       {/* 6. Modal Xem Thư Giới Thiệu (Cover Letter) */}
       <Dialog

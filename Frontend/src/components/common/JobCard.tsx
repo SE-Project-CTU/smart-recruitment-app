@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, Ellipsis, MapPin } from "lucide-react";
+import { CheckCircle2, Clock, Ellipsis, MapPin } from "lucide-react";
 import { Bookmark, BookmarkCheck } from "lucide";
 import { MorphIcon } from "morphicons/react";
 import Button from "./Button";
@@ -26,6 +26,7 @@ import {
   useUnbookmarkJob,
   useMyBookmarkedJobs,
 } from "@/hooks/queries/useJob";
+import { useMyAppliedJobIds } from "@/hooks/queries/useApplication";
 import { toast } from "@/hooks/use-toast";
 import { PATHS } from "@/constants/paths";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ export interface JobCardProps<T extends JobCardItem = JobCardItem> {
   onApply?: (job: T) => void;
   isBookmarked?: boolean;
   onToggleBookmark?: (jobId: string) => void;
+  isApplied?: boolean;
   role?: "candidate" | "recruiter";
   companyLogoUrl?: string | null;
 }
@@ -52,6 +54,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   className,
   isBookmarked: externalIsBookmarked,
   onToggleBookmark,
+  isApplied: externalIsApplied,
   role = "candidate",
   companyLogoUrl: customCompanyLogoUrl,
 }: JobCardProps<T>) {
@@ -59,7 +62,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
   const { openApplyModal } = useApplyJobModalStore();
   const { user } = useAuthStore();
   const isCandidate = Boolean(
-    user?.roles?.some((r) => r.toLowerCase() === "candidate")
+    user?.roles?.some((r) => r.toLowerCase() === "candidate"),
   );
 
   // Lấy cache danh sách bookmark nếu không được truyền từ cha và chưa có trên job
@@ -68,8 +71,28 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
     { enabled: isCandidate && externalIsBookmarked === undefined },
   );
 
+  // Lấy cache danh sách job đã nộp hồ sơ nếu không được truyền từ cha và chưa có trên job
+  const { data: appliedJobIds } = useMyAppliedJobIds({
+    enabled: isCandidate && externalIsApplied === undefined,
+  });
+
   const bookmarkMutation = useBookmarkJob();
   const unbookmarkMutation = useUnbookmarkJob();
+
+  // Xác định trạng thái đã đóng / đã tuyển đủ
+  const isClosed =
+    "status" in job &&
+    typeof (job as { status?: unknown }).status === "string" &&
+    ((job as { status: string }).status.toLowerCase() === "closed" ||
+      (job as { status: string }).status.toLowerCase() === "expired");
+
+  // Xác định trạng thái đã nộp hồ sơ
+  const isApplied =
+    externalIsApplied !== undefined
+      ? externalIsApplied
+      : "hasApplied" in job && job.hasApplied !== undefined
+        ? Boolean(job.hasApplied)
+        : Boolean(appliedJobIds?.has(job.id));
 
   // Xác định trạng thái lưu tin
   const isMarked =
@@ -142,7 +165,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
       onClick={handleCardClick}
       className={cn(
         className,
-        "group relative flex w-full min-h-70 sm:min-h-74 cursor-pointer flex-col justify-between rounded-2xl border p-4 sm:p-5 shadow-xs transition-all duration-300",
+        "group relative flex min-h-70 w-full cursor-pointer flex-col justify-between rounded-2xl border p-4 shadow-xs transition-all duration-300 sm:min-h-74 sm:p-5",
         isSelected
           ? "border-primary bg-secondary-light/20 shadow-md ring-2 ring-primary/20"
           : "border-border bg-surface hover:border-sky-400 hover:bg-linear-to-b hover:from-sky-50/50 hover:to-sky-200",
@@ -151,7 +174,7 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
       <div>
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-baseline gap-1">
-            <span className="truncate text-base sm:text-lg font-semibold tracking-tight text-text-main">
+            <span className="truncate text-base font-semibold tracking-tight text-text-main sm:text-lg">
               {salaryInfo.text}
             </span>
             {salaryInfo.unit && (
@@ -197,9 +220,9 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
           </div>
         </div>
 
-        <div className="mt-3.5 sm:mt-4 flex items-start justify-between gap-3">
+        <div className="mt-3.5 flex items-start justify-between gap-3 sm:mt-4">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <h3 className="line-clamp-2 text-sm sm:text-base leading-snug font-semibold text-text-main transition-colors group-hover:text-primary">
+            <h3 className="line-clamp-2 text-sm leading-snug font-semibold text-text-main transition-colors group-hover:text-primary sm:text-base">
               {job.title}
             </h3>
             <p className="truncate text-xs font-medium text-text-muted">
@@ -215,11 +238,11 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
             }
             name={companyName}
             size="md"
-            className="size-11 sm:size-12 rounded-xl"
+            className="size-11 rounded-xl sm:size-12"
           />
         </div>
 
-        <div className="mt-3 flex flex-col gap-1 text-[11px] sm:text-xs font-medium text-text-muted">
+        <div className="mt-3 flex flex-col gap-1 text-[11px] font-medium text-text-muted sm:text-xs">
           <div className="flex items-center gap-1.5">
             <MapPin className="size-3.5 shrink-0 text-text-muted" />
             <span className="truncate">{displayLocation}</span>
@@ -262,10 +285,72 @@ export function JobCard<T extends JobCardItem = JobCardItem>({
             Quản lý tin tuyển dụng
           </Button>
         </div>
+      ) : isApplied ? (
+        <div className="mt-4 flex items-center gap-2">
+          <Button
+            variant="secondary"
+            className="flex-1 justify-center py-2! text-xs! font-medium! text-status-success! ring-status-success/30! hover:bg-status-success/10! hover:text-status-success! sm:py-2.5!"
+            icon={CheckCircle2}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(PATHS.CANDIDATE.APPLICATION_STATUS);
+            }}
+          >
+            Đã nộp hồ sơ
+          </Button>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="secondary"
+                  className="p-2! sm:p-2.5!"
+                  aria-label="Lưu công việc"
+                  onClick={handleBookmarkClick}
+                >
+                  <MorphIcon
+                    className="size-4"
+                    icon={isMarked ? BookmarkCheck : Bookmark}
+                  />
+                </Button>
+              }
+            />
+            <TooltipPanel>{isMarked ? "Bỏ lưu" : "Lưu tin"}</TooltipPanel>
+          </Tooltip>
+        </div>
+      ) : isClosed ? (
+        <div className="mt-4 flex items-center gap-2">
+          <Button
+            variant="secondary"
+            disabled
+            className="flex-1 justify-center py-2! text-xs! sm:py-2.5! cursor-not-allowed text-text-muted bg-bg border border-border"
+          >
+            Đã nhận đủ hồ sơ
+          </Button>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="secondary"
+                  className="p-2! sm:p-2.5!"
+                  aria-label="Lưu công việc"
+                  onClick={handleBookmarkClick}
+                >
+                  <MorphIcon
+                    className="size-4"
+                    icon={isMarked ? BookmarkCheck : Bookmark}
+                  />
+                </Button>
+              }
+            />
+            <TooltipPanel>{isMarked ? "Bỏ lưu" : "Lưu tin"}</TooltipPanel>
+          </Tooltip>
+        </div>
       ) : (
         <div className="mt-4 flex items-center gap-2">
           <Button
-            className="flex-1 justify-center py-2! sm:py-2.5! text-xs!"
+            className="flex-1 justify-center py-2! text-xs! sm:py-2.5!"
             onClick={handleApplyClick}
           >
             Ứng tuyển ngay

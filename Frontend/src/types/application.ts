@@ -30,19 +30,24 @@ export type {
 // ==========================================
 
 /**
- * Trạng thái hồ sơ ứng tuyển theo enum SmartHire.Domain.Enums.ApplicationStatus
+ * Bộ hằng số chuẩn hóa duy nhất cho trạng thái hồ sơ ứng tuyển
+ * Giá trị PascalCase ánh xạ 1:1 theo Domain Entity Backend SmartHire.Domain.Enums.ApplicationStatus
  */
-export type ApplicationStatus =
-  | "Submitted"
-  | "Received"
-  | "Approved"
-  | "Reviewing"
-  | "Shortlisted"
-  | "Interviewing"
-  | "Offered"
-  | "Hired"
-  | "Rejected"
-  | "Withdrawn";
+export const APPLICATION_STATUS = {
+  SUBMITTED: "Submitted",
+  RECEIVED: "Received",
+  APPROVED: "Approved",
+  REVIEWING: "Reviewing",
+  SHORTLISTED: "Shortlisted",
+  INTERVIEWING: "Interviewing",
+  OFFERED: "Offered",
+  HIRED: "Hired",
+  REJECTED: "Rejected",
+  WITHDRAWN: "Withdrawn",
+} as const;
+
+export type ApplicationStatusKey = keyof typeof APPLICATION_STATUS;
+export type ApplicationStatus = (typeof APPLICATION_STATUS)[ApplicationStatusKey];
 
 /**
  * Type alias tương thích ngược với code cũ (hỗ trợ cả uppercase)
@@ -76,6 +81,77 @@ export type UpdateJobApplicationStatus =
   | "HIRED"
   | "REJECTED"
   | "WITHDRAWN";
+
+/**
+ * Chuẩn hóa giá trị trạng thái từ API (hỗ trợ cả uppercase "INTERVIEW", "INTERVIEWING", "OFFERED"...) về kiểu chuẩn ApplicationStatus
+ */
+export function normalizeApplicationStatus(rawStatus?: string | null): ApplicationStatus {
+  const s = (rawStatus || "").trim().toUpperCase();
+  switch (s) {
+    case "SUBMITTED":
+    case "APPLIED":
+      return APPLICATION_STATUS.SUBMITTED;
+    case "RECEIVED":
+      return APPLICATION_STATUS.RECEIVED;
+    case "APPROVED":
+      return APPLICATION_STATUS.APPROVED;
+    case "REVIEWING":
+      return APPLICATION_STATUS.REVIEWING;
+    case "SHORTLISTED":
+      return APPLICATION_STATUS.SHORTLISTED;
+    case "INTERVIEW":
+    case "INTERVIEWING":
+      return APPLICATION_STATUS.INTERVIEWING;
+    case "OFFERED":
+      return APPLICATION_STATUS.OFFERED;
+    case "HIRED":
+    case "ACCEPTED":
+      return APPLICATION_STATUS.HIRED;
+    case "REJECTED":
+      return APPLICATION_STATUS.REJECTED;
+    case "WITHDRAWN":
+      return APPLICATION_STATUS.WITHDRAWN;
+    default:
+      return APPLICATION_STATUS.SUBMITTED;
+  }
+}
+
+/**
+ * Kiểm tra trạng thái có đang chiếm chỉ tiêu tuyển dụng (Offered hoặc Hired)
+ */
+export function isQuotaHoldingStatus(status?: string | null): boolean {
+  const normalized = normalizeApplicationStatus(status);
+  return normalized === APPLICATION_STATUS.OFFERED || normalized === APPLICATION_STATUS.HIRED;
+}
+
+/**
+ * Kiểm tra hồ sơ có đang trong diện xem xét / phỏng vấn (chưa kết thúc quy trình)
+ */
+export function isPendingStatus(status?: string | null): boolean {
+  const normalized = normalizeApplicationStatus(status);
+  return (
+    normalized === APPLICATION_STATUS.SUBMITTED ||
+    normalized === APPLICATION_STATUS.RECEIVED ||
+    normalized === APPLICATION_STATUS.APPROVED ||
+    normalized === APPLICATION_STATUS.REVIEWING ||
+    normalized === APPLICATION_STATUS.SHORTLISTED ||
+    normalized === APPLICATION_STATUS.INTERVIEWING
+  );
+}
+
+/**
+ * Kiểm tra ứng viên có được phép rút hồ sơ (trước vòng phỏng vấn)
+ */
+export function canWithdrawStatus(status?: string | null): boolean {
+  const normalized = normalizeApplicationStatus(status);
+  return (
+    normalized === APPLICATION_STATUS.SUBMITTED ||
+    normalized === APPLICATION_STATUS.RECEIVED ||
+    normalized === APPLICATION_STATUS.APPROVED ||
+    normalized === APPLICATION_STATUS.REVIEWING ||
+    normalized === APPLICATION_STATUS.SHORTLISTED
+  );
+}
 
 // ==========================================
 // BACKEND SUB-MODELS (Ánh xạ 1:1 DTOs)
@@ -307,6 +383,7 @@ export interface CandidateMyApplicationItem extends Partial<MyApplicationListIte
 
 export interface RecruiterCandidateApplicationItem extends JobApplicationItem {
   jobTitle?: string;
+  jobStatus?: string;
   companyId?: string;
   companyName?: string;
 }
@@ -346,7 +423,30 @@ export const APPLICATION_STATUS_OPTIONS: {
 ];
 
 /**
- * Ma trận chuyển đổi trạng thái hợp lệ của HR (State Transition Matrix)
+ * Lấy danh sách các tùy chọn chuyển trạng thái hợp lệ, tự động lọc bỏ Offered/Hired nếu Job đã đóng
+ */
+export function getAllowedStatusTransitions(
+  currentStatusRaw?: string | null,
+  isJobClosed: boolean = false,
+): { value: UpdateJobApplicationStatus; label: string }[] {
+  const norm = normalizeApplicationStatus(currentStatusRaw);
+  const options = ALLOWED_STATUS_TRANSITIONS[norm] || ALLOWED_STATUS_TRANSITIONS[norm.toUpperCase()] || [];
+
+  if (!isJobClosed) {
+    return options;
+  }
+
+  // Khi Job đã đóng: Chặn chuyển sang Offered/Hired cho hồ sơ mới (trừ khi đang ở Offered thì được chuyển Hired)
+  const isCurrentlyOffered = norm === APPLICATION_STATUS.OFFERED;
+  return options.filter((opt) => {
+    const targetNorm = normalizeApplicationStatus(opt.value);
+    if (targetNorm === APPLICATION_STATUS.OFFERED) return false;
+    if (targetNorm === APPLICATION_STATUS.HIRED && !isCurrentlyOffered) return false;
+    return true;
+  });
+}
+
+/**
  * Tuân thủ chính xác theo logic SmartHire.Domain.Entities.JobApplication.TryChangeStatus
  */
 export const ALLOWED_STATUS_TRANSITIONS: Record<
@@ -422,6 +522,7 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<
 
 /**
  * Cấu hình hiển thị nhãn và màu sắc badge trạng thái application
+ * Chuẩn hóa theo Design System SmartHire (.impeccable/design.json)
  */
 export const APPLICATION_STATUS_CONFIG: Record<
   string,
@@ -430,93 +531,93 @@ export const APPLICATION_STATUS_CONFIG: Record<
   // PascalCase chuẩn backend
   Submitted: {
     label: "Đã nộp",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Received: {
     label: "Đã tiếp nhận",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Approved: {
     label: "Đã duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   Reviewing: {
     label: "Đang xem xét",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   Shortlisted: {
     label: "Đã chọn lọc",
-    badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    badgeClass: "bg-primary/10 text-primary border-primary/25",
   },
   Interviewing: {
     label: "Phỏng vấn",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   Offered: {
     label: "Mời nhận việc",
-    badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
+    badgeClass: "bg-status-info/10 text-status-info border-status-info/20",
   },
   Hired: {
     label: "Đã tuyển dụng",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   Rejected: {
     label: "Từ chối",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Withdrawn: {
     label: "Đã rút hồ sơ",
-    badgeClass: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 
   // Fallback uppercase tương thích
   SUBMITTED: {
     label: "Đã nộp",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   RECEIVED: {
     label: "Đã tiếp nhận",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   APPROVED: {
     label: "Đã duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   APPLIED: {
     label: "Đã nộp",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   REVIEWING: {
     label: "Đang xem xét",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   SHORTLISTED: {
     label: "Đã chọn lọc",
-    badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    badgeClass: "bg-primary/10 text-primary border-primary/25",
   },
   INTERVIEW: {
     label: "Phỏng vấn",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   INTERVIEWING: {
     label: "Phỏng vấn",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   OFFERED: {
     label: "Mời nhận việc",
-    badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
+    badgeClass: "bg-status-info/10 text-status-info border-status-info/20",
   },
   HIRED: {
     label: "Đã tuyển dụng",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   REJECTED: {
     label: "Từ chối",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   WITHDRAWN: {
     label: "Đã rút hồ sơ",
-    badgeClass: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 };
 

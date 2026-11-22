@@ -294,6 +294,7 @@ export const useRecruiterAllApplications = (
             id: app.id,
             jobId: app.jobId,
             jobTitle: app.jobTitle,
+            jobStatus: app.jobStatus,
             companyId: app.companyId || app.company?.id || res.companyId,
             companyName: app.companyName || app.company?.name || "Doanh nghiệp",
             candidate: {

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { AlertCircle, ChevronDown, Search, X } from "lucide-react";
 import { useSkills } from "@/hooks/queries/useCatalog";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ export interface SkillSelectProps {
   initialSkills?: { id: string; name: string }[];
 }
 
-export function SkillSelect({
+export const SkillSelect = memo(function SkillSelect({
   selectedIds,
   onChange,
   error,
@@ -259,6 +259,6 @@ export function SkillSelect({
       </div>
     </div>
   );
-}
+});
 
 export default SkillSelect;

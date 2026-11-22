@@ -40,6 +40,10 @@ public sealed class JobPostingRepository : IJobPostingRepository {
                     .Matches(EF.Functions.PlainToTsQuery("simple", keyword))
                 || EF.Functions.ILike(posting.Title, $"%{keyword}%")
                 || EF.Functions.TrigramsWordSimilarity(keyword, posting.Title) > 0.4
+                || EF.Property<NpgsqlTsVector>(posting.Company, "SearchVector")
+                    .Matches(EF.Functions.PlainToTsQuery("simple", keyword))
+                || EF.Functions.ILike(posting.Company.Name, $"%{keyword}%")
+                || EF.Functions.TrigramsWordSimilarity(keyword, posting.Company.Name) > 0.4
             );
         }
         

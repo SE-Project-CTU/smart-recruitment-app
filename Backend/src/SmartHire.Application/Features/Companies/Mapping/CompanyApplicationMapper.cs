@@ -10,6 +10,7 @@ internal static class CompanyApplicationMapper {
         row.Id,
         row.JobId,
         row.JobTitle,
+        row.JobStatus.ToString(),
         row.CompanyId,
         row.CompanyName,
         new ApplicationCompanySummaryResult(

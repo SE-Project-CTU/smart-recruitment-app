@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback } from "react";
 import type {
   TargetJobOption,
@@ -38,7 +39,29 @@ interface CvRewriteContextValue {
   clearSuggestions: () => void;
 }
 
-const CvRewriteContext = createContext<CvRewriteContextValue | null>(null);
+export const DEFAULT_CV_REWRITE_CONTEXT_VALUE: CvRewriteContextValue = {
+  selectedTargetJob: null,
+  customPrompt: "",
+  suggestions: [],
+  isGenerating: false,
+  hasGenerated: false,
+  isError: false,
+  errorMessage: null,
+  activeSuggestionSectionKey: null,
+  openSuggestionForSection: () => {},
+  closeFloatingSuggestion: () => {},
+  getSuggestionForSection: () => undefined,
+  setSelectedTargetJob: () => {},
+  setCustomPrompt: () => {},
+  generateSuggestions: async () => ({ success: false, reason: "NO_JOB" }),
+  dismissSuggestion: () => {},
+  regenerateAll: async () => {},
+  clearSuggestions: () => {},
+};
+
+const CvRewriteContext = createContext<CvRewriteContextValue>(
+  DEFAULT_CV_REWRITE_CONTEXT_VALUE,
+);
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -129,7 +152,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Ánh xạ kết quả trả về từ Gemini AI sang cấu trúc giao diện
         const mappedSuggestions: CvSectionSuggestion[] = sectionsList.map(
-          (item, idx) => {
+          (item, idx): CvSectionSuggestion => {
             const canonicalType = item.sectionType as CanonicalSectionType;
             const sectionKey = (item.sectionType || "").toLowerCase();
             const preparedSection = preparedSections.find(
@@ -247,10 +270,9 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export function useCvRewriteContext(): CvRewriteContextValue {
   const context = useContext(CvRewriteContext);
-  if (!context) {
-    throw new Error(
-      "useCvRewriteContext phải được sử dụng bên trong CvRewriteProvider",
-    );
-  }
-  return context;
+  return context ?? DEFAULT_CV_REWRITE_CONTEXT_VALUE;
+}
+
+export function useOptionalCvRewriteContext(): CvRewriteContextValue | null {
+  return useContext(CvRewriteContext);
 }

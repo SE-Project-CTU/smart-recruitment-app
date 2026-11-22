@@ -3,10 +3,9 @@ import {
   Pencil,
   Search,
   RotateCw,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { DashboardPagination } from "@/components/common";
 import { CVTemplateCard } from "@/components/common/CVTemplateCard";
 import type { CVTemplateItemData } from "@/components/common/CVTemplateCard";
 import { Switch } from "@/components/ui/switch";
@@ -330,55 +329,15 @@ export function CvTemplateCatalogTab() {
           )}
         </div>
 
-        {/* Thanh Phân trang 1-based */}
-        {totalCount > 0 && (
-          <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-border pt-4 sm:flex-row">
-            <span className="text-xs text-text-muted">
-              Hiển thị{" "}
-              <span className="font-semibold text-text-main">
-                {Math.min((page - 1) * pageSize + 1, totalCount)}
-              </span>{" "}
-              -{" "}
-              <span className="font-semibold text-text-main">
-                {Math.min(page * pageSize, totalCount)}
-              </span>{" "}
-              trong tổng số{" "}
-              <span className="font-semibold text-text-main">{totalCount}</span>{" "}
-              mẫu CV
-            </span>
-
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="secondary"
-                icon={ChevronLeft}
-                iconSize={14}
-                disabled={page <= 1 || isLoading}
-                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                className="h-8! rounded-xl! px-2.5! text-xs!"
-              >
-                Trước
-              </Button>
-
-              <span className="px-2 text-xs font-semibold text-text-main">
-                {page} / {totalPages || 1}
-              </span>
-
-              <Button
-                variant="secondary"
-                icon={ChevronRight}
-                iconPosition="right"
-                iconSize={14}
-                disabled={page >= totalPages || isLoading}
-                onClick={() =>
-                  setPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                className="h-8! rounded-xl! px-2.5! text-xs!"
-              >
-                Sau
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Thanh Phân trang */}
+        <DashboardPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalCount}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          entityLabel="mẫu CV"
+        />
       </div>
 
       {/* DIALOG CHỈNH SỬA MẪU CV */}

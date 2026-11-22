@@ -1,15 +1,15 @@
 import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useProvinces, useWards } from "@/hooks/queries/useCatalog";
-import { useApplyJobModalStore } from "@/stores/applyJobModalStore";
+import { useApplyJobModalStore, type AnyJob } from "@/stores/applyJobModalStore";
 import { useAuthStore } from "@/stores/authStore";
 import {
   useJobPostings,
-  useJobPostingDetail,
   useMyAllBookmarkedJobIds,
   useBookmarkJob,
   useUnbookmarkJob,
 } from "@/hooks/queries/useJob";
+import { useMyAppliedJobIds } from "@/hooks/queries/useApplication";
 import { toast } from "@/hooks/use-toast";
 import type {
   JobPostingSearchItem,
@@ -60,17 +60,20 @@ export function useSearchJobPage() {
     wardId,
   };
   const sortBy = (urlParams.get("sortBy") as SortKey) || "NEWEST";
-  const filters: JobFilterState = {
-    ...INITIAL_FILTERS,
-    industries: urlParams.getAll("industryIds"),
-    experienceRanges: urlParams.getAll("experienceRanges"),
-    jobType: urlParams.get("jobType") ?? "",
-    workMode: urlParams.get("workMode") ?? "",
-    jobLevel: urlParams.get("jobLevel") ?? "",
-    minSalary: urlParams.get("minSalary") ?? "",
-    maxSalary: urlParams.get("maxSalary") ?? "",
-    negotiableOnly: urlParams.get("negotiableOnly") === "true",
-  };
+  const filters: JobFilterState = useMemo(
+    () => ({
+      ...INITIAL_FILTERS,
+      industries: urlParams.getAll("industryIds"),
+      experienceRanges: urlParams.getAll("experienceRanges"),
+      jobType: urlParams.get("jobType") ?? "",
+      workMode: urlParams.get("workMode") ?? "",
+      jobLevel: urlParams.get("jobLevel") ?? "",
+      minSalary: urlParams.get("minSalary") ?? "",
+      maxSalary: urlParams.get("maxSalary") ?? "",
+      negotiableOnly: urlParams.get("negotiableOnly") === "true",
+    }),
+    [urlParams],
+  );
   const updateFilters = (nextFilters: JobFilterState) =>
     setUrlParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -98,16 +101,18 @@ export function useSearchJobPage() {
       return next;
     });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [clickedJob, setClickedJob] = useState<JobPostingSearchItem | null>(null);
 
-  const [selectedJob, setSelectedJob] = useState<JobPostingSearchItem | null>(
-    null,
-  );
-  const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
+  const urlJobId = urlParams.get("jobId");
+  const isDetailDrawerOpen = Boolean(urlJobId);
 
   const { user } = useAuthStore();
   const isCandidate = Boolean(user?.roles?.includes("Candidate"));
 
   const { data: allBookmarkedIds } = useMyAllBookmarkedJobIds({
+    enabled: Boolean(isCandidate),
+  });
+  const { data: allAppliedIds } = useMyAppliedJobIds({
     enabled: Boolean(isCandidate),
   });
   const bookmarkMutation = useBookmarkJob();
@@ -117,48 +122,53 @@ export function useSearchJobPage() {
     return allBookmarkedIds || new Set<string>();
   }, [allBookmarkedIds]);
 
+  const appliedJobIds = useMemo(() => {
+    return allAppliedIds || new Set<string>();
+  }, [allAppliedIds]);
+
   const { openApplyModal } = useApplyJobModalStore();
 
-  const searchParams = useMemo<SearchJobPostingsRequest>(
-    () => ({
+  const searchParams = useMemo<SearchJobPostingsRequest>(() => {
+    const minSal = urlParams.get("minSalary");
+    const maxSal = urlParams.get("maxSalary");
+    const industries = urlParams.getAll("industryIds");
+    const experienceRanges = urlParams.getAll("experienceRanges");
+
+    return {
       keyword: urlParams.get("keyword") || undefined,
       provinceId: urlParams.get("provinceId") || undefined,
       wardId: urlParams.get("wardId") || undefined,
-      industryIds: filters.industries.length ? filters.industries : undefined,
-      experienceRanges: filters.experienceRanges.length
-        ? filters.experienceRanges
-        : undefined,
-      jobType: (filters.jobType || undefined) as JobType | undefined,
-      workMode: (filters.workMode || undefined) as WorkMode | undefined,
-      jobLevel: (filters.jobLevel || undefined) as JobLevel | undefined,
-      salaryMin: filters.minSalary
-        ? Number(filters.minSalary) * 1_000_000
-        : undefined,
-      salaryMax: filters.maxSalary
-        ? Number(filters.maxSalary) * 1_000_000
-        : undefined,
-      salaryNegotiableOnly: filters.negotiableOnly || undefined,
+      industryIds: industries.length ? industries : undefined,
+      experienceRanges: experienceRanges.length ? experienceRanges : undefined,
+      jobType: (urlParams.get("jobType") || undefined) as JobType | undefined,
+      workMode: (urlParams.get("workMode") || undefined) as WorkMode | undefined,
+      jobLevel: (urlParams.get("jobLevel") || undefined) as JobLevel | undefined,
+      salaryMin: minSal ? Number(minSal) * 1_000_000 : undefined,
+      salaryMax: maxSal ? Number(maxSal) * 1_000_000 : undefined,
+      salaryNegotiableOnly:
+        urlParams.get("negotiableOnly") === "true" || undefined,
       sort: sortBy === "NEWEST" ? "createdAt" : "salaryMax",
       direction: sortBy === "SALARY_ASC" ? "asc" : "desc",
       page: currentPage,
       pageSize: PAGE_SIZE,
-    }),
-    [urlParams, sortBy, currentPage],
-  );
+    };
+  }, [urlParams, sortBy, currentPage]);
 
   const {
     data: pagedData,
     isFetching: isFetchingJobs,
     isError: isJobsError,
   } = useJobPostings(searchParams);
-  const jobList = pagedData?.items ?? [];
+  const jobList = useMemo(() => pagedData?.items ?? [], [pagedData?.items]);
   const totalPages = pagedData?.meta.totalPages ?? 1;
   const totalItems = pagedData?.meta.totalItems ?? 0;
 
-  // Lấy chi tiết toàn văn JD khi người dùng mở Drawer
-  const { data: jobDetail } = useJobPostingDetail(
-    isDetailDrawerOpen && selectedJob ? selectedJob.id : undefined,
-  );
+  // Job được click trực tiếp trên danh sách hiện tại (nếu có)
+  const selectedJob = useMemo(() => {
+    if (!urlJobId) return null;
+    if (clickedJob?.id === urlJobId) return clickedJob;
+    return null;
+  }, [urlJobId, clickedJob]);
 
   const handleToggleArrayFilter = (
     key: "industries" | "experienceRanges",
@@ -229,8 +239,27 @@ export function useSearchJobPage() {
   };
 
   const handleSelectJob = (job: JobPostingSearchItem) => {
-    setSelectedJob(job);
-    setIsDetailDrawerOpen(true);
+    setClickedJob(job);
+    setUrlParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("jobId", job.id);
+      return next;
+    });
+  };
+
+  const handleCloseDrawer = () => {
+    setClickedJob(null);
+    setUrlParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("jobId");
+      return next;
+    }, { replace: true });
+  };
+
+  const setIsDetailDrawerOpen = (open: boolean) => {
+    if (!open) {
+      handleCloseDrawer();
+    }
   };
 
   const handleToggleBookmark = (jobId: string) => {
@@ -240,10 +269,7 @@ export function useSearchJobPage() {
       });
       return;
     }
-    const isCurrentlyBookmarked =
-      jobDetail?.id === jobId && jobDetail.isBookmarked !== undefined
-        ? jobDetail.isBookmarked
-        : bookmarkedJobIds.has(jobId);
+    const isCurrentlyBookmarked = bookmarkedJobIds.has(jobId);
 
     if (isCurrentlyBookmarked) {
       unbookmarkMutation.mutate(jobId);
@@ -252,25 +278,26 @@ export function useSearchJobPage() {
     }
   };
 
-  const handleApply = (jobId: string) => {
+  const handleApply = (jobId: string, jobData?: AnyJob) => {
     const targetJob =
-      (jobDetail && jobDetail.id === jobId ? jobDetail : null) ||
+      jobData ||
+      (selectedJob?.id === jobId ? selectedJob : null) ||
       jobList.find((j) => j.id === jobId) ||
-      (selectedJob?.id === jobId ? selectedJob : null);
+      ({ id: jobId } as JobPostingSearchItem);
     if (targetJob) {
       openApplyModal(targetJob);
     }
   };
 
   return {
-    urlParams, setUrlParams, currentPage, setCurrentPage, jobListTopRef,
+    urlJobId, urlParams, setUrlParams, currentPage, setCurrentPage, jobListTopRef,
     searchQuery, setSearchQuery, selectedLocation, sortBy, filters,
     isMobileFilterOpen, setIsMobileFilterOpen, selectedJob, isDetailDrawerOpen,
-    setIsDetailDrawerOpen, isCandidate, bookmarkedJobIds, jobList, totalPages,
-    totalItems, isFetchingJobs, isJobsError, jobDetail,
+    setIsDetailDrawerOpen, isCandidate, bookmarkedJobIds, appliedJobIds, jobList, totalPages,
+    totalItems, isFetchingJobs, isJobsError,
     handleToggleArrayFilter, handleToggleSingleFilter, handleToggleIndustryGroup,
     handleSalaryRangeChange, handleToggleNegotiable, handleResetFilters,
-    handleSearchSubmit, handlePageChange, handleSelectJob, handleToggleBookmark,
+    handleSearchSubmit, handlePageChange, handleSelectJob, handleCloseDrawer, handleToggleBookmark,
     handleApply,
   };
 }

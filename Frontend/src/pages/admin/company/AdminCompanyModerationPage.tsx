@@ -10,8 +10,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ChevronLeft,
-  ChevronRight,
   ShieldCheck,
 } from "lucide-react";
 import dayjs from "dayjs";
@@ -19,6 +17,7 @@ import "dayjs/locale/vi";
 
 import {
   Button,
+  DashboardPagination,
   DataTable,
   type DataTableFeatures,
   TableSkeleton,
@@ -191,8 +190,21 @@ export default function AdminCompanyModerationPage() {
   // Xử lý xác nhận từ chối
   const handleConfirmReject = async () => {
     if (!rejectTarget) return;
-    if (!rejectionReason.trim()) {
+    const reason = rejectionReason.trim();
+    if (!reason) {
       setReasonError("Vui lòng nhập lý do từ chối hồ sơ doanh nghiệp.");
+      return;
+    }
+    if (reason.length < 5) {
+      setReasonError(
+        `Lý do từ chối cần tối thiểu 5 ký tự (hiện có ${reason.length}/5 ký tự).`,
+      );
+      return;
+    }
+    if (reason.length > 1000) {
+      setReasonError(
+        `Lý do từ chối không được vượt quá 1,000 ký tự (hiện có ${reason.length} ký tự).`,
+      );
       return;
     }
 
@@ -201,7 +213,7 @@ export default function AdminCompanyModerationPage() {
         id: rejectTarget.id,
         payload: {
           verificationStatus: "Rejected",
-          reason: rejectionReason.trim(),
+          reason,
         },
       });
       setRejectTarget(null);
@@ -573,70 +585,14 @@ export default function AdminCompanyModerationPage() {
         </div>
 
         {/* 4. Thanh phân trang đồng bộ */}
-        {totalItems > 0 && (
-          <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row">
-            <span className="text-xs text-text-muted">
-              Hiển thị{" "}
-              <span className="font-semibold text-slate-700">
-                {(page - 1) * pageSize + 1}
-              </span>{" "}
-              -{" "}
-              <span className="font-semibold text-slate-700">
-                {Math.min(page * pageSize, totalItems)}
-              </span>{" "}
-              trong tổng số{" "}
-              <span className="font-semibold text-slate-700">{totalItems}</span>{" "}
-              doanh nghiệp
-            </span>
-
-            <div className="flex items-center gap-1">
-              <Button
-                variant="secondary"
-                icon={ChevronLeft}
-                iconSize={14}
-                disabled={page <= 1}
-                onClick={() => handlePageChange(page - 1)}
-                className="h-8! px-2.5! text-xs! font-medium!"
-              >
-                Trước
-              </Button>
-
-              <div className="flex items-center gap-1 px-1">
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const pageNum = idx + 1;
-                  const isCurrent = pageNum === page;
-                  return (
-                    <button
-                      key={pageNum}
-                      type="button"
-                      onClick={() => handlePageChange(pageNum)}
-                      className={cn(
-                        "size-8 rounded-lg text-xs font-semibold transition-colors",
-                        isCurrent
-                          ? "bg-primary text-white"
-                          : "text-slate-600 hover:bg-slate-100",
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant="secondary"
-                icon={ChevronRight}
-                iconPosition="right"
-                iconSize={14}
-                disabled={page >= totalPages}
-                onClick={() => handlePageChange(page + 1)}
-                className="h-8! px-2.5! text-xs! font-medium!"
-              >
-                Sau
-              </Button>
-            </div>
-          </div>
-        )}
+        <DashboardPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          entityLabel="doanh nghiệp"
+        />
       </div>
 
       {/* Sheet thẩm định chi tiết doanh nghiệp */}
@@ -715,15 +671,21 @@ export default function AdminCompanyModerationPage() {
           </DialogHeader>
 
           <div className="mt-3 space-y-1.5">
-            <label
-              htmlFor="company-rejection-reason"
-              className="text-xs font-semibold text-text-main"
-            >
-              Lý do từ chối <span className="text-status-error">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="company-rejection-reason"
+                className="text-xs font-semibold text-text-main"
+              >
+                Lý do từ chối <span className="text-status-error">*</span>
+              </label>
+              <span className="text-[11px] text-text-muted">
+                {rejectionReason.length}/1000
+              </span>
+            </div>
             <textarea
               id="company-rejection-reason"
               rows={4}
+              maxLength={1000}
               value={rejectionReason}
               onChange={(e) => {
                 setRejectionReason(e.target.value);
