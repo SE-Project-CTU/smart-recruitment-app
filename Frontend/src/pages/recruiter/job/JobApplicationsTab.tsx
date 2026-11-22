@@ -32,9 +32,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  APPLICATION_STATUS,
   APPLICATION_STATUS_CONFIG,
-  ALLOWED_STATUS_TRANSITIONS,
   APPLICATION_STATUS_OPTIONS,
+  getAllowedStatusTransitions,
+  normalizeApplicationStatus,
   resolveCandidateProfile,
   type JobApplicationItem,
   type JobApplicationStatus,
@@ -50,6 +52,7 @@ const columnHelper = createColumnHelper<
 interface JobApplicationsTabProps {
   applications: JobApplicationItem[];
   isLoading?: boolean;
+  isJobClosed?: boolean;
   onUpdateStatus: (
     applicationId: string,
     status: UpdateJobApplicationStatus | JobApplicationStatus,
@@ -61,6 +64,7 @@ interface JobApplicationsTabProps {
 export function JobApplicationsTab({
   applications,
   isLoading,
+  isJobClosed = false,
   onUpdateStatus,
   isUpdatingStatus,
 }: JobApplicationsTabProps) {
@@ -80,41 +84,9 @@ export function JobApplicationsTab({
     return applications.filter((app) => {
       // 1. Lọc theo trạng thái
       if (statusFilter !== "ALL") {
-        const s = (app.status || "").toUpperCase();
-        const sf = statusFilter.toUpperCase();
-
-        if (
-          (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") &&
-          s !== "SUBMITTED" &&
-          s !== "APPLIED" &&
-          s !== "RECEIVED"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "INTERVIEW" || sf === "INTERVIEWING") &&
-          s !== "INTERVIEW" &&
-          s !== "INTERVIEWING"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "HIRED" || sf === "ACCEPTED") &&
-          s !== "HIRED" &&
-          s !== "ACCEPTED"
-        ) {
-          return false;
-        }
-        if (
-          sf !== "SUBMITTED" &&
-          sf !== "APPLIED" &&
-          sf !== "RECEIVED" &&
-          sf !== "INTERVIEW" &&
-          sf !== "INTERVIEWING" &&
-          sf !== "HIRED" &&
-          sf !== "ACCEPTED" &&
-          s !== sf
-        ) {
+        const normApp = normalizeApplicationStatus(app.status);
+        const normFilter = normalizeApplicationStatus(statusFilter);
+        if (normApp !== normFilter) {
           return false;
         }
       }
@@ -139,15 +111,13 @@ export function JobApplicationsTab({
 
   // Quick stat counters
   const reviewingCount = applications.filter(
-    (a) => (a.status || "").toUpperCase() === "REVIEWING",
+    (a) => normalizeApplicationStatus(a.status) === APPLICATION_STATUS.REVIEWING,
   ).length;
   const interviewCount = applications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "INTERVIEW" || s === "INTERVIEWING";
+    return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING;
   }).length;
   const acceptedCount = applications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "HIRED" || s === "ACCEPTED";
+    return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.HIRED;
   }).length;
 
   const handleOpenConfirmTransition = (
@@ -337,15 +307,17 @@ export function JobApplicationsTab({
           header: () => <div className="text-center">Cập nhật trạng thái</div>,
           cell: ({ row }) => {
             const app = row.original;
-            const currentStatus = (app.status || "SUBMITTED").toUpperCase();
-            const nextAllowedOptions =
-              ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
+            const nextAllowedOptions = getAllowedStatusTransitions(
+              app.status,
+              isJobClosed,
+            );
 
-            // Nếu trạng thái đã là Terminal (HIRED, REJECTED, WITHDRAWN)
+            const currentStatus = normalizeApplicationStatus(app.status);
+
+            // Nếu trạng thái đã là Terminal (Hired, Rejected, Withdrawn)
             if (nextAllowedOptions.length === 0) {
-              const isHired =
-                currentStatus === "HIRED" || currentStatus === "ACCEPTED";
-              const isRejected = currentStatus === "REJECTED";
+              const isHired = currentStatus === APPLICATION_STATUS.HIRED;
+              const isRejected = currentStatus === APPLICATION_STATUS.REJECTED;
 
               return (
                 <div className="flex justify-center">
@@ -401,7 +373,8 @@ export function JobApplicationsTab({
                               key={opt.value}
                               value={opt.value}
                               className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-100 ${
-                                opt.value === "REJECTED"
+                                normalizeApplicationStatus(opt.value) ===
+                                APPLICATION_STATUS.REJECTED
                                   ? "text-rose-600 hover:bg-rose-50"
                                   : "text-slate-700 hover:text-primary"
                               }`}
@@ -419,7 +392,7 @@ export function JobApplicationsTab({
           },
         }),
       ]),
-    [isUpdatingStatus],
+    [isUpdatingStatus, isJobClosed],
   );
 
   return (

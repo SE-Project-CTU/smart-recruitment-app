@@ -6,6 +6,7 @@ public sealed record CompanyApplicationListItemResult(
     Guid Id,
     Guid JobId,
     string JobTitle,
+    string JobStatus,
     Guid CompanyId,
     string CompanyName,
     ApplicationCompanySummaryResult Company,

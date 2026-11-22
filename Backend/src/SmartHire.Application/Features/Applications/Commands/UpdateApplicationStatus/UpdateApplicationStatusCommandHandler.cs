@@ -76,6 +76,16 @@ public sealed class UpdateApplicationStatusCommandHandler
 
         var now = DateTimeOffset.UtcNow;
         var oldStatus = application.Status;
+
+        // Nếu Job đã đóng: chặn chuyển mới sang Offered hoặc Hired (ngoại trừ hồ sơ đã ở Offered chuyển sang Hired)
+        var isNewOfferOrHire = validated.Status == ApplicationStatus.Offered ||
+            (validated.Status == ApplicationStatus.Hired && oldStatus != ApplicationStatus.Offered);
+
+        if (application.Job.Status == JobPostingStatus.Closed && isNewOfferOrHire) {
+            throw ApplicationExceptions.JobNotAcceptingApplications(
+                "Vị trí tuyển dụng này đã đóng nhận thêm nhân sự. Không thể gửi thêm đề nghị việc làm (Offered).");
+        }
+
         (UpdateApplicationStatusResult Result, Guid NotificationId) transactionResult;
         try {
             transactionResult = await _unitOfWork.ExecuteInTransactionAsync(async ct => {

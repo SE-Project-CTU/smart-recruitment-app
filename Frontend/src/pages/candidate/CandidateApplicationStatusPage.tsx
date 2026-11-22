@@ -44,8 +44,12 @@ import {
   useWithdrawApplication,
 } from "@/hooks/queries/useApplication";
 import {
+  APPLICATION_STATUS,
   APPLICATION_STATUS_CONFIG,
   APPLICATION_STATUS_OPTIONS,
+  normalizeApplicationStatus,
+  isPendingStatus,
+  canWithdrawStatus,
   type CandidateMyApplicationItem,
   type ApplicationStatusHistoryItem,
 } from "@/types/application";
@@ -89,20 +93,8 @@ export default function CandidateApplicationStatusPage() {
     let result = rawApplications;
 
     if (selectedStatus !== "ALL") {
-      const sf = selectedStatus.toUpperCase();
-      result = result.filter((app) => {
-        const s = (app.status || "").toUpperCase();
-        if (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") {
-          return s === "SUBMITTED" || s === "APPLIED" || s === "RECEIVED";
-        }
-        if (sf === "INTERVIEW" || sf === "INTERVIEWING") {
-          return s === "INTERVIEW" || s === "INTERVIEWING";
-        }
-        if (sf === "HIRED" || sf === "ACCEPTED") {
-          return s === "HIRED" || s === "ACCEPTED";
-        }
-        return s === sf;
-      });
+      const targetNormalized = normalizeApplicationStatus(selectedStatus);
+      result = result.filter((app) => normalizeApplicationStatus(app.status) === targetNormalized);
     }
 
     if (!searchTerm.trim()) return result;
@@ -130,39 +122,11 @@ export default function CandidateApplicationStatusPage() {
     useWithdrawApplication();
 
   const isJobClosed = (jobStatus?: string | null) => {
-    const js = (jobStatus || "").toUpperCase();
-    return js === "CLOSED";
-  };
-
-  const isPendingReviewOrInterview = (status?: string | null) => {
-    const s = (status || "").toUpperCase();
-    return (
-      s === "SUBMITTED" ||
-      s === "APPLIED" ||
-      s === "RECEIVED" ||
-      s === "REVIEWING" ||
-      s === "SHORTLISTED" ||
-      s === "APPROVED" ||
-      s === "INTERVIEWING" ||
-      s === "INTERVIEW"
-    );
-  };
-
-  const canWithdraw = (status?: string | null) => {
-    const s = (status || "").toUpperCase();
-    return (
-      s === "SUBMITTED" ||
-      s === "APPLIED" ||
-      s === "RECEIVED" ||
-      s === "REVIEWING" ||
-      s === "SHORTLISTED" ||
-      s === "APPROVED"
-    );
+    return (jobStatus || "").trim().toUpperCase() === "CLOSED";
   };
 
   const isAlreadyWithdrawn = (status?: string | null) => {
-    const s = (status || "").toUpperCase();
-    return s === "WITHDRAWN";
+    return normalizeApplicationStatus(status) === APPLICATION_STATUS.WITHDRAWN;
   };
 
   // Hook lấy lịch sử trạng thái của application đang xem
@@ -184,16 +148,14 @@ export default function CandidateApplicationStatusPage() {
     return {
       total: allAppsData?.totalItems ?? allApplications.length,
       reviewing: allApplications.filter((a) => {
-        const s = (a.status || "").toUpperCase();
-        return s === "REVIEWING";
+        return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.REVIEWING;
       }).length,
       interview: allApplications.filter((a) => {
-        const s = (a.status || "").toUpperCase();
-        return s === "INTERVIEW" || s === "INTERVIEWING";
+        return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING;
       }).length,
       offered: allApplications.filter((a) => {
-        const s = (a.status || "").toUpperCase();
-        return s === "OFFERED" || s === "HIRED" || s === "ACCEPTED";
+        const norm = normalizeApplicationStatus(a.status);
+        return norm === APPLICATION_STATUS.OFFERED || norm === APPLICATION_STATUS.HIRED;
       }).length,
     };
   }, [allApplications, allAppsData?.totalItems]);
@@ -362,7 +324,7 @@ export default function CandidateApplicationStatusPage() {
         header: () => <div className="text-center">Thao tác</div>,
         cell: ({ row }) => {
           const app = row.original;
-          const allowed = canWithdraw(app.status);
+          const allowed = canWithdrawStatus(app.status);
           const withdrawn = isAlreadyWithdrawn(app.status);
 
           return (
@@ -663,7 +625,7 @@ export default function CandidateApplicationStatusPage() {
 
               {/* Passive Notice nếu Job đã tạm đóng trong khi hồ sơ ứng viên vẫn đang trong diện xem xét / phỏng vấn */}
               {isJobClosed(selectedApplication.job?.status) &&
-                isPendingReviewOrInterview(selectedApplication.status) && (
+                isPendingStatus(selectedApplication.status) && (
                   <div className="w-full min-w-0 rounded-xl border border-border/60 bg-surface p-3 text-xs leading-relaxed text-text-muted">
                     Vị trí này hiện đã tạm đóng nhận hồ sơ mới do đạt đủ đề xuất (Offer) dự kiến. Hồ sơ của bạn vẫn được lưu trong danh sách ưu tiên và sẽ được tiếp tục xem xét nếu có thay đổi.
                   </div>

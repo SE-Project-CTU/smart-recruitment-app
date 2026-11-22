@@ -175,6 +175,7 @@ export interface CompanyApplicationListItem {
   id: string;
   jobId: string;
   jobTitle: string;
+  jobStatus?: string;
   companyId: string;
   companyName: string;
   company?: {
