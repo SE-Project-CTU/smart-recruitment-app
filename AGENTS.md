@@ -63,7 +63,9 @@ Nếu Impeccable khả dụng trong môi trường agent, chạy critique sau kh
 | Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng                         | `.agents/skills/skill-creating/SKILL.md`   |
 | Tạo mới, sửa đổi hoặc đồng bộ API giữa Backend (FluentValidation/DTO) và Frontend (Service/UI)  | `.agents/skills/api-contract-sync/SKILL.md`|
 | Tích hợp hoặc sửa component UI có sẵn hoạt ảnh (animated primitives từ `@animate-ui/react`)   | `.agents/skills/animate-ui/SKILL.md`       |
+| Tạo mới một CV Template từ hình ảnh mockup, tích hợp Tiptap, DnD, Cloudinary & Registry         | `.agents/skills/cv-template-creator/SKILL.md` |
 | Người dùng yêu cầu tạo commit code (chỉ commit, không tự ý push)                               | `.agents/skills/git-commit/SKILL.md`       |
+| Merge nhánh, rebase hoặc giải quyết xung đột code (Git merge/rebase conflict)                  | `.agents/skills/auto-merge-resolver/SKILL.md` |
 
 > **Lưu ý về Animation & Motion trong dự án:**
 > - **`animate-ui` (`@animate-ui/react`)**: Dành riêng cho các **component UI có hoạt ảnh dựng sẵn** (Select, Pagination indicator, Tabs highlight, Tooltip, Dialog...).
