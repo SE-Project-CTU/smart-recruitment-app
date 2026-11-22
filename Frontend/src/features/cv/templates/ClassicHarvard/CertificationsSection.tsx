@@ -13,14 +13,16 @@ import type {
 export interface CertificationsSectionProps {
   section: RichTextCVItemSection<RichTextCVCertificationItem>;
   primaryColor?: string;
+  bannerBgColor?: string;
   isReadOnly?: boolean;
   renderField: CvFieldRenderer;
   actions?: SectionItemEditorActions;
 }
 
-export const CertificationsSection: React.FC<CertificationsSectionProps> = ({
+export const CertificationsSection: React.FC<CertificationsSectionProps> = React.memo(({
   section,
   primaryColor,
+  bannerBgColor,
   isReadOnly = false,
   renderField,
   actions,
@@ -35,6 +37,7 @@ export const CertificationsSection: React.FC<CertificationsSectionProps> = ({
         fieldName="content.sections.certifications.title"
         title={section.title}
         primaryColor={primaryColor}
+        bannerBgColor={bannerBgColor}
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
@@ -76,4 +79,6 @@ export const CertificationsSection: React.FC<CertificationsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+CertificationsSection.displayName = "CertificationsSection";

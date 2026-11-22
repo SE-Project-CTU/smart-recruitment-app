@@ -13,14 +13,16 @@ import type {
 export interface AwardsSectionProps {
   section: RichTextCVItemSection<RichTextCVAwardItem>;
   primaryColor?: string;
+  bannerBgColor?: string;
   isReadOnly?: boolean;
   renderField: CvFieldRenderer;
   actions?: SectionItemEditorActions;
 }
 
-export const AwardsSection: React.FC<AwardsSectionProps> = ({
+export const AwardsSection: React.FC<AwardsSectionProps> = React.memo(({
   section,
   primaryColor,
+  bannerBgColor,
   isReadOnly = false,
   renderField,
   actions,
@@ -35,6 +37,7 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
         fieldName="content.sections.awards.title"
         title={section.title}
         primaryColor={primaryColor}
+        bannerBgColor={bannerBgColor}
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
@@ -76,4 +79,6 @@ export const AwardsSection: React.FC<AwardsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+AwardsSection.displayName = "AwardsSection";

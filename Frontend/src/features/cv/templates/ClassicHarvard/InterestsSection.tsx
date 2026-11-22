@@ -6,13 +6,15 @@ import type { CvFieldRenderer } from "../types";
 export interface InterestsSectionProps {
   section: RichTextCVTextSection;
   primaryColor?: string;
+  bannerBgColor?: string;
   isReadOnly?: boolean;
   renderField: CvFieldRenderer;
 }
 
-export const InterestsSection: React.FC<InterestsSectionProps> = ({
+export const InterestsSection: React.FC<InterestsSectionProps> = React.memo(({
   section,
   primaryColor,
+  bannerBgColor,
   isReadOnly = false,
   renderField,
 }) => {
@@ -25,6 +27,7 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
         fieldName="content.sections.interests.title"
         title={section.title}
         primaryColor={primaryColor}
+        bannerBgColor={bannerBgColor}
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
@@ -39,4 +42,6 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+InterestsSection.displayName = "InterestsSection";

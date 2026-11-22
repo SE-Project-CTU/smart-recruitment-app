@@ -14,14 +14,16 @@ import type {
 interface ExperienceSectionProps {
   section: RichTextCVItemSection<RichTextCVExperienceItem>;
   primaryColor?: string;
+  bannerBgColor?: string;
   isReadOnly?: boolean;
   renderField: CvFieldRenderer;
   actions?: SectionItemEditorActions;
 }
 
-export const ExperienceSection: React.FC<ExperienceSectionProps> = ({
+export const ExperienceSection: React.FC<ExperienceSectionProps> = React.memo(({
   section,
   primaryColor,
+  bannerBgColor,
   isReadOnly = false,
   renderField,
   actions,
@@ -36,6 +38,7 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({
         fieldName="content.sections.experience.title"
         title={section.title}
         primaryColor={primaryColor}
+        bannerBgColor={bannerBgColor}
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
@@ -103,4 +106,6 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+ExperienceSection.displayName = "ExperienceSection";

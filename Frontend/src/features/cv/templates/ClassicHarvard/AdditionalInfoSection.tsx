@@ -6,13 +6,15 @@ import type { CvFieldRenderer } from "../types";
 export interface AdditionalInfoSectionProps {
   section: RichTextCVTextSection;
   primaryColor?: string;
+  bannerBgColor?: string;
   isReadOnly?: boolean;
   renderField: CvFieldRenderer;
 }
 
-export const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
+export const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = React.memo(({
   section,
   primaryColor,
+  bannerBgColor,
   isReadOnly = false,
   renderField,
 }) => {
@@ -25,6 +27,7 @@ export const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
         fieldName="content.sections.additionalInfo.title"
         title={section.title}
         primaryColor={primaryColor}
+        bannerBgColor={bannerBgColor}
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
@@ -39,4 +42,6 @@ export const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+AdditionalInfoSection.displayName = "AdditionalInfoSection";

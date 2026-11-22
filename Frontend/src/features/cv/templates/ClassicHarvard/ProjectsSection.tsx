@@ -11,14 +11,16 @@ import type {
 interface ProjectsSectionProps {
   section: RichTextCVItemSection<RichTextCVProjectItem>;
   primaryColor?: string;
+  bannerBgColor?: string;
   isReadOnly?: boolean;
   renderField: CvFieldRenderer;
   actions?: SectionItemEditorActions;
 }
 
-export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
+export const ProjectsSection: React.FC<ProjectsSectionProps> = React.memo(({
   section,
   primaryColor,
+  bannerBgColor,
   isReadOnly = false,
   renderField,
   actions,
@@ -33,6 +35,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         fieldName="content.sections.projects.title"
         title={section.title}
         primaryColor={primaryColor}
+        bannerBgColor={bannerBgColor}
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
@@ -100,4 +103,6 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+ProjectsSection.displayName = "ProjectsSection";

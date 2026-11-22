@@ -10,14 +10,16 @@ import type {
 interface SkillsSectionProps {
   section: RichTextCVItemSection<RichTextCVSkillItem>;
   primaryColor?: string;
+  bannerBgColor?: string;
   isReadOnly?: boolean;
   renderField: CvFieldRenderer;
   actions?: SectionItemEditorActions;
 }
 
-export const SkillsSection: React.FC<SkillsSectionProps> = ({
+export const SkillsSection: React.FC<SkillsSectionProps> = React.memo(({
   section,
   primaryColor,
+  bannerBgColor,
   isReadOnly = false,
   renderField,
   actions,
@@ -32,6 +34,7 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({
         fieldName="content.sections.skills.title"
         title={section.title}
         primaryColor={primaryColor}
+        bannerBgColor={bannerBgColor}
         isReadOnly={isReadOnly}
         renderField={renderField}
       />
@@ -77,4 +80,6 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({
       </div>
     </section>
   );
-};
+});
+
+SkillsSection.displayName = "SkillsSection";
