@@ -311,7 +311,7 @@ export default function CandidateApplicationStatusPage() {
             };
           return (
             <span
-              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
+              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${cfg.badgeClass}`}
             >
               {cfg.label}
             </span>
@@ -332,13 +332,13 @@ export default function CandidateApplicationStatusPage() {
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <Button
-                      variant="secondary"
-                      icon={Eye}
-                      iconSize={16}
+                    <button
+                      type="button"
                       onClick={() => setSelectedApplication(app)}
-                      className="p-1.5! text-xs! ring-0!"
-                    />
+                      className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-muted transition-colors hover:border-primary hover:text-primary"
+                    >
+                      <Eye className="size-3.5" />
+                    </button>
                   }
                 />
                 <TooltipPanel>Xem tiến trình hồ sơ</TooltipPanel>
@@ -347,24 +347,22 @@ export default function CandidateApplicationStatusPage() {
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <span className="inline-block">
-                      <Button
-                        variant="secondary"
-                        icon={UserMinus}
-                        iconSize={15}
-                        disabled={!allowed}
-                        onClick={() => {
-                          setWithdrawTargetApp(app);
-                          setWithdrawReason("");
-                        }}
-                        className={cn(
-                          "p-1.5! text-xs! ring-0!",
-                          allowed
-                            ? "text-status-error hover:bg-status-error/10 hover:text-status-error"
-                            : "cursor-not-allowed text-text-muted/40",
-                        )}
-                      />
-                    </span>
+                    <button
+                      type="button"
+                      disabled={!allowed}
+                      onClick={() => {
+                        setWithdrawTargetApp(app);
+                        setWithdrawReason("");
+                      }}
+                      className={cn(
+                        "flex size-7 items-center justify-center rounded-lg border border-border bg-white transition-colors",
+                        allowed
+                          ? "cursor-pointer text-status-error hover:border-status-error/30 hover:bg-status-error/10 hover:text-status-error"
+                          : "cursor-not-allowed text-text-muted/30 opacity-40",
+                      )}
+                    >
+                      <UserMinus className="size-3.5" />
+                    </button>
                   }
                 />
                 <TooltipPanel>
@@ -396,31 +394,31 @@ export default function CandidateApplicationStatusPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
           <span className="text-xs font-medium text-text-muted">
             Tổng đơn nộp
           </span>
-          <span className="mt-2 text-2xl font-bold text-slate-900">
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.total}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
-          <span className="text-xs font-medium text-sky-600">Đang xem xét</span>
-          <span className="mt-2 text-2xl font-bold text-sky-700">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
+          <span className="text-xs font-medium text-text-muted">Đang xem xét</span>
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.reviewing}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
-          <span className="text-xs font-medium text-amber-600">Phỏng vấn</span>
-          <span className="mt-2 text-2xl font-bold text-amber-700">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
+          <span className="text-xs font-medium text-text-muted">Phỏng vấn</span>
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.interview}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
-          <span className="text-xs font-medium text-emerald-600">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
+          <span className="text-xs font-medium text-text-muted">
             Được đề nghị việc
           </span>
-          <span className="mt-2 text-2xl font-bold text-emerald-700">
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.offered}
           </span>
         </div>
