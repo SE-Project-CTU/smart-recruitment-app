@@ -522,6 +522,7 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<
 
 /**
  * Cấu hình hiển thị nhãn và màu sắc badge trạng thái application
+ * Chuẩn hóa theo Design System SmartHire (.impeccable/design.json)
  */
 export const APPLICATION_STATUS_CONFIG: Record<
   string,
@@ -530,93 +531,93 @@ export const APPLICATION_STATUS_CONFIG: Record<
   // PascalCase chuẩn backend
   Submitted: {
     label: "Đã nộp",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Received: {
     label: "Đã tiếp nhận",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Approved: {
     label: "Đã duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   Reviewing: {
     label: "Đang xem xét",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   Shortlisted: {
     label: "Đã chọn lọc",
-    badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    badgeClass: "bg-primary/10 text-primary border-primary/25",
   },
   Interviewing: {
     label: "Phỏng vấn",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   Offered: {
     label: "Mời nhận việc",
-    badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
+    badgeClass: "bg-status-info/10 text-status-info border-status-info/20",
   },
   Hired: {
     label: "Đã tuyển dụng",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   Rejected: {
     label: "Từ chối",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Withdrawn: {
     label: "Đã rút hồ sơ",
-    badgeClass: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 
   // Fallback uppercase tương thích
   SUBMITTED: {
     label: "Đã nộp",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   RECEIVED: {
     label: "Đã tiếp nhận",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   APPROVED: {
     label: "Đã duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   APPLIED: {
     label: "Đã nộp",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   REVIEWING: {
     label: "Đang xem xét",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-primary/5 text-primary border-primary/20",
   },
   SHORTLISTED: {
     label: "Đã chọn lọc",
-    badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    badgeClass: "bg-primary/10 text-primary border-primary/25",
   },
   INTERVIEW: {
     label: "Phỏng vấn",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   INTERVIEWING: {
     label: "Phỏng vấn",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   OFFERED: {
     label: "Mời nhận việc",
-    badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
+    badgeClass: "bg-status-info/10 text-status-info border-status-info/20",
   },
   HIRED: {
     label: "Đã tuyển dụng",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   REJECTED: {
     label: "Từ chối",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   WITHDRAWN: {
     label: "Đã rút hồ sơ",
-    badgeClass: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 };
 

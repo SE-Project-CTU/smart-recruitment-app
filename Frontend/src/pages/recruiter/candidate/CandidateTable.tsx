@@ -2,19 +2,12 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
-  Calendar,
-  CheckCircle2,
   ChevronDown,
-  Clock,
-  ExternalLink,
-  Eye,
   FileText,
-  Globe,
-  Mail,
   MessageSquare,
 } from "lucide-react";
 import dayjs from "dayjs";
-import { Button, DataTable, type DataTableFeatures } from "@/components/common";
+import { DataTable, type DataTableFeatures } from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,
@@ -55,7 +48,7 @@ export function CandidateTable({
   data,
   onReadCoverLetter,
   onRequestChangeStatus,
-  onViewJobDetail,
+  onViewJobDetail: _onViewJobDetail,
   onPreviewCv,
   isUpdatingStatus,
   emptyMessage = "Chưa có ứng viên nào phù hợp.",
@@ -83,24 +76,23 @@ export function CandidateTable({
                     <img
                       src={profile.avatarUrl}
                       alt={profile.name}
-                      className="size-10 shrink-0 rounded-full border border-slate-200 bg-slate-100 object-cover"
+                      className="size-9 shrink-0 rounded-full border border-border bg-bg object-cover"
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = "none";
                       }}
                     />
                   ) : (
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-bold text-primary">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-semibold text-primary">
                       {profile.initials}
                     </div>
                   )}
 
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="truncate text-sm font-bold text-slate-800">
+                    <span className="truncate text-xs font-semibold text-text-main sm:text-sm">
                       {profile.name}
                     </span>
-                    <span className="flex items-center gap-1 truncate text-xs text-slate-500">
-                      <Mail className="size-3 shrink-0 text-slate-400" />
-                      <span className="truncate">{profile.email}</span>
+                    <span className="truncate text-xs text-text-muted">
+                      {profile.email}
                     </span>
                   </div>
                 </div>
@@ -123,13 +115,12 @@ export function CandidateTable({
                   to={jobUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="group inline-flex items-center gap-1 truncate text-xs font-bold text-slate-800 transition-colors hover:text-primary sm:text-sm"
+                  className="truncate text-xs font-semibold text-text-main transition-colors hover:text-primary sm:text-sm"
                   title={app.jobTitle}
                 >
-                  <span className="truncate">{app.jobTitle}</span>
-                  <ExternalLink className="size-3 shrink-0 opacity-40 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
+                  {app.jobTitle}
                 </Link>
-                <span className="truncate text-xs text-slate-500">
+                <span className="truncate text-xs text-text-muted">
                   {app.companyName || "Doanh nghiệp"}
                 </span>
               </div>
@@ -140,37 +131,36 @@ export function CandidateTable({
         // Cột 3: Hồ sơ CV đính kèm
         columnHelper.display({
           id: "cvDocument",
-          header: "Hồ sơ CV",
+          header: () => <div className="text-center">Hồ sơ CV</div>,
           cell: ({ row }) => {
             const app = row.original;
 
             return (
-              <div className="flex items-center gap-2">
+              <div className="flex justify-center">
                 {app.uploadedCvUrl ? (
                   <a
                     href={app.uploadedCvUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Mở file CV PDF đã tải lên"
-                    className="btn btn-secondary gap-1.5 rounded-lg! text-xs! text-text-muted! ring-border!"
+                    className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-white px-3 text-xs font-medium text-text-muted transition-colors hover:border-primary hover:text-primary"
                   >
                     <span>Xem CV</span>
-                    <FileText className="size-3.5" />
+                    <FileText className="size-3" />
                   </a>
                 ) : (
-                  <Button
+                  <button
+                    type="button"
                     onClick={() => onPreviewCv?.(app)}
                     disabled={
                       !onPreviewCv || (!app.cvSnapshot && !app.cvVersionId)
                     }
-                    aria-label="Xem trước CV hệ thống"
-                    variant="secondary"
-                    iconPosition="right"
-                    icon={Globe}
-                    className="rounded-lg! text-xs! text-text-muted! ring-border!"
+                    title="Xem trước CV hệ thống"
+                    className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-white px-3 text-xs font-medium text-text-muted transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    Xem CV
-                  </Button>
+                    <span>Xem CV</span>
+                    <FileText className="size-3" />
+                  </button>
                 )}
               </div>
             );
@@ -189,7 +179,7 @@ export function CandidateTable({
 
             if (!hasLetter) {
               return (
-                <div className="flex justify-center text-xs text-slate-400">
+                <div className="flex justify-center text-xs text-text-muted/60">
                   <span>—</span>
                 </div>
               );
@@ -203,9 +193,9 @@ export function CandidateTable({
                       <button
                         type="button"
                         onClick={() => onReadCoverLetter(app)}
-                        className="flex size-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
+                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-muted transition-colors hover:border-primary hover:text-primary"
                       >
-                        <MessageSquare className="size-4" />
+                        <MessageSquare className="size-3.5" />
                       </button>
                     }
                   />
@@ -216,7 +206,7 @@ export function CandidateTable({
           },
         }),
 
-        // Cột 5: Thời gian (Phương án 1 - Gộp dòng: Ngày nộp + Lần cập nhật)
+        // Cột 5: Thời gian (Ngày nộp + Lần cập nhật)
         columnHelper.accessor("appliedAt", {
           id: "timeline",
           header: "Thời gian",
@@ -231,13 +221,11 @@ export function CandidateTable({
 
             return (
               <div className="flex flex-col gap-0.5">
-                <span className="flex items-center gap-1 text-xs font-semibold text-slate-700">
-                  <Calendar className="size-3 text-slate-400" />
-                  <span>{appliedText}</span>
+                <span className="text-xs font-medium text-text-main">
+                  {appliedText}
                 </span>
-                <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                  <Clock className="size-2.5" />
-                  <span>Cập nhật: {updatedText}</span>
+                <span className="text-[11px] text-text-muted">
+                  Cập nhật: {updatedText}
                 </span>
               </div>
             );
@@ -252,12 +240,12 @@ export function CandidateTable({
             const cfg = APPLICATION_STATUS_CONFIG[normalizedStatus] ||
               APPLICATION_STATUS_CONFIG[normalizedStatus.toUpperCase()] || {
               label: normalizedStatus,
-              badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+              badgeClass: "bg-bg text-text-muted border-border",
             };
 
             return (
               <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${cfg.badgeClass}`}
               >
                 {cfg.label}
               </span>
@@ -265,7 +253,7 @@ export function CandidateTable({
           },
         }),
 
-        // Cột 7: Thao tác chuyển đổi trạng thái
+        // Cột 7: Thao tác chuyển đổi trạng thái (Kích thước & căn lề đồng đều h-8 w-40)
         columnHelper.display({
           id: "actions",
           header: () => <div className="text-center">Thao tác</div>,
@@ -280,48 +268,19 @@ export function CandidateTable({
               isJobClosed,
             );
 
-            const currentStatus = normalizeApplicationStatus(app.status);
-
             // Nếu trạng thái đã là Terminal (Hired, Rejected, Withdrawn)
             if (nextAllowedOptions.length === 0) {
-              const isHired = currentStatus === APPLICATION_STATUS.HIRED;
-              const isRejected = currentStatus === APPLICATION_STATUS.REJECTED;
-
               return (
-                <div className="flex items-center justify-center gap-1.5">
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-medium ${
-                      isHired
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : isRejected
-                          ? "border-rose-200 bg-rose-50 text-rose-700"
-                          : "border-slate-200 bg-slate-50 text-slate-500"
-                    }`}
-                  >
-                    <CheckCircle2 className="size-3" />
+                <div className="flex justify-center">
+                  <div className="flex h-8 w-40 items-center justify-center rounded-xl border border-border bg-slate-50 text-xs font-medium text-text-muted select-none">
                     <span>Hoàn tất quy trình</span>
-                  </span>
-
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <button
-                          type="button"
-                          onClick={() => onViewJobDetail(app.jobId)}
-                          className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-slate-500 transition-colors hover:border-primary hover:text-primary"
-                        >
-                          <Eye className="size-3.5" />
-                        </button>
-                      }
-                    />
-                    <TooltipPanel>Xem chi tiết tin tuyển dụng</TooltipPanel>
-                  </Tooltip>
+                  </div>
                 </div>
               );
             }
 
             return (
-              <div className="flex items-center justify-center gap-1.5">
+              <div className="flex justify-center">
                 <Select.Root
                   items={nextAllowedOptions}
                   onValueChange={(val) => {
@@ -336,10 +295,10 @@ export function CandidateTable({
                 >
                   <Select.Trigger
                     aria-label="Cập nhật trạng thái ứng viên"
-                    className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary focus:outline-none"
+                    className="flex h-8 w-40 cursor-pointer items-center justify-between rounded-xl border border-border bg-white px-3 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <span>Chuyển trạng thái...</span>
-                    <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                    <span className="truncate">Chuyển trạng thái...</span>
+                    <Select.Icon className="shrink-0 text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                       <ChevronDown className="size-3" />
                     </Select.Icon>
                   </Select.Trigger>
@@ -349,7 +308,7 @@ export function CandidateTable({
                       alignItemWithTrigger={false}
                       sideOffset={4}
                     >
-                      <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                      <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                         <Select.List>
                           {nextAllowedOptions.map(
                             (opt: {
@@ -359,11 +318,11 @@ export function CandidateTable({
                               <Select.Item
                                 key={opt.value}
                                 value={opt.value}
-                                className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-100 ${
+                                className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-slate-100 ${
                                   normalizeApplicationStatus(opt.value) ===
                                   APPLICATION_STATUS.REJECTED
-                                    ? "text-rose-600 hover:bg-rose-50"
-                                    : "text-slate-700 hover:text-primary"
+                                    ? "text-status-error hover:bg-status-error/10"
+                                    : "text-text-main hover:text-primary"
                                 }`}
                               >
                                 <Select.ItemText>{opt.label}</Select.ItemText>
@@ -375,21 +334,6 @@ export function CandidateTable({
                     </Select.Positioner>
                   </Select.Portal>
                 </Select.Root>
-
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <button
-                        type="button"
-                        onClick={() => onViewJobDetail(app.jobId)}
-                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-slate-500 transition-colors hover:border-primary hover:text-primary"
-                      >
-                        <Eye className="size-3.5" />
-                      </button>
-                    }
-                  />
-                  <TooltipPanel>Xem chi tiết tin tuyển dụng</TooltipPanel>
-                </Tooltip>
               </div>
             );
           },
@@ -400,7 +344,6 @@ export function CandidateTable({
       onPreviewCv,
       onReadCoverLetter,
       onRequestChangeStatus,
-      onViewJobDetail,
       closedJobIds,
     ],
   );

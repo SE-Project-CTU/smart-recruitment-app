@@ -260,52 +260,52 @@ export function RecruiterCandidateListPage() {
 
       {/* 2. 4 Quick Stat Counters */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-white p-4">
           <span className="text-xs font-medium text-text-muted">
             Tổng số ứng viên
           </span>
-          <p className="mt-1 text-xl font-bold text-text-main">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {allApplications.length}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
-          <span className="text-xs font-medium text-sky-600">Đang xem xét</span>
-          <p className="mt-1 text-xl font-bold text-sky-700">
+        <div className="rounded-2xl border border-border bg-white p-4">
+          <span className="text-xs font-medium text-text-muted">Đang xem xét</span>
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {reviewingCount}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
-          <span className="text-xs font-medium text-amber-600">
+        <div className="rounded-2xl border border-border bg-white p-4">
+          <span className="text-xs font-medium text-text-muted">
             Mời phỏng vấn
           </span>
-          <p className="mt-1 text-xl font-bold text-amber-700">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {interviewCount}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
-          <span className="text-xs font-medium text-emerald-600">
+        <div className="rounded-2xl border border-border bg-white p-4">
+          <span className="text-xs font-medium text-text-muted">
             Đã tuyển dụng
           </span>
-          <p className="mt-1 text-xl font-bold text-emerald-700">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {hiredCount}
           </p>
         </div>
       </div>
 
       {/* 3. Toolbar & Bộ lọc đa chiều */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-3.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-3.5 sm:flex-row sm:items-center sm:justify-between">
         {/* Search Input */}
         <div className="relative max-w-md flex-1">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
-            placeholder="Tìm theo tên ứng viên, email, hoặc vị trí tuyển dụng..."
+            placeholder="Tìm theo tên ứng viên, email, hoặc vị trí..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+            className="w-full rounded-xl border border-border bg-bg py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
           />
           {searchQuery && (
             <button
@@ -314,7 +314,7 @@ export function RecruiterCandidateListPage() {
                 setSearchQuery("");
                 setCurrentPage(1);
               }}
-              className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-600"
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-text-muted hover:text-text-main"
             >
               <X className="size-3.5" />
             </button>
@@ -324,9 +324,9 @@ export function RecruiterCandidateListPage() {
         {/* Dropdown Filters: Vị trí & Trạng thái */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Bộ lọc Vị trí tuyển dụng (JD) */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-            <Briefcase className="size-3.5 text-slate-400" />
-            <span className="text-xs text-slate-500">Vị trí:</span>
+          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5">
+            <Briefcase className="size-3.5 text-text-muted" />
+            <span className="text-xs text-text-muted">Vị trí:</span>
             <Select.Root
               items={jobFilterOptions}
               value={selectedJobId}
@@ -337,10 +337,10 @@ export function RecruiterCandidateListPage() {
             >
               <Select.Trigger
                 aria-label="Lọc theo tin tuyển dụng"
-                className="flex max-w-44 cursor-pointer items-center gap-1 text-xs font-semibold text-slate-800 focus:outline-none"
+                className="flex max-w-44 cursor-pointer items-center gap-1 text-xs font-semibold text-text-main focus:outline-none"
               >
                 <Select.Value />
-                <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                   <ChevronDown className="size-3.5" />
                 </Select.Icon>
               </Select.Trigger>
@@ -352,7 +352,7 @@ export function RecruiterCandidateListPage() {
                         <Select.Item
                           key={opt.value}
                           value={opt.value}
-                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                         >
                           <Select.ItemText>{opt.label}</Select.ItemText>
                           <Select.ItemIndicator
@@ -371,9 +371,9 @@ export function RecruiterCandidateListPage() {
           </div>
 
           {/* Bộ lọc Trạng thái */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-            <Filter className="size-3.5 text-slate-400" />
-            <span className="text-xs text-slate-500">Trạng thái:</span>
+          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5">
+            <Filter className="size-3.5 text-text-muted" />
+            <span className="text-xs text-text-muted">Trạng thái:</span>
             <Select.Root
               items={[
                 { value: "ALL", label: "Tất cả trạng thái" },
@@ -391,10 +391,10 @@ export function RecruiterCandidateListPage() {
             >
               <Select.Trigger
                 aria-label="Lọc theo trạng thái ứng viên"
-                className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-slate-800 focus:outline-none"
+                className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-text-main focus:outline-none"
               >
                 <Select.Value />
-                <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                   <ChevronDown className="size-3.5" />
                 </Select.Icon>
               </Select.Trigger>
@@ -413,7 +413,7 @@ export function RecruiterCandidateListPage() {
                         <Select.Item
                           key={opt.value}
                           value={opt.value}
-                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                          className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                         >
                           <Select.ItemText>{opt.label}</Select.ItemText>
                           <Select.ItemIndicator
