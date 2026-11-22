@@ -294,6 +294,17 @@ public class JobPosting {
         UpdatedAt = now;
     }
 
+    public void Reopen(DateTimeOffset now) {
+        if (Status != JobPostingStatus.Closed) {
+            return;
+        }
+        if (Deadline.HasValue && Deadline.Value <= now) {
+            return;
+        }
+        Status = JobPostingStatus.Published;
+        UpdatedAt = now;
+    }
+
     public void Expire(DateTimeOffset now) {
         if (Status != JobPostingStatus.Published) {
             return;

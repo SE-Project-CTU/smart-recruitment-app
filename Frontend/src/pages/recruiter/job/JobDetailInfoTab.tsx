@@ -6,9 +6,10 @@ import { getEducationLevelLabel, getWorkModeLabel } from "@/utils/jobHelpers";
 interface JobDetailInfoTabProps {
   job: JobPostingItem;
   provinceName?: string;
+  reservedQuota?: number;
 }
 
-export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
+export function JobDetailInfoTab({ job, provinceName, reservedQuota }: JobDetailInfoTabProps) {
   const displayProvince = provinceName || job.province?.name || "Toàn quốc";
 
   const fullLocation = [
@@ -87,9 +88,19 @@ export function JobDetailInfoTab({ job, provinceName }: JobDetailInfoTabProps) {
             <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
               <span className="text-text-muted">Số lượng tuyển</span>
               <span className="font-semibold text-text-main">
-                {(job.vacancies ?? 0) > 0
-                  ? `${job.vacancies} người`
-                  : "Không giới hạn"}
+                {(job.vacancies ?? 0) > 0 ? (
+                  <>
+                    {job.vacancies} người
+                    {typeof reservedQuota === "number" && (
+                      <span className="ml-1.5 text-xs font-normal text-text-muted">
+                        (Đã giữ: {reservedQuota} • Còn lại:{" "}
+                        {Math.max(0, (job.vacancies ?? 0) - reservedQuota)})
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  "Không giới hạn"
+                )}
               </span>
             </div>
 

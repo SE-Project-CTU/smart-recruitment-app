@@ -50,6 +50,7 @@ import {
   type ApplicationStatusHistoryItem,
 } from "@/types/application";
 import { ApplicationCvPreviewDialog } from "@/pages/recruiter/candidate/ApplicationCvPreviewDialog";
+import { JobDetailDrawer } from "@/components/job";
 
 const columnHelper = createColumnHelper<
   DataTableFeatures,
@@ -116,6 +117,8 @@ export default function CandidateApplicationStatusPage() {
   // Modal xem chi tiết & Timeline tiến trình
   const [selectedApplication, setSelectedApplication] =
     useState<CandidateMyApplicationItem | null>(null);
+  // Drawer xem chi tiết JD công việc
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   // Modal xem trước CV hệ thống
   const [previewCvApp, setPreviewCvApp] =
     useState<CandidateMyApplicationItem | null>(null);
@@ -125,6 +128,25 @@ export default function CandidateApplicationStatusPage() {
   const [withdrawReason, setWithdrawReason] = useState<string>("");
   const { mutate: withdrawApplication, isPending: isWithdrawing } =
     useWithdrawApplication();
+
+  const isJobClosed = (jobStatus?: string | null) => {
+    const js = (jobStatus || "").toUpperCase();
+    return js === "CLOSED";
+  };
+
+  const isPendingReviewOrInterview = (status?: string | null) => {
+    const s = (status || "").toUpperCase();
+    return (
+      s === "SUBMITTED" ||
+      s === "APPLIED" ||
+      s === "RECEIVED" ||
+      s === "REVIEWING" ||
+      s === "SHORTLISTED" ||
+      s === "APPROVED" ||
+      s === "INTERVIEWING" ||
+      s === "INTERVIEW"
+    );
+  };
 
   const canWithdraw = (status?: string | null) => {
     const s = (status || "").toUpperCase();
@@ -230,12 +252,16 @@ export default function CandidateApplicationStatusPage() {
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <span className="truncate text-sm font-semibold text-text-main transition-colors hover:text-primary">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedJobId(app.jobId || app.job?.id || null)}
+                        className="truncate text-left text-sm font-semibold text-text-main transition-colors hover:text-primary cursor-pointer"
+                      >
                         {app.jobTitle}
-                      </span>
+                      </button>
                     }
                   />
-                  <TooltipPanel>{app.jobTitle}</TooltipPanel>
+                  <TooltipPanel>Bấm để xem chi tiết tin tuyển dụng: {app.jobTitle}</TooltipPanel>
                 </Tooltip>
                 <span className="truncate text-xs text-text-muted">
                   {app.companyName}
@@ -606,7 +632,13 @@ export default function CandidateApplicationStatusPage() {
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <h4 className="wrap-break-words text-sm leading-snug font-semibold text-text-main">
-                    {selectedApplication.jobTitle}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedJobId(selectedApplication.jobId || selectedApplication.job?.id || null)}
+                      className="text-left font-semibold text-text-main transition-colors hover:text-primary cursor-pointer"
+                    >
+                      {selectedApplication.jobTitle}
+                    </button>
                   </h4>
                   <span className="wrap-break-words text-xs leading-relaxed text-text-muted">
                     {selectedApplication.companyName}
@@ -628,6 +660,14 @@ export default function CandidateApplicationStatusPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Passive Notice nếu Job đã tạm đóng trong khi hồ sơ ứng viên vẫn đang trong diện xem xét / phỏng vấn */}
+              {isJobClosed(selectedApplication.job?.status) &&
+                isPendingReviewOrInterview(selectedApplication.status) && (
+                  <div className="w-full min-w-0 rounded-xl border border-border/60 bg-surface p-3 text-xs leading-relaxed text-text-muted">
+                    Vị trí này hiện đã tạm đóng nhận hồ sơ mới do đạt đủ đề xuất (Offer) dự kiến. Hồ sơ của bạn vẫn được lưu trong danh sách ưu tiên và sẽ được tiếp tục xem xét nếu có thay đổi.
+                  </div>
+                )}
 
               {/* Cover Letter nếu có */}
               {selectedApplication.coverLetter && (
@@ -841,6 +881,13 @@ export default function CandidateApplicationStatusPage() {
       <ApplicationCvPreviewDialog
         application={previewCvApp}
         onClose={() => setPreviewCvApp(null)}
+      />
+
+      {/* Drawer xem chi tiết công việc ở chế độ Read-only khi bấm từ lịch sử ứng tuyển */}
+      <JobDetailDrawer
+        jobId={selectedJobId || undefined}
+        open={!!selectedJobId}
+        onClose={() => setSelectedJobId(null)}
       />
     </div>
   );
