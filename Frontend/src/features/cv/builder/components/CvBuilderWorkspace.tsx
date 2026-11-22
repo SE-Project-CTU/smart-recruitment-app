@@ -248,18 +248,11 @@ export default function CvBuilderWorkspace({
 
   return (
     <main
-      className={`flex flex-1 flex-col items-center overflow-x-auto bg-slate-100 px-4 py-8 min-h-full ${className}`}
+      className={`flex flex-1 flex-col overflow-x-auto bg-slate-100 px-4 py-8 min-h-full ${className}`}
     >
       <div
-        className="cv-zoom-viewport flex justify-center min-w-fit shrink-0"
-        style={{
-          transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-          transformOrigin: "top center",
-          marginBottom:
-            zoom > 1
-              ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
-              : "2rem",
-        }}
+        className="cv-zoom-viewport mx-auto flex w-max shrink-0"
+        style={{ zoom }}
       >
         <div ref={contentRef} className="print-container">
         {!layoutValidation.isValid ? (

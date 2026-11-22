@@ -117,45 +117,27 @@ export function useCvZoom(options?: UseCvZoomOptions) {
 
   // Lắng nghe Ctrl + Wheel để zoom mượt mà khi cuộn chuột trong container (tắt khi disabled)
   useEffect(() => {
-    const container = options?.containerRef?.current;
-    if (!container) return;
+    if (options?.disabled) return;
 
     let attachedContainer: HTMLElement | null = null;
-    let pollInterval: ReturnType<typeof setInterval> | null = null;
-
     const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        if (e.deltaY < 0) {
-          zoomIn();
-        } else if (e.deltaY > 0) {
-          zoomOut();
-        }
-      }
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      if (e.deltaY < 0) zoomIn();
+      else if (e.deltaY > 0) zoomOut();
     };
-
-    const attachWheel = () => {
-      const container = options?.containerRef?.current;
-      if (!container) return false;
+    const syncContainer = () => {
+      const container = options?.containerRef?.current ?? null;
+      if (container === attachedContainer) return;
+      attachedContainer?.removeEventListener("wheel", handleWheel);
       attachedContainer = container;
-      container.addEventListener("wheel", handleWheel, { passive: false });
-      return true;
+      attachedContainer?.addEventListener("wheel", handleWheel, { passive: false });
     };
-
-    if (!attachWheel()) {
-      pollInterval = setInterval(() => {
-        if (attachWheel() && pollInterval) {
-          clearInterval(pollInterval);
-          pollInterval = null;
-        }
-      }, 150);
-    }
-
+    syncContainer();
+    const interval = setInterval(syncContainer, 150);
     return () => {
-      if (pollInterval) clearInterval(pollInterval);
-      if (attachedContainer) {
-        attachedContainer.removeEventListener("wheel", handleWheel);
-      }
+      clearInterval(interval);
+      attachedContainer?.removeEventListener("wheel", handleWheel);
     };
   }, [options?.containerRef, options?.disabled, zoomIn, zoomOut]);
 
