@@ -23,6 +23,7 @@ public interface IJobApplicationRepository {
         int pageSize,
         CancellationToken cancellationToken);
     Task<int> CountByJobIdAsync(Guid jobId, ApplicationStatus? status, CancellationToken cancellationToken);
+    Task<int> CountReservedQuotaAsync(Guid jobId, CancellationToken cancellationToken);
     Task<ApplicationDetailData?> GetDetailByIdAsync(Guid applicationId, CancellationToken cancellationToken);
     Task<int> CountStatusHistoryAsync(Guid applicationId, CancellationToken cancellationToken);
     Task<List<ApplicationStatusHistoryData>> GetStatusHistoryPageAsync(

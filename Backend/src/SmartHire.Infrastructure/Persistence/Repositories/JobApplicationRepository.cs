@@ -116,6 +116,14 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         CancellationToken cancellationToken) =>
         ApplyJobFilters(jobId, status).CountAsync(cancellationToken);
 
+    public Task<int> CountReservedQuotaAsync(
+        Guid jobId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications
+            .AsNoTracking()
+            .Where(a => a.JobId == jobId && (a.Status == ApplicationStatus.Offered || a.Status == ApplicationStatus.Hired))
+            .CountAsync(cancellationToken);
+
     public Task<ApplicationDetailData?> GetDetailByIdAsync(
         Guid applicationId,
         CancellationToken cancellationToken) =>

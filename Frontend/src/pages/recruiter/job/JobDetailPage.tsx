@@ -117,6 +117,13 @@ export function JobDetailPage() {
     return appsResponse?.items || [];
   }, [appsResponse]);
 
+  const reservedQuota = useMemo(() => {
+    return applications.filter((app) => {
+      const s = (app.status || "").toUpperCase();
+      return s === "OFFERED" || s === "HIRED";
+    }).length;
+  }, [applications]);
+
   // Handlers
   const handleUpdateApplicationStatus = async (
     applicationId: string,
@@ -545,7 +552,11 @@ export function JobDetailPage() {
 
       {/* 4. Tab Content */}
       {activeTab === "info" ? (
-        <JobDetailInfoTab job={job} provinceName={provinceName} />
+        <JobDetailInfoTab
+          job={job}
+          provinceName={provinceName}
+          reservedQuota={isMyCompany ? reservedQuota : undefined}
+        />
       ) : !isMyCompany ? (
         <div className="rounded-2xl border border-border bg-white p-8 text-center shadow-2xs sm:p-12">
           <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">

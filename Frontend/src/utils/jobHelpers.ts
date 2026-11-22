@@ -303,7 +303,7 @@ export function getJobStatusBadge(status?: JobPostingStatus | string): {
     case "pending_review":
       return { label: "Chờ phê duyệt", variant: "warning" };
     case "closed":
-      return { label: "Đã đóng", variant: "neutral" };
+      return { label: "Đã tạm đóng tuyển dụng", variant: "neutral" };
     case "expired":
       return { label: "Hết hạn", variant: "error" };
     case "rejected":

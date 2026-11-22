@@ -88,8 +88,8 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
             throw ApplicationExceptions.JobNotAcceptingApplications();
         }
 
-        var hiredCount = await _applicationRepository.CountByJobIdAsync(jobPostingId, ApplicationStatus.Hired, cancellationToken);
-        if (hiredCount >= posting.Vacancies) {
+        var reservedCount = await _applicationRepository.CountReservedQuotaAsync(jobPostingId, cancellationToken);
+        if (reservedCount >= posting.Vacancies) {
             if (posting.Status == JobPostingStatus.Published) {
                 posting.Close(now);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
