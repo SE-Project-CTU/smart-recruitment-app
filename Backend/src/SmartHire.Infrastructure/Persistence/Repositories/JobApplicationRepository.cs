@@ -311,6 +311,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                 application.Id,
                 application.JobId,
                 application.Job.Title,
+                application.Job.Status,
                 application.Job.CompanyId,
                 application.Job.Company.Name,
                 application.Job.Company.LogoFile != null ? application.Job.Company.LogoFile.FileUrl : null,

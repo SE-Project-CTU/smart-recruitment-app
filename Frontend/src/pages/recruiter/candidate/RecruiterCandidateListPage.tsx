@@ -22,7 +22,9 @@ import {
 import { useCompanyStore } from "@/stores";
 import type { JobPostingItem } from "@/types/job";
 import {
+  APPLICATION_STATUS,
   APPLICATION_STATUS_CONFIG,
+  normalizeApplicationStatus,
   resolveCandidateProfile,
   type PendingStatusChange,
   type RecruiterCandidateApplicationItem,
@@ -48,11 +50,19 @@ export function RecruiterCandidateListPage() {
 
   // 2. Data queries: Lấy trực tiếp JD và Ứng viên của công ty active (API 15 chuẩn Workspace)
   const { data: jobResponse, isLoading: isLoadingJobs } =
-    useCompanyJobPostings(activeCompanyId);
+    useCompanyJobPostings(activeCompanyId, { pageSize: 100 });
 
   const allJobs: JobPostingItem[] = useMemo(() => {
     return jobResponse?.items || [];
   }, [jobResponse]);
+
+  const closedJobIds = useMemo(() => {
+    return new Set(
+      allJobs
+        .filter((j) => (j.status || "").toUpperCase() === "CLOSED")
+        .map((j) => j.id),
+    );
+  }, [allJobs]);
 
   const {
     data: allApplications = [],
@@ -109,41 +119,9 @@ export function RecruiterCandidateListPage() {
 
       // Lọc theo trạng thái hồ sơ
       if (statusFilter !== "ALL") {
-        const s = (app.status || "").toUpperCase();
-        const sf = statusFilter.toUpperCase();
-
-        if (
-          (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") &&
-          s !== "SUBMITTED" &&
-          s !== "APPLIED" &&
-          s !== "RECEIVED"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "INTERVIEW" || sf === "INTERVIEWING") &&
-          s !== "INTERVIEW" &&
-          s !== "INTERVIEWING"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "HIRED" || sf === "ACCEPTED") &&
-          s !== "HIRED" &&
-          s !== "ACCEPTED"
-        ) {
-          return false;
-        }
-        if (
-          sf !== "SUBMITTED" &&
-          sf !== "APPLIED" &&
-          sf !== "RECEIVED" &&
-          sf !== "INTERVIEW" &&
-          sf !== "INTERVIEWING" &&
-          sf !== "HIRED" &&
-          sf !== "ACCEPTED" &&
-          s !== sf
-        ) {
+        const normApp = normalizeApplicationStatus(app.status);
+        const normFilter = normalizeApplicationStatus(statusFilter);
+        if (normApp !== normFilter) {
           return false;
         }
       }
@@ -175,23 +153,21 @@ export function RecruiterCandidateListPage() {
 
   // Quick stat counters
   const reviewingCount = allApplications.filter(
-    (a) => (a.status || "").toUpperCase() === "REVIEWING",
+    (a) => normalizeApplicationStatus(a.status) === APPLICATION_STATUS.REVIEWING,
   ).length;
-  const interviewCount = allApplications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "INTERVIEW" || s === "INTERVIEWING";
-  }).length;
-  const hiredCount = allApplications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "HIRED" || s === "ACCEPTED";
-  }).length;
+  const interviewCount = allApplications.filter(
+    (a) => normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING,
+  ).length;
+  const hiredCount = allApplications.filter(
+    (a) => normalizeApplicationStatus(a.status) === APPLICATION_STATUS.HIRED,
+  ).length;
 
   // Handlers
   const handleOpenConfirmTransition = (
     app: RecruiterCandidateApplicationItem,
     targetStatus: UpdateJobApplicationStatus,
   ) => {
-    const currentStatus = (app.status || "SUBMITTED").toUpperCase();
+    const currentStatus = normalizeApplicationStatus(app.status);
     setPendingChange({
       app,
       fromStatus: currentStatus,
@@ -489,6 +465,7 @@ export function RecruiterCandidateListPage() {
           }
           onPreviewCv={setSelectedCvApp}
           isUpdatingStatus={updateStatusMutation.isPending}
+          closedJobIds={closedJobIds}
           emptyMessage={
             searchQuery || selectedJobId !== "ALL" || statusFilter !== "ALL"
               ? "Không tìm thấy hồ sơ ứng viên nào phù hợp với bộ lọc."

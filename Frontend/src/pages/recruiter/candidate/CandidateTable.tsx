@@ -23,8 +23,10 @@ import {
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { PATHS } from "@/constants/paths";
 import {
-  ALLOWED_STATUS_TRANSITIONS,
+  APPLICATION_STATUS,
   APPLICATION_STATUS_CONFIG,
+  getAllowedStatusTransitions,
+  normalizeApplicationStatus,
   resolveCandidateProfile,
   type RecruiterCandidateApplicationItem,
   type UpdateJobApplicationStatus,
@@ -46,6 +48,7 @@ interface CandidateTableProps {
   onPreviewCv?: (app: RecruiterCandidateApplicationItem) => void;
   isUpdatingStatus?: boolean;
   emptyMessage?: string;
+  closedJobIds?: Set<string>;
 }
 
 export function CandidateTable({
@@ -56,6 +59,7 @@ export function CandidateTable({
   onPreviewCv,
   isUpdatingStatus,
   emptyMessage = "Chưa có ứng viên nào phù hợp.",
+  closedJobIds,
 }: CandidateTableProps) {
   const columns = useMemo(
     () =>
@@ -244,11 +248,10 @@ export function CandidateTable({
         columnHelper.accessor("status", {
           header: "Trạng thái",
           cell: ({ row }) => {
-            const rawStatus = (
-              row.original.status || "SUBMITTED"
-            ).toUpperCase();
-            const cfg = APPLICATION_STATUS_CONFIG[rawStatus] || {
-              label: rawStatus,
+            const normalizedStatus = normalizeApplicationStatus(row.original.status);
+            const cfg = APPLICATION_STATUS_CONFIG[normalizedStatus] ||
+              APPLICATION_STATUS_CONFIG[normalizedStatus.toUpperCase()] || {
+              label: normalizedStatus,
               badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
             };
 
@@ -268,15 +271,21 @@ export function CandidateTable({
           header: () => <div className="text-center">Thao tác</div>,
           cell: ({ row }) => {
             const app = row.original;
-            const currentStatus = (app.status || "SUBMITTED").toUpperCase();
-            const nextAllowedOptions =
-              ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
+            const isJobClosed =
+              (app.jobStatus || app.job?.status || "").toUpperCase() === "CLOSED" ||
+              (Boolean(app.jobId) && Boolean(closedJobIds?.has(app.jobId)));
 
-            // Nếu trạng thái đã là Terminal (HIRED, REJECTED, WITHDRAWN)
+            const nextAllowedOptions = getAllowedStatusTransitions(
+              app.status,
+              isJobClosed,
+            );
+
+            const currentStatus = normalizeApplicationStatus(app.status);
+
+            // Nếu trạng thái đã là Terminal (Hired, Rejected, Withdrawn)
             if (nextAllowedOptions.length === 0) {
-              const isHired =
-                currentStatus === "HIRED" || currentStatus === "ACCEPTED";
-              const isRejected = currentStatus === "REJECTED";
+              const isHired = currentStatus === APPLICATION_STATUS.HIRED;
+              const isRejected = currentStatus === APPLICATION_STATUS.REJECTED;
 
               return (
                 <div className="flex items-center justify-center gap-1.5">
@@ -351,7 +360,8 @@ export function CandidateTable({
                                 key={opt.value}
                                 value={opt.value}
                                 className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-100 ${
-                                  opt.value === "REJECTED"
+                                  normalizeApplicationStatus(opt.value) ===
+                                  APPLICATION_STATUS.REJECTED
                                     ? "text-rose-600 hover:bg-rose-50"
                                     : "text-slate-700 hover:text-primary"
                                 }`}
@@ -391,6 +401,7 @@ export function CandidateTable({
       onReadCoverLetter,
       onRequestChangeStatus,
       onViewJobDetail,
+      closedJobIds,
     ],
   );
 

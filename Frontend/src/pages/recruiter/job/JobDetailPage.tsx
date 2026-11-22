@@ -45,7 +45,10 @@ import {
   useUpdateApplicationStatus,
   useUpdateJobPostingStatus,
 } from "@/hooks/queries/useJob";
-import type { JobApplicationStatus } from "@/types/application";
+import {
+  type JobApplicationStatus,
+  isQuotaHoldingStatus,
+} from "@/types/application";
 import {
   formatSalaryRange,
   getJobLevelLabel,
@@ -118,10 +121,7 @@ export function JobDetailPage() {
   }, [appsResponse]);
 
   const reservedQuota = useMemo(() => {
-    return applications.filter((app) => {
-      const s = (app.status || "").toUpperCase();
-      return s === "OFFERED" || s === "HIRED";
-    }).length;
+    return applications.filter((app) => isQuotaHoldingStatus(app.status)).length;
   }, [applications]);
 
   // Handlers
@@ -574,6 +574,7 @@ export function JobDetailPage() {
         <JobApplicationsTab
           applications={applications}
           isLoading={isLoadingApps}
+          isJobClosed={(job?.status || "").toUpperCase() === "CLOSED"}
           onUpdateStatus={handleUpdateApplicationStatus}
           isUpdatingStatus={updateAppStatusMutation.isPending}
         />

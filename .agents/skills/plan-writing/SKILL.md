@@ -37,9 +37,10 @@ This skill provides a framework for breaking down work into clear, actionable ta
 
 ### 4. Dynamic Naming
 
-- Plan files are saved as `{task-slug}.md` in the temp/plans folder
-- Name derived from task (e.g., "add auth" → `auth-feature.md`)
-- **NEVER** commit plan or push any plans on Github.
+- Plan files are saved in the `temp/plans/` folder.
+- **Naming Rule with Creation Date**: Plan file names MUST include the creation date in `dd-mm-yyyy` (or `dd_mm_yyyy`) format combined with the task slug:
+  - Format: `{dd-mm-yyyy}_{task-slug}.md` (ví dụ: ngày 22/11/2026 tạo plan cho "add auth" → `22-11-2026_auth-feature.md`).
+- **NEVER** commit plan or push any plans on Github (plans are local temporary files only).
 
 ## Planning Principles (NOT Templates!)
 
