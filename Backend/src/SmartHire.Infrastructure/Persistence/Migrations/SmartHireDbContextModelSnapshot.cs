@@ -193,11 +193,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_application_status_histories");
 
-                    b.HasIndex("ApplicationId")
-                        .HasDatabaseName("ix_application_status_histories_application_id");
-
                     b.HasIndex("ChangedBy")
                         .HasDatabaseName("ix_application_status_histories_changed_by");
+
+                    b.HasIndex("ApplicationId", "CreatedAt")
+                        .HasDatabaseName("ix_application_status_histories_application_id_created_at");
 
                     b.ToTable("application_status_histories", (string)null);
                 });
@@ -365,6 +365,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("CompanyId", "InviterId")
                         .HasDatabaseName("ix_company_invitations_company_id_inviter_id");
 
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_company_invitations_company_id_status");
+
                     b.ToTable("company_invitations", (string)null);
                 });
 
@@ -409,6 +412,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CompanyId", "ReviewedBy")
                         .HasDatabaseName("ix_company_join_requests_company_id_reviewed_by");
+
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_company_join_requests_company_id_status");
 
                     b.ToTable("company_join_requests", (string)null);
                 });
@@ -455,6 +461,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_company_memberships_user_id");
+
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_company_memberships_company_id_status");
 
                     b.ToTable("company_memberships", (string)null);
                 });
@@ -844,6 +853,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_applications_candidate_id_job_id");
 
+                    b.HasIndex("JobId", "Status")
+                        .HasDatabaseName("ix_applications_job_id_status");
+
                     b.ToTable("applications", null, t =>
                         {
                             t.HasCheckConstraint("ck_applications_exactly_one_cv_source", "(cv_version_id IS NOT NULL) <> (uploaded_cv_file_id IS NOT NULL)");
@@ -1075,8 +1087,8 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_job_postings");
 
-                    b.HasIndex("ProvinceId")
-                        .HasDatabaseName("ix_job_postings_province_id");
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_job_postings_company_id");
 
                     b.HasIndex("SearchVector")
                         .HasDatabaseName("ix_job_postings_search_vector");
@@ -1097,6 +1109,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CompanyId", "CreatedBy")
                         .HasDatabaseName("ix_job_postings_company_id_created_by");
+
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_job_postings_company_id_status");
+
+                    b.HasIndex("ProvinceId", "Status")
+                        .HasDatabaseName("ix_job_postings_province_id_status");
 
                     b.ToTable("job_postings", (string)null);
                 });
@@ -1207,6 +1225,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_media_files");
+
+                    b.HasIndex("DeletedAt")
+                        .HasDatabaseName("ix_media_files_deleted_at")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.HasIndex("OwnerId")
                         .HasDatabaseName("ix_media_files_owner_id");
