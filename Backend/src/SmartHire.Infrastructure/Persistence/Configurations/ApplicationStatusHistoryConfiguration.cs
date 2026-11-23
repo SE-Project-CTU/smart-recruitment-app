@@ -15,6 +15,8 @@ public class ApplicationStatusHistoryConfiguration : IEntityTypeConfiguration<Ap
             .HasConversion<string>()
             .HasMaxLength(32);
 
+        builder.HasIndex(x => new { x.ApplicationId, x.CreatedAt });
+
         builder.HasOne(x => x.Application)
             .WithMany(x => x.StatusHistories)
             .HasForeignKey(x => x.ApplicationId)

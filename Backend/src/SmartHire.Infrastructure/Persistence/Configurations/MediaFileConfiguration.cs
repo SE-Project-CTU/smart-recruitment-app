@@ -16,6 +16,10 @@ public class MediaFileConfiguration : IEntityTypeConfiguration<MediaFile> {
         builder.Property(x => x.FileType).HasMaxLength(100);
         builder.Property(x => x.PublicId).HasMaxLength(512);
         builder.Property(x => x.DeletedAt);
+
+        builder.HasIndex(x => x.OwnerId);
+        builder.HasIndex(x => x.DeletedAt)
+            .HasFilter("deleted_at IS NULL");
         
         builder.HasOne(x => x.Owner)
             .WithMany(x => x.MediaFiles)
