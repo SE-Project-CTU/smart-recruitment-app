@@ -72,7 +72,7 @@ Execute the 6 phases sequentially. Verify every acceptance checkbox in the curre
 - [ ] **Cross-Stack Schema & Codebase Inspection**:
   - Run `Grep` for `senior_harvard` across `Frontend/` and `Backend/` to find every file referencing template codes.
   - Inspect `Frontend/src/types/cv.ts` and `Frontend/src/features/cv/templates/templateMetadata.ts` to confirm exact schemas for `defaultLayout`, `defaultContent`, `metadata.defaultStyle`, `profile`, and `sections`.
-  - Inspect Backend whitelist validator: `Backend/src/SmartHire.Application/CVs/Validators/CvDocumentUpdateValidator.cs` $\rightarrow$ add `"<templateCode>"` if allowed template codes are validated there.
+  - Inspect Backend whitelist validator: `Backend/src/SmartHire.Application/Features/Cv/Commands/UpdateCv/CvDocumentUpdateValidator.cs` $\rightarrow$ add `"<templateCode>"` if allowed template codes are validated there.
   - Inspect reference template components: `Frontend/src/features/cv/templates/SeniorHarvard/*` (1-column) or `Frontend/src/features/cv/templates/SidebarClassic/*` (2-column).
 
 ---
