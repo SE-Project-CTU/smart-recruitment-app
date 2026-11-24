@@ -15,6 +15,7 @@ interface CVCardProps {
   onDelete?: (cv: CVItem) => void;
   onTogglePublic?: (cv: CVItem, nextIsPublic: boolean) => void;
   isTogglingPublic?: boolean;
+  isDownloading?: boolean;
   className?: string;
 }
 
@@ -26,6 +27,7 @@ export function CVCard({
   onDelete,
   onTogglePublic,
   isTogglingPublic,
+  isDownloading,
   className,
 }: CVCardProps) {
   const templateName = cv.template?.name || "ATS Standard";
@@ -179,6 +181,7 @@ export function CVCard({
           icon={Download}
           iconSize={14}
           onClick={() => onDownload?.(cv)}
+          isLoading={isDownloading}
           className="flex-1 justify-center rounded-lg! p-2! text-xs! md:text-sm!"
         >
           Tải xuống
