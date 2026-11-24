@@ -13,6 +13,8 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<JobApplication>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()").ValueGeneratedOnAdd();
         builder.HasIndex(x => new { x.CandidateId, x.JobId }).IsUnique();
+        builder.HasIndex(x => x.JobId);
+        builder.HasIndex(x => new { x.JobId, x.Status });
         builder.Property(x => x.CoverLetter);
         builder.Property(x => x.Status)
             .HasConversion<string>()

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartHire.Domain.Entities;
 
@@ -8,6 +8,8 @@ public class CompanyMembershipConfiguration : IEntityTypeConfiguration<CompanyMe
     public void Configure(EntityTypeBuilder<CompanyMembership> builder) {
         builder.HasKey(x => x.Id);
         builder.HasAlternateKey(x => new { x.CompanyId, x.UserId });
+        builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => new { x.CompanyId, x.Status });
         
         builder.Property(x => x.Id)
             .HasDefaultValueSql("gen_random_uuid()")

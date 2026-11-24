@@ -16,6 +16,7 @@ public static partial class CvDocumentUpdateValidator {
     private static readonly Dictionary<string, HashSet<string>> SupportedTemplateAreas =
         new(StringComparer.OrdinalIgnoreCase) {
             ["senior_harvard"] = new(StringComparer.Ordinal) { "main" },
+            ["classic_harvard"] = new(StringComparer.Ordinal) { "main" },
             ["sidebar_classic"] = new(StringComparer.Ordinal) { "main", "sidebar" }
         };
     
