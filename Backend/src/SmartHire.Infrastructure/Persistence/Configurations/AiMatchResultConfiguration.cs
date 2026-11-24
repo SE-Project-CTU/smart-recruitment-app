@@ -11,6 +11,9 @@ public class AiMatchResultConfiguration : IEntityTypeConfiguration<AiMatchResult
             .HasDefaultValueSql("gen_random_uuid()")
             .ValueGeneratedOnAdd();
 
+        builder.HasIndex(x => x.ApplicationId).IsUnique();
+        builder.HasIndex(x => x.CvVersionId);
+
         builder.HasOne(x => x.Application)
             .WithOne(x => x.AiMatchResult)
             .HasForeignKey<AiMatchResult>(x => x.ApplicationId)

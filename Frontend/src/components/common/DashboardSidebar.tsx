@@ -17,6 +17,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   candidateSidebarData,
   recruiterSidebarData,
   adminSidebarData,
@@ -46,8 +55,8 @@ export function DashboardSidebar() {
   const location = useLocation();
   const { user } = useAuthStore();
   const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = !isMobile && state === "collapsed";
 
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
 
@@ -292,6 +301,74 @@ export function DashboardSidebar() {
                       : isAnySubActive;
 
                   if (hasSubItems) {
+                    if (isCollapsed) {
+                      return (
+                        <SidebarMenuItem key={item.title}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <SidebarMenuButton
+                                  tooltip={item.title}
+                                  className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-5 text-sm font-medium transition-colors ${
+                                    isAnySubActive
+                                      ? "bg-status-active! text-primary!"
+                                      : "text-slate-600 hover:bg-slate-100 hover:text-primary!"
+                                  }`}
+                                />
+                              }
+                            >
+                              <div className="flex items-center gap-3">
+                                {item.icon && (
+                                  <item.icon
+                                    className={`size-5 shrink-0 ${
+                                      isAnySubActive
+                                        ? "text-primary"
+                                        : "text-slate-500"
+                                    }`}
+                                  />
+                                )}
+                                <span className="truncate">{item.title}</span>
+                              </div>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent
+                              side="right"
+                              align="start"
+                              sideOffset={8}
+                              className="min-w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+                            >
+                              <DropdownMenuGroup>
+                                <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                  {item.title}
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator className="my-1 border-t border-slate-100" />
+                                {item.items?.map((subItem) => {
+                                  const subActive = isSubItemActive(
+                                    subItem.url,
+                                    siblingUrls,
+                                  );
+                                  const targetUrl = resolveSubItemUrl(subItem.url);
+                                  return (
+                                    <DropdownMenuItem
+                                      key={subItem.title}
+                                      render={<Link to={targetUrl} />}
+                                      className={`rounded-lg px-2.5 py-2 text-xs font-medium transition-colors ${
+                                        subActive
+                                          ? "bg-status-active! text-primary!"
+                                          : "text-slate-600 hover:bg-slate-100 hover:text-primary!"
+                                      }`}
+                                    >
+                                      {subItem.title}
+                                    </DropdownMenuItem>
+                                  );
+                                })}
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </SidebarMenuItem>
+                      );
+                    }
+
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton

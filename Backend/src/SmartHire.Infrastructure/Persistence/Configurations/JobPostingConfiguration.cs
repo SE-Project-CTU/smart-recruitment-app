@@ -45,6 +45,9 @@ public class JobPostingConfiguration : IEntityTypeConfiguration<JobPosting> {
             .HasDefaultValue(0.10m);
 
         builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => x.CompanyId);
+        builder.HasIndex(x => new { x.CompanyId, x.Status });
+        builder.HasIndex(x => new { x.ProvinceId, x.Status });
         builder.HasIndex(x => x.Title)
             .HasMethod("GIN")
             .HasOperators("gin_trgm_ops");

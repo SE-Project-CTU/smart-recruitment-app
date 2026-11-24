@@ -15,7 +15,6 @@ import {
 } from "@/components/common";
 import TextType from "@/components/external/TextType";
 import CountUp from "@/components/external/CountUp";
-import GradientWaves from "@/components/external/GradientWaves";
 import {
   SlidingLogoMarquee,
   ThreeDScrollTrigger,
@@ -41,7 +40,7 @@ const HeroSection = () => {
     <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg-white-blue pt-28 pb-16 lg:pt-32">
       {/* Background Gradient Waves từ React Bits */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <GradientWaves
+        {/* <GradientWaves
           horizonColor="#1b3b6f"
           waveColor="#38bdf8"
           crestColor="#e0f2fe"
@@ -57,7 +56,7 @@ const HeroSection = () => {
           forceMotion={true}
           quality="high"
           className="size-full"
-        />
+        /> */}
         {/* Lớp gradient tinh tế chuyển tiếp mềm mại ở đáy Hero section */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-bg-white-blue to-transparent" />
       </div>

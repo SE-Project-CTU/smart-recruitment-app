@@ -63,11 +63,19 @@ Nếu Impeccable khả dụng trong môi trường agent, chạy critique sau kh
 | Người dùng yêu cầu tạo skill, hoặc phát hiện quy trình lặp lại rõ ràng                         | `.agents/skills/skill-creating/SKILL.md`   |
 | Tạo mới, sửa đổi hoặc đồng bộ API giữa Backend (FluentValidation/DTO) và Frontend (Service/UI)  | `.agents/skills/api-contract-sync/SKILL.md`|
 | Tích hợp hoặc sửa component UI có sẵn hoạt ảnh (animated primitives từ `@animate-ui/react`)   | `.agents/skills/animate-ui/SKILL.md`       |
+| Tạo mới một CV Template từ hình ảnh mockup theo quy trình 6 Phase (Schema cross-stack, SQL seed self-contained, 2 màu chủ đạo, upload/crop avatar, Rules of Hooks & React.memo) | `.agents/skills/cv-template-creator/SKILL.md` |
 | Người dùng yêu cầu tạo commit code (chỉ commit, không tự ý push)                               | `.agents/skills/git-commit/SKILL.md`       |
+| Merge nhánh, rebase hoặc giải quyết xung đột code (Git merge/rebase conflict)                  | `.agents/skills/auto-merge-resolver/SKILL.md` |
 
 > **Lưu ý về Animation & Motion trong dự án:**
 > - **`animate-ui` (`@animate-ui/react`)**: Dành riêng cho các **component UI có hoạt ảnh dựng sẵn** (Select, Pagination indicator, Tabs highlight, Tooltip, Dialog...).
 > - **Motion Engine chuẩn hóa**: Thư viện motion chính thức của dự án là **`motion` (`import { motion, AnimatePresence } from "motion/react"`**) (thế hệ mới của Framer Motion). Tránh dùng trực tiếp `framer-motion` cho code mới và ưu tiên chuyển dần các import cũ sang `motion/react` để tối ưu kích thước bundle.
+>
+> **Lưu ý về CV Template (`cv-template-creator`):**
+> - Bắt buộc chia 6 Phase kết hợp `plan-writing`.
+> - Luôn kết nối hệ thống 2 màu chủ đạo qua CSS Custom Properties bridge (`--cv-primary-1`, `--cv-primary-2`).
+> - Tuyệt đối tuân thủ Rules of Hooks (không gọi Hook sau early return), dùng `useMemo`/`useCallback` cho derived state và bọc `React.memo` cho mọi section con.
+> - File SQL seed phải self-contained (tự đảm bảo bản ghi `media_files` nếu chưa có) và dùng strict string `"language": "vi"`.
 
 Nếu `brainstorming` yêu cầu làm rõ, kiểm tra bối cảnh hiện có trước; chỉ hỏi các quyết định thực sự chặn việc triển khai.
 
