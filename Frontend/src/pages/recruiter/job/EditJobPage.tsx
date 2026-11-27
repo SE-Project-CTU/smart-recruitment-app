@@ -1,4 +1,11 @@
-import { useState, useMemo, type ChangeEvent, type FormEvent } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import {
@@ -11,7 +18,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
-import { JobMatchingWeightsCard, type MatchingWeightsValues } from "@/components/job/JobMatchingWeightsCard";
+import {
+  JobMatchingWeightsCard,
+  type MatchingWeightsValues,
+} from "@/components/job/JobMatchingWeightsCard";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
@@ -20,6 +30,7 @@ import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage, getApiFieldErrors } from "@/api/errorHandler";
 import { PATHS } from "@/constants/paths";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
+import { useCompanyStore } from "@/stores";
 import {
   useJobPostingDetail,
   useUpdateJobPosting,
@@ -45,6 +56,7 @@ import type {
   WorkMode,
 } from "@/types";
 import type { CompanyItem } from "@/types/company";
+import { cn } from "@/lib/utils";
 
 interface EditJobFormState {
   title: string;
@@ -154,69 +166,71 @@ function EditJobForm({
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const updateForm = <K extends keyof EditJobFormState>(
-    key: K,
-    value: EditJobFormState[K],
-  ) => {
-    setFormData((current) => ({ ...current, [key]: value }));
-    setFieldErrors((current) => {
-      if (!(key in current)) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  };
+  const updateForm = useCallback(
+    <K extends keyof EditJobFormState>(key: K, value: EditJobFormState[K]) => {
+      setFormData((current) => ({ ...current, [key]: value }));
+      setFieldErrors((current) => {
+        if (!(key in current)) return current;
+        const next = { ...current };
+        delete next[key];
+        return next;
+      });
+    },
+    [],
+  );
 
-  const handleTextChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = event.target;
-    if (name === "experienceYears" || name === "vacancies") {
-      updateForm(name, Number(value) as EditJobFormState[typeof name]);
-      return;
-    }
-    if (name in formData) {
+  const handleTextChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = event.target;
+      if (name === "experienceYears" || name === "vacancies") {
+        updateForm(name, Number(value) as EditJobFormState[typeof name]);
+        return;
+      }
       updateForm(name as keyof EditJobFormState, value as never);
-    }
-  };
+    },
+    [updateForm],
+  );
 
-  const handleSalaryChange = (
-    event: ChangeEvent<HTMLInputElement>,
-    field: "salaryMin" | "salaryMax",
-  ) => {
-    const input = event.target;
-    const rawValue = input.value;
-    const cursorPosition = input.selectionStart || 0;
+  const handleSalaryChange = useCallback(
+    (
+      event: ChangeEvent<HTMLInputElement>,
+      field: "salaryMin" | "salaryMax",
+    ) => {
+      const input = event.target;
+      const rawValue = input.value;
+      const cursorPosition = input.selectionStart || 0;
 
-    // Đếm số chữ số trước con trỏ trước khi format
-    const digitsBeforeCursor = rawValue
-      .slice(0, cursorPosition)
-      .replace(/\D/g, "").length;
+      // Đếm số chữ số trước con trỏ trước khi format
+      const digitsBeforeCursor = rawValue
+        .slice(0, cursorPosition)
+        .replace(/\D/g, "").length;
 
-    const formatted = formatCurrencyInput(rawValue);
-    updateForm(field, formatted);
+      const formatted = formatCurrencyInput(rawValue);
+      updateForm(field, formatted);
 
-    // Bảo toàn vị trí con trỏ sau khi thêm/xóa dấu phẩy
-    requestAnimationFrame(() => {
-      let newCursorPos = 0;
-      let digitCount = 0;
-      for (let i = 0; i < formatted.length; i++) {
-        if (/\d/.test(formatted[i])) {
-          digitCount++;
+      // Bảo toàn vị trí con trỏ sau khi thêm/xóa dấu phẩy
+      requestAnimationFrame(() => {
+        let newCursorPos = 0;
+        let digitCount = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (/\d/.test(formatted[i])) {
+            digitCount++;
+          }
+          if (digitCount === digitsBeforeCursor) {
+            newCursorPos = i + 1;
+            break;
+          }
         }
-        if (digitCount === digitsBeforeCursor) {
-          newCursorPos = i + 1;
-          break;
+        if (digitCount < digitsBeforeCursor) {
+          newCursorPos = formatted.length;
         }
-      }
-      if (digitCount < digitsBeforeCursor) {
-        newCursorPos = formatted.length;
-      }
-      input.setSelectionRange(newCursorPos, newCursorPos);
-    });
-  };
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      });
+    },
+    [updateForm],
+  );
 
-  const handleProvinceChange = (provinceId: string) => {
+  const handleProvinceChange = useCallback((provinceId: string) => {
     setFormData((current) => ({ ...current, provinceId, wardId: "" }));
     setFieldErrors((current) => {
       const next = { ...current };
@@ -224,29 +238,110 @@ function EditJobForm({
       delete next.wardId;
       return next;
     });
-  };
+  }, []);
+
+  const handleWardChange = useCallback(
+    (wardId: string) => {
+      updateForm("wardId", wardId);
+    },
+    [updateForm],
+  );
+
+  const handleDetailedLocationChange = useCallback(
+    (detailedLocation: string) => {
+      updateForm("detailedLocation", detailedLocation);
+    },
+    [updateForm],
+  );
+
+  const handleIndustryChange = useCallback(
+    (ids: string[]) => {
+      updateForm("industryIds", ids);
+    },
+    [updateForm],
+  );
+
+  const handleSkillChange = useCallback(
+    (ids: string[]) => {
+      updateForm("skillIds", ids);
+    },
+    [updateForm],
+  );
+
+  const handleWeightsChange = useCallback(
+    (weights: MatchingWeightsValues) => {
+      updateForm("matchingWeights", weights);
+    },
+    [updateForm],
+  );
+
+  const handleDeadlineChange = useCallback(
+    (val: string) => {
+      updateForm("deadline", val);
+      setFieldErrors((current) => {
+        if (!current.deadline) return current;
+        const next = { ...current };
+        delete next.deadline;
+        return next;
+      });
+    },
+    [updateForm],
+  );
 
   const validate = () => {
     const errors: Record<string, string> = {};
-    if (!formData.title.trim())
+    const titleTrim = formData.title.trim();
+    if (!titleTrim) {
       errors.title = "Vui lòng nhập tiêu đề công việc.";
-    if (!formData.provinceId)
-      errors.provinceId = "Vui lòng chọn tỉnh/thành phố.";
-    if (formData.vacancies < 1)
-      errors.vacancies = "Số lượng tuyển phải lớn hơn 0.";
-    if (formData.experienceYears < 0)
-      errors.experienceYears = "Kinh nghiệm không thể âm.";
-    if (formData.description.trim().length < 20)
-      errors.description = "Mô tả cần có ít nhất 20 ký tự.";
-    if (formData.requirements.trim().length < 20)
-      errors.requirements = "Yêu cầu cần có ít nhất 20 ký tự.";
+    } else if (titleTrim.length < 2 || titleTrim.length > 200) {
+      errors.title = `Tiêu đề tin tuyển dụng phải từ 2 đến 200 ký tự (hiện có ${titleTrim.length} ký tự).`;
+    }
+
+    if (!formData.provinceId) {
+      errors.provinceId = "Vui lòng chọn tỉnh/thành phố làm việc.";
+    }
+
+    if (formData.vacancies < 1 || formData.vacancies > 1000) {
+      errors.vacancies = "Số lượng tuyển dụng hợp lệ từ 1 đến 1,000 người.";
+    }
+
+    if (formData.experienceYears < 0 || formData.experienceYears > 60) {
+      errors.experienceYears = "Số năm kinh nghiệm hợp lệ từ 0 đến 60 năm.";
+    }
+
+    const descTrim = formData.description.trim();
+    if (!descTrim) {
+      errors.description = "Vui lòng nhập mô tả công việc.";
+    } else if (descTrim.length < 20) {
+      errors.description = `Mô tả công việc cần tối thiểu 20 ký tự (hiện có ${descTrim.length}/20 ký tự).`;
+    }
+
+    const reqTrim = formData.requirements.trim();
+    if (!reqTrim) {
+      errors.requirements = "Vui lòng nhập yêu cầu công việc.";
+    } else if (reqTrim.length < 20) {
+      errors.requirements = `Yêu cầu công việc cần tối thiểu 20 ký tự (hiện có ${reqTrim.length}/20 ký tự).`;
+    }
+
+    if (
+      formData.detailedLocation &&
+      formData.detailedLocation.trim().length > 500
+    ) {
+      errors.detailedLocation =
+        "Địa chỉ làm việc chi tiết không được vượt quá 500 ký tự.";
+    }
+
+    if (formData.benefits && formData.benefits.trim().length > 10000) {
+      errors.benefits = "Chế độ đãi ngộ không được vượt quá 10,000 ký tự.";
+    }
+
     if (!formData.salaryNegotiable) {
       const min = parseCurrencyInput(formData.salaryMin);
       const max = parseCurrencyInput(formData.salaryMax);
       if (formData.salaryMin && (min == null || min < 0))
-        errors.salaryMin = "Mức lương không thể âm.";
+        errors.salaryMin = "Mức lương tối thiểu không hợp lệ.";
       if (formData.salaryMax && (max == null || max < 0))
-        errors.salaryMax = "Mức lương không thể âm.";
+        errors.salaryMax = "Mức lương tối đa không hợp lệ.";
       if (min != null && max != null && min > max) {
         errors.salaryMax =
           "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
@@ -375,16 +470,22 @@ function EditJobForm({
             <div className="space-y-4">
               {/* Tên công việc (Job Title) */}
               <div>
-                <label
-                  htmlFor="title"
-                  className="mb-1.5 block text-xs font-semibold text-text-main"
-                >
-                  Tiêu đề tin tuyển dụng{" "}
-                  <span className="text-status-error">*</span>
-                </label>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label
+                    htmlFor="title"
+                    className="block text-xs font-semibold text-text-main"
+                  >
+                    Tiêu đề tin tuyển dụng{" "}
+                    <span className="text-status-error">*</span>
+                  </label>
+                  <span className="text-[11px] text-text-muted">
+                    {formData.title.length}/200
+                  </span>
+                </div>
                 <input
                   id="title"
                   name="title"
+                  maxLength={200}
                   value={formData.title}
                   onChange={handleTextChange}
                   placeholder="Ví dụ: Senior Backend Developer (.NET Core / Java)"
@@ -396,7 +497,7 @@ function EditJobForm({
               {/* Ngành nghề tuyển dụng */}
               <IndustrySelect
                 selectedIds={formData.industryIds}
-                onChange={(ids) => updateForm("industryIds", ids)}
+                onChange={handleIndustryChange}
                 error={fieldErrors.industryIds}
               />
 
@@ -404,7 +505,7 @@ function EditJobForm({
               <SkillSelect
                 selectedIds={formData.skillIds}
                 initialSkills={job.skills}
-                onChange={(ids) => updateForm("skillIds", ids)}
+                onChange={handleSkillChange}
                 error={fieldErrors.skillIds}
               />
             </div>
@@ -567,12 +668,24 @@ function EditJobForm({
             <div className="space-y-4">
               {/* Mô tả công việc */}
               <div>
-                <label
-                  htmlFor="description"
-                  className="mb-1.5 block text-xs font-semibold text-text-main"
-                >
-                  Mô tả vai trò <span className="text-status-error">*</span>
-                </label>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label
+                    htmlFor="description"
+                    className="block text-xs font-semibold text-text-main"
+                  >
+                    Mô tả vai trò <span className="text-status-error">*</span>
+                  </label>
+                  <span
+                    className={cn(
+                      "text-[11px]",
+                      formData.description.trim().length >= 20
+                        ? "font-medium text-emerald-600"
+                        : "text-text-muted",
+                    )}
+                  >
+                    Đạt tối thiểu {formData.description.trim().length}/20 ký tự
+                  </span>
+                </div>
                 <textarea
                   id="description"
                   name="description"
@@ -587,13 +700,25 @@ function EditJobForm({
 
               {/* Yêu cầu ứng viên */}
               <div>
-                <label
-                  htmlFor="requirements"
-                  className="mb-1.5 block text-xs font-semibold text-text-main"
-                >
-                  Yêu cầu đối với ứng viên{" "}
-                  <span className="text-status-error">*</span>
-                </label>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label
+                    htmlFor="requirements"
+                    className="block text-xs font-semibold text-text-main"
+                  >
+                    Yêu cầu đối với ứng viên{" "}
+                    <span className="text-status-error">*</span>
+                  </label>
+                  <span
+                    className={cn(
+                      "text-[11px]",
+                      formData.requirements.trim().length >= 20
+                        ? "font-medium text-emerald-600"
+                        : "text-text-muted",
+                    )}
+                  >
+                    Đạt {formData.requirements.trim().length}/20 ký tự
+                  </span>
+                </div>
                 <textarea
                   id="requirements"
                   name="requirements"
@@ -608,16 +733,22 @@ function EditJobForm({
 
               {/* Quyền lợi & Đãi ngộ */}
               <div>
-                <label
-                  htmlFor="benefits"
-                  className="mb-1.5 block text-xs font-semibold text-text-main"
-                >
-                  Quyền lợi & Đãi ngộ
-                </label>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label
+                    htmlFor="benefits"
+                    className="block text-xs font-semibold text-text-main"
+                  >
+                    Quyền lợi & Đãi ngộ
+                  </label>
+                  <span className="text-[11px] text-text-muted">
+                    {formData.benefits.length}/10000
+                  </span>
+                </div>
                 <textarea
                   id="benefits"
                   name="benefits"
                   rows={4}
+                  maxLength={10000}
                   value={formData.benefits}
                   onChange={handleTextChange}
                   placeholder="Chế độ bảo hiểm, thưởng, phụ cấp, thiết bị làm việc…"
@@ -630,7 +761,7 @@ function EditJobForm({
           {/* KHỐI 4: Trọng số đánh giá ứng viên (AI Match Weights) */}
           <JobMatchingWeightsCard
             weights={formData.matchingWeights}
-            onChange={(weights) => updateForm("matchingWeights", weights)}
+            onChange={handleWeightsChange}
             error={fieldErrors.matchingWeights}
           />
         </div>
@@ -685,10 +816,8 @@ function EditJobForm({
                 wardId={formData.wardId}
                 detailedLocation={formData.detailedLocation}
                 onChangeProvince={handleProvinceChange}
-                onChangeWard={(wardId) => updateForm("wardId", wardId)}
-                onChangeDetailedLocation={(value) =>
-                  updateForm("detailedLocation", value)
-                }
+                onChangeWard={handleWardChange}
+                onChangeDetailedLocation={handleDetailedLocationChange}
                 errors={{
                   provinceId: fieldErrors.provinceId,
                   wardId: fieldErrors.wardId,
@@ -721,14 +850,7 @@ function EditJobForm({
                 name="deadline"
                 minDate={dayjs().format("YYYY-MM-DD")}
                 value={formData.deadline}
-                onChange={(val) => {
-                  updateForm("deadline", val);
-                  setFieldErrors((current) => {
-                    const next = { ...current };
-                    delete next.deadline;
-                    return next;
-                  });
-                }}
+                onChange={handleDeadlineChange}
                 error={Boolean(fieldErrors.deadline)}
                 placeholder="Chọn hạn nhận hồ sơ"
               />
@@ -750,7 +872,9 @@ function EditJobForm({
                     type="button"
                     variant="secondary"
                     onClick={() =>
-                      navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id))
+                      navigate(
+                        PATHS.RECRUITER.JOB_DETAIL.replace(":id", job.id),
+                      )
                     }
                     className="px-4! py-2! text-xs!"
                   >
@@ -794,6 +918,28 @@ export function EditJobPage() {
   const { data: job, isLoading: isLoadingJob } = useJobPostingDetail(id);
   const { data: myCompanies = [], isLoading: isLoadingCompanies } =
     useMyCompanies();
+
+  // Lấy ngữ cảnh Workspace hiện tại
+  const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
+  const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
+
+  // Tự động đồng bộ Workspace Switcher khớp với doanh nghiệp sở hữu tin tuyển dụng này khi mở trang
+  useEffect(() => {
+    const targetCompanyId = job?.companyId || job?.company?.id;
+    if (!targetCompanyId || myCompanies.length === 0) return;
+    if (targetCompanyId !== activeCompanyId) {
+      const matched = myCompanies.find((c) => c.id === targetCompanyId);
+      if (matched) {
+        setActiveCompany(matched);
+      }
+    }
+  }, [
+    job?.companyId,
+    job?.company?.id,
+    myCompanies,
+    activeCompanyId,
+    setActiveCompany,
+  ]);
 
   const selectedCompany = useMemo(() => {
     const targetCompanyId = job?.companyId || job?.company?.id;

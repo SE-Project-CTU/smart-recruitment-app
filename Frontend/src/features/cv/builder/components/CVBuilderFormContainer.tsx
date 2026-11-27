@@ -483,7 +483,6 @@ const CVBuilderFormContent: React.FC<CVBuilderFormContainerProps> = ({
                       ? comparisonFitZoom
                       : zoom
                   }
-                  highlightSectionKey={activeSuggestionSectionKey}
                 />
 
                 {/* FLOATING ZOOM CONTROLS (NÚT ZOOM Ở BÊN DƯỚI GÓC PHẢI PAGE - ẨN KHI Ở CHẾ ĐỘ SO SÁNH) */}

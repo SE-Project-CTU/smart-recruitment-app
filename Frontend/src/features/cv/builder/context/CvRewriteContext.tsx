@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback } from "react";
 import type {
   TargetJobOption,
@@ -7,6 +8,7 @@ import type {
 import { prepareCvSectionsForEnhanceBatch } from "../utils/cvAssistantHelpers";
 import { useEnhanceCvBatch } from "@/hooks/queries/useAi";
 import { getApiErrorMessage } from "@/api/errorHandler";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 import type { ApiResponse } from "@/types";
 import type { EnhanceCvBatchResult } from "@/types/ai";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
@@ -37,7 +39,29 @@ interface CvRewriteContextValue {
   clearSuggestions: () => void;
 }
 
-const CvRewriteContext = createContext<CvRewriteContextValue | null>(null);
+export const DEFAULT_CV_REWRITE_CONTEXT_VALUE: CvRewriteContextValue = {
+  selectedTargetJob: null,
+  customPrompt: "",
+  suggestions: [],
+  isGenerating: false,
+  hasGenerated: false,
+  isError: false,
+  errorMessage: null,
+  activeSuggestionSectionKey: null,
+  openSuggestionForSection: () => {},
+  closeFloatingSuggestion: () => {},
+  getSuggestionForSection: () => undefined,
+  setSelectedTargetJob: () => {},
+  setCustomPrompt: () => {},
+  generateSuggestions: async () => ({ success: false, reason: "NO_JOB" }),
+  dismissSuggestion: () => {},
+  regenerateAll: async () => {},
+  clearSuggestions: () => {},
+};
+
+const CvRewriteContext = createContext<CvRewriteContextValue>(
+  DEFAULT_CV_REWRITE_CONTEXT_VALUE,
+);
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -50,18 +74,23 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
   const [customPrompt, setCustomPrompt] = useState("");
   const [suggestions, setSuggestions] = useState<CvSectionSuggestion[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
-  const [activeSuggestionSectionKey, setActiveSuggestionSectionKey] =
-    useState<string | null>(null);
+  const activeSuggestionSectionKey = useCvHighlightStore(
+    (s) => s.highlightSectionKey,
+  );
+  const setHighlightSectionKey = useCvHighlightStore(
+    (s) => s.setHighlightSectionKey,
+  );
+  const clearHighlight = useCvHighlightStore((s) => s.clearHighlight);
 
   const enhanceBatchMutation = useEnhanceCvBatch();
 
   const openSuggestionForSection = useCallback((sectionKey: string) => {
-    setActiveSuggestionSectionKey(sectionKey.toLowerCase());
-  }, []);
+    setHighlightSectionKey(sectionKey);
+  }, [setHighlightSectionKey]);
 
   const closeFloatingSuggestion = useCallback(() => {
-    setActiveSuggestionSectionKey(null);
-  }, []);
+    clearHighlight();
+  }, [clearHighlight]);
 
   const getSuggestionForSection = useCallback(
     (sectionKey: string) => {
@@ -75,7 +104,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const executeEnhanceBatch = useCallback(
     async (values?: Partial<RichTextCvEditorValues> | null) => {
-      setActiveSuggestionSectionKey(null);
+      clearHighlight();
       if (!selectedTargetJob) {
         return { success: false, reason: "NO_JOB" as GenerateFailureReason };
       }
@@ -123,7 +152,7 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Ánh xạ kết quả trả về từ Gemini AI sang cấu trúc giao diện
         const mappedSuggestions: CvSectionSuggestion[] = sectionsList.map(
-          (item, idx) => {
+          (item, idx): CvSectionSuggestion => {
             const canonicalType = item.sectionType as CanonicalSectionType;
             const sectionKey = (item.sectionType || "").toLowerCase();
             const preparedSection = preparedSections.find(
@@ -176,26 +205,34 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
     [executeEnhanceBatch],
   );
 
-  const dismissSuggestion = useCallback((suggestionId: string) => {
-    setSuggestions((prev) =>
-      prev.map((s) => (s.id === suggestionId ? { ...s, status: "dismissed" as const } : s)),
-    );
-    // Tự động đóng bảng so sánh nếu suggestion đang mở bị dismiss
-    setActiveSuggestionSectionKey((currentActiveKey: string | null) => {
-      if (!currentActiveKey) return null;
-      const target = suggestions.find((s) => s.id === suggestionId);
-      if (target && target.sectionKey.toLowerCase() === currentActiveKey.toLowerCase()) {
-        return null;
+  const dismissSuggestion = useCallback(
+    (suggestionId: string) => {
+      setSuggestions((prev) =>
+        prev.map((s) =>
+          s.id === suggestionId ? { ...s, status: "dismissed" as const } : s,
+        ),
+      );
+      // Tự động đóng bảng so sánh nếu suggestion đang mở bị dismiss
+      const currentActiveKey =
+        useCvHighlightStore.getState().highlightSectionKey;
+      if (currentActiveKey) {
+        const target = suggestions.find((s) => s.id === suggestionId);
+        if (
+          target &&
+          target.sectionKey.toLowerCase() === currentActiveKey.toLowerCase()
+        ) {
+          clearHighlight();
+        }
       }
-      return currentActiveKey;
-    });
-  }, [suggestions]);
+    },
+    [suggestions, clearHighlight],
+  );
 
   const clearSuggestions = useCallback(() => {
     setSuggestions([]);
     setHasGenerated(false);
-    setActiveSuggestionSectionKey(null);
-  }, []);
+    clearHighlight();
+  }, [clearHighlight]);
 
   const errorMessage = enhanceBatchMutation.error
     ? getApiErrorMessage(
@@ -233,10 +270,9 @@ export const CvRewriteProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export function useCvRewriteContext(): CvRewriteContextValue {
   const context = useContext(CvRewriteContext);
-  if (!context) {
-    throw new Error(
-      "useCvRewriteContext phải được sử dụng bên trong CvRewriteProvider",
-    );
-  }
-  return context;
+  return context ?? DEFAULT_CV_REWRITE_CONTEXT_VALUE;
+}
+
+export function useOptionalCvRewriteContext(): CvRewriteContextValue | null {
+  return useContext(CvRewriteContext);
 }

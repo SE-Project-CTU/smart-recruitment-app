@@ -17,6 +17,7 @@ import {
   Check,
   X,
   AlertTriangle,
+  Ban,
 } from "lucide-react";
 import {
   Sheet,
@@ -70,20 +71,23 @@ export type JobDrawerItem =
   | AnyJob;
 
 export interface JobDetailDrawerProps<T extends JobDrawerItem = JobDrawerItem> {
-  job: T | null;
+  jobId?: string | null;
+  job?: T | null;
   open: boolean;
   onClose: () => void;
   isBookmarked?: boolean;
   onToggleBookmark?: (jobId: string) => void;
-  onApply?: (jobId: string) => void;
+  onApply?: (jobId: string, jobData?: AnyJob) => void;
   // Custom moderation actions for Admin / Recruiter
   footer?: React.ReactNode;
   onApprove?: (jobId: string) => void;
   onReject?: (jobId: string) => void;
+  onCloseJob?: (jobId: string) => void;
   isModerating?: boolean;
 }
 
 export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
+  jobId: propJobId,
   job,
   open,
   onClose,
@@ -93,6 +97,7 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   footer,
   onApprove,
   onReject,
+  onCloseJob,
   isModerating = false,
 }: JobDetailDrawerProps<T>) {
   const navigate = useNavigate();
@@ -102,15 +107,20 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
   const isCandidate = Boolean(
     user?.roles?.some((role) => role.toLowerCase() === "candidate"),
   );
+  const isAdmin = Boolean(
+    user?.roles?.some((role) => role.toLowerCase() === "admin"),
+  );
+
+  const effectiveJobId = propJobId || job?.id;
 
   // Tải chi tiết tin tuyển dụng nếu có ID
   const { data: detailData, isLoading: isLoadingDetail } = useJobPostingDetail(
-    open && job?.id ? job.id : undefined,
+    open && effectiveJobId ? effectiveJobId : undefined,
   );
 
   const { data: myAppsData } = useMyApplications(
     { pageSize: 50 },
-    { enabled: isCandidate && open },
+    { enabled: isCandidate && open && Boolean(effectiveJobId) },
   );
   const myApplications = myAppsData?.items ?? [];
 
@@ -129,12 +139,12 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  if (!job) return null;
+  if (!job && !effectiveJobId) return null;
 
   // Hợp nhất dữ liệu chi tiết khi query thành công
   const activeJob = (detailData
-    ? { ...job, ...detailData }
-    : job) as unknown as AnyJob & {
+    ? { ...(job || {}), ...detailData }
+    : job || ({ id: effectiveJobId } as AnyJob)) as unknown as AnyJob & {
     status?: string;
     educationLevel?: string | null;
     industries?: Array<{ name: string } | string>;
@@ -147,12 +157,14 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     rejectionReason?: string | null;
   };
 
+  const currentJobId = effectiveJobId || activeJob?.id;
+
   const data = extractJobDisplayData(activeJob);
 
   const isAlreadyApplied = Boolean(
-    job &&
+    currentJobId &&
     (("hasApplied" in activeJob && activeJob.hasApplied) ||
-      myApplications.some((app) => app.jobId === job.id)),
+      myApplications.some((app) => app.jobId === currentJobId)),
   );
 
   const isMarked =
@@ -160,9 +172,13 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
       ? externalIsBookmarked
       : "isBookmarked" in activeJob && activeJob.isBookmarked !== undefined
         ? Boolean(activeJob.isBookmarked)
-        : Boolean(bookmarkedData?.items?.some((b) => b.id === job.id));
+        : Boolean(bookmarkedData?.items?.some((b) => b.id === currentJobId));
 
   // Trạng thái tin
+  const isClosed =
+    activeJob.status?.toLowerCase() === "closed" ||
+    activeJob.status?.toLowerCase() === "expired";
+
   const statusInfo = activeJob.status
     ? getJobStatusBadge(activeJob.status)
     : null;
@@ -186,16 +202,18 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     getEducationLevelLabel(activeJob.educationLevel) || "Không yêu cầu";
 
   const handleApplyClick = () => {
+    if (!currentJobId) return;
     if (onApply) {
-      onApply(job.id);
+      onApply(currentJobId, activeJob);
     } else {
-      openApplyModal(job);
+      openApplyModal(activeJob);
     }
   };
 
   const handleBookmarkClick = () => {
+    if (!currentJobId) return;
     if (onToggleBookmark) {
-      onToggleBookmark(job.id);
+      onToggleBookmark(currentJobId);
       return;
     }
 
@@ -207,18 +225,26 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
     }
 
     if (isMarked) {
-      unbookmarkMutation.mutate(job.id);
+      unbookmarkMutation.mutate(currentJobId);
     } else {
-      bookmarkMutation.mutate(job.id);
+      bookmarkMutation.mutate(currentJobId);
     }
   };
 
   const handleShareClick = async () => {
+    if (!currentJobId) return;
+    const jobUrl = `${window.location.origin}/search-job?jobId=${currentJobId}`;
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng." });
+      await navigator.clipboard.writeText(jobUrl);
+      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
     } catch {
-      toast.warning({ description: "Không thể sao chép liên kết." });
+      const textArea = document.createElement("textarea");
+      textArea.value = jobUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      toast.success({ description: "Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!" });
     }
   };
 
@@ -262,7 +288,10 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <SheetTitle className="text-base leading-snug font-semibold text-text-main">
-                    {job.title}
+                    {activeJob?.title ||
+                      (isLoadingDetail
+                        ? "Đang tải tin tuyển dụng..."
+                        : "Chi tiết tin tuyển dụng")}
                   </SheetTitle>
                   {statusInfo && (
                     <span
@@ -310,19 +339,37 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               </div>
             </div>
 
-            {data.aiScore != null && (
+            <div className="flex shrink-0 items-center gap-1.5">
+              {data.aiScore != null && (
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
+                        <Zap className="size-3" />
+                        <span>{data.aiScore}%</span>
+                      </div>
+                    }
+                  />
+                  <TooltipPanel>Độ tương thích hồ sơ</TooltipPanel>
+                </Tooltip>
+              )}
+
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-primary-dark">
-                      <Zap className="size-3" />
-                      <span>{data.aiScore}%</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleShareClick}
+                      className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-bg hover:text-primary"
+                      aria-label="Sao chép liên kết tin tuyển dụng"
+                    >
+                      <Share2 className="size-3.5" />
+                    </button>
                   }
                 />
-                <TooltipPanel>Độ tương thích hồ sơ</TooltipPanel>
+                <TooltipPanel>Sao chép liên kết</TooltipPanel>
               </Tooltip>
-            )}
+            </div>
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-3.5">
@@ -355,12 +402,12 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
         <div className="flex-1 space-y-5 overflow-y-auto p-5 pb-6">
           {/* Cảnh báo lý do từ chối nếu có */}
           {Boolean(activeJob.rejectionReason) && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-800">
-              <div className="mb-1 flex items-center gap-1.5 font-semibold text-rose-900">
-                <AlertTriangle className="size-4 shrink-0 text-rose-600" />
+            <div className="rounded-xl border border-status-error/20 bg-status-error/10 p-3.5 text-xs text-status-error">
+              <div className="mb-1 flex items-center gap-1.5 font-semibold text-status-error">
+                <AlertTriangle className="size-4 shrink-0 text-status-error" />
                 <span>Lý do từ chối kiểm duyệt</span>
               </div>
-              <p className="whitespace-pre-line text-rose-700">
+              <p className="whitespace-pre-line text-status-error/90">
                 {activeJob.rejectionReason}
               </p>
             </div>
@@ -573,16 +620,20 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
 
         {/* FOOTER ACTIONS */}
         {footer !== undefined ? (
-          footer
+          footer ? (
+            <div className="shrink-0 border-t border-border bg-surface p-4">
+              {footer}
+            </div>
+          ) : null
         ) : onApprove || onReject ? (
-          <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
+          <div className="shrink-0 border-t border-border bg-surface p-4 shadow-xs">
             <div className="flex items-center gap-2.5">
               {onReject && (
                 <Button
                   variant="secondary"
-                  className="flex-1! justify-center! py-2.5! text-xs!"
+                  className="flex-1! justify-center! py-2.5! text-xs! font-semibold! text-status-error! hover:bg-status-error/10! hover:text-status-error!"
                   icon={X}
-                  onClick={() => onReject(job.id)}
+                  onClick={() => currentJobId && onReject(currentJobId)}
                   disabled={isModerating}
                 >
                   <span>Từ chối</span>
@@ -591,9 +642,9 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               {onApprove && (
                 <Button
                   variant="primary"
-                  className="flex-1! justify-center! py-2.5! text-xs!"
+                  className="flex-1! justify-center! bg-status-success! py-2.5! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
                   icon={Check}
-                  onClick={() => onApprove(job.id)}
+                  onClick={() => currentJobId && onApprove(currentJobId)}
                   disabled={isModerating}
                 >
                   <span>Xuất bản</span>
@@ -601,8 +652,41 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
               )}
             </div>
           </div>
+        ) : onCloseJob ? (
+          <div className="shrink-0 border-t border-border bg-surface p-4 shadow-xs">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="size-2 animate-pulse rounded-full bg-status-success" />
+                <span className="text-xs font-semibold text-status-success">
+                  Tin đang hiển thị công khai
+                </span>
+              </div>
+              <Button
+                variant="secondary"
+                icon={Ban}
+                iconSize={14}
+                className="rounded-xl px-3.5! py-2! text-xs! font-semibold!"
+                onClick={() => currentJobId && onCloseJob(currentJobId)}
+                disabled={isModerating}
+              >
+                <span>Đóng tin</span>
+              </Button>
+            </div>
+          </div>
+        ) : isAdmin ? (
+          <div className="shrink-0 border-t border-border bg-surface p-3.5 text-center">
+            <span className="text-xs font-medium text-text-muted">
+              {activeJob.status === "Closed"
+                ? "Tin tuyển dụng này đã đóng"
+                : activeJob.status === "Rejected"
+                  ? "Tin tuyển dụng đã bị từ chối"
+                  : activeJob.status === "Expired"
+                    ? "Tin tuyển dụng đã hết hạn"
+                    : "Chế độ xem quản trị"}
+            </span>
+          </div>
         ) : (
-          <div className="shrink-0 border-t border-border bg-white p-4 shadow-sm">
+          <div className="shrink-0 border-t border-border bg-surface p-4 shadow-sm">
             <div className="flex items-center gap-2.5">
               {isAlreadyApplied ? (
                 <Button
@@ -614,6 +698,14 @@ export function JobDetailDrawer<T extends JobDrawerItem = JobDrawerItem>({
                   }}
                 >
                   <span>Đã nộp hồ sơ</span>
+                </Button>
+              ) : isClosed ? (
+                <Button
+                  variant="secondary"
+                  disabled
+                  className="flex-1 justify-center rounded-xl py-2.5 text-xs font-semibold text-text-muted cursor-not-allowed bg-bg border border-border"
+                >
+                  <span>Đã nhận đủ hồ sơ</span>
                 </Button>
               ) : (
                 <Button

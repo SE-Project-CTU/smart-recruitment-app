@@ -78,6 +78,14 @@ export function ApplyJobModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [coverLetter, setCoverLetter] = useState<string>("");
+
+  const isJobClosed = Boolean(
+    currentJob &&
+      "status" in currentJob &&
+      typeof (currentJob as { status?: unknown }).status === "string" &&
+      ((currentJob as { status: string }).status.toLowerCase() === "closed" ||
+        (currentJob as { status: string }).status.toLowerCase() === "expired"),
+  );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const handleClose = useCallback(() => {
@@ -142,6 +150,13 @@ export function ApplyJobModal({
       return;
     }
 
+    if (isJobClosed) {
+      toast.warning({
+        description: "Vị trí tuyển dụng này đã nhận đủ số lượng nhân sự hoặc đã đóng.",
+      });
+      return;
+    }
+
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(currentJob.id)) {
@@ -166,8 +181,12 @@ export function ApplyJobModal({
         }
 
         try {
-          const versionsResult = await cvService.getCvVersions(effectiveSelectedCvId);
-          const latestVersion = Array.isArray(versionsResult) ? (versionsResult as unknown as Array<{ id: string }>)[0] : versionsResult?.items?.[0];
+          const versionsResult = await cvService.getCvVersions(
+            effectiveSelectedCvId,
+          );
+          const latestVersion = Array.isArray(versionsResult)
+            ? (versionsResult as unknown as Array<{ id: string }>)[0]
+            : versionsResult?.items?.[0];
           if (!latestVersion?.id) {
             toast.error({
               description:
@@ -249,7 +268,7 @@ export function ApplyJobModal({
     "Doanh nghiệp tuyển dụng";
 
   const modalNode = (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-4">
       {/* Lớp phủ */}
       <div
         onClick={!isSubmitting ? handleClose : undefined}
@@ -413,9 +432,9 @@ export function ApplyJobModal({
                             <div
                               className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${
                                 isSelected
-                              ? "border-primary bg-primary text-white"
-                              : "border-border"
-                            }`}
+                                  ? "border-primary bg-primary text-white"
+                                  : "border-border"
+                              }`}
                             >
                               {isSelected && (
                                 <div className="size-1.5 rounded-full bg-white" />
@@ -590,11 +609,12 @@ export function ApplyJobModal({
             isLoading={isSubmitting}
             disabled={
               isSubmitting ||
+              isJobClosed ||
               (effectiveCvMethod === "online" && !effectiveSelectedCvId) ||
               (effectiveCvMethod === "upload" && !uploadedFile)
             }
           >
-            <span>Nộp hồ sơ ngay</span>
+            <span>{isJobClosed ? "Đã nhận đủ hồ sơ" : "Nộp hồ sơ ngay"}</span>
           </Button>
         </div>
       </div>

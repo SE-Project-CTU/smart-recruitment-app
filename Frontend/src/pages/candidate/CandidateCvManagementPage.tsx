@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
+import { CvPreviewWorkspace, CV_PRINT_PAGE_STYLE } from "@/features/cv";
 import { useNavigate } from "react-router-dom";
 import { FilePlus2, Plus } from "lucide-react";
 import { Button, CVCard } from "@/components/common";
@@ -6,6 +8,7 @@ import {
   useMyCvs,
   useToggleCvPublic,
   useDeleteCv,
+  useCvDetail,
 } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +26,6 @@ import {
 
 export default function CandidateCvManagementPage() {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const { data: cvData, isLoading: isLoadingCvs } = useMyCvs();
   const cvs = cvData?.items ?? [];
@@ -34,6 +36,7 @@ export default function CandidateCvManagementPage() {
 
   // State modal xóa CV
   const [cvToDelete, setCvToDelete] = useState<CVItem | null>(null);
+  const [cvToDownload, setCvToDownload] = useState<CVItem | null>(null);
 
   // Xử lý bật/tắt công khai
   const handleTogglePublic = async (cv: CVItem, nextIsPublic: boolean) => {
@@ -52,21 +55,6 @@ export default function CandidateCvManagementPage() {
       setCvToDelete(null);
     } catch {
       // Đã xử lý lỗi ở hook
-    }
-  };
-
-  // Tải file CV
-  const handleDownloadCv = (cv: CVItem) => {
-    const previewFileUrl = cv.previewFile?.url;
-
-    if (previewFileUrl) {
-      window.open(previewFileUrl, "_blank");
-    } else {
-      toast({
-        title: "Tải file CV",
-        description:
-          "Hệ thống đang đồng bộ định dạng PDF. Bạn có thể xem trước nội dung trực tiếp.",
-      });
     }
   };
 
@@ -116,7 +104,8 @@ export default function CandidateCvManagementPage() {
                 }}
                 onTogglePublic={handleTogglePublic}
                 isTogglingPublic={isTogglingPublic}
-                onDownload={handleDownloadCv}
+                onDownload={setCvToDownload}
+                isDownloading={cvToDownload?.id === cv.id}
                 onEdit={(item) => {
                   navigate(`${PATHS.EDIT_CV}?id=${item.id}`);
                 }}
@@ -152,6 +141,10 @@ export default function CandidateCvManagementPage() {
         )}
       </section>
 
+      {cvToDownload && (
+        <CvPdfDownload key={cvToDownload.id} cvId={cvToDownload.id} onDone={() => setCvToDownload(null)} />
+      )}
+
       {/* AlertDialog: Xác nhận xóa CV */}
       <AlertDialog
         open={!!cvToDelete}
@@ -185,6 +178,45 @@ export default function CandidateCvManagementPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function CvPdfDownload({ cvId, onDone }: { cvId: string; onDone: () => void }) {
+  const printRef = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+  const { toast } = useToast();
+  const { data, isError } = useCvDetail(cvId);
+  const print = useReactToPrint({
+    contentRef: printRef,
+    pageStyle: CV_PRINT_PAGE_STYLE,
+    documentTitle: data?.title ? `SmartHire_CV_${data.title}` : "SmartHire_CV",
+    onAfterPrint: onDone,
+    onPrintError: () => {
+      toast({ title: "Không thể tải CV", description: "Vui lòng thử lại." });
+      onDone();
+    },
+  });
+
+  useEffect(() => {
+    if (!data || started.current) return;
+    const frame = requestAnimationFrame(() => {
+      started.current = true;
+      print();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [data, print]);
+
+  useEffect(() => {
+    if (!isError) return;
+    toast({ title: "Không thể tải CV", description: "Vui lòng thử lại." });
+    onDone();
+  }, [isError, onDone, toast]);
+
+  if (!data) return null;
+  return (
+    <div className="hidden">
+      <CvPreviewWorkspace content={data.content} layout={data.layout} contentRef={printRef} className="p-0!" />
     </div>
   );
 }

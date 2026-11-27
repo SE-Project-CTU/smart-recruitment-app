@@ -6,7 +6,9 @@ import type {
   RichTextCVContentDocument,
 } from "@/types/cv";
 
-export function createEmptyTiptapDocument(fontSize = 13): CvTiptapDocument {
+const DEFAULT_FONT_SIZE = 12;
+
+export function createEmptyTiptapDocument(fontSize = DEFAULT_FONT_SIZE): CvTiptapDocument {
   return {
     type: "doc",
     attrs: { fontSize },
@@ -16,7 +18,7 @@ export function createEmptyTiptapDocument(fontSize = 13): CvTiptapDocument {
 
 export function createTiptapDocumentFromText(
   text: string,
-  fontSize = 13,
+  fontSize = DEFAULT_FONT_SIZE,
 ): CvTiptapDocument {
   const paragraphs = text
     .split("\n")
@@ -39,7 +41,7 @@ export function createTiptapDocumentFromText(
 
 export function createBulletListDocument(
   items: string[] = [],
-  fontSize = 13,
+  fontSize = DEFAULT_FONT_SIZE,
 ): CvTiptapDocument {
   const listItems = items.length > 0 ? items : [""];
   return {
@@ -194,7 +196,7 @@ export function sanitizeTiptapNode(node: CvTiptapNode): CvTiptapNode {
 
 export function sanitizeTiptapDocument(
   document: CvTiptapDocument,
-  fallbackFontSize = 13,
+  fallbackFontSize = DEFAULT_FONT_SIZE,
 ): CvTiptapDocument {
   const sanitized = sanitizeTiptapNode(document);
   const currentFontSize =

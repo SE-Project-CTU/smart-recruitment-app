@@ -11,14 +11,14 @@ import {
   Globe,
   ChevronDown,
   Search,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Briefcase,
   Calendar,
+  UserMinus,
 } from "lucide-react";
 import dayjs from "dayjs";
 import {
+  BasePagination,
   Button,
   DataTable,
   TableSkeleton,
@@ -40,14 +40,20 @@ import {
 import {
   useMyApplications,
   useApplicationStatusHistory,
+  useWithdrawApplication,
 } from "@/hooks/queries/useApplication";
 import {
+  APPLICATION_STATUS,
   APPLICATION_STATUS_CONFIG,
   APPLICATION_STATUS_OPTIONS,
+  normalizeApplicationStatus,
+  isPendingStatus,
+  canWithdrawStatus,
   type CandidateMyApplicationItem,
   type ApplicationStatusHistoryItem,
 } from "@/types/application";
 import { ApplicationCvPreviewDialog } from "@/pages/recruiter/candidate/ApplicationCvPreviewDialog";
+import { JobDetailDrawer } from "@/components/job";
 
 const columnHelper = createColumnHelper<
   DataTableFeatures,
@@ -76,27 +82,18 @@ export default function CandidateApplicationStatusPage() {
     page: 1,
     pageSize: 100,
   });
-  const allApplications = useMemo(() => allAppsData?.items ?? [], [allAppsData?.items]);
+  const allApplications = useMemo(
+    () => allAppsData?.items ?? [],
+    [allAppsData?.items],
+  );
 
   // Client-side search & status filter theo tên công việc, công ty và trạng thái
   const filteredApplications = useMemo(() => {
     let result = rawApplications;
 
     if (selectedStatus !== "ALL") {
-      const sf = selectedStatus.toUpperCase();
-      result = result.filter((app) => {
-        const s = (app.status || "").toUpperCase();
-        if (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") {
-          return s === "SUBMITTED" || s === "APPLIED" || s === "RECEIVED";
-        }
-        if (sf === "INTERVIEW" || sf === "INTERVIEWING") {
-          return s === "INTERVIEW" || s === "INTERVIEWING";
-        }
-        if (sf === "HIRED" || sf === "ACCEPTED") {
-          return s === "HIRED" || s === "ACCEPTED";
-        }
-        return s === sf;
-      });
+      const targetNormalized = normalizeApplicationStatus(selectedStatus);
+      result = result.filter((app) => normalizeApplicationStatus(app.status) === targetNormalized);
     }
 
     if (!searchTerm.trim()) return result;
@@ -111,9 +108,25 @@ export default function CandidateApplicationStatusPage() {
   // Modal xem chi tiết & Timeline tiến trình
   const [selectedApplication, setSelectedApplication] =
     useState<CandidateMyApplicationItem | null>(null);
+  // Drawer xem chi tiết JD công việc
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   // Modal xem trước CV hệ thống
   const [previewCvApp, setPreviewCvApp] =
     useState<CandidateMyApplicationItem | null>(null);
+  // State rút hồ sơ ứng tuyển
+  const [withdrawTargetApp, setWithdrawTargetApp] =
+    useState<CandidateMyApplicationItem | null>(null);
+  const [withdrawReason, setWithdrawReason] = useState<string>("");
+  const { mutate: withdrawApplication, isPending: isWithdrawing } =
+    useWithdrawApplication();
+
+  const isJobClosed = (jobStatus?: string | null) => {
+    return (jobStatus || "").trim().toUpperCase() === "CLOSED";
+  };
+
+  const isAlreadyWithdrawn = (status?: string | null) => {
+    return normalizeApplicationStatus(status) === APPLICATION_STATUS.WITHDRAWN;
+  };
 
   // Hook lấy lịch sử trạng thái của application đang xem
   const { data: historyList = [], isLoading: isLoadingHistory } =
@@ -134,16 +147,14 @@ export default function CandidateApplicationStatusPage() {
     return {
       total: allAppsData?.totalItems ?? allApplications.length,
       reviewing: allApplications.filter((a) => {
-        const s = (a.status || "").toUpperCase();
-        return s === "REVIEWING";
+        return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.REVIEWING;
       }).length,
       interview: allApplications.filter((a) => {
-        const s = (a.status || "").toUpperCase();
-        return s === "INTERVIEW" || s === "INTERVIEWING";
+        return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING;
       }).length,
       offered: allApplications.filter((a) => {
-        const s = (a.status || "").toUpperCase();
-        return s === "OFFERED" || s === "HIRED" || s === "ACCEPTED";
+        const norm = normalizeApplicationStatus(a.status);
+        return norm === APPLICATION_STATUS.OFFERED || norm === APPLICATION_STATUS.HIRED;
       }).length,
     };
   }, [allApplications, allAppsData?.totalItems]);
@@ -177,160 +188,195 @@ export default function CandidateApplicationStatusPage() {
       );
 
     return columnHelper.columns([
-        columnHelper.accessor("jobTitle", {
-          id: "jobInfo",
-          header: "Vị trí & Công ty",
-          cell: ({ row }) => {
-            const app = row.original;
-            return (
-              <div className="flex max-w-72 min-w-48 items-center gap-3">
-                <img
-                  src={app.companyLogoUrl || getLoremAvt(app.companyName)}
-                  alt={app.companyName || "Logo"}
-                  loading="lazy"
-                  onError={(event) => {
-                    const fallback = getLoremAvt(app.companyName);
-                    const img = event.currentTarget;
-                    if (img.src !== new URL(fallback, img.baseURI).href) {
-                      img.onerror = null;
-                      img.src = fallback;
-                    }
-                  }}
-                  className="size-10 shrink-0 rounded-xl border border-border object-cover"
-                />
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <span className="truncate text-sm font-bold text-slate-800 transition-colors hover:text-primary">
-                          {app.jobTitle}
-                        </span>
-                      }
-                    />
-                    <TooltipPanel>{app.jobTitle}</TooltipPanel>
-                  </Tooltip>
-                  <span className="truncate text-xs text-text-muted">
-                    {app.companyName}
-                  </span>
-                  {app.locationName && (
-                    <span className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400 md:hidden">
-                      <MapPin className="size-3" />
-                      {app.locationName}
-                    </span>
-                  )}
-                  <div className="mt-1.5 flex items-center lg:hidden">
-                    {renderCvAction(app)}
-                  </div>
-                </div>
-              </div>
-            );
-          },
-        }),
-
-        columnHelper.display({
-          id: "location",
-          header: "Địa điểm & Mức lương",
-          meta: { className: "hidden md:table-cell" },
-          cell: ({ row }) => {
-            const app = row.original;
-            return (
-              <div className="flex flex-col gap-0.5 text-xs">
-                <span className="font-semibold text-slate-800">
-                  {app.salaryRange || "Thỏa thuận"}
-                </span>
-                <span className="text-text-muted">
-                  {app.locationName || "Toàn quốc"}
-                </span>
-              </div>
-            );
-          },
-        }),
-
-        columnHelper.display({
-          id: "documents",
-          header: "Hồ sơ ứng tuyển",
-          meta: { className: "hidden lg:table-cell" },
-          cell: ({ row }) => (
-            <div className="flex items-center gap-1.5">
-              {renderCvAction(row.original)}
-            </div>
-          ),
-        }),
-
-        columnHelper.accessor("appliedAt", {
-          header: ({ column }) => (
-            <button
-              type="button"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-primary"
-            >
-              <span>Ngày nộp</span>
-              <ArrowUpDown className="size-3.5" />
-            </button>
-          ),
-          cell: ({ row }) => {
-            const iso = row.original.appliedAt;
-            return (
-              <div className="flex flex-col text-xs">
-                <span className="font-medium text-slate-700">
-                  {dayjs(iso).format("DD/MM/YYYY")}
-                </span>
-                <span className="text-[11px] text-text-muted">
-                  {dayjs(iso).format("HH:mm")}
-                </span>
-              </div>
-            );
-          },
-        }),
-
-        columnHelper.accessor("status", {
-          header: "Trạng thái",
-          filterFn: "includesString",
-          cell: ({ row }) => {
-            const statusKey = (row.original.status as string) || "";
-            const cfg = APPLICATION_STATUS_CONFIG[statusKey] ||
-              APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
-                label: statusKey,
-                badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-              };
-            return (
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
-              >
-                {cfg.label}
-              </span>
-            );
-          },
-        }),
-
-        columnHelper.display({
-          id: "actions",
-          header: () => <div className="text-center">Chi tiết</div>,
-          cell: ({ row }) => {
-            const app = row.original;
-            return (
-              <div className="flex justify-center">
+      columnHelper.accessor("jobTitle", {
+        id: "jobInfo",
+        header: "Vị trí & Công ty",
+        cell: ({ row }) => {
+          const app = row.original;
+          return (
+            <div className="flex max-w-72 min-w-48 items-center gap-3">
+              <img
+                src={app.companyLogoUrl || getLoremAvt(app.companyName)}
+                alt={app.companyName || "Logo"}
+                loading="lazy"
+                onError={(event) => {
+                  const fallback = getLoremAvt(app.companyName);
+                  const img = event.currentTarget;
+                  if (img.src !== new URL(fallback, img.baseURI).href) {
+                    img.onerror = null;
+                    img.src = fallback;
+                  }
+                }}
+                className="size-10 shrink-0 rounded-xl border border-border object-cover"
+              />
+              <div className="flex min-w-0 flex-col gap-0.5">
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <Button
-                        variant="secondary"
-                        icon={Eye}
-                        iconSize={16}
-                        onClick={() => setSelectedApplication(app)}
-                        className="p-1.5! text-xs! ring-0!"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setSelectedJobId(app.jobId || app.job?.id || null)}
+                        className="truncate text-left text-sm font-semibold text-text-main transition-colors hover:text-primary cursor-pointer"
+                      >
+                        {app.jobTitle}
+                      </button>
                     }
                   />
-                  <TooltipPanel>Xem tiến trình hồ sơ</TooltipPanel>
+                  <TooltipPanel>Bấm để xem chi tiết tin tuyển dụng: {app.jobTitle}</TooltipPanel>
                 </Tooltip>
+                <span className="truncate text-xs text-text-muted">
+                  {app.companyName}
+                </span>
+                {app.locationName && (
+                  <span className="mt-0.5 flex items-center gap-1 text-[11px] text-text-muted md:hidden">
+                    <MapPin className="size-3" />
+                    {app.locationName}
+                  </span>
+                )}
+                <div className="mt-1.5 flex items-center lg:hidden">
+                  {renderCvAction(app)}
+                </div>
               </div>
-            );
-          },
-        }),
-      ]);
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.display({
+        id: "location",
+        header: "Địa điểm & Mức lương",
+        meta: { className: "hidden md:table-cell" },
+        cell: ({ row }) => {
+          const app = row.original;
+          return (
+            <div className="flex flex-col gap-0.5 text-xs">
+              <span className="font-semibold text-text-main">
+                {app.salaryRange || "Thỏa thuận"}
+              </span>
+              <span className="text-text-muted">
+                {app.locationName || "Toàn quốc"}
+              </span>
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.display({
+        id: "documents",
+        header: "Hồ sơ ứng tuyển",
+        meta: { className: "hidden lg:table-cell" },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            {renderCvAction(row.original)}
+          </div>
+        ),
+      }),
+
+      columnHelper.accessor("appliedAt", {
+        header: ({ column }) => (
+          <button
+            type="button"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-text-muted transition-colors hover:text-primary"
+          >
+            <span>Ngày nộp</span>
+            <ArrowUpDown className="size-3.5" />
+          </button>
+        ),
+        cell: ({ row }) => {
+          const iso = row.original.appliedAt;
+          return (
+            <div className="flex flex-col text-xs">
+              <span className="font-medium text-text-main">
+                {dayjs(iso).format("DD/MM/YYYY")}
+              </span>
+              <span className="text-[11px] text-text-muted">
+                {dayjs(iso).format("HH:mm")}
+              </span>
+            </div>
+          );
+        },
+      }),
+
+      columnHelper.accessor("status", {
+        header: "Trạng thái",
+        filterFn: "includesString",
+        cell: ({ row }) => {
+          const statusKey = (row.original.status as string) || "";
+          const cfg = APPLICATION_STATUS_CONFIG[statusKey] ||
+            APPLICATION_STATUS_CONFIG[statusKey.toUpperCase()] || {
+              label: statusKey,
+              badgeClass: "bg-bg text-text-main border-border",
+            };
+          return (
+            <span
+              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${cfg.badgeClass}`}
+            >
+              {cfg.label}
+            </span>
+          );
+        },
+      }),
+
+      columnHelper.display({
+        id: "actions",
+        header: () => <div className="text-center">Thao tác</div>,
+        cell: ({ row }) => {
+          const app = row.original;
+          const allowed = canWithdrawStatus(app.status);
+          const withdrawn = isAlreadyWithdrawn(app.status);
+
+          return (
+            <div className="flex items-center justify-center gap-1.5">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <button
+                      type="button"
+                      onClick={() => setSelectedApplication(app)}
+                      className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-muted transition-colors hover:border-primary hover:text-primary"
+                    >
+                      <Eye className="size-3.5" />
+                    </button>
+                  }
+                />
+                <TooltipPanel>Xem tiến trình hồ sơ</TooltipPanel>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <button
+                      type="button"
+                      disabled={!allowed}
+                      onClick={() => {
+                        setWithdrawTargetApp(app);
+                        setWithdrawReason("");
+                      }}
+                      className={cn(
+                        "flex size-7 items-center justify-center rounded-lg border border-border bg-white transition-colors",
+                        allowed
+                          ? "cursor-pointer text-status-error hover:border-status-error/30 hover:bg-status-error/10 hover:text-status-error"
+                          : "cursor-not-allowed text-text-muted/30 opacity-40",
+                      )}
+                    >
+                      <UserMinus className="size-3.5" />
+                    </button>
+                  }
+                />
+                <TooltipPanel>
+                  {withdrawn
+                    ? "Hồ sơ đã được rút"
+                    : allowed
+                      ? "Rút hồ sơ ứng tuyển"
+                      : "Không thể rút hồ sơ sau khi đã bước vào vòng phỏng vấn"}
+                </TooltipPanel>
+              </Tooltip>
+            </div>
+          );
+        },
+      }),
+    ]);
   }, []);
 
   return (
@@ -347,31 +393,31 @@ export default function CandidateApplicationStatusPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
           <span className="text-xs font-medium text-text-muted">
             Tổng đơn nộp
           </span>
-          <span className="mt-2 text-2xl font-bold text-slate-900">
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.total}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
-          <span className="text-xs font-medium text-sky-600">Đang xem xét</span>
-          <span className="mt-2 text-2xl font-bold text-sky-700">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
+          <span className="text-xs font-medium text-text-muted">Đang xem xét</span>
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.reviewing}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
-          <span className="text-xs font-medium text-amber-600">Phỏng vấn</span>
-          <span className="mt-2 text-2xl font-bold text-amber-700">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
+          <span className="text-xs font-medium text-text-muted">Phỏng vấn</span>
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.interview}
           </span>
         </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 shadow-2xs">
-          <span className="text-xs font-medium text-emerald-600">
+        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4">
+          <span className="text-xs font-medium text-text-muted">
             Được đề nghị việc
           </span>
-          <span className="mt-2 text-2xl font-bold text-emerald-700">
+          <span className="mt-2 text-2xl font-semibold text-text-main">
             {stats.offered}
           </span>
         </div>
@@ -476,50 +522,12 @@ export default function CandidateApplicationStatusPage() {
                   đơn
                 </span>
 
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="secondary"
-                    icon={ChevronLeft}
-                    iconSize={14}
-                    disabled={currentPage <= 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="h-8! px-2.5! text-xs!"
-                  >
-                    Trước
-                  </Button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() => setCurrentPage(page)}
-                          className={`size-8 cursor-pointer rounded-lg text-xs font-semibold transition-colors ${
-                            currentPage === page
-                              ? "bg-primary text-white"
-                              : "text-slate-600 hover:bg-slate-100"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ),
-                    )}
-                  </div>
-
-                  <Button
-                    variant="secondary"
-                    icon={ChevronRight}
-                    iconSize={14}
-                    disabled={currentPage >= totalPages}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    className="h-8! px-2.5! text-xs!"
-                  >
-                    Sau
-                  </Button>
-                </div>
+                <BasePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  className="mx-0 w-auto justify-end"
+                />
               </div>
             )}
           </>
@@ -582,10 +590,16 @@ export default function CandidateApplicationStatusPage() {
                   className="size-11 shrink-0 rounded-xl border border-border object-cover"
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h4 className="text-sm font-semibold leading-snug break-words text-text-main">
-                    {selectedApplication.jobTitle}
+                  <h4 className="wrap-break-words text-sm leading-snug font-semibold text-text-main">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedJobId(selectedApplication.jobId || selectedApplication.job?.id || null)}
+                      className="text-left font-semibold text-text-main transition-colors hover:text-primary cursor-pointer"
+                    >
+                      {selectedApplication.jobTitle}
+                    </button>
                   </h4>
-                  <span className="text-xs leading-relaxed break-words text-text-muted">
+                  <span className="wrap-break-words text-xs leading-relaxed text-text-muted">
                     {selectedApplication.companyName}
                   </span>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-muted">
@@ -606,13 +620,21 @@ export default function CandidateApplicationStatusPage() {
                 </div>
               </div>
 
+              {/* Passive Notice nếu Job đã tạm đóng trong khi hồ sơ ứng viên vẫn đang trong diện xem xét / phỏng vấn */}
+              {isJobClosed(selectedApplication.job?.status) &&
+                isPendingStatus(selectedApplication.status) && (
+                  <div className="w-full min-w-0 rounded-xl border border-border/60 bg-surface p-3 text-xs leading-relaxed text-text-muted">
+                    Vị trí này hiện đã tạm đóng nhận hồ sơ mới do đạt đủ đề xuất (Offer) dự kiến. Hồ sơ của bạn vẫn được lưu trong danh sách ưu tiên và sẽ được tiếp tục xem xét nếu có thay đổi.
+                  </div>
+                )}
+
               {/* Cover Letter nếu có */}
               {selectedApplication.coverLetter && (
                 <div className="w-full min-w-0 rounded-xl border border-border bg-surface p-3">
                   <span className="text-xs font-semibold text-text-main">
                     Thư giới thiệu của bạn:
                   </span>
-                  <p className="mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line break-words text-text-muted">
+                  <p className="wrap-break-words mt-1 max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line text-text-muted">
                     {selectedApplication.coverLetter}
                   </p>
                 </div>
@@ -657,10 +679,13 @@ export default function CandidateApplicationStatusPage() {
                         const oldLabel = oldConfig?.label || oldStatusKey;
 
                         return (
-                          <div key={step.id || idx} className="group relative w-full min-w-0">
+                          <div
+                            key={step.id || idx}
+                            className="group relative w-full min-w-0"
+                          >
                             {/* Dot indicator */}
                             <div
-                              className={`absolute top-1 -left-5.25 sm:-left-5.75 size-3.5 rounded-full border-2 border-surface shadow-xs ${
+                              className={`absolute top-1 -left-5.25 size-3.5 rounded-full border-2 border-surface shadow-xs sm:-left-5.75 ${
                                 isLatest
                                   ? "bg-primary ring-4 ring-primary/20"
                                   : "bg-primary/40"
@@ -671,24 +696,31 @@ export default function CandidateApplicationStatusPage() {
                               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                                 <div className="flex flex-wrap items-center gap-1.5">
                                   <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary break-words">
+                                  <span
+                                    className={cn(
+                                      "wrap-break-words inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
+                                      currentConfig?.badgeClass ||
+                                        "border-border bg-bg text-text-main",
+                                    )}
+                                  >
                                     {statusLabel}
                                   </span>
                                   {oldLabel && oldLabel !== statusLabel && (
-                                    <span className="text-[11px] text-text-muted break-words">
+                                    <span className="wrap-break-words text-[11px] text-text-muted">
                                       (từ {oldLabel})
                                     </span>
                                   )}
                                 </div>
 
                                 {stepTime && (
-                                  <span className="text-[11px] text-text-muted shrink-0">
+                                  <span className="shrink-0 text-[11px] text-text-muted">
                                     {dayjs(stepTime).format("DD/MM/YYYY HH:mm")}
                                   </span>
                                 )}
                               </div>
 
                               {step.note && (
-                                <p className="mt-1 rounded-lg border border-border/50 bg-bg p-2 text-xs leading-relaxed break-words text-text-muted">
+                                <p className="wrap-break-words mt-1 rounded-lg border border-border/50 bg-bg p-2 text-xs leading-relaxed text-text-muted">
                                   {step.note}
                                 </p>
                               )}
@@ -699,7 +731,7 @@ export default function CandidateApplicationStatusPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="w-full rounded-xl border border-dashed border-border p-4 text-center text-xs leading-relaxed break-words text-text-muted">
+                  <div className="wrap-break-words w-full rounded-xl border border-dashed border-border p-4 text-center text-xs leading-relaxed text-text-muted">
                     Đơn ứng tuyển đang ở trạng thái ban đầu (
                     {APPLICATION_STATUS_CONFIG[selectedApplication.status]
                       ?.label ||
@@ -716,9 +748,106 @@ export default function CandidateApplicationStatusPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Modal Dialog Xác nhận rút hồ sơ ứng tuyển */}
+      <Dialog
+        open={Boolean(withdrawTargetApp)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setWithdrawTargetApp(null);
+            setWithdrawReason("");
+          }
+        }}
+      >
+        <DialogContent className="w-[calc(100vw-2rem)] p-4 sm:w-full sm:max-w-md sm:p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-status-error">
+              Xác nhận rút hồ sơ ứng tuyển
+            </DialogTitle>
+            <DialogDescription className="text-xs text-text-muted">
+              Sau khi rút hồ sơ, nhà tuyển dụng sẽ không tiếp tục xét duyệt đơn
+              này của bạn nữa.
+            </DialogDescription>
+          </DialogHeader>
+
+          {withdrawTargetApp && (
+            <div className="space-y-4 pt-1">
+              <div className="rounded-xl border border-border bg-bg/60 p-3 text-xs">
+                <p className="font-semibold text-text-main">
+                  {withdrawTargetApp.jobTitle}
+                </p>
+                <p className="text-text-muted">
+                  {withdrawTargetApp.companyName}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="withdraw-reason"
+                  className="text-xs font-medium text-text-main"
+                >
+                  Lý do rút hồ sơ (không bắt buộc):
+                </label>
+                <textarea
+                  id="withdraw-reason"
+                  value={withdrawReason}
+                  onChange={(e) => setWithdrawReason(e.target.value)}
+                  placeholder="Ví dụ: Đã tìm được công việc phù hợp hơn, có kế hoạch khác..."
+                  rows={3}
+                  maxLength={500}
+                  className="w-full resize-none rounded-lg border border-border bg-surface p-2.5 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setWithdrawTargetApp(null);
+                    setWithdrawReason("");
+                  }}
+                  disabled={isWithdrawing}
+                  className="text-xs"
+                >
+                  Hủy bỏ
+                </Button>
+                <Button
+                  variant="primary"
+                  disabled={isWithdrawing}
+                  onClick={() => {
+                    if (!withdrawTargetApp) return;
+                    withdrawApplication(
+                      {
+                        applicationId: withdrawTargetApp.id,
+                        reason: withdrawReason.trim() || undefined,
+                      },
+                      {
+                        onSuccess: () => {
+                          setWithdrawTargetApp(null);
+                          setWithdrawReason("");
+                        },
+                      },
+                    );
+                  }}
+                  className="bg-status-error! text-xs text-white! hover:bg-status-error/90!"
+                >
+                  {isWithdrawing ? "Đang xử lý..." : "Xác nhận rút hồ sơ"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <ApplicationCvPreviewDialog
         application={previewCvApp}
         onClose={() => setPreviewCvApp(null)}
+      />
+
+      {/* Drawer xem chi tiết công việc ở chế độ Read-only khi bấm từ lịch sử ứng tuyển */}
+      <JobDetailDrawer
+        jobId={selectedJobId || undefined}
+        open={!!selectedJobId}
+        onClose={() => setSelectedJobId(null)}
       />
     </div>
   );

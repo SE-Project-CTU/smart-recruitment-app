@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, memo } from "react";
 import {
   AlertCircle,
   ChevronDown,
@@ -20,7 +20,7 @@ export interface IndustrySelectProps {
   disabled?: boolean;
 }
 
-export function IndustrySelect({
+export const IndustrySelect = memo(function IndustrySelect({
   selectedIds,
   onChange,
   error,
@@ -362,6 +362,6 @@ export function IndustrySelect({
       </div>
     </div>
   );
-}
+});
 
 export default IndustrySelect;

@@ -40,7 +40,7 @@ export function CompanyDetailLayout() {
     refetch: refreshCompany,
   } = useCompanyDetail(companyId);
 
-  // Tự động đồng bộ Active Company trong store nếu truy cập trực tiếp bằng URL của công ty hoặc thông tin cập nhật
+  // Tự động đồng bộ Active Company trong store khi truy cập trực tiếp qua URL (chỉ khi là thành viên Active)
   useEffect(() => {
     if (!company) return;
     const current = useCompanyStore.getState().activeCompany;
@@ -53,6 +53,18 @@ export function CompanyDetailLayout() {
       current.membership?.role !== company.membership?.role
     ) {
       setActiveCompany(company);
+    } else {
+      const currentActive = useCompanyStore.getState().activeCompany;
+      if (
+        !currentActive ||
+        currentActive.name !== company.name ||
+        currentActive.logoUrl !== company.logoUrl ||
+        currentActive.logoFileId !== company.logoFileId ||
+        currentActive.verificationStatus !== company.verificationStatus ||
+        currentActive.membership?.role !== company.membership?.role
+      ) {
+        setActiveCompany(company);
+      }
     }
   }, [
     company?.id,
@@ -75,26 +87,32 @@ export function CompanyDetailLayout() {
     );
   }
 
-  if (error || !company) {
+  const isMemberActive = company?.membership?.status === "Active";
+
+  if (error || !company || !isMemberActive) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-surface py-20 text-center">
-        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-status-error">
           <AlertCircle className="size-7" />
         </div>
         <h2 className="text-lg font-bold text-text-main">
-          {error?.message || "Doanh nghiệp không tồn tại"}
+          {error?.message ||
+            (company && !isMemberActive
+              ? "Bạn không còn là thành viên của doanh nghiệp này"
+              : "Doanh nghiệp không tồn tại")}
         </h2>
         <p className="mt-1.5 text-xs text-text-muted">
-          Vui lòng kiểm tra lại đường dẫn hoặc quay về trang tổng quan tuyển
-          dụng.
+          {company && !isMemberActive
+            ? "Tài khoản của bạn đã rời hoặc bị quản trị viên loại bỏ khỏi doanh nghiệp này."
+            : "Vui lòng kiểm tra lại đường dẫn hoặc quay về trang quản lý doanh nghiệp."}
         </p>
         <button
-          onClick={() => navigate(PATHS.RECRUITER.DASHBOARD)}
+          onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
           type="button"
           className="hover:bg-primary-hover mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
         >
           <ArrowLeft className="size-4" />
-          Về trang tổng quan
+          Về quản lý doanh nghiệp
         </button>
       </div>
     );
@@ -217,7 +235,7 @@ export function CompanyDetailLayout() {
           <NavLink
             to="overview"
             className={({ isActive }) =>
-              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                 isActive
                   ? "border-primary text-primary"
                   : "border-transparent text-text-muted hover:border-border hover:text-text-main"
@@ -231,7 +249,7 @@ export function CompanyDetailLayout() {
           <NavLink
             to="members"
             className={({ isActive }) =>
-              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                 isActive
                   ? "border-primary text-primary"
                   : "border-transparent text-text-muted hover:border-border hover:text-text-main"
@@ -247,7 +265,7 @@ export function CompanyDetailLayout() {
               <NavLink
                 to="invitations"
                 className={({ isActive }) =>
-                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                     isActive
                       ? "border-primary text-primary"
                       : "border-transparent text-text-muted hover:border-border hover:text-text-main"
@@ -261,7 +279,7 @@ export function CompanyDetailLayout() {
               <NavLink
                 to="settings"
                 className={({ isActive }) =>
-                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                     isActive
                       ? "border-primary text-primary"
                       : "border-transparent text-text-muted hover:border-border hover:text-text-main"

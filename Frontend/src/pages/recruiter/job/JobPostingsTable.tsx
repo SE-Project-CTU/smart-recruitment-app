@@ -2,11 +2,7 @@ import { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { ArrowUpDown, Eye, MapPin, Pencil, PowerOff } from "lucide-react";
 import dayjs from "dayjs";
-import {
-  Button,
-  DataTable,
-  type DataTableFeatures,
-} from "@/components/common";
+import { DataTable, type DataTableFeatures } from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,
@@ -192,7 +188,7 @@ export function JobPostingsTable({
 
             return (
               <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${cfg.badgeClass}`}
               >
                 {cfg.label}
               </span>
@@ -200,7 +196,7 @@ export function JobPostingsTable({
           },
         }),
 
-        // Cột 7: Thao tác (3 nút hành động)
+        // Cột 7: Thao tác (3 nút hành động chuẩn hóa size-7 rounded-lg)
         columnHelper.display({
           id: "actions",
           header: () => <div className="text-center">Thao tác</div>,
@@ -216,18 +212,18 @@ export function JobPostingsTable({
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <Button
-                        variant="secondary"
-                        icon={PowerOff}
-                        iconSize={15}
+                      <button
+                        type="button"
                         disabled={isClosed}
                         onClick={() => onCloseJob(job)}
-                        className={`p-1.5! text-xs! ring-0! transition-colors ${
+                        className={`flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white transition-colors ${
                           isClosed
-                            ? "cursor-not-allowed text-slate-400 opacity-30"
-                            : "text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                            ? "cursor-not-allowed text-text-muted/30"
+                            : "text-status-error hover:border-status-error/30 hover:bg-status-error/10 hover:text-status-error"
                         }`}
-                      />
+                      >
+                        <PowerOff className="size-3.5" />
+                      </button>
                     }
                   />
                   <TooltipPanel>
@@ -241,13 +237,13 @@ export function JobPostingsTable({
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <Button
-                        variant="secondary"
-                        icon={Pencil}
-                        iconSize={15}
+                      <button
+                        type="button"
                         onClick={() => onEditJob(job)}
-                        className="p-1.5! text-xs! text-slate-600 ring-0! hover:bg-primary/5 hover:text-primary"
-                      />
+                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-muted transition-colors hover:border-primary hover:text-primary"
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
                     }
                   />
                   <TooltipPanel>Chỉnh sửa tin tuyển dụng</TooltipPanel>
@@ -257,13 +253,13 @@ export function JobPostingsTable({
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <Button
-                        variant="secondary"
-                        icon={Eye}
-                        iconSize={15}
+                      <button
+                        type="button"
                         onClick={() => onViewDetail(job)}
-                        className="p-1.5! text-xs! text-primary ring-0! hover:bg-primary/10"
-                      />
+                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-muted transition-colors hover:border-primary hover:text-primary"
+                      >
+                        <Eye className="size-3.5" />
+                      </button>
                     }
                   />
                   <TooltipPanel>Xem chi tiết & đơn ứng tuyển</TooltipPanel>

@@ -10,8 +10,6 @@ import {
   Lock,
   Unlock,
   AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
   ShieldCheck,
   Shield,
@@ -25,6 +23,7 @@ import "dayjs/locale/vi";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import {
   Button,
+  DashboardPagination,
   DataTable,
   type DataTableFeatures,
   TableSkeleton,
@@ -74,15 +73,15 @@ const ROLE_BADGE_CONFIG: Record<string, { label: string; badgeClass: string }> =
   {
     Admin: {
       label: "Quản trị viên",
-      badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
+      badgeClass: "bg-primary/10 text-primary border-primary/20",
     },
     Recruiter: {
       label: "Nhà tuyển dụng",
-      badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+      badgeClass: "bg-status-info/10 text-status-info border-status-info/20",
     },
     Candidate: {
       label: "Ứng viên",
-      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      badgeClass: "bg-secondary-light/60 text-primary-dark border-secondary/60",
     },
   };
 
@@ -92,17 +91,17 @@ const STATUS_BADGE_CONFIG: Record<
 > = {
   Active: {
     label: "Hoạt động",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
     icon: CheckCircle2,
   },
   Locked: {
     label: "Bị khóa",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-status-error/10 text-status-error border-status-error/20",
     icon: Lock,
   },
   Inactive: {
     label: "Chưa kích hoạt",
-    badgeClass: "bg-slate-100 text-slate-600 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
     icon: Clock,
   },
 };
@@ -126,6 +125,7 @@ export default function AdminUserManagementPage() {
   // Dialog xác nhận Khóa tài khoản
   const [lockTarget, setLockTarget] = useState<AdminUserItem | null>(null);
   const [lockReason, setLockReason] = useState("");
+  const [lockReasonError, setLockReasonError] = useState<string | null>(null);
 
   // Dialog xác nhận Mở khóa tài khoản
   const [unlockTarget, setUnlockTarget] = useState<AdminUserItem | null>(null);
@@ -197,16 +197,29 @@ export default function AdminUserManagementPage() {
   // Xác nhận khóa tài khoản
   const handleConfirmLock = async () => {
     if (!lockTarget) return;
+
+    const trimmedReason = lockReason.trim();
+    if (trimmedReason.length === 0) {
+      setLockReasonError("Vui lòng nhập lý do khóa tài khoản.");
+      return;
+    }
+    if (trimmedReason.length < 5) {
+      setLockReasonError("Lý do khóa tài khoản phải có ít nhất 5 ký tự.");
+      return;
+    }
+
     try {
+      setLockReasonError(null);
       await updateUserStatusMutation.mutateAsync({
         id: lockTarget.id,
         payload: {
           status: "Locked",
-          reason: lockReason.trim() || undefined,
+          reason: trimmedReason,
         },
       });
       setLockTarget(null);
       setLockReason("");
+      setLockReasonError(null);
     } catch {
       // Toast error đã được xử lý tự động trong mutation hook
     }
@@ -241,7 +254,7 @@ export default function AdminUserManagementPage() {
               <button
                 type="button"
                 onClick={() => column.toggleSorting(isSorted === "asc")}
-                className="inline-flex cursor-pointer items-center gap-1.5 pl-2 font-semibold text-slate-600 transition-colors hover:text-primary"
+                className="inline-flex cursor-pointer items-center gap-1.5 pl-2 font-semibold text-text-muted transition-colors hover:text-primary"
               >
                 <span>Người dùng</span>
                 {isSorted === "asc" ? (
@@ -249,7 +262,7 @@ export default function AdminUserManagementPage() {
                 ) : isSorted === "desc" ? (
                   <ArrowDown className="size-3 text-primary" />
                 ) : (
-                  <ArrowUpDown className="size-3 text-slate-400 opacity-60" />
+                  <ArrowUpDown className="size-3 text-text-muted/40" />
                 )}
               </button>
             );
@@ -291,8 +304,8 @@ export default function AdminUserManagementPage() {
           cell: ({ row }) => {
             const phone = row.original.phone;
             return (
-              <span className="text-xs text-slate-600">
-                {phone || <span className="text-slate-400">—</span>}
+              <span className="text-xs text-text-main">
+                {phone || <span className="text-text-muted/50">—</span>}
               </span>
             );
           },
@@ -310,8 +323,7 @@ export default function AdminUserManagementPage() {
                   roles.map((r) => {
                     const badge = ROLE_BADGE_CONFIG[r] ?? {
                       label: r,
-                      badgeClass:
-                        "bg-slate-100 text-slate-700 border-slate-200",
+                      badgeClass: "bg-bg text-text-muted border-border",
                     };
                     return (
                       <span
@@ -326,7 +338,7 @@ export default function AdminUserManagementPage() {
                     );
                   })
                 ) : (
-                  <span className="text-slate-400">—</span>
+                  <span className="text-text-muted/50">—</span>
                 )}
               </div>
             );
@@ -342,7 +354,7 @@ export default function AdminUserManagementPage() {
               <button
                 type="button"
                 onClick={() => column.toggleSorting(isSorted === "asc")}
-                className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-primary"
+                className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-text-muted transition-colors hover:text-primary"
               >
                 <span>Trạng thái</span>
                 {isSorted === "asc" ? (
@@ -350,13 +362,15 @@ export default function AdminUserManagementPage() {
                 ) : isSorted === "desc" ? (
                   <ArrowDown className="size-3 text-primary" />
                 ) : (
-                  <ArrowUpDown className="size-3 text-slate-400 opacity-60" />
+                  <ArrowUpDown className="size-3 text-text-muted/40" />
                 )}
               </button>
             );
           },
           cell: ({ row }) => {
-            const statusKey = row.original.status ?? "Active";
+            // Capitalize status key để lấy config
+            const lowerStatus = row.original.status?.toLowerCase() || "";
+            const statusKey = lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1);
             const statusConfig =
               STATUS_BADGE_CONFIG[statusKey] ?? STATUS_BADGE_CONFIG.Active;
             const StatusIcon = statusConfig.icon;
@@ -383,7 +397,7 @@ export default function AdminUserManagementPage() {
               <button
                 type="button"
                 onClick={() => column.toggleSorting(isSorted === "asc")}
-                className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-primary"
+                className="inline-flex cursor-pointer items-center gap-1.5 font-semibold text-text-muted transition-colors hover:text-primary"
               >
                 <span>Ngày tham gia</span>
                 {isSorted === "asc" ? (
@@ -391,7 +405,7 @@ export default function AdminUserManagementPage() {
                 ) : isSorted === "desc" ? (
                   <ArrowDown className="size-3 text-primary" />
                 ) : (
-                  <ArrowUpDown className="size-3 text-slate-400 opacity-60" />
+                  <ArrowUpDown className="size-3 text-text-muted/40" />
                 )}
               </button>
             );
@@ -400,10 +414,10 @@ export default function AdminUserManagementPage() {
             const createdAt = row.original.createdAt;
             return (
               <div className="flex flex-col text-xs">
-                <span className="font-semibold text-slate-700">
+                <span className="font-semibold text-text-main">
                   {dayjs(createdAt).format("DD/MM/YYYY")}
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-text-muted">
                   {dayjs(createdAt).format("HH:mm")}
                 </span>
               </div>
@@ -421,6 +435,7 @@ export default function AdminUserManagementPage() {
           cell: ({ row }) => {
             const u = row.original;
             const isCurrent = currentUser?.id === u.id;
+            const status = u.status?.toLowerCase();
             return (
               <div className="flex items-center justify-end gap-1">
                 {isCurrent ? (
@@ -430,26 +445,32 @@ export default function AdminUserManagementPage() {
                     iconSize={14}
                     disabled
                     title="Không thể tự khóa tài khoản của chính bạn"
-                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-slate-300! shadow-none! ring-0!"
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-text-muted/30! shadow-none! ring-0!"
                   />
-                ) : u.status === "Locked" ? (
+                ) : status === "locked" ? (
                   <Button
                     variant="primary"
                     icon={Unlock}
                     iconSize={14}
                     onClick={() => setUnlockTarget(u)}
                     title="Mở khóa tài khoản"
-                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-emerald-600! shadow-none! ring-0! hover:bg-emerald-50! hover:text-emerald-700!"
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-status-success! shadow-none! ring-0! hover:bg-status-success/10!"
                   />
-                ) : (
+                ) : status === "active" ? (
                   <Button
                     variant="secondary"
                     icon={Lock}
                     iconSize={14}
-                    onClick={() => setLockTarget(u)}
+                    onClick={() => {
+                      setLockReasonError(null);
+                      setLockReason("");
+                      setLockTarget(u);
+                    }}
                     title="Khóa tài khoản"
-                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-rose-500! shadow-none! ring-0! hover:bg-rose-50! hover:text-rose-600!"
+                    className="size-8! rounded-lg! border-0! bg-transparent! p-0! text-status-error! shadow-none! ring-0! hover:bg-status-error/10!"
                   />
+                ) : (
+                  <span className="text-xs text-text-muted" aria-label="Không có thao tác">—</span>
                 )}
               </div>
             );
@@ -511,7 +532,7 @@ export default function AdminUserManagementPage() {
                     "inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all",
                     isActive
                       ? "bg-secondary-light text-primary"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                      : "text-text-muted hover:bg-bg hover:text-text-main",
                   )}
                 >
                   <span>{tab.label}</span>
@@ -521,7 +542,7 @@ export default function AdminUserManagementPage() {
                         "rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors",
                         isActive
                           ? "bg-primary text-white"
-                          : "bg-slate-100 text-slate-600",
+                          : "bg-bg text-text-muted",
                       )}
                     >
                       {count < 10 && count > 0 ? `0${count}` : count}
@@ -545,7 +566,7 @@ export default function AdminUserManagementPage() {
               >
                 <Select.Trigger
                   aria-label="Lọc theo trạng thái"
-                  className="group flex h-9 w-full cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-border bg-slate-50/50 px-3 py-1.5 text-xs font-medium text-slate-800 transition-colors hover:bg-slate-100/60 focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20 focus:outline-none"
+                  className="group flex h-9 w-full cursor-pointer items-center justify-between gap-1.5 rounded-xl border border-border bg-bg px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:bg-bg-stone focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary/20 focus:outline-none"
                 >
                   <Select.Value />
                   <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
@@ -587,19 +608,19 @@ export default function AdminUserManagementPage() {
               onSubmit={handleSearchSubmit}
               className="relative w-full sm:w-64"
             >
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted" />
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Tên, email, SĐT..."
-                className="h-9 w-full rounded-xl border border-border bg-slate-50/50 py-1.5 pr-8 pl-9 text-xs text-slate-800 transition-colors outline-none focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/20"
+                className="h-9 w-full rounded-xl border border-border bg-bg py-1.5 pr-8 pl-9 text-xs text-text-main placeholder:text-text-muted/60 transition-colors outline-none focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary/20"
               />
               {searchInput && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="absolute top-1/2 right-2.5 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute top-1/2 right-2.5 -translate-y-1/2 text-text-muted hover:text-text-main"
                 >
                   <X className="size-3.5" />
                 </button>
@@ -653,42 +674,16 @@ export default function AdminUserManagementPage() {
             />
 
             {/* Thanh phân trang Pagination */}
-            {totalPages > 1 && (
-              <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-5 py-3.5 sm:flex-row">
-                <span className="text-xs text-text-muted">
-                  Hiển thị <strong>{(page - 1) * pageSize + 1}</strong> –{" "}
-                  <strong>{Math.min(page * pageSize, totalItems)}</strong> trong
-                  tổng số <strong>{totalItems}</strong> người dùng
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="secondary"
-                    icon={ChevronLeft}
-                    iconSize={14}
-                    disabled={page <= 1}
-                    onClick={() =>
-                      updateParams({ page: (page - 1).toString() })
-                    }
-                    className="h-8! w-8! p-0!"
-                    title="Trang trước"
-                  />
-                  <span className="px-2 text-xs font-semibold text-slate-700">
-                    {page} / {totalPages}
-                  </span>
-                  <Button
-                    variant="secondary"
-                    icon={ChevronRight}
-                    iconSize={14}
-                    disabled={page >= totalPages}
-                    onClick={() =>
-                      updateParams({ page: (page + 1).toString() })
-                    }
-                    className="h-8! w-8! p-0!"
-                    title="Trang sau"
-                  />
-                </div>
-              </div>
-            )}
+            <DashboardPagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={(newPage) =>
+                updateParams({ page: newPage.toString() })
+              }
+              entityLabel="người dùng"
+            />
           </div>
         )}
       </div>
@@ -702,6 +697,7 @@ export default function AdminUserManagementPage() {
           if (!open) {
             setLockTarget(null);
             setLockReason("");
+            setLockReasonError(null);
           }
         }}
       >
@@ -731,21 +727,28 @@ export default function AdminUserManagementPage() {
                     className="h-10 w-10 shrink-0 ring-1 ring-border"
                   />
                   <div className="flex min-w-0 flex-col">
-                    <span className="truncate text-xs font-semibold text-slate-900">
+                    <span className="truncate text-xs font-semibold text-text-main">
                       {lockTarget.fullName}
                     </span>
-                    <span className="truncate text-[11px] text-slate-500">
+                    <span className="truncate text-[11px] text-text-muted">
                       {lockTarget.email}
                     </span>
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {lockTarget.roles.map((r) => (
-                        <span
-                          key={r}
-                          className="py-0.2 rounded bg-slate-200/80 px-1.5 text-[9px] font-semibold text-slate-700"
-                        >
-                          {ROLE_BADGE_CONFIG[r]?.label ?? r}
-                        </span>
-                      ))}
+                      {lockTarget.roles.map((r) => {
+                        const badge = ROLE_BADGE_CONFIG[r];
+                        return (
+                          <span
+                            key={r}
+                            className={cn(
+                              "rounded border px-1.5 py-0.5 text-[9px] font-semibold tracking-wide",
+                              badge?.badgeClass ??
+                                "bg-bg text-text-muted border-border",
+                            )}
+                          >
+                            {badge?.label ?? r}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -753,39 +756,60 @@ export default function AdminUserManagementPage() {
             )}
 
             {/* Cảnh báo an ninh */}
-            <div className="mt-4 rounded-xl border border-rose-200/80 bg-rose-50/60 p-3 text-xs text-rose-800">
+            <div className="mt-4 rounded-xl border border-status-error/20 bg-status-error/5 p-3 text-xs text-status-error">
               <p className="flex items-center gap-1.5 font-semibold">
                 Lưu ý quan trọng:
               </p>
-              <p className="mt-1 text-[11px] leading-relaxed text-rose-700">
+              <p className="mt-1 text-[11px] leading-relaxed text-status-error/85">
                 Khi khóa tài khoản này, toàn bộ phiên đăng nhập sẽ bị thu hồi
                 ngay lập tức và người dùng sẽ bị đăng xuất khỏi toàn bộ thiết
                 bị.
               </p>
             </div>
 
-            {/* Nhập lý do khóa (tùy chọn) */}
+            {/* Nhập lý do khóa (bắt buộc) */}
             <div className="mt-4 space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">
-                Lý do khóa tài khoản (tùy chọn)
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-text-main">
+                  Lý do khóa tài khoản <span className="text-status-error">*</span>
+                </label>
+                <span className="text-[11px] text-text-muted">
+                  {lockReason.length}/500
+                </span>
+              </div>
               <textarea
                 value={lockReason}
-                onChange={(e) => setLockReason(e.target.value)}
-                placeholder="Ví dụ: Vi phạm chính sách tuyển dụng, nghi vấn mạo danh doanh nghiệp..."
-                rows={2}
-                maxLength={300}
-                className="w-full resize-none rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 transition-colors outline-none"
+                onChange={(e) => {
+                  setLockReason(e.target.value);
+                  if (lockReasonError && e.target.value.trim().length >= 5) {
+                    setLockReasonError(null);
+                  }
+                }}
+                placeholder="Nhập lý do khóa tài khoản (tối thiểu 5 ký tự)..."
+                rows={3}
+                maxLength={500}
+                className={cn(
+                  "w-full resize-none rounded-xl border bg-bg p-2.5 text-xs text-text-main placeholder:text-text-muted/60 transition-colors outline-none focus:bg-surface",
+                  lockReasonError
+                    ? "border-status-error focus:border-status-error focus:ring-1 focus:ring-status-error/20"
+                    : "border-border focus:border-primary focus:ring-1 focus:ring-primary/20",
+                )}
               />
+              {lockReasonError && (
+                <p className="text-[11px] font-medium text-status-error">
+                  {lockReasonError}
+                </p>
+              )}
             </div>
           </div>
 
-          <DialogFooter className="gap-2 border-t border-border/60 bg-slate-50/50 px-6 py-3 sm:justify-end">
+          <DialogFooter className="gap-2 border-t border-border/60 bg-bg px-6 py-3 sm:justify-end">
             <Button
               variant="secondary"
               onClick={() => {
                 setLockTarget(null);
                 setLockReason("");
+                setLockReasonError(null);
               }}
               disabled={updateUserStatusMutation.isPending}
               className="h-9! px-4! text-xs!"
@@ -795,8 +819,12 @@ export default function AdminUserManagementPage() {
             <Button
               variant="primary"
               onClick={handleConfirmLock}
+              disabled={
+                updateUserStatusMutation.isPending ||
+                lockReason.trim().length < 5
+              }
               isLoading={updateUserStatusMutation.isPending}
-              className="h-9! bg-rose-600! px-4! text-xs! font-semibold! text-white! hover:bg-rose-700!"
+              className="h-9! bg-status-error! px-4! text-xs! font-semibold! text-white! hover:bg-status-error/90!"
             >
               Khóa tài khoản
             </Button>
@@ -840,35 +868,42 @@ export default function AdminUserManagementPage() {
                     className="h-10 w-10 shrink-0 ring-1 ring-border"
                   />
                   <div className="flex min-w-0 flex-col">
-                    <span className="truncate text-xs font-semibold text-slate-900">
+                    <span className="truncate text-xs font-semibold text-text-main">
                       {unlockTarget.fullName}
                     </span>
-                    <span className="truncate text-[11px] text-slate-500">
+                    <span className="truncate text-[11px] text-text-muted">
                       {unlockTarget.email}
                     </span>
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {unlockTarget.roles.map((r) => (
-                        <span
-                          key={r}
-                          className="py-0.2 rounded bg-slate-200/80 px-1.5 text-[9px] font-semibold text-slate-700"
-                        >
-                          {ROLE_BADGE_CONFIG[r]?.label ?? r}
-                        </span>
-                      ))}
+                      {unlockTarget.roles.map((r) => {
+                        const badge = ROLE_BADGE_CONFIG[r];
+                        return (
+                          <span
+                            key={r}
+                            className={cn(
+                              "rounded border px-1.5 py-0.5 text-[9px] font-semibold tracking-wide",
+                              badge?.badgeClass ??
+                                "bg-bg text-text-muted border-border",
+                            )}
+                          >
+                            {badge?.label ?? r}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            <p className="mt-4 text-xs leading-relaxed text-slate-600">
+            <p className="mt-4 text-xs leading-relaxed text-text-muted">
               Sau khi mở khóa, người dùng sẽ có thể đăng nhập bình thường vào hệ
               thống SmartHire bằng mật khẩu hoặc các phương thức xác thực đã
               đăng ký.
             </p>
           </div>
 
-          <DialogFooter className="gap-2 border-t border-border/60 bg-slate-50/50 px-6 py-3 sm:justify-end">
+          <DialogFooter className="gap-2 border-t border-border/60 bg-bg px-6 py-3 sm:justify-end">
             <Button
               variant="secondary"
               onClick={() => setUnlockTarget(null)}
@@ -881,7 +916,7 @@ export default function AdminUserManagementPage() {
               variant="primary"
               onClick={handleConfirmUnlock}
               isLoading={updateUserStatusMutation.isPending}
-              className="h-9! bg-emerald-600! px-4! text-xs! font-semibold! text-white! hover:bg-emerald-700!"
+              className="h-9! bg-status-success! px-4! text-xs! font-semibold! text-white! hover:bg-status-success/90!"
             >
               Mở khóa tài khoản
             </Button>

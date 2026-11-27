@@ -136,4 +136,21 @@ export const applicationService = {
 
     return response.data;
   },
+
+  /**
+   * Ứng viên rút hồ sơ ứng tuyển (chỉ áp dụng trước khi vào vòng phỏng vấn)
+   */
+  async withdrawApplication(
+    applicationId: string,
+    reason?: string,
+  ): Promise<{ applicationId: string; status: string; updatedAt: string }> {
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<{ applicationId: string; status: string; updatedAt: string }>
+    >(API_ENDPOINTS.APPLICATION.WITHDRAW(applicationId), {
+      reason,
+    });
+
+    return response.data;
+  },
 };

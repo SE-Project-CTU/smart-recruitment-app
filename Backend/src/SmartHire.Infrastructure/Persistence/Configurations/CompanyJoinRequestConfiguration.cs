@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartHire.Domain.Entities;
 
@@ -32,5 +32,6 @@ public class CompanyJoinRequestConfiguration : IEntityTypeConfiguration<CompanyJ
             .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => new { x.CompanyId, x.Status });
     }
 }

@@ -30,6 +30,7 @@ import {
   useLeaveCompany,
 } from "@/hooks/queries/useCompany";
 import { PATHS } from "@/constants/paths";
+import { toast } from "@/components/ui/toast";
 import { InviteMemberModal } from "./InviteMemberModal";
 import {
   AlertDialog,
@@ -78,7 +79,6 @@ export function CompanyMembersTab() {
   const [transferTarget, setTransferTarget] = useState<CompanyMember | null>(
     null,
   );
-  const [transferMessage, setTransferMessage] = useState<string | null>(null);
   const [transferError, setTransferError] = useState<string | null>(null);
 
   // Remove member modal state
@@ -141,6 +141,11 @@ export function CompanyMembersTab() {
         description: `Đã loại bỏ ${removeTarget.user.fullName} khỏi công ty thành công.`,
       });
       setRemoveTarget(null);
+      toast.add({
+        type: "success",
+        title: "Xóa thành viên thành công",
+        description: `Đã xóa thành viên ${targetName} khỏi công ty!`,
+      });
       await refetchMembers();
     } catch (err: unknown) {
       const errorMsg = getApiErrorMessage(
@@ -275,21 +280,29 @@ export function CompanyMembersTab() {
         header: "Thao tác",
         cell: (info) => {
           const member = info.row.original;
-          // Chỉ Owner hiện tại mới có quyền chuyển giao quyền hoặc loại bỏ member khác khi thành viên còn hoạt động
-          if (isOwner && member.role !== "Owner" && member.status === "Active") {
+          // Chỉ Owner hiện tại mới có quyền chuyển giao quyền hoặc loại bỏ member khác
+          if (isOwner && member.role !== "Owner") {
+            const isActive = member.status === "Active";
             return (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="border-border! px-2.5! py-1! text-xs! font-medium! text-text-main! ring-border! hover:border-primary/40! hover:text-primary!"
+                  disabled={!isActive}
+                  title={!isActive ? "Thành viên không còn hoạt động" : undefined}
+                  className="border-border! px-2.5! py-1! text-xs! font-medium! text-text-main! ring-border! hover:border-primary/40! hover:text-primary! disabled:cursor-not-allowed! disabled:opacity-40!"
                   icon={ArrowRightLeft}
-                  onClick={() => setTransferTarget(member)}
+                  onClick={() => {
+                    setTransferError(null);
+                    setTransferTarget(member);
+                  }}
                 >
                   Ủy quyền Owner
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-status-error/30! px-2.5! py-1! text-xs! font-medium! text-status-error! ring-status-error/20! hover:border-status-error/50! hover:bg-status-error/10!"
+                  disabled={!isActive}
+                  title={!isActive ? "Thành viên đã rời hoặc bị xóa khỏi công ty" : undefined}
+                  className="border-status-error/30! px-2.5! py-1! text-xs! font-medium! text-status-error! ring-status-error/20! hover:border-status-error/50! hover:bg-status-error/10! disabled:cursor-not-allowed! disabled:opacity-40!"
                   icon={UserMinus}
                   onClick={() => {
                     setRemoveError(null);
@@ -441,7 +454,6 @@ export function CompanyMembersTab() {
           if (!open) {
             setTransferTarget(null);
             setTransferError(null);
-            setTransferMessage(null);
           }
         }}
       >
@@ -449,9 +461,7 @@ export function CompanyMembersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận ủy quyền chủ sở hữu</AlertDialogTitle>
             <AlertDialogDescription>
-              {transferMessage
-                ? transferMessage
-                : `Bạn có chắc chắn muốn chuyển giao toàn bộ quyền chủ sở hữu của công ty ${company.name} cho thành viên ${transferTarget?.user.fullName} (${transferTarget?.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành thành viên thông thường.`}
+              {`Bạn có chắc chắn muốn chuyển giao toàn bộ quyền chủ sở hữu của công ty ${company.name} cho thành viên ${transferTarget?.user.fullName} (${transferTarget?.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành thành viên thông thường.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -467,7 +477,6 @@ export function CompanyMembersTab() {
               onClick={() => {
                 setTransferTarget(null);
                 setTransferError(null);
-                setTransferMessage(null);
               }}
             >
               Hủy bỏ

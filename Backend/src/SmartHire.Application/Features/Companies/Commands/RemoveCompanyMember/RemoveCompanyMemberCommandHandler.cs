@@ -1,7 +1,11 @@
+using System.Text.Json;
 using MediatR;
+using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Features.Companies.Exceptions;
+using SmartHire.Application.Features.Notifications.Mapping;
+using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Companies.Commands.RemoveCompanyMember;
@@ -9,15 +13,21 @@ namespace SmartHire.Application.Features.Companies.Commands.RemoveCompanyMember;
 public sealed class RemoveCompanyMemberCommandHandler : IRequestHandler<RemoveCompanyMemberCommand> {
     private readonly ICurrentUser _currentUser;
     private readonly ICompanyRepository _companyRepository;
+    private readonly INotificationRepository _notificationRepository;
+    private readonly INotificationDispatcher? _notificationDispatcher;
     private readonly IUnitOfWork _unitOfWork;
 
     public RemoveCompanyMemberCommandHandler(
         ICurrentUser currentUser,
         ICompanyRepository companyRepository,
-        IUnitOfWork unitOfWork) {
+        INotificationRepository notificationRepository,
+        IUnitOfWork unitOfWork,
+        INotificationDispatcher? notificationDispatcher = null) {
         _currentUser = currentUser;
         _companyRepository = companyRepository;
+        _notificationRepository = notificationRepository;
         _unitOfWork = unitOfWork;
+        _notificationDispatcher = notificationDispatcher;
     }
 
     public async Task Handle(RemoveCompanyMemberCommand request, CancellationToken cancellationToken) {
@@ -52,7 +62,36 @@ public sealed class RemoveCompanyMemberCommandHandler : IRequestHandler<RemoveCo
             return;
         }
 
+        var now = DateTimeOffset.UtcNow;
         targetMembership.UpdateStatus(CompanyMembershipStatus.Left);
+
+        var payloadObj = new {
+            company_id = company.Id,
+            company_name = company.Name,
+            action = "REMOVED_FROM_COMPANY"
+        };
+        var payloadJson = JsonSerializer.Serialize(payloadObj);
+
+        var notification = Notification.Create(
+            recipientId: targetMembership.UserId,
+            type: NotificationType.SystemAlert,
+            title: "Bạn đã bị thôi việc",
+            body: $"Bạn không còn là thành viên của công ty {company.Name}.",
+            payload: payloadJson,
+            resourceType: "Company",
+            resourceId: company.Id,
+            now: now);
+
+        await _notificationRepository.AddAsync(notification, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (_notificationDispatcher is not null) {
+            try {
+                var notificationDto = NotificationResultMapper.ToDto(notification);
+                await _notificationDispatcher.DispatchAsync(notification.RecipientId, notificationDto, cancellationToken);
+                await _notificationDispatcher.DispatchToCompanyAsync(company.Id, notificationDto, cancellationToken);
+            } catch {
+            }
+        }
     }
 }

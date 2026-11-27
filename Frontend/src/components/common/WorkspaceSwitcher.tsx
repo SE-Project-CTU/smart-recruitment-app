@@ -54,17 +54,30 @@ export function WorkspaceSwitcher() {
       if (activeCompanyId !== null) {
         clearActiveCompany();
       }
+      if (location.pathname.includes("/recruiter/companies/")) {
+        navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT, { replace: true });
+      }
       return;
     }
 
     const currentIdValid = companies.some((c) => c.id === activeCompanyId);
     if (!activeCompanyId || !currentIdValid) {
       setActiveCompany(companies[0]);
+
+      if (location.pathname.includes("/recruiter/companies/")) {
+        const newPath = location.pathname.replace(
+          /\/recruiter\/companies\/[^/]+/,
+          `/recruiter/companies/${companies[0].id}`,
+        );
+        navigate(newPath, { replace: true });
+      }
     }
   }, [
     companiesKey,
     activeCompanyId,
     isLoading,
+    location.pathname,
+    navigate,
     setActiveCompany,
     clearActiveCompany,
   ]);
@@ -90,7 +103,7 @@ export function WorkspaceSwitcher() {
 
     setActiveCompany(company);
 
-    // Nếu đang ở trang quản trị chi tiết công ty, tự động đổi URL sang ID công ty mới
+    // 1. Nếu đang ở trang quản trị chi tiết công ty, tự động đổi URL sang ID công ty mới
     if (location.pathname.includes(PATHS.RECRUITER.COMPANY_MANAGEMENT)) {
       navigate(
         PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
@@ -101,6 +114,15 @@ export function WorkspaceSwitcher() {
           replace: true,
         },
       );
+    }
+    // 2. Nếu đang ở trang con chi tiết/chỉnh sửa tin tuyển dụng của công ty cũ, chuyển về danh sách tin của công ty mới
+    else if (
+      location.pathname.startsWith(PATHS.RECRUITER.JOBS) &&
+      location.pathname !== PATHS.RECRUITER.JOBS
+    ) {
+      navigate(PATHS.RECRUITER.JOBS, {
+        replace: true,
+      });
     }
   };
 
@@ -117,6 +139,13 @@ export function WorkspaceSwitcher() {
           replace: true,
         },
       );
+    } else if (
+      location.pathname.startsWith(PATHS.RECRUITER.JOBS) &&
+      location.pathname !== PATHS.RECRUITER.JOBS
+    ) {
+      navigate(PATHS.RECRUITER.JOBS, {
+        replace: true,
+      });
     }
   };
 
@@ -216,7 +245,7 @@ export function WorkspaceSwitcher() {
                         <TooltipPanel
                           side="right"
                           sideOffset={10}
-                          className="z-60 max-w-xs break-words"
+                          className="wrap-break-words z-60 max-w-xs"
                         >
                           {currentCompany.name}
                         </TooltipPanel>
@@ -225,7 +254,7 @@ export function WorkspaceSwitcher() {
                   </span>
 
                   {/* Mobile: Wrap text */}
-                  <span className="block text-xs font-semibold leading-snug break-words whitespace-normal text-text-main md:hidden">
+                  <span className="wrap-break-words block text-xs leading-snug font-semibold whitespace-normal text-text-main md:hidden">
                     {currentCompany?.name || "Chọn doanh nghiệp"}
                   </span>
 
@@ -306,7 +335,7 @@ export function WorkspaceSwitcher() {
                           <TooltipPanel
                             side="right"
                             sideOffset={10}
-                            className="z-60 max-w-xs break-words"
+                            className="wrap-break-words z-60 max-w-xs"
                           >
                             {displayComp.name}
                           </TooltipPanel>
@@ -314,7 +343,7 @@ export function WorkspaceSwitcher() {
                       </span>
 
                       {/* Mobile: Wrap text */}
-                      <span className="block text-xs leading-snug break-words whitespace-normal md:hidden">
+                      <span className="wrap-break-words block text-xs leading-snug whitespace-normal md:hidden">
                         {displayComp.name}
                       </span>
 

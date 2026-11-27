@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Search, X, Briefcase, Loader2 } from "lucide-react";
 import { JobCard } from "@/components/common/JobCard";
+import { BasePagination } from "@/components/common";
 import { ApplyJobModal } from "@/components/job/ApplyJobModal";
 import { JobDetailDrawer } from "@/components/job/JobDetailDrawer";
 import { useCompanyActivePublicJobs } from "@/hooks/queries/useJob";
@@ -21,7 +22,9 @@ export function CompanyActiveJobsTab({
   const [keyword, setKeyword] = useState("");
   const [searchSubmitted, setSearchSubmitted] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedJob, setSelectedJob] = useState<JobPostingSearchItem | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobPostingSearchItem | null>(
+    null,
+  );
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleSelectJob = (job: JobPostingSearchItem) => {
@@ -29,14 +32,11 @@ export function CompanyActiveJobsTab({
     setIsDrawerOpen(true);
   };
 
-  const { data, isLoading, isPlaceholderData } = useCompanyActivePublicJobs(
-    companyId,
-    {
-      keyword: searchSubmitted.trim() || undefined,
-      page: currentPage,
-      pageSize: 10,
-    },
-  );
+  const { data, isLoading } = useCompanyActivePublicJobs(companyId, {
+    keyword: searchSubmitted.trim() || undefined,
+    page: currentPage,
+    pageSize: 10,
+  });
 
   const jobs: JobPostingSearchItem[] = useMemo(() => {
     return data?.items || [];
@@ -114,33 +114,12 @@ export function CompanyActiveJobsTab({
           ))}
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-xs text-text-muted">
-              <span>
-                Trang {currentPage} / {totalPages}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  className="px-3! py-1.5! text-xs!"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage <= 1 || isPlaceholderData}
-                >
-                  Trang trước
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="px-3! py-1.5! text-xs!"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage >= totalPages || isPlaceholderData}
-                >
-                  Trang kế
-                </Button>
-              </div>
-            </div>
-          )}
+          <BasePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            className="mt-4 border-t border-border pt-4"
+          />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface/50 px-4 py-16 text-center">

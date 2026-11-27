@@ -32,10 +32,7 @@ import {
 } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
-import {
-  CandidateTable,
-  ApplicationCvPreviewDialog,
-} from "./candidate";
+import { CandidateTable, ApplicationCvPreviewDialog } from "./candidate";
 import { EmptyStreet } from "@/assets/images/decoration";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
@@ -49,6 +46,8 @@ import {
 import { PATHS } from "@/constants/paths";
 import { getTimeOfDayGreeting } from "@/utils/helper";
 import {
+  APPLICATION_STATUS,
+  normalizeApplicationStatus,
   resolveCandidateProfile,
   type PendingStatusChange,
   type RecruiterCandidateApplicationItem,
@@ -169,7 +168,15 @@ export default function RecruiterDashboard() {
     isLoading: isLoadingJobs,
     isError: isErrorJobs,
     refetch: refetchJobs,
-  } = useCompanyJobPostings(activeCompanyId);
+  } = useCompanyJobPostings(activeCompanyId, { pageSize: 100 });
+
+  const closedJobIds = useMemo(() => {
+    return new Set(
+      (jobResponse?.items || [])
+        .filter((j) => (j.status || "").toUpperCase() === "CLOSED")
+        .map((j) => j.id),
+    );
+  }, [jobResponse]);
 
   const {
     data: applications,
@@ -181,32 +188,23 @@ export default function RecruiterDashboard() {
   const isLoadingData =
     isLoadingCompanies || isLoadingJobs || isLoadingApplications;
 
-  // Tự động đồng bộ và chọn doanh nghiệp hoạt động nếu chưa có hoặc dữ liệu server thay đổi
+  // Tự động đồng bộ và chọn doanh nghiệp hoạt động nếu chưa có hoặc id lưu không còn tồn tại
   useEffect(() => {
     if (isLoadingCompanies) return;
 
     if (companies.length === 0) {
-      if (activeCompany !== null || activeCompanyId !== null) {
+      if (activeCompanyId !== null) {
         clearActiveCompany();
       }
       return;
     }
 
     const found = companies.find((c) => c.id === activeCompanyId);
-    if (found) {
-      if (
-        found.verificationStatus !== activeCompany?.verificationStatus ||
-        found.name !== activeCompany?.name ||
-        found.logoUrl !== activeCompany?.logoUrl
-      ) {
-        setActiveCompany(found);
-      }
-    } else {
+    if (!found) {
       setActiveCompany(companies[0]);
     }
   }, [
     companies,
-    activeCompany,
     activeCompanyId,
     isLoadingCompanies,
     setActiveCompany,
@@ -238,24 +236,22 @@ export default function RecruiterDashboard() {
   // Hồ sơ mới nộp (Submitted / Received)
   const newApplications = useMemo(() => {
     return allApplications.filter((a) => {
-      const s = (a.status || "").toUpperCase();
-      return s === "SUBMITTED" || s === "RECEIVED";
+      const s = normalizeApplicationStatus(a.status);
+      return s === APPLICATION_STATUS.SUBMITTED || s === APPLICATION_STATUS.RECEIVED;
     });
   }, [allApplications]);
 
   // 3. Mời phỏng vấn (Interview / Interviewing)
   const interviewingApplications = useMemo(() => {
     return allApplications.filter((a) => {
-      const s = (a.status || "").toUpperCase();
-      return s === "INTERVIEW" || s === "INTERVIEWING";
+      return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING;
     });
   }, [allApplications]);
 
   // 4. Đã tuyển dụng (Hired / Accepted)
   const hiredApplications = useMemo(() => {
     return allApplications.filter((a) => {
-      const s = (a.status || "").toUpperCase();
-      return s === "HIRED" || s === "ACCEPTED";
+      return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.HIRED;
     });
   }, [allApplications]);
 
@@ -298,21 +294,33 @@ export default function RecruiterDashboard() {
     let rejected = 0;
 
     for (const app of allApplications) {
-      const s = (app.status || "").toUpperCase();
-      if (s === "SUBMITTED" || s === "RECEIVED") {
-        submitted++;
-      } else if (s === "REVIEWING" || s === "SHORTLISTED" || s === "APPROVED") {
-        reviewing++;
-      } else if (s === "INTERVIEW" || s === "INTERVIEWING") {
-        interviewing++;
-      } else if (s === "OFFERED") {
-        offered++;
-      } else if (s === "HIRED" || s === "ACCEPTED") {
-        hired++;
-      } else if (s === "REJECTED" || s === "WITHDRAWN") {
-        rejected++;
-      } else {
-        submitted++;
+      const s = normalizeApplicationStatus(app.status);
+      switch (s) {
+        case APPLICATION_STATUS.SUBMITTED:
+        case APPLICATION_STATUS.RECEIVED:
+          submitted++;
+          break;
+        case APPLICATION_STATUS.REVIEWING:
+        case APPLICATION_STATUS.SHORTLISTED:
+        case APPLICATION_STATUS.APPROVED:
+          reviewing++;
+          break;
+        case APPLICATION_STATUS.INTERVIEWING:
+          interviewing++;
+          break;
+        case APPLICATION_STATUS.OFFERED:
+          offered++;
+          break;
+        case APPLICATION_STATUS.HIRED:
+          hired++;
+          break;
+        case APPLICATION_STATUS.REJECTED:
+        case APPLICATION_STATUS.WITHDRAWN:
+          rejected++;
+          break;
+        default:
+          submitted++;
+          break;
       }
     }
 
@@ -365,7 +373,7 @@ export default function RecruiterDashboard() {
     app: RecruiterCandidateApplicationItem,
     targetStatus: UpdateJobApplicationStatus,
   ) => {
-    const currentStatus = (app.status || "SUBMITTED").toUpperCase();
+    const currentStatus = normalizeApplicationStatus(app.status);
     setPendingChange({
       app,
       fromStatus: currentStatus,
@@ -1007,6 +1015,7 @@ export default function RecruiterDashboard() {
               }
               isUpdatingStatus={updateStatusMutation.isPending}
               emptyMessage={`Doanh nghiệp "${activeCompany.name}" hiện chưa có hồ sơ ứng tuyển nào.`}
+              closedJobIds={closedJobIds}
             />
           )}
         </div>
