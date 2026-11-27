@@ -30,7 +30,6 @@ import {
   useLeaveCompany,
 } from "@/hooks/queries/useCompany";
 import { PATHS } from "@/constants/paths";
-import { toast } from "@/components/ui/toast";
 import { InviteMemberModal } from "./InviteMemberModal";
 import {
   AlertDialog,

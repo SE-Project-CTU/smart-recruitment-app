@@ -54,6 +54,7 @@ import {
 } from "@/types/application";
 import { ApplicationCvPreviewDialog } from "@/pages/recruiter/candidate/ApplicationCvPreviewDialog";
 import { JobDetailDrawer } from "@/components/job";
+import { cn } from "@/lib/utils";
 
 const columnHelper = createColumnHelper<
   DataTableFeatures,
@@ -695,7 +696,7 @@ export default function CandidateApplicationStatusPage() {
                             <div className="flex w-full min-w-0 flex-col gap-1">
                               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                  <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary break-words">
+                                  <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary break-words"/>
                                   <span
                                     className={cn(
                                       "wrap-break-words inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
