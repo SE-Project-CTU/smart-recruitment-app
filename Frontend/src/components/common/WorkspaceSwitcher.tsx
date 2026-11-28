@@ -40,7 +40,13 @@ export function WorkspaceSwitcher() {
   // Lấy danh sách các công ty mà recruiter tham gia
   const { data: companies = [], isLoading } = useMyCompanies();
 
-  // Khởi tạo & đồng bộ an toàn: tự chọn công ty đầu tiên nếu chưa chọn hoặc id cũ không còn hợp lệ
+  // Tạo key chuỗi ID để tránh re-run effect do reference mảng mới
+  const companiesKey = useMemo(
+    () => companies.map((c) => c.id).join(","),
+    [companies],
+  );
+
+  // Khởi tạo an toàn: chỉ tự động chọn công ty đầu tiên nếu chưa có công ty nào được chọn hoặc ID cũ không còn trong danh sách
   useEffect(() => {
     if (isLoading) return;
 
@@ -54,9 +60,8 @@ export function WorkspaceSwitcher() {
       return;
     }
 
-    const matched = companies.find((c) => c.id === activeCompanyId);
-    if (!matched) {
-      // Nếu chưa có hoặc id lưu không khớp công ty nào trong danh sách, chọn công ty đầu tiên
+    const currentIdValid = companies.some((c) => c.id === activeCompanyId);
+    if (!activeCompanyId || !currentIdValid) {
       setActiveCompany(companies[0]);
 
       if (location.pathname.includes("/recruiter/companies/")) {
@@ -68,7 +73,7 @@ export function WorkspaceSwitcher() {
       }
     }
   }, [
-    companies,
+    companiesKey,
     activeCompanyId,
     isLoading,
     location.pathname,

@@ -48,6 +48,16 @@ public sealed class TransferOwnershipCommandHandler : IRequestHandler<TransferOw
             throw CompanyExceptions.CompanyNewOwnerInvalid("New owner must be an active member of this company.");
         }
 
+        // Giới hạn số lượng công ty một Recruiter được phép làm chủ sở hữu hoặc tham gia tối đa <= 5
+        const int maxCompanies = 5;
+        var ownedCompanyCount = await _companyRepository.CountOwnedCompaniesAsync(request.NewOwnerId, cancellationToken);
+        var activeCompanyCount = await _companyRepository.CountActiveCompaniesAsync(request.NewOwnerId, cancellationToken);
+        if (ownedCompanyCount >= maxCompanies || activeCompanyCount >= maxCompanies) {
+            throw CompanyExceptions.MaxOwnedCompaniesReached(
+                maxCompanies,
+                $"The recipient already belongs to or owns the maximum limit of {maxCompanies} companies.");
+        }
+
         var now = DateTimeOffset.UtcNow;
 
         return await _unitOfWork.ExecuteInTransactionAsync(async cancellationToken => {

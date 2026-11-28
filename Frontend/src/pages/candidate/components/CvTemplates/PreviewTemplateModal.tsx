@@ -115,7 +115,7 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
         {/* 2. Nội dung xem trước giữa màn hình */}
         <div
           ref={previewScrollRef}
-          className="relative flex flex-1 justify-center overflow-auto bg-slate-100 p-2 sm:p-4 md:p-6"
+          className="relative flex-1 overflow-auto bg-slate-100 p-2 sm:p-4 md:p-6"
         >
           {isLoading && (
             <div className="my-auto flex flex-col items-center justify-center p-8 text-center">
@@ -162,22 +162,11 @@ export const PreviewTemplateModal: React.FC<PreviewTemplateModalProps> = ({
             templateContent &&
             templateDetail?.defaultLayout && (
               <div
-                className="h-max"
-                style={{
-                  width: zoom > 1 ? `calc(210mm * ${zoom})` : undefined,
-                  minWidth: zoom > 1 ? `calc(210mm * ${zoom})` : undefined,
-                }}
+                className="mx-auto h-max w-max"
               >
                 <div
                   className="bg-transparent"
-                  style={{
-                    transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-                    transformOrigin: zoom > 1 ? "top left" : "top center",
-                    marginBottom:
-                      zoom > 1
-                        ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
-                        : "2rem",
-                  }}
+                  style={{ zoom }}
                 >
                   <CvPreviewWorkspace
                     content={templateContent}

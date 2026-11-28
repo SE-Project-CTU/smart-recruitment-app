@@ -123,14 +123,11 @@ export const companyService = {
     );
 
     const rawItems = response.data || [];
-    const items: CompanyMember[] = rawItems.map((m) => {
-      const resolvedId = m.membershipId || m.id;
-      return {
-        ...m,
-        id: resolvedId,
-        membershipId: resolvedId,
-      };
-    });
+    const items: CompanyMember[] = rawItems.map((m) => ({
+      ...m,
+      id: m.id || m.membershipId || m.user.id,
+      membershipId: m.membershipId || m.id,
+    }));
 
     return {
       items,

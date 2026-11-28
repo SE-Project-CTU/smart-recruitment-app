@@ -143,6 +143,14 @@ public sealed class CompanyRepository : ICompanyRepository {
                 cancellationToken);
     }
 
+    public async Task<int> CountActiveCompaniesAsync(Guid userId, CancellationToken cancellationToken) {
+        return await _dbContext.CompanyMemberships
+            .CountAsync(
+                m => m.UserId == userId &&
+                     m.Status == CompanyMembershipStatus.Active,
+                cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<CompanyMembership> Items, int TotalCount)> GetUserActiveCompaniesPagedAsync(
         Guid userId,
         string? search,

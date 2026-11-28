@@ -153,9 +153,9 @@ internal static class CompanyExceptions {
         "This logo is already assigned to another company.",
         [new AppErrorDetail("logoFileId", ErrorDetailReasons.AlreadyExists, "This logo is already in use by a company.")]);
 
-    public static AppException MaxOwnedCompaniesReached(int max = 5) => new(
+    public static AppException MaxOwnedCompaniesReached(int max = 5, string? message = null) => new(
         AppErrorKind.Conflict,
         CompanyErrorCodes.MaxOwnedCompaniesReached,
-        $"A recruiter can create a maximum of {max} companies.",
-        [new AppErrorDetail("company", ValidationReasons.NotAllowed, $"Maximum limit of {max} owned companies has been reached.")]);
+        message ?? $"A recruiter can own a maximum of {max} companies.",
+        [new AppErrorDetail("company", ValidationReasons.NotAllowed, message ?? $"Maximum limit of {max} owned companies has been reached.")]);
 }

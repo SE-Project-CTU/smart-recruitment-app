@@ -101,22 +101,17 @@ export const CvPreviewModal: React.FC<CvPreviewModalProps> = ({
       {/* 2. Khung hiển thị trang A4 căn giữa cuộn mượt mà */}
       <div
         ref={previewScrollRef}
-        className="relative flex flex-1 justify-center overflow-auto p-2 sm:p-4"
+        className="relative flex-1 overflow-auto p-2 sm:p-4"
       >
-        <div className="h-max">
+        <div className="mx-auto h-max w-max">
           <div
             className="bg-transparent"
-            style={{
-              transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-              transformOrigin: "top center",
-              marginBottom:
-                zoom > 1 ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)` : "2rem",
-            }}
+            style={{ zoom }}
           >
             <CvPreviewWorkspace
               content={content}
               layout={layout}
-              className="bg-transparent!"
+              className="bg-transparent! p-0!"
             />
           </div>
         </div>

@@ -225,25 +225,14 @@ export const CandidateCvPreviewView: React.FC<CandidateCvPreviewViewProps> = ({
 
         <div
           ref={previewScrollRef}
-          className="relative flex justify-center overflow-auto bg-slate-100 p-2 sm:p-4 md:p-8"
+          className="relative overflow-auto bg-slate-100 p-2 sm:p-4 md:p-8"
         >
           <div
-            className="h-max"
-            style={{
-              width: zoom > 1 ? `calc(210mm * ${zoom})` : undefined,
-              minWidth: zoom > 1 ? `calc(210mm * ${zoom})` : undefined,
-            }}
+            className="mx-auto h-max w-max"
           >
             <div
               className="bg-transparent"
-              style={{
-                transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-                transformOrigin: zoom > 1 ? "top left" : "top center",
-                marginBottom:
-                  zoom > 1
-                    ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
-                    : "2rem",
-              }}
+              style={{ zoom }}
             >
               <CvPreviewWorkspace
                 content={cvData.content}

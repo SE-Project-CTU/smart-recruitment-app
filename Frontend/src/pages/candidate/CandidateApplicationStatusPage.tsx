@@ -17,7 +17,6 @@ import {
   UserMinus,
 } from "lucide-react";
 import dayjs from "dayjs";
-import { cn } from "@/lib/utils";
 import {
   BasePagination,
   Button,
@@ -55,6 +54,7 @@ import {
 } from "@/types/application";
 import { ApplicationCvPreviewDialog } from "@/pages/recruiter/candidate/ApplicationCvPreviewDialog";
 import { JobDetailDrawer } from "@/components/job";
+import { cn } from "@/lib/utils";
 
 const columnHelper = createColumnHelper<
   DataTableFeatures,
@@ -654,7 +654,7 @@ export default function CandidateApplicationStatusPage() {
                     <div className="h-8 animate-pulse rounded-lg bg-bg" />
                   </div>
                 ) : sortedHistory.length > 0 ? (
-                  <div className="relative ml-2.5 space-y-4 border-l-2 border-border py-1 pl-3.5 sm:ml-3 sm:pl-4">
+                  <div className="relative ml-2.5 space-y-4 border-l-2 border-primary/20 py-1 pl-3.5 sm:ml-3 sm:pl-4">
                     {sortedHistory.map(
                       (step: ApplicationStatusHistoryItem, idx: number) => {
                         const isLatest = idx === sortedHistory.length - 1;
@@ -689,13 +689,14 @@ export default function CandidateApplicationStatusPage() {
                               className={`absolute top-1 -left-5.25 size-3.5 rounded-full border-2 border-surface shadow-xs sm:-left-5.75 ${
                                 isLatest
                                   ? "bg-primary ring-4 ring-primary/20"
-                                  : "bg-text-muted/40"
+                                  : "bg-primary/40"
                               }`}
                             />
 
                             <div className="flex w-full min-w-0 flex-col gap-1">
                               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                                 <div className="flex flex-wrap items-center gap-1.5">
+                                  <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary break-words"/>
                                   <span
                                     className={cn(
                                       "wrap-break-words inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",

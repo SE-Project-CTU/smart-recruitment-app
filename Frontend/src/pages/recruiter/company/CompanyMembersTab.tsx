@@ -21,6 +21,7 @@ import {
   TableSkeleton,
   UserAvatar,
 } from "@/components/common";
+import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import {
   useCompanyMembers,
@@ -29,7 +30,6 @@ import {
   useLeaveCompany,
 } from "@/hooks/queries/useCompany";
 import { PATHS } from "@/constants/paths";
-import { toast } from "@/components/ui/toast";
 import { InviteMemberModal } from "./InviteMemberModal";
 import {
   AlertDialog,
@@ -89,7 +89,7 @@ export function CompanyMembersTab() {
   const [leaveError, setLeaveError] = useState<string | null>(null);
 
   const handleTransferOwnership = async () => {
-    if (!transferTarget) return;
+    if (!transferTarget || transferTarget.status !== "Active") return;
     const targetName = transferTarget.user.fullName;
     try {
       setTransferError(null);
@@ -100,22 +100,31 @@ export function CompanyMembersTab() {
       setTransferTarget(null);
       toast.add({
         type: "success",
-        title: "Ủy quyền thành công",
+        title: "Chuyển quyền thành công",
         description: `Đã chuyển quyền Chủ sở hữu cho ${targetName}!`,
       });
       await refreshCompany();
     } catch (err: unknown) {
-      setTransferError(
-        getApiErrorMessage(err, "Chuyển quyền thất bại. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Chuyển quyền thất bại. Vui lòng thử lại!",
       );
+      setTransferError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Không thể chuyển quyền",
+        description: errorMsg,
+      });
     }
   };
 
   const handleRemoveMember = async () => {
-    if (!removeTarget) return;
+    if (!removeTarget || removeTarget.status !== "Active") return;
     const targetMemberId =
       removeTarget.membershipId || removeTarget.id || removeTarget.user.id;
+    if (!targetMemberId) return;
     const targetName = removeTarget.user.fullName;
+
     try {
       setRemoveError(null);
       await removeMember({
@@ -126,13 +135,20 @@ export function CompanyMembersTab() {
       toast.add({
         type: "success",
         title: "Xóa thành viên thành công",
-        description: `Đã xóa thành viên ${targetName} khỏi công ty!`,
+        description: `Đã loại bỏ ${targetName} khỏi công ty thành công.`,
       });
       await refetchMembers();
     } catch (err: unknown) {
-      setRemoveError(
-        getApiErrorMessage(err, "Không thể xóa thành viên. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Không thể xóa thành viên. Vui lòng thử lại!",
       );
+      setRemoveError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Xóa thành viên thất bại",
+        description: errorMsg,
+      });
     }
   };
 
@@ -140,12 +156,24 @@ export function CompanyMembersTab() {
     try {
       setLeaveError(null);
       await leaveCompany(company.id);
+      toast.add({
+        type: "info",
+        title: "Đã rời công ty",
+        description: `Bạn đã rời khỏi công ty ${company.name}.`,
+      });
       setIsLeaveModalOpen(false);
       navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT);
     } catch (err: unknown) {
-      setLeaveError(
-        getApiErrorMessage(err, "Không thể rời công ty. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Không thể rời công ty. Vui lòng thử lại!",
       );
+      setLeaveError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Không thể rời công ty",
+        description: errorMsg,
+      });
     }
   };
 
@@ -209,21 +237,15 @@ export function CompanyMembersTab() {
         header: "Trạng thái",
         cell: (info) => {
           const status = info.getValue();
-          if (status === "Active") {
-            return (
-              <span className="inline-flex items-center rounded-full border border-status-success/30 bg-status-success/10 px-2.5 py-0.5 text-xs font-semibold text-status-success">
-                Hoạt động
-              </span>
-            );
-          }
-          if (status === "Left") {
-            return (
-              <span className="inline-flex items-center rounded-full border border-status-error/30 bg-status-error/10 px-2.5 py-0.5 text-xs font-semibold text-status-error">
-                Đã rời / Đã xóa
-              </span>
-            );
-          }
-          return (
+          return status === "Active" ? (
+            <span className="inline-flex items-center rounded-full border border-status-success/30 bg-status-success/10 px-2.5 py-0.5 text-xs font-semibold text-status-success">
+              Hoạt động
+            </span>
+          ) : status === "Left" ? (
+            <span className="inline-flex items-center rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs font-medium text-text-muted">
+              Đã rời đi
+            </span>
+          ) : (
             <span className="inline-flex items-center rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs font-medium text-text-muted">
               Tạm ngừng
             </span>
