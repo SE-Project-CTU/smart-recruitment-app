@@ -307,7 +307,7 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
             <div
               ref={dropProvided.innerRef}
               {...dropProvided.droppableProps}
-              className="min-h-[40px] space-y-5"
+              className="min-h-10 space-y-5"
             >
               {visibleList.map((sectionKey, index) => {
                 const sectionNode = renderSectionContent(sectionKey);
@@ -394,7 +394,7 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
 
     return (
       <div
-        className={`cv-page-container mx-auto min-h-[1123px] w-full max-w-[794px] bg-white p-10 text-slate-900 ${className}`}
+        className={`cv-page-container mx-auto min-h-280.75 w-full max-w-198.5 bg-white p-10 text-slate-900 ${className}`}
         style={cssVars}
       >
         <ProfileHeader
