@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Pencil, Search, RotateCw } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { DashboardPagination } from "@/components/common";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
@@ -33,13 +34,23 @@ export function IndustryCatalogTab() {
   // STATE NGÀNH NGHỀ CON (CỘT PHẢI)
   // ==========================================
   const [industrySearch, setIndustrySearch] = useState("");
+  const [debouncedIndustrySearch, setDebouncedIndustrySearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "ALL" | "ACTIVE" | "INACTIVE"
   >("ALL");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
   const [industryModalOpen, setIndustryModalOpen] = useState(false);
   const [editingIndustry, setEditingIndustry] = useState<AdminIndustry | null>(
     null,
   );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedIndustrySearch(industrySearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [industrySearch]);
 
   // ==========================================
   // QUERIES & MUTATIONS
@@ -64,26 +75,41 @@ export function IndustryCatalogTab() {
     return groups.find((g) => g.id === activeGroupId) || null;
   }, [groups, activeGroupId]);
 
-  // Query ngành nghề con thuộc nhóm active
+  const industryQueryParams = useMemo(
+    () => ({
+      groupId: activeGroupId || undefined,
+      search: debouncedIndustrySearch.trim() || undefined,
+      isActive: statusFilter === "ALL" ? undefined : statusFilter === "ACTIVE",
+      page,
+      pageSize,
+    }),
+    [activeGroupId, debouncedIndustrySearch, statusFilter, page, pageSize],
+  );
+
+  // Query ngành nghề con thuộc nhóm active (server-side pagination & filter)
   const {
     data: industriesData,
     isLoading: isLoadingIndustries,
     refetch: refetchIndustries,
-  } = useAdminIndustries({
-    groupId: activeGroupId || undefined,
-    pageSize: 100,
-  });
+  } = useAdminIndustries(industryQueryParams);
 
-  const allIndustries = useMemo(
+  const industries = useMemo(
     () => industriesData?.data || [],
     [industriesData],
+  );
+  const meta = industriesData?.meta;
+  const totalCount = meta?.totalItems ?? industries.length;
+  const totalPages =
+    meta?.totalPages ?? Math.max(1, Math.ceil(totalCount / pageSize));
+  const hasActiveFilter = Boolean(
+    debouncedIndustrySearch.trim() || statusFilter !== "ALL",
   );
 
   const updateGroupMutation = useUpdateIndustryGroup();
   const updateIndustryMutation = useUpdateIndustry();
 
   // ==========================================
-  // LỌC DỮ LIỆU
+  // LỌC DỮ LIỆU CỘT TRÁI
   // ==========================================
   // Lọc nhóm ngành theo từ khóa tìm kiếm
   const filteredGroups = useMemo(() => {
@@ -91,20 +117,6 @@ export function IndustryCatalogTab() {
     const q = groupSearch.toLowerCase().trim();
     return groups.filter((g) => g.name.toLowerCase().includes(q));
   }, [groups, groupSearch]);
-
-  // Lọc ngành nghề con theo từ khóa và trạng thái
-  const filteredIndustries = useMemo(() => {
-    return allIndustries.filter((ind) => {
-      const matchSearch =
-        !industrySearch.trim() ||
-        ind.name.toLowerCase().includes(industrySearch.toLowerCase().trim());
-      const matchStatus =
-        statusFilter === "ALL" ||
-        (statusFilter === "ACTIVE" && ind.isActive) ||
-        (statusFilter === "INACTIVE" && !ind.isActive);
-      return matchSearch && matchStatus;
-    });
-  }, [allIndustries, industrySearch, statusFilter]);
 
   // ==========================================
   // HANDLERS
@@ -198,7 +210,7 @@ export function IndustryCatalogTab() {
           </div>
 
           {/* Danh sách các nhóm ngành */}
-          <div className="mt-3 max-h-[620px] space-y-1.5 overflow-y-auto pr-0.5">
+          <div className="mt-3 max-h-155 space-y-1.5 overflow-y-auto pr-0.5">
             {isLoadingGroups ? (
               <div className="space-y-2 py-2">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -220,7 +232,10 @@ export function IndustryCatalogTab() {
                 return (
                   <div
                     key={group.id}
-                    onClick={() => setSelectedGroupId(group.id)}
+                    onClick={() => {
+                      setSelectedGroupId(group.id);
+                      setPage(1);
+                    }}
                     className={`group relative flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all ${
                       isSelected
                         ? "border-primary bg-secondary-light/40 shadow-xs"
@@ -322,7 +337,7 @@ export function IndustryCatalogTab() {
               </h2>
 
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-text-muted">
-                {activeGroup ? `${allIndustries.length} ngành` : "0 ngành"}
+                {activeGroup ? `${totalCount} ngành` : "0 ngành"}
               </span>
             </div>
 
@@ -358,7 +373,10 @@ export function IndustryCatalogTab() {
               <input
                 type="text"
                 value={industrySearch}
-                onChange={(e) => setIndustrySearch(e.target.value)}
+                onChange={(e) => {
+                  setIndustrySearch(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="Tìm ngành nghề trong nhóm này..."
                 className="w-full rounded-xl border border-border bg-bg py-1.5 pr-3 pl-8.5 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
               />
@@ -368,7 +386,10 @@ export function IndustryCatalogTab() {
             <div className="flex items-center gap-1 rounded-xl border border-border bg-bg p-1">
               <button
                 type="button"
-                onClick={() => setStatusFilter("ALL")}
+                onClick={() => {
+                  setStatusFilter("ALL");
+                  setPage(1);
+                }}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === "ALL"
                     ? "bg-surface text-primary shadow-xs"
@@ -379,7 +400,10 @@ export function IndustryCatalogTab() {
               </button>
               <button
                 type="button"
-                onClick={() => setStatusFilter("ACTIVE")}
+                onClick={() => {
+                  setStatusFilter("ACTIVE");
+                  setPage(1);
+                }}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === "ACTIVE"
                     ? "bg-surface text-primary shadow-xs"
@@ -390,7 +414,10 @@ export function IndustryCatalogTab() {
               </button>
               <button
                 type="button"
-                onClick={() => setStatusFilter("INACTIVE")}
+                onClick={() => {
+                  setStatusFilter("INACTIVE");
+                  setPage(1);
+                }}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === "INACTIVE"
                     ? "bg-surface text-primary shadow-xs"
@@ -427,20 +454,20 @@ export function IndustryCatalogTab() {
                   />
                 ))}
               </div>
-            ) : filteredIndustries.length === 0 ? (
+            ) : industries.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center">
                 <img
-                  src={allIndustries.length === 0 ? EmptyStreet : EmptyState}
+                  src={!hasActiveFilter ? EmptyStreet : EmptyState}
                   alt="Không có dữ liệu"
                   className="mb-3 size-28 object-contain"
                 />
                 <p className="text-xs font-semibold text-text-main">
-                  {allIndustries.length === 0
+                  {!hasActiveFilter
                     ? `Nhóm "${activeGroup?.name || "này"}" chưa có ngành nghề nào`
                     : "Không tìm thấy ngành nghề phù hợp với bộ lọc"}
                 </p>
                 <p className="mt-1 text-[11px] text-text-muted">
-                  {allIndustries.length === 0
+                  {!hasActiveFilter
                     ? "Nhấn 'Thêm ngành nghề' ở phía trên để tạo ngành nghề đầu tiên cho nhóm này."
                     : "Hãy thử thay đổi từ khóa tìm kiếm hoặc bỏ chọn bộ lọc trạng thái."}
                 </p>
@@ -459,7 +486,7 @@ export function IndustryCatalogTab() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border bg-surface">
-                    {filteredIndustries.map((ind) => (
+                    {industries.map((ind) => (
                       <tr
                         key={ind.id}
                         className="transition-colors hover:bg-slate-50/60"
@@ -470,7 +497,7 @@ export function IndustryCatalogTab() {
                             <Tooltip>
                               <TooltipTrigger
                                 render={
-                                  <span className="max-w-[280px] truncate font-semibold text-text-main lg:max-w-[340px]">
+                                  <span className="max-w-70 truncate font-semibold text-text-main lg:max-w-85">
                                     {ind.name}
                                   </span>
                                 }
@@ -478,13 +505,13 @@ export function IndustryCatalogTab() {
                               <TooltipPanel
                                 side="top"
                                 sideOffset={6}
-                                className="max-w-xs text-xs break-words"
+                                className="max-w-xs text-xs wrap-break-word"
                               >
                                 {ind.name}
                               </TooltipPanel>
                             </Tooltip>
                           </div>
-                          <span className="block leading-snug font-semibold break-words whitespace-normal text-text-main md:hidden">
+                          <span className="block leading-snug font-semibold wrap-break-word whitespace-normal text-text-main md:hidden">
                             {ind.name}
                           </span>
                         </td>
@@ -539,6 +566,17 @@ export function IndustryCatalogTab() {
               </div>
             )}
           </div>
+
+          {activeGroup && !isLoadingIndustries && industries.length > 0 && (
+            <DashboardPagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              entityLabel="ngành nghề"
+            />
+          )}
         </div>
       </div>
 
