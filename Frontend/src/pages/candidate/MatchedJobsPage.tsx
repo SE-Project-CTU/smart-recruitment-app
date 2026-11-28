@@ -1,7 +1,6 @@
 import { CandidateMatching } from "@/assets/images/decoration";
 import { useState, useMemo } from "react";
 import {
-  Compass,
   Target,
   CheckCircle,
   ArrowUpDown,
@@ -155,13 +154,8 @@ export default function MatchedJobsPage() {
         <GradientGridBackground />
 
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-2xl space-y-2.5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-primary">
-              <Compass className="size-3.5 text-primary" />
-              <span>Gợi ý việc làm thông minh</span>
-            </div>
-
-            <h1 className="text-xl font-bold tracking-tight text-text-main sm:text-2xl lg:text-3xl">
+          <div className="max-w-xl space-y-2.5">
+            <h1 className="text-xl font-bold tracking-tight wrap-break-word text-text-main sm:text-2xl lg:text-3xl">
               Cơ hội nghề nghiệp phù hợp với hồ sơ của bạn
             </h1>
 
@@ -463,7 +457,7 @@ export default function MatchedJobsPage() {
             </Button>
           </section>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
             {matchedJobs.map((job) => (
               <JobCard
                 key={job.id}

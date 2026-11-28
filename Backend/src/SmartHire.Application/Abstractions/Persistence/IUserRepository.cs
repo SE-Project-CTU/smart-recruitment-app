@@ -27,6 +27,12 @@ public interface IUserRepository {
         string normalizedEmail,
         CancellationToken cancellationToken
     );
+
+    Task<User?> GetTrackedForGoogleAuthAsync(
+        string firebaseUid,
+        string normalizedEmail,
+        CancellationToken cancellationToken
+    );
     
     Task<CurrentAccountData?> GetCurrentAccountAsync(Guid userId, CancellationToken cancellationToken);
     
@@ -56,4 +62,9 @@ public interface IUserRepository {
     );
 
     Task<int> CountActiveAdminsAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Guid>> GetActiveUserIdsByRoleAsync(
+        string? role,
+        CancellationToken cancellationToken
+    );
 }

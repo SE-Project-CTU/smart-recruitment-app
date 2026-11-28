@@ -75,6 +75,17 @@ public sealed class UpdateApplicationStatusCommandHandler
             currentAccount?.Roles.FirstOrDefault() ?? RoleNames.Recruiter);
 
         var now = DateTimeOffset.UtcNow;
+        var oldStatus = application.Status;
+
+        // Nếu Job đã đóng: chặn chuyển mới sang Offered hoặc Hired (ngoại trừ hồ sơ đã ở Offered chuyển sang Hired)
+        var isNewOfferOrHire = validated.Status == ApplicationStatus.Offered ||
+            (validated.Status == ApplicationStatus.Hired && oldStatus != ApplicationStatus.Offered);
+
+        if (application.Job.Status == JobPostingStatus.Closed && isNewOfferOrHire) {
+            throw ApplicationExceptions.JobNotAcceptingApplications(
+                "Vị trí tuyển dụng này đã đóng nhận thêm nhân sự. Không thể gửi thêm đề nghị việc làm (Offered).");
+        }
+
         (UpdateApplicationStatusResult Result, Guid NotificationId) transactionResult;
         try {
             transactionResult = await _unitOfWork.ExecuteInTransactionAsync(async ct => {
@@ -87,6 +98,23 @@ public sealed class UpdateApplicationStatusCommandHandler
 
                 var notification = ApplicationStatusUpdateNotificationFactory.Create(application, now);
                 await _notificationRepository.AddAsync(notification, ct);
+
+                var isHoldingQuota = validated.Status == ApplicationStatus.Offered || validated.Status == ApplicationStatus.Hired;
+                var wasHoldingQuota = oldStatus == ApplicationStatus.Offered || oldStatus == ApplicationStatus.Hired;
+
+                if (isHoldingQuota && !wasHoldingQuota) {
+                    var currentReserved = await _applicationRepository.CountReservedQuotaAsync(application.JobId, ct);
+                    if (currentReserved + 1 >= application.Job.Vacancies && application.Job.Status == JobPostingStatus.Published) {
+                        application.Job.Close(now);
+                    }
+                }
+                else if (wasHoldingQuota && !isHoldingQuota) {
+                    var currentReserved = await _applicationRepository.CountReservedQuotaAsync(application.JobId, ct);
+                    if (currentReserved - 1 < application.Job.Vacancies && application.Job.Status == JobPostingStatus.Closed) {
+                        application.Job.Reopen(now);
+                    }
+                }
+
                 await _unitOfWork.SaveChangesAsync(ct);
 
                 return (

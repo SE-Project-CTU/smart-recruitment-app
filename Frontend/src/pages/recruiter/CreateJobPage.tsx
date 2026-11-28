@@ -1,4 +1,11 @@
-import { useState, useMemo, type ChangeEvent, type FormEvent } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import {
@@ -6,11 +13,13 @@ import {
   ArrowLeft,
   Clock,
   DollarSign,
-  GraduationCap,
   ShieldCheck,
-  Users,
 } from "lucide-react";
 import { BadgeSelector, Button, DatePicker } from "@/components/common";
+import {
+  JobMatchingWeightsCard,
+  type MatchingWeightsValues,
+} from "@/components/job/JobMatchingWeightsCard";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import IndustrySelect from "@/components/catalog/IndustrySelect";
 import LocationSelector from "@/components/catalog/LocationSelector";
@@ -26,6 +35,8 @@ import {
   JOB_LEVEL_OPTIONS,
   JOB_TYPE_OPTIONS,
   WORK_MODE_OPTIONS,
+  formatCurrencyInput,
+  parseCurrencyInput,
 } from "@/utils/jobHelpers";
 import type {
   CreateJobPostingPayload,
@@ -57,6 +68,7 @@ interface JobFormState {
   deadline: string;
   industryIds: string[];
   skillIds: string[];
+  matchingWeights: MatchingWeightsValues;
 }
 
 const initialFormState = (companyId: string): JobFormState => ({
@@ -80,6 +92,12 @@ const initialFormState = (companyId: string): JobFormState => ({
   deadline: dayjs().add(30, "day").format("YYYY-MM-DD"),
   industryIds: [],
   skillIds: [],
+  matchingWeights: {
+    skill: 40,
+    experience: 25,
+    title: 25,
+    other: 10,
+  },
 });
 
 function FieldError({ message }: { message?: string }) {
@@ -129,33 +147,71 @@ export default function CreateJobPage() {
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const updateForm = <K extends keyof JobFormState>(
-    key: K,
-    value: JobFormState[K],
-  ) => {
-    setFormData((current) => ({ ...current, [key]: value }));
-    setFieldErrors((current) => {
-      if (!(key in current)) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  };
+  const updateForm = useCallback(
+    <K extends keyof JobFormState>(key: K, value: JobFormState[K]) => {
+      setFormData((current) => ({ ...current, [key]: value }));
+      setFieldErrors((current) => {
+        if (!(key in current)) return current;
+        const next = { ...current };
+        delete next[key];
+        return next;
+      });
+    },
+    [],
+  );
 
-  const handleTextChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = event.target;
-    if (name === "experienceYears" || name === "vacancies") {
-      updateForm(name, Number(value) as JobFormState[typeof name]);
-      return;
-    }
-    if (name in formData) {
+  const handleTextChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = event.target;
+      if (name === "experienceYears" || name === "vacancies") {
+        updateForm(name, Number(value) as JobFormState[typeof name]);
+        return;
+      }
       updateForm(name as keyof JobFormState, value as never);
-    }
-  };
+    },
+    [updateForm],
+  );
 
-  const handleProvinceChange = (provinceId: string) => {
+  const handleSalaryChange = useCallback(
+    (
+      event: ChangeEvent<HTMLInputElement>,
+      field: "salaryMin" | "salaryMax",
+    ) => {
+      const input = event.target;
+      const rawValue = input.value;
+      const cursorPosition = input.selectionStart || 0;
+
+      // Đếm số chữ số trước con trỏ trước khi format
+      const digitsBeforeCursor = rawValue
+        .slice(0, cursorPosition)
+        .replace(/\D/g, "").length;
+
+      const formatted = formatCurrencyInput(rawValue);
+      updateForm(field, formatted);
+
+      // Bảo toàn vị trí con trỏ sau khi thêm/xóa dấu phẩy
+      requestAnimationFrame(() => {
+        let newCursorPos = 0;
+        let digitCount = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (/\d/.test(formatted[i])) {
+            digitCount++;
+          }
+          if (digitCount === digitsBeforeCursor) {
+            newCursorPos = i + 1;
+            break;
+          }
+        }
+        if (digitCount < digitsBeforeCursor) {
+          newCursorPos = formatted.length;
+        }
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      });
+    },
+    [updateForm],
+  );
+
+  const handleProvinceChange = useCallback((provinceId: string) => {
     setFormData((current) => ({ ...current, provinceId, wardId: "" }));
     setFieldErrors((current) => {
       const next = { ...current };
@@ -163,7 +219,55 @@ export default function CreateJobPage() {
       delete next.wardId;
       return next;
     });
-  };
+  }, []);
+
+  const handleWardChange = useCallback(
+    (wardId: string) => {
+      updateForm("wardId", wardId);
+    },
+    [updateForm],
+  );
+
+  const handleDetailedLocationChange = useCallback(
+    (detailedLocation: string) => {
+      updateForm("detailedLocation", detailedLocation);
+    },
+    [updateForm],
+  );
+
+  const handleIndustryChange = useCallback(
+    (ids: string[]) => {
+      updateForm("industryIds", ids);
+    },
+    [updateForm],
+  );
+
+  const handleSkillChange = useCallback(
+    (ids: string[]) => {
+      updateForm("skillIds", ids);
+    },
+    [updateForm],
+  );
+
+  const handleWeightsChange = useCallback(
+    (weights: MatchingWeightsValues) => {
+      updateForm("matchingWeights", weights);
+    },
+    [updateForm],
+  );
+
+  const handleDeadlineChange = useCallback(
+    (val: string) => {
+      updateForm("deadline", val);
+      setFieldErrors((current) => {
+        if (!current.deadline) return current;
+        const next = { ...current };
+        delete next.deadline;
+        return next;
+      });
+    },
+    [updateForm],
+  );
 
   const validate = () => {
     const errors: Record<string, string> = {};
@@ -173,40 +277,93 @@ export default function CreateJobPage() {
     } else if (!isCompanyVerified) {
       errors.companyId = "Doanh nghiệp cần được xác thực trước khi đăng tin.";
     }
-    if (!formData.title.trim())
+
+    const titleTrim = formData.title.trim();
+    if (!titleTrim) {
       errors.title = "Vui lòng nhập tiêu đề công việc.";
-    if (!formData.provinceId)
-      errors.provinceId = "Vui lòng chọn tỉnh/thành phố.";
-    if (formData.vacancies < 1)
-      errors.vacancies = "Số lượng tuyển phải lớn hơn 0.";
-    if (formData.experienceYears < 0)
-      errors.experienceYears = "Kinh nghiệm không thể âm.";
-    if (formData.industryIds.length === 0)
-      errors.industryIds = "Vui lòng chọn ít nhất một ngành nghề.";
-    if (!formData.description.trim())
+    } else if (titleTrim.length < 2 || titleTrim.length > 200) {
+      errors.title = `Tiêu đề tin tuyển dụng phải từ 2 đến 200 ký tự (hiện có ${titleTrim.length} ký tự).`;
+    }
+
+    if (!formData.provinceId) {
+      errors.provinceId = "Vui lòng chọn tỉnh/thành phố làm việc.";
+    }
+
+    if (formData.vacancies < 1 || formData.vacancies > 1000) {
+      errors.vacancies = "Số lượng tuyển dụng hợp lệ từ 1 đến 1,000 người.";
+    }
+
+    if (formData.experienceYears < 0 || formData.experienceYears > 60) {
+      errors.experienceYears = "Số năm kinh nghiệm hợp lệ từ 0 đến 60 năm.";
+    }
+
+    if (formData.industryIds.length === 0) {
+      errors.industryIds = "Vui lòng chọn ít nhất một ngành nghề tuyển dụng.";
+    }
+
+    if (formData.skillIds.length === 0) {
+      errors.skillIds = "Vui lòng chọn ít nhất một kỹ năng chuyên môn.";
+    }
+
+    const descTrim = formData.description.trim();
+    if (!descTrim) {
       errors.description = "Vui lòng nhập mô tả công việc.";
-    if (!formData.requirements.trim())
+    } else if (descTrim.length < 20) {
+      errors.description = `Mô tả công việc cần tối thiểu 20 ký tự (hiện có ${descTrim.length}/20 ký tự).`;
+    }
+
+    const reqTrim = formData.requirements.trim();
+    if (!reqTrim) {
       errors.requirements = "Vui lòng nhập yêu cầu công việc.";
-    if (!formData.deadline) errors.deadline = "Vui lòng chọn hạn nhận hồ sơ.";
+    } else if (reqTrim.length < 20) {
+      errors.requirements = `Yêu cầu công việc cần tối thiểu 20 ký tự (hiện có ${reqTrim.length}/20 ký tự).`;
+    }
+
+    if (
+      formData.detailedLocation &&
+      formData.detailedLocation.trim().length > 500
+    ) {
+      errors.detailedLocation =
+        "Địa chỉ làm việc chi tiết không được vượt quá 500 ký tự.";
+    }
+
+    if (formData.benefits && formData.benefits.trim().length > 10000) {
+      errors.benefits = "Chế độ đãi ngộ không được vượt quá 10,000 ký tự.";
+    }
+
+    if (!formData.deadline) {
+      errors.deadline = "Vui lòng chọn hạn nhận hồ sơ.";
+    } else if (dayjs(formData.deadline).isBefore(dayjs(), "day")) {
+      errors.deadline = "Hạn nhận hồ sơ phải từ ngày hôm nay trở đi.";
+    }
 
     if (!formData.salaryNegotiable) {
-      const min = Number(formData.salaryMin);
-      const max = Number(formData.salaryMax);
+      const min = parseCurrencyInput(formData.salaryMin);
+      const max = parseCurrencyInput(formData.salaryMax);
 
       if (!formData.salaryMin && !formData.salaryMax) {
-        errors.salaryMin = "Nhập mức lương hoặc chọn Lương thỏa thuận.";
+        errors.salaryMin = "Nhập mức lương dự kiến hoặc chọn Lương thỏa thuận.";
       } else {
-        if (formData.salaryMin && (Number.isNaN(min) || min < 0)) {
+        if (formData.salaryMin && (min == null || min < 0)) {
           errors.salaryMin = "Mức lương tối thiểu không hợp lệ.";
         }
-        if (formData.salaryMax && (Number.isNaN(max) || max < 0)) {
+        if (formData.salaryMax && (max == null || max < 0)) {
           errors.salaryMax = "Mức lương tối đa không hợp lệ.";
         }
-        if (formData.salaryMin && formData.salaryMax && min > max) {
+        if (min != null && max != null && min > max) {
           errors.salaryMax =
             "Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.";
         }
       }
+    }
+
+    const totalWeights =
+      formData.matchingWeights.skill +
+      formData.matchingWeights.experience +
+      formData.matchingWeights.title +
+      formData.matchingWeights.other;
+    if (Math.abs(totalWeights - 100) > 0.1) {
+      errors.matchingWeights = `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Vui lòng điều chỉnh để đạt chính xác 100%.`;
     }
 
     setFieldErrors(errors);
@@ -236,14 +393,18 @@ export default function CreateJobPage() {
       salaryMin:
         formData.salaryNegotiable || !formData.salaryMin
           ? null
-          : Number(formData.salaryMin),
+          : parseCurrencyInput(formData.salaryMin),
       salaryMax:
         formData.salaryNegotiable || !formData.salaryMax
           ? null
-          : Number(formData.salaryMax),
+          : parseCurrencyInput(formData.salaryMax),
       deadline: dayjs(formData.deadline).endOf("day").toISOString(),
       industryIds: formData.industryIds,
       skillIds: formData.skillIds,
+      skillWeight: formData.matchingWeights.skill,
+      experienceWeight: formData.matchingWeights.experience,
+      titleWeight: formData.matchingWeights.title,
+      otherWeight: formData.matchingWeights.other,
     };
 
     try {
@@ -298,16 +459,21 @@ export default function CreateJobPage() {
       </div>
 
       {isLoadingCompanies ? (
-        <div className="animate-pulse rounded-3xl border border-border bg-surface p-8 text-center text-xs text-text-muted">
+        <div className="animate-pulse rounded-2xl border border-border bg-surface p-8 text-center text-xs text-text-muted">
           Đang tải thông tin doanh nghiệp…
         </div>
       ) : isError ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-xs text-status-error">
+        <div className="rounded-2xl border border-status-error/30 bg-status-error/10 p-6 text-xs text-status-error">
           Không tải được thông tin doanh nghiệp. Vui lòng thử tải lại trang.
         </div>
       ) : companies.length === 0 ? (
         <section className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
-          <img src={EmptyStreet} alt="Empty" loading="lazy" className="h-80 w-auto md:h-100" />
+          <img
+            src={EmptyStreet}
+            alt="Empty"
+            loading="lazy"
+            className="h-80 w-auto md:h-100"
+          />
           <h2 className="text-base font-semibold text-text-main">
             Chưa có doanh nghiệp để đăng tin
           </h2>
@@ -332,7 +498,7 @@ export default function CreateJobPage() {
                ========================================================================= */}
             <div className="space-y-6 lg:col-span-7 xl:col-span-8">
               {/* Khối 1: Tên tin tuyển dụng & Ngành nghề & Kỹ năng */}
-              <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+              <section className="space-y-5 rounded-2xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
                   <h2 className="text-sm font-semibold text-text-main">
                     Thông tin công việc
@@ -342,16 +508,22 @@ export default function CreateJobPage() {
                 <div className="space-y-4">
                   {/* Tiêu đề tin tuyển dụng */}
                   <div className="mb-4">
-                    <label
-                      htmlFor="title"
-                      className="mb-1.5 block text-xs font-semibold text-text-main"
-                    >
-                      Tiêu đề tin tuyển dụng
-                      <span className="text-status-error">*</span>
-                    </label>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label
+                        htmlFor="title"
+                        className="block text-xs font-semibold text-text-main"
+                      >
+                        Tiêu đề tin tuyển dụng
+                        <span className="text-status-error">*</span>
+                      </label>
+                      <span className="text-[11px] text-text-muted">
+                        {formData.title.length}/200
+                      </span>
+                    </div>
                     <input
                       id="title"
                       name="title"
+                      maxLength={200}
                       value={formData.title}
                       onChange={handleTextChange}
                       placeholder="Ví dụ: Senior Backend Developer (.NET Core / Java)"
@@ -363,23 +535,22 @@ export default function CreateJobPage() {
                   {/* Ngành nghề tuyển dụng */}
                   <IndustrySelect
                     selectedIds={formData.industryIds}
-                    onChange={(ids) => updateForm("industryIds", ids)}
+                    onChange={handleIndustryChange}
                     error={fieldErrors.industryIds}
                   />
 
                   {/* Kỹ năng chuyên môn */}
                   <SkillSelect
                     selectedIds={formData.skillIds}
-                    onChange={(ids) => updateForm("skillIds", ids)}
+                    onChange={handleSkillChange}
                     error={fieldErrors.skillIds}
                   />
                 </div>
               </section>
 
               {/* Khối 2: Yêu cầu & Chế độ đãi ngộ */}
-              <section className="space-y-5 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+              <section className="space-y-5 rounded-2xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-                  <GraduationCap className="size-4" />
                   <h2 className="text-sm font-semibold text-text-main">
                     Yêu cầu tuyển dụng & Chế độ đãi ngộ
                   </h2>
@@ -487,12 +658,11 @@ export default function CreateJobPage() {
                           <input
                             id="salaryMin"
                             name="salaryMin"
-                            type="number"
-                            min="0"
-                            step="500000"
-                            placeholder="Ví dụ: 15000000"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Ví dụ: 15,000,000"
                             value={formData.salaryMin}
-                            onChange={handleTextChange}
+                            onChange={(e) => handleSalaryChange(e, "salaryMin")}
                             className={inputClassName}
                           />
                           <FieldError message={fieldErrors.salaryMin} />
@@ -508,12 +678,11 @@ export default function CreateJobPage() {
                           <input
                             id="salaryMax"
                             name="salaryMax"
-                            type="number"
-                            min="0"
-                            step="500000"
-                            placeholder="Ví dụ: 30000000"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Ví dụ: 30,000,000"
                             value={formData.salaryMax}
-                            onChange={handleTextChange}
+                            onChange={(e) => handleSalaryChange(e, "salaryMax")}
                             className={inputClassName}
                           />
                           <FieldError message={fieldErrors.salaryMax} />
@@ -525,9 +694,8 @@ export default function CreateJobPage() {
               </section>
 
               {/* Khối 3: Mô tả công việc chi tiết */}
-              <section className="space-y-4 rounded-3xl border border-border bg-surface p-5 sm:p-6">
+              <section className="space-y-4 rounded-2xl border border-border bg-surface p-5 sm:p-6">
                 <div className="flex items-center gap-2 border-b border-border pb-3 text-primary">
-                  <Users className="size-4" />
                   <h2 className="text-sm font-semibold text-text-main">
                     Mô tả công việc chi tiết
                   </h2>
@@ -536,12 +704,26 @@ export default function CreateJobPage() {
                 <div className="space-y-4">
                   {/* Mô tả công việc */}
                   <div>
-                    <label
-                      htmlFor="description"
-                      className="mb-1.5 block text-xs font-semibold text-text-main"
-                    >
-                      Mô tả vai trò <span className="text-status-error">*</span>
-                    </label>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label
+                        htmlFor="description"
+                        className="block text-xs font-semibold text-text-main"
+                      >
+                        Mô tả vai trò{" "}
+                        <span className="text-status-error">*</span>
+                      </label>
+                      <span
+                        className={cn(
+                          "text-[11px]",
+                          formData.description.trim().length >= 20
+                            ? "font-medium text-emerald-600"
+                            : "text-text-muted",
+                        )}
+                      >
+                        Đạt tối thiểu {formData.description.trim().length}/20 ký
+                        tự
+                      </span>
+                    </div>
                     <textarea
                       id="description"
                       name="description"
@@ -556,13 +738,26 @@ export default function CreateJobPage() {
 
                   {/* Yêu cầu ứng viên */}
                   <div>
-                    <label
-                      htmlFor="requirements"
-                      className="mb-1.5 block text-xs font-semibold text-text-main"
-                    >
-                      Yêu cầu đối với ứng viên{" "}
-                      <span className="text-status-error">*</span>
-                    </label>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label
+                        htmlFor="requirements"
+                        className="block text-xs font-semibold text-text-main"
+                      >
+                        Yêu cầu đối với ứng viên{" "}
+                        <span className="text-status-error">*</span>
+                      </label>
+                      <span
+                        className={cn(
+                          "text-[11px]",
+                          formData.requirements.trim().length >= 20
+                            ? "font-medium text-emerald-600"
+                            : "text-text-muted",
+                        )}
+                      >
+                        Đạt tối thiểu {formData.requirements.trim().length}/20
+                        ký tự
+                      </span>
+                    </div>
                     <textarea
                       id="requirements"
                       name="requirements"
@@ -577,16 +772,22 @@ export default function CreateJobPage() {
 
                   {/* Quyền lợi & Đãi ngộ */}
                   <div>
-                    <label
-                      htmlFor="benefits"
-                      className="mb-1.5 block text-xs font-semibold text-text-main"
-                    >
-                      Quyền lợi & Đãi ngộ
-                    </label>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label
+                        htmlFor="benefits"
+                        className="block text-xs font-semibold text-text-main"
+                      >
+                        Quyền lợi & Đãi ngộ
+                      </label>
+                      <span className="text-[11px] text-text-muted">
+                        {formData.benefits.length}/10000
+                      </span>
+                    </div>
                     <textarea
                       id="benefits"
                       name="benefits"
                       rows={4}
+                      maxLength={10000}
                       value={formData.benefits}
                       onChange={handleTextChange}
                       placeholder="Chế độ bảo hiểm, thưởng tháng 13, phụ cấp, thiết bị làm việc, du lịch hàng năm…"
@@ -595,13 +796,20 @@ export default function CreateJobPage() {
                   </div>
                 </div>
               </section>
+
+              {/* KHỐI 4: Trọng số đánh giá ứng viên (AI Match Weights) */}
+              <JobMatchingWeightsCard
+                weights={formData.matchingWeights}
+                onChange={handleWeightsChange}
+                error={fieldErrors.matchingWeights}
+              />
             </div>
 
             {/* =========================================================================
                 CỘT PHẢI (lg:col-span-5 xl:col-span-4): Thông tin Doanh nghiệp & Vị trí
                ========================================================================= */}
             <div className="space-y-6 lg:sticky lg:top-6 lg:col-span-5 xl:col-span-4">
-              <div className="space-y-5 rounded-3xl border border-border bg-surface p-5 shadow-xs sm:p-6">
+              <div className="space-y-5 rounded-2xl border border-border bg-surface p-5 shadow-xs sm:p-6">
                 {/* Header card bên phải */}
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <div className="flex items-center gap-2 text-primary">
@@ -672,10 +880,8 @@ export default function CreateJobPage() {
                     wardId={formData.wardId}
                     detailedLocation={formData.detailedLocation}
                     onChangeProvince={handleProvinceChange}
-                    onChangeWard={(wardId) => updateForm("wardId", wardId)}
-                    onChangeDetailedLocation={(value) =>
-                      updateForm("detailedLocation", value)
-                    }
+                    onChangeWard={handleWardChange}
+                    onChangeDetailedLocation={handleDetailedLocationChange}
                     errors={{
                       provinceId: fieldErrors.provinceId,
                       wardId: fieldErrors.wardId,
@@ -708,14 +914,7 @@ export default function CreateJobPage() {
                     name="deadline"
                     minDate={dayjs().format("YYYY-MM-DD")}
                     value={formData.deadline}
-                    onChange={(val) => {
-                      updateForm("deadline", val);
-                      setFieldErrors((current) => {
-                        const next = { ...current };
-                        delete next.deadline;
-                        return next;
-                      });
-                    }}
+                    onChange={handleDeadlineChange}
                     error={Boolean(fieldErrors.deadline)}
                     placeholder="Chọn hạn nhận hồ sơ"
                   />
@@ -723,25 +922,46 @@ export default function CreateJobPage() {
                 </div>
 
                 {/* Nút hành động */}
-                <div className="flex items-center justify-end gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => navigate(-1)}
-                    className="px-5! py-2! text-xs!"
-                  >
-                    Hủy bỏ
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    isLoading={isSubmitting}
-                    disabled={!selectedCompany || !isCompanyVerified}
-                    className="px-6! py-2! text-xs! font-semibold!"
-                  >
-                    <span>Đăng tin tuyển dụng</span>
-                  </Button>
-                </div>
+                {(() => {
+                  const totalWeights =
+                    formData.matchingWeights.skill +
+                    formData.matchingWeights.experience +
+                    formData.matchingWeights.title +
+                    formData.matchingWeights.other;
+                  const isWeightsInvalid = Math.abs(totalWeights - 100) > 0.1;
+
+                  return (
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => navigate(-1)}
+                        className="px-5! py-2! text-xs!"
+                      >
+                        Hủy bỏ
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        isLoading={isSubmitting}
+                        disabled={
+                          !selectedCompany ||
+                          !isCompanyVerified ||
+                          isWeightsInvalid ||
+                          isSubmitting
+                        }
+                        title={
+                          isWeightsInvalid
+                            ? `Tổng trọng số đánh giá hiện tại là ${totalWeights}%. Phải đạt chính xác 100% để đăng tin tuyển dụng.`
+                            : undefined
+                        }
+                        className="px-6! py-2! text-xs! font-semibold!"
+                      >
+                        <span>Đăng tin tuyển dụng</span>
+                      </Button>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

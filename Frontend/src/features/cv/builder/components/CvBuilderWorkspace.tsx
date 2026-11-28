@@ -1,4 +1,4 @@
-import { useMemo, type Ref } from "react";
+import { useMemo, useEffect, type Ref } from "react";
 import { useFormContext, useWatch, type FieldPath } from "react-hook-form";
 import type { RichTextCvEditorValues } from "../schema/richTextCvSchema";
 import { TiptapField } from "./TiptapField";
@@ -8,6 +8,8 @@ import type { CvFieldRenderer } from "../../templates/types";
 import type { CvTemplateCode, RichTextCVContentDocument } from "@/types/cv";
 import { TEMPLATE_REGISTRY, validateCvLayout } from "../../templates/registry";
 import { ensureValidLayout } from "../utils/richTextInitialValues";
+import { scrollCvSectionIntoView } from "../utils/cvAssistantHelpers";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 
 interface CvBuilderWorkspaceProps {
   contentRef?: Ref<HTMLDivElement>;
@@ -23,6 +25,9 @@ export default function CvBuilderWorkspace({
   zoom = 1.0,
 }: CvBuilderWorkspaceProps) {
   const { control, getValues } = useFormContext<RichTextCvEditorValues>();
+  const highlightSectionKey = useCvHighlightStore(
+    (s) => s.highlightSectionKey,
+  );
 
   // Thu hẹp subscription: Chỉ watch các trường ảnh hưởng đến cấu trúc hoặc giao diện template
   const watchedTemplateCode = useWatch({
@@ -237,20 +242,19 @@ export default function CvBuilderWorkspace({
     return ensureValidLayout(currentLayout, templateCode);
   }, [currentLayout, templateCode]);
 
+  // Cuộn tới thẻ tổ tiên draggable của section khi mở chế độ so sánh
+  useEffect(() => {
+    if (!highlightSectionKey) return;
+    scrollCvSectionIntoView(highlightSectionKey);
+  }, [highlightSectionKey]);
+
   return (
     <main
-      className={`flex flex-1 flex-col items-center overflow-x-auto bg-slate-100 px-4 py-8 min-h-full ${className}`}
+      className={`flex flex-1 flex-col overflow-x-auto bg-slate-100 px-4 py-8 min-h-full ${className}`}
     >
       <div
-        className="cv-zoom-viewport flex justify-center min-w-fit shrink-0"
-        style={{
-          transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-          transformOrigin: "top center",
-          marginBottom:
-            zoom > 1
-              ? `calc((297mm + 4rem) * ${zoom - 1} + 2rem)`
-              : "2rem",
-        }}
+        className="cv-zoom-viewport mx-auto flex w-max shrink-0"
+        style={{ zoom }}
       >
         <div ref={contentRef} className="print-container">
         {!layoutValidation.isValid ? (

@@ -24,6 +24,9 @@ export { default as DataTable } from "./DataTable";
 export * from "./Header";
 export { default as Header } from "./Header";
 
+export * from "./Footer";
+export { default as Footer } from "./Footer";
+
 export * from "./ImageCropper";
 export * from "./ImageUploadDialog";
 export * from "./useImageCropUpload";
@@ -45,3 +48,6 @@ export { default as LoadingScreen } from "./LoadingScreen";
 
 export * from "./DatePicker";
 export { default as DatePicker } from "./DatePicker";
+
+export * from "./BasePagination";
+export * from "./DashboardPagination";

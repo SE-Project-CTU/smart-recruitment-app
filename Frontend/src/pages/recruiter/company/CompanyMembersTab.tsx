@@ -21,6 +21,7 @@ import {
   TableSkeleton,
   UserAvatar,
 } from "@/components/common";
+import { toast } from "@/components/ui/toast";
 import { getApiErrorMessage } from "@/api/errorHandler";
 import {
   useCompanyMembers,
@@ -77,7 +78,6 @@ export function CompanyMembersTab() {
   const [transferTarget, setTransferTarget] = useState<CompanyMember | null>(
     null,
   );
-  const [transferMessage, setTransferMessage] = useState<string | null>(null);
   const [transferError, setTransferError] = useState<string | null>(null);
 
   // Remove member modal state
@@ -89,42 +89,66 @@ export function CompanyMembersTab() {
   const [leaveError, setLeaveError] = useState<string | null>(null);
 
   const handleTransferOwnership = async () => {
-    if (!transferTarget) return;
+    if (!transferTarget || transferTarget.status !== "Active") return;
+    const targetName = transferTarget.user.fullName;
     try {
       setTransferError(null);
       await transferOwnership({
         companyId: company.id,
         newOwnerId: transferTarget.user.id,
       });
-      setTransferMessage(
-        `Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`,
-      );
-      setTimeout(async () => {
-        setTransferTarget(null);
-        setTransferMessage(null);
-        await refreshCompany();
-      }, 1500);
+      setTransferTarget(null);
+      toast.add({
+        type: "success",
+        title: "Chuyển quyền thành công",
+        description: `Đã chuyển quyền Chủ sở hữu cho ${targetName}!`,
+      });
+      await refreshCompany();
     } catch (err: unknown) {
-      setTransferError(
-        getApiErrorMessage(err, "Chuyển quyền thất bại. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Chuyển quyền thất bại. Vui lòng thử lại!",
       );
+      setTransferError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Không thể chuyển quyền",
+        description: errorMsg,
+      });
     }
   };
 
   const handleRemoveMember = async () => {
-    if (!removeTarget) return;
+    if (!removeTarget || removeTarget.status !== "Active") return;
+    const targetMemberId =
+      removeTarget.membershipId || removeTarget.id || removeTarget.user.id;
+    if (!targetMemberId) return;
+    const targetName = removeTarget.user.fullName;
+
     try {
       setRemoveError(null);
       await removeMember({
         companyId: company.id,
-        memberId: removeTarget.id,
+        memberId: targetMemberId,
       });
       setRemoveTarget(null);
+      toast.add({
+        type: "success",
+        title: "Xóa thành viên thành công",
+        description: `Đã loại bỏ ${targetName} khỏi công ty thành công.`,
+      });
       await refetchMembers();
     } catch (err: unknown) {
-      setRemoveError(
-        getApiErrorMessage(err, "Không thể xóa thành viên. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Không thể xóa thành viên. Vui lòng thử lại!",
       );
+      setRemoveError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Xóa thành viên thất bại",
+        description: errorMsg,
+      });
     }
   };
 
@@ -132,12 +156,24 @@ export function CompanyMembersTab() {
     try {
       setLeaveError(null);
       await leaveCompany(company.id);
+      toast.add({
+        type: "info",
+        title: "Đã rời công ty",
+        description: `Bạn đã rời khỏi công ty ${company.name}.`,
+      });
       setIsLeaveModalOpen(false);
       navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT);
     } catch (err: unknown) {
-      setLeaveError(
-        getApiErrorMessage(err, "Không thể rời công ty. Vui lòng thử lại!"),
+      const errorMsg = getApiErrorMessage(
+        err,
+        "Không thể rời công ty. Vui lòng thử lại!",
       );
+      setLeaveError(errorMsg);
+      toast.add({
+        type: "error",
+        title: "Không thể rời công ty",
+        description: errorMsg,
+      });
     }
   };
 
@@ -190,7 +226,7 @@ export function CompanyMembersTab() {
               Chủ sở hữu
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+            <span className="inline-flex items-center rounded-md border border-border bg-bg px-2.5 py-1 text-xs font-medium text-text-muted">
               Thành viên
             </span>
           );
@@ -202,11 +238,15 @@ export function CompanyMembersTab() {
         cell: (info) => {
           const status = info.getValue();
           return status === "Active" ? (
-            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+            <span className="inline-flex items-center rounded-full border border-status-success/30 bg-status-success/10 px-2.5 py-0.5 text-xs font-semibold text-status-success">
               Hoạt động
             </span>
+          ) : status === "Left" ? (
+            <span className="inline-flex items-center rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs font-medium text-text-muted">
+              Đã rời đi
+            </span>
           ) : (
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+            <span className="inline-flex items-center rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs font-medium text-text-muted">
               Tạm ngừng
             </span>
           );
@@ -233,19 +273,27 @@ export function CompanyMembersTab() {
           const member = info.row.original;
           // Chỉ Owner hiện tại mới có quyền chuyển giao quyền hoặc loại bỏ member khác
           if (isOwner && member.role !== "Owner") {
+            const isActive = member.status === "Active";
             return (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="border-slate-200! px-2.5! py-1! text-xs! font-medium! text-slate-700! ring-slate-200! hover:border-purple-300! hover:text-purple-700! hover:ring-purple-300!"
+                  disabled={!isActive}
+                  title={!isActive ? "Thành viên không còn hoạt động" : undefined}
+                  className="border-border! px-2.5! py-1! text-xs! font-medium! text-text-main! ring-border! hover:border-primary/40! hover:text-primary! disabled:cursor-not-allowed! disabled:opacity-40!"
                   icon={ArrowRightLeft}
-                  onClick={() => setTransferTarget(member)}
+                  onClick={() => {
+                    setTransferError(null);
+                    setTransferTarget(member);
+                  }}
                 >
                   Ủy quyền Owner
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-rose-200! px-2.5! py-1! text-xs! font-medium! text-rose-600! ring-rose-200! hover:border-rose-300! hover:bg-rose-50!"
+                  disabled={!isActive}
+                  title={!isActive ? "Thành viên đã rời hoặc bị xóa khỏi công ty" : undefined}
+                  className="border-status-error/30! px-2.5! py-1! text-xs! font-medium! text-status-error! ring-status-error/20! hover:border-status-error/50! hover:bg-status-error/10! disabled:cursor-not-allowed! disabled:opacity-40!"
                   icon={UserMinus}
                   onClick={() => {
                     setRemoveError(null);
@@ -290,7 +338,7 @@ export function CompanyMembersTab() {
           ) : (
             <Button
               variant="outline"
-              className="border-rose-200! text-rose-600! hover:border-rose-300! hover:bg-rose-50!"
+              className="border-status-error/30! text-status-error! hover:border-status-error/50! hover:bg-status-error/10!"
               icon={LogOut}
               onClick={() => {
                 setLeaveError(null);
@@ -397,7 +445,6 @@ export function CompanyMembersTab() {
           if (!open) {
             setTransferTarget(null);
             setTransferError(null);
-            setTransferMessage(null);
           }
         }}
       >
@@ -405,14 +452,12 @@ export function CompanyMembersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận ủy quyền chủ sở hữu</AlertDialogTitle>
             <AlertDialogDescription>
-              {transferMessage
-                ? transferMessage
-                : `Bạn có chắc chắn muốn chuyển giao toàn bộ quyền chủ sở hữu của công ty ${company.name} cho thành viên ${transferTarget?.user.fullName} (${transferTarget?.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành thành viên thông thường.`}
+              {`Bạn có chắc chắn muốn chuyển giao toàn bộ quyền chủ sở hữu của công ty ${company.name} cho thành viên ${transferTarget?.user.fullName} (${transferTarget?.user.email})? Sau khi chuyển giao, tài khoản của bạn sẽ trở thành thành viên thông thường.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           {transferError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <div className="rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error font-medium">
               {transferError}
             </div>
           )}
@@ -423,7 +468,6 @@ export function CompanyMembersTab() {
               onClick={() => {
                 setTransferTarget(null);
                 setTransferError(null);
-                setTransferMessage(null);
               }}
             >
               Hủy bỏ
@@ -461,7 +505,7 @@ export function CompanyMembersTab() {
           </AlertDialogHeader>
 
           {removeError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <div className="rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error font-medium">
               {removeError}
             </div>
           )}
@@ -508,7 +552,7 @@ export function CompanyMembersTab() {
           </AlertDialogHeader>
 
           {leaveError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <div className="rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs text-status-error font-medium">
               {leaveError}
             </div>
           )}

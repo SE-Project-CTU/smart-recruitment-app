@@ -17,6 +17,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   candidateSidebarData,
   recruiterSidebarData,
   adminSidebarData,
@@ -46,8 +55,8 @@ export function DashboardSidebar() {
   const location = useLocation();
   const { user } = useAuthStore();
   const activeCompanyId = useCompanyStore((state) => state.activeCompanyId);
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = !isMobile && state === "collapsed";
 
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
 
@@ -130,10 +139,16 @@ export function DashboardSidebar() {
   const isItemActive = (item: NavItem) => {
     if (!item.url || item.url === "#") return false;
     const currentPath = location.pathname.toLowerCase();
+    const currentSearch = location.search.toLowerCase();
+    const currentFullPath = (currentPath + currentSearch).toLowerCase();
     const targetUrl = item.url.toLowerCase();
 
-    // 1. Khớp chính xác
-    if (currentPath === targetUrl) return true;
+    // 1. Khớp chính xác (hỗ trợ cả URL có query params)
+    if (targetUrl.includes("?")) {
+      if (currentFullPath === targetUrl) return true;
+    } else {
+      if (currentPath === targetUrl) return true;
+    }
 
     // 2. Khớp tiền tố (prefix) khi không có mục con nào khác khớp chính xác hơn
     if (targetUrl !== "/") {
@@ -161,24 +176,55 @@ export function DashboardSidebar() {
   };
 
   /**
-   * Kiểm tra xem một SubItem có đang active hay không, hỗ trợ cả URL chính xác, prefix route, và dynamic route (:companyId)
+   * Kiểm tra xem một SubItem có đang active hay không, hỗ trợ cả URL chính xác, prefix route, dynamic route (:companyId) và query params (?tab=...)
    */
   const isSubItemActive = (subUrl: string, siblingUrls?: string[]) => {
     if (!subUrl || subUrl === "#") return false;
     const currentPath = location.pathname.toLowerCase();
+    const currentSearch = location.search.toLowerCase();
+    const currentFullPath = (currentPath + currentSearch).toLowerCase();
     const targetUrl = subUrl.toLowerCase();
 
-    // 1. Khớp chính xác
+    // 1. Hỗ trợ URL có query params (ví dụ: ?tab=industries)
+    if (targetUrl.includes("?")) {
+      if (currentFullPath === targetUrl) return true;
+
+      const [targetPath, targetQuery] = targetUrl.split("?");
+      if (currentPath === targetPath) {
+        const currentSearchParams = new URLSearchParams(currentSearch);
+        const targetSearchParams = new URLSearchParams(targetQuery);
+
+        let allMatch = true;
+        targetSearchParams.forEach((val, key) => {
+          const currentVal = currentSearchParams.get(key);
+          if (currentVal !== val) {
+            // Mặc định tab=industries khi truy cập /admin/catalogs mà chưa có query param tab
+            if (
+              key === "tab" &&
+              (!currentVal || currentVal === "") &&
+              val === "industries"
+            ) {
+              return;
+            }
+            allMatch = false;
+          }
+        });
+        if (allMatch) return true;
+      }
+      return false;
+    }
+
+    // 2. Khớp chính xác pathname
     if (currentPath === targetUrl) return true;
 
-    // 2. Dynamic pattern (ví dụ :companyId)
+    // 3. Dynamic pattern (ví dụ :companyId)
     if (targetUrl.includes(":")) {
       const regexPattern =
         "^" + targetUrl.replace(/:[^/]+/g, "[^/]+") + "(?:/.*)?$";
       if (new RegExp(regexPattern).test(currentPath)) return true;
     }
 
-    // 3. Khớp tiền tố (prefix) theo phân hệ khi không có sibling nào khớp tốt hơn
+    // 4. Khớp tiền tố (prefix) theo phân hệ khi không có sibling nào khớp tốt hơn
     if (targetUrl !== "/" && targetUrl !== "#") {
       if (currentPath.startsWith(targetUrl + "/")) {
         if (siblingUrls) {
@@ -255,6 +301,74 @@ export function DashboardSidebar() {
                       : isAnySubActive;
 
                   if (hasSubItems) {
+                    if (isCollapsed) {
+                      return (
+                        <SidebarMenuItem key={item.title}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <SidebarMenuButton
+                                  tooltip={item.title}
+                                  className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-5 text-sm font-medium transition-colors ${
+                                    isAnySubActive
+                                      ? "bg-status-active! text-primary!"
+                                      : "text-slate-600 hover:bg-slate-100 hover:text-primary!"
+                                  }`}
+                                />
+                              }
+                            >
+                              <div className="flex items-center gap-3">
+                                {item.icon && (
+                                  <item.icon
+                                    className={`size-5 shrink-0 ${
+                                      isAnySubActive
+                                        ? "text-primary"
+                                        : "text-slate-500"
+                                    }`}
+                                  />
+                                )}
+                                <span className="truncate">{item.title}</span>
+                              </div>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent
+                              side="right"
+                              align="start"
+                              sideOffset={8}
+                              className="min-w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+                            >
+                              <DropdownMenuGroup>
+                                <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                  {item.title}
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator className="my-1 border-t border-slate-100" />
+                                {item.items?.map((subItem) => {
+                                  const subActive = isSubItemActive(
+                                    subItem.url,
+                                    siblingUrls,
+                                  );
+                                  const targetUrl = resolveSubItemUrl(subItem.url);
+                                  return (
+                                    <DropdownMenuItem
+                                      key={subItem.title}
+                                      render={<Link to={targetUrl} />}
+                                      className={`rounded-lg px-2.5 py-2 text-xs font-medium transition-colors ${
+                                        subActive
+                                          ? "bg-status-active! text-primary!"
+                                          : "text-slate-600 hover:bg-slate-100 hover:text-primary!"
+                                      }`}
+                                    >
+                                      {subItem.title}
+                                    </DropdownMenuItem>
+                                  );
+                                })}
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </SidebarMenuItem>
+                      );
+                    }
+
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton

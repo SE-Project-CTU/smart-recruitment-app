@@ -131,7 +131,8 @@ export function ImageUploadDialog({
             <DialogHeader>
               <DialogTitle>Căn chỉnh ảnh</DialogTitle>
               <DialogDescription>
-                Kéo ảnh để di chuyển. Cuộn chuột hoặc dùng thanh zoom để phóng to, thu nhỏ.
+                Kéo ảnh để di chuyển. Cuộn chuột hoặc dùng thanh zoom để phóng
+                to, thu nhỏ.
               </DialogDescription>
             </DialogHeader>
             {flow.selectedFile && (

@@ -34,6 +34,21 @@ internal static class SearchJobPostingsQueryValidator {
             details.Add(JobPostingValidator.Invalid("wardId", "Ward ID must be a valid UUID."));
         if (filter.ExperienceYears is < 0 or > 60)
             details.Add(JobPostingValidator.Invalid("experienceYears", "Experience years must be between 0 and 60."));
+        var industryIds = (filter.IndustryIds ?? []).Distinct().ToArray();
+        if (industryIds.Contains(Guid.Empty))
+            details.Add(JobPostingValidator.Invalid("industryIds", "Industry IDs must be valid UUIDs."));
+        var experienceRanges = (filter.ExperienceRanges ?? [])
+            .Select(value => value?.Trim() ?? string.Empty)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        if (experienceRanges.Any(value => !JobExperienceRanges.All.Any(range =>
+                range.Value.Equals(value, StringComparison.OrdinalIgnoreCase))))
+            details.Add(JobPostingValidator.Invalid("experienceRanges",
+                $"Experience ranges must be {string.Join(", ", JobExperienceRanges.All.Select(range => range.Value))}."));
+        if (filter.ExperienceYears.HasValue && experienceRanges.Length > 0)
+            details.Add(JobPostingValidator.Invalid("experienceRanges", "Experience ranges cannot be combined with experience years."));
+        if (filter.SalaryNegotiableOnly == true && (filter.SalaryMin.HasValue || filter.SalaryMax.HasValue))
+            details.Add(JobPostingValidator.Invalid("salaryNegotiableOnly", "Negotiable salary cannot be combined with a salary range."));
         
         var jobLevel = JobPostingValidator.ParseApiEnum<JobLevel>(filter.JobLevel, "jobLevel", details);
         var jobType = JobPostingValidator.ParseApiEnum<JobType>(filter.JobType, "jobType", details);
@@ -61,7 +76,10 @@ internal static class SearchJobPostingsQueryValidator {
                 jobLevel,
                 jobType,
                 workMode,
-                filter.ExperienceYears),
+                filter.ExperienceYears,
+                industryIds,
+                experienceRanges,
+                filter.SalaryNegotiableOnly == true),
             new JobPostingSearchSortCriteria(parsedSort, parsedDirection),
             new PaginationCriteria(skip, pageSize),
             DateTimeOffset.UtcNow);

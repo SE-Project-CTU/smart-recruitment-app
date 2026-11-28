@@ -3,11 +3,17 @@ using SmartHire.Domain.Enums;
 namespace SmartHire.Domain.Entities;
 
 public class User {
+    public const int MaxFullNameLength = 100;
+    public const int MaxFirebaseUidLength = 128;
+    public const int MaxExternalAvatarUrlLength = 512;
+
     public Guid Id { get; private set; }
     
     public string Email { get; private set; } = string.Empty;
     public string? Phone { get; private set; }
-    public string PasswordHash { get; private set; } = string.Empty;
+    public string? PasswordHash { get; private set; }
+    public string? FirebaseUid { get; private set; }
+    public string? ExternalAvatarUrl { get; private set; }
     public string FullName { get; private set; } = string.Empty;
     public Guid? AvatarFileId { get; private set; }
     public MediaFile? AvatarFile { get; private set; }
@@ -75,6 +81,70 @@ public class User {
             UpdatedAt = now
         };
     }
+
+    public static User CreateWithGoogle(
+        string email,
+        string fullName,
+        string firebaseUid,
+        string? externalAvatarUrl,
+        DateTimeOffset now
+    ) {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+
+        if (string.IsNullOrWhiteSpace(firebaseUid))
+            throw new ArgumentException("Firebase UID is required.", nameof(firebaseUid));
+
+        var normalizedFullName = NormalizeFullName(fullName, email);
+
+        return new User {
+            Email = email.Trim().ToLowerInvariant(),
+            Phone = null,
+            PasswordHash = null,
+            FirebaseUid = NormalizeFirebaseUid(firebaseUid),
+            ExternalAvatarUrl = NormalizeExternalAvatarUrl(externalAvatarUrl),
+            FullName = normalizedFullName,
+            Status = UserStatus.Active,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+    }
+
+    public void LinkFirebaseAccount(
+        string firebaseUid,
+        string? externalAvatarUrl,
+        DateTimeOffset now
+    ) {
+        var normalizedUid = NormalizeFirebaseUid(firebaseUid);
+
+        if (!string.IsNullOrEmpty(FirebaseUid) &&
+            !string.Equals(FirebaseUid, normalizedUid, StringComparison.Ordinal)) {
+            throw new InvalidOperationException("Account is already linked to a different Firebase user.");
+        }
+
+        var changed = false;
+
+        if (string.IsNullOrEmpty(FirebaseUid)) {
+            FirebaseUid = normalizedUid;
+            changed = true;
+        }
+
+        // Cập nhật avatar từ Google nếu user chưa tự upload avatar lên hệ thống
+        if (AvatarFileId is null) {
+            var normalizedAvatar = NormalizeExternalAvatarUrl(externalAvatarUrl);
+            if (normalizedAvatar is not null &&
+                !string.Equals(ExternalAvatarUrl, normalizedAvatar, StringComparison.Ordinal)) {
+                ExternalAvatarUrl = normalizedAvatar;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            UpdatedAt = now;
+        }
+    }
+
+    public string? GetAvatarUrl() => AvatarFile?.FileUrl ?? ExternalAvatarUrl;
     
     public void UpdateProfile(
         string fullName,
@@ -119,7 +189,48 @@ public class User {
         DateTimeOffset now
     ) {
         AvatarFileId = avatarFileId;
+        if (avatarFileId is null) {
+            ExternalAvatarUrl = null;
+        }
         UpdatedAt = now;
+    }
+
+    private static string NormalizeFullName(string? fullName, string email) {
+        var candidate = string.IsNullOrWhiteSpace(fullName)
+            ? email.Split('@')[0]
+            : fullName.Trim();
+
+        if (string.IsNullOrWhiteSpace(candidate)) {
+            candidate = "SmartHire User";
+        }
+
+        return candidate.Length <= MaxFullNameLength
+            ? candidate
+            : candidate[..MaxFullNameLength].TrimEnd();
+    }
+
+    private static string NormalizeFirebaseUid(string firebaseUid) {
+        var trimmed = firebaseUid.Trim();
+        if (trimmed.Length == 0 || trimmed.Length > MaxFirebaseUidLength) {
+            throw new ArgumentException("Firebase UID length is invalid.", nameof(firebaseUid));
+        }
+
+        return trimmed;
+    }
+
+    private static string? NormalizeExternalAvatarUrl(string? externalAvatarUrl) {
+        if (string.IsNullOrWhiteSpace(externalAvatarUrl)) {
+            return null;
+        }
+
+        var trimmed = externalAvatarUrl.Trim();
+        if (trimmed.Length > MaxExternalAvatarUrlLength ||
+            !Uri.TryCreate(trimmed, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)) {
+            return null;
+        }
+
+        return trimmed;
     }
     public void Lock(DateTimeOffset now) {
         Status = UserStatus.Locked;

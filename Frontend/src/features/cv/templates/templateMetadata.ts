@@ -23,6 +23,30 @@ export const CV_TEMPLATE_METADATA: Record<CvTemplateCode, CvTemplateMetadata> = 
       ],
     },
   },
+  classic_harvard: {
+    code: "classic_harvard",
+    name: "Classic Harvard",
+    supportedAreaIds: ["main"] as const,
+    defaultLayout: {
+      version: "1.0",
+      areas: [
+        {
+          id: "main",
+          sections: [
+            "objective",
+            "education",
+            "experience",
+            "projects",
+            "skills",
+            "certifications",
+            "awards",
+            "interests",
+            "additionalInfo",
+          ],
+        },
+      ],
+    },
+  },
   sidebar_classic: {
     code: "sidebar_classic",
     name: "Sidebar Classic",

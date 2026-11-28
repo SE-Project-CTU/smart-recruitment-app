@@ -7,3 +7,6 @@ export * from "./media";
 export * from "./catalog";
 export * from "./job";
 export * from "./application";
+export * from "./ai";
+export * from "./admin";
+export * from "./notification";

@@ -125,11 +125,28 @@ public sealed class CompanyRepository : ICompanyRepository {
         return (items, totalCount);
     }
 
+    public Task<List<Guid>> GetActiveMemberUserIdsAsync(Guid companyId, CancellationToken cancellationToken) {
+        return _dbContext.CompanyMemberships
+            .AsNoTracking()
+            .Where(m => m.CompanyId == companyId && m.Status == CompanyMembershipStatus.Active)
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountOwnedCompaniesAsync(Guid userId, CancellationToken cancellationToken) {
         return await _dbContext.CompanyMemberships
             .CountAsync(
                 m => m.UserId == userId &&
                      m.Role == CompanyMemberRole.Owner &&
+                     m.Status == CompanyMembershipStatus.Active,
+                cancellationToken);
+    }
+
+    public async Task<int> CountActiveCompaniesAsync(Guid userId, CancellationToken cancellationToken) {
+        return await _dbContext.CompanyMemberships
+            .CountAsync(
+                m => m.UserId == userId &&
                      m.Status == CompanyMembershipStatus.Active,
                 cancellationToken);
     }
@@ -412,7 +429,8 @@ public sealed class CompanyRepository : ICompanyRepository {
                         m.UserId,
                         m.User.FullName,
                         m.User.Email,
-                        m.User.Phone
+                        m.User.Phone,
+                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : m.User.ExternalAvatarUrl
                     ))
                     .FirstOrDefault()
             ))
@@ -446,7 +464,8 @@ public sealed class CompanyRepository : ICompanyRepository {
                         m.UserId,
                         m.User.FullName,
                         m.User.Email,
-                        m.User.Phone
+                        m.User.Phone,
+                        m.User.AvatarFile != null ? m.User.AvatarFile.FileUrl : m.User.ExternalAvatarUrl
                     ))
                     .FirstOrDefault(),
                 c.Memberships.Count(m => m.Status == CompanyMembershipStatus.Active),

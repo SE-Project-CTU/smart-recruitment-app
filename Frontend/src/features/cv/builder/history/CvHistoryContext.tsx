@@ -45,9 +45,34 @@ export const CvHistoryProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const { setValue } = useFormContext<RichTextCvEditorValues>();
-  const [undoStack, setUndoStack] = useState<CvCommand[]>([]);
-  const [redoStack, setRedoStack] = useState<CvCommand[]>([]);
+  const historyRef = useRef<{ undo: CvCommand[]; redo: CvCommand[] }>({
+    undo: [],
+    redo: [],
+  });
+  const [{ canUndo, canRedo }, setAvailability] = useState({
+    canUndo: false,
+    canRedo: false,
+  });
   const pendingRef = useRef<PendingFieldUpdate | null>(null);
+
+  const syncAvailability = useCallback(() => {
+    const pending = pendingRef.current;
+    const hasPendingChange = pending !== null &&
+      JSON.stringify(pending.initialValue) !== JSON.stringify(pending.latestValue);
+    setAvailability({
+      canUndo: historyRef.current.undo.length > 0 || hasPendingChange,
+      canRedo: historyRef.current.redo.length > 0 && !hasPendingChange,
+    });
+  }, []);
+
+  // Cập nhật lịch sử đồng bộ để thao tác tiếp theo luôn đọc đúng lệnh mới nhất.
+  const pushUndo = useCallback((command: CvCommand) => {
+    historyRef.current = {
+      undo: [...historyRef.current.undo, command].slice(-MAX_HISTORY_LENGTH),
+      redo: [],
+    };
+    syncAvailability();
+  }, [syncAvailability]);
 
   // Chốt pending command (nếu có) vào undoStack
   const flushPending = useCallback(() => {
@@ -72,15 +97,10 @@ export const CvHistoryProvider: React.FC<{ children: ReactNode }> = ({
         setValue,
       );
 
-      setUndoStack((prev) => {
-        const next = [...prev, command];
-        return next.length > MAX_HISTORY_LENGTH
-          ? next.slice(next.length - MAX_HISTORY_LENGTH)
-          : next;
-      });
-      setRedoStack([]);
+      pushUndo(command);
     }
-  }, [setValue]);
+    syncAvailability();
+  }, [setValue, pushUndo, syncAvailability]);
 
   // Ghi nhận thay đổi khi người dùng gõ vào một trường văn bản
   const recordFieldChange = useCallback(
@@ -116,8 +136,9 @@ export const CvHistoryProvider: React.FC<{ children: ReactNode }> = ({
         };
         pendingRef.current = newPending;
       }
+      syncAvailability();
     },
-    [flushPending],
+    [flushPending, syncAvailability],
   );
 
   // Thực thi một command bất kỳ (thao tác thiết kế, cấu trúc, thêm/xóa/sắp xếp item)
@@ -125,55 +146,42 @@ export const CvHistoryProvider: React.FC<{ children: ReactNode }> = ({
     (command: CvCommand) => {
       flushPending();
       command.execute();
-      setUndoStack((prev) => {
-        const next = [...prev, command];
-        return next.length > MAX_HISTORY_LENGTH
-          ? next.slice(next.length - MAX_HISTORY_LENGTH)
-          : next;
-      });
-      setRedoStack([]);
+      pushUndo(command);
     },
-    [flushPending],
+    [flushPending, pushUndo],
   );
 
   // Undo: Chốt pending trước, sau đó lấy lệnh từ đỉnh undoStack
   const undo = useCallback(() => {
     flushPending();
 
-    setUndoStack((prevUndo) => {
-      if (prevUndo.length === 0) return prevUndo;
+    const history = historyRef.current;
+    const command = history.undo.at(-1);
+    if (!command) return;
 
-      const newUndo = [...prevUndo];
-      const command = newUndo.pop();
-      if (!command) return prevUndo;
-
-      command.undo();
-      setRedoStack((prevRedo) => [...prevRedo, command]);
-      return newUndo;
-    });
-  }, [flushPending]);
+    command.undo();
+    historyRef.current = {
+      undo: history.undo.slice(0, -1),
+      redo: [...history.redo, command],
+    };
+    syncAvailability();
+  }, [flushPending, syncAvailability]);
 
   // Redo: Chốt pending trước, sau đó lấy lệnh từ đỉnh redoStack
   const redo = useCallback(() => {
     flushPending();
 
-    setRedoStack((prevRedo) => {
-      if (prevRedo.length === 0) return prevRedo;
+    const history = historyRef.current;
+    const command = history.redo.at(-1);
+    if (!command) return;
 
-      const newRedo = [...prevRedo];
-      const command = newRedo.pop();
-      if (!command) return prevRedo;
-
-      command.redo();
-      setUndoStack((prevUndo) => {
-        const next = [...prevUndo, command];
-        return next.length > MAX_HISTORY_LENGTH
-          ? next.slice(next.length - MAX_HISTORY_LENGTH)
-          : next;
-      });
-      return newRedo;
-    });
-  }, [flushPending]);
+    command.redo();
+    historyRef.current = {
+      undo: [...history.undo, command].slice(-MAX_HISTORY_LENGTH),
+      redo: history.redo.slice(0, -1),
+    };
+    syncAvailability();
+  }, [flushPending, syncAvailability]);
 
   // Xóa toàn bộ lịch sử khi lưu CV thành công
   const clearHistory = useCallback(() => {
@@ -181,9 +189,9 @@ export const CvHistoryProvider: React.FC<{ children: ReactNode }> = ({
       clearTimeout(pendingRef.current.timerId);
     }
     pendingRef.current = null;
-    setUndoStack([]);
-    setRedoStack([]);
-  }, []);
+    historyRef.current = { undo: [], redo: [] };
+    syncAvailability();
+  }, [syncAvailability]);
 
   // Dọn dẹp timer khi unmount
   useEffect(() => {
@@ -193,9 +201,6 @@ export const CvHistoryProvider: React.FC<{ children: ReactNode }> = ({
       }
     };
   }, []);
-
-  const canUndo = undoStack.length > 0 || pendingRef.current !== null;
-  const canRedo = redoStack.length > 0;
 
   return (
     <CvHistoryContext.Provider

@@ -1,23 +1,15 @@
 import { useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
-  CheckCircle2,
   ChevronDown,
-  ExternalLink,
   FileText,
   Filter,
-  Mail,
   MessageSquare,
   Search,
-  Sparkles,
   X,
 } from "lucide-react";
 import dayjs from "dayjs";
-import {
-  Button,
-  DataTable,
-  type DataTableFeatures,
-} from "@/components/common";
+import { Button, DataTable, type DataTableFeatures } from "@/components/common";
 import {
   Tooltip,
   TooltipPanel,
@@ -32,12 +24,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  APPLICATION_STATUS,
   APPLICATION_STATUS_CONFIG,
-  ALLOWED_STATUS_TRANSITIONS,
   APPLICATION_STATUS_OPTIONS,
+  getAllowedStatusTransitions,
+  normalizeApplicationStatus,
   resolveCandidateProfile,
   type JobApplicationItem,
   type JobApplicationStatus,
+  type PendingStatusChange,
   type UpdateJobApplicationStatus,
 } from "@/types/application";
 
@@ -49,6 +44,7 @@ const columnHelper = createColumnHelper<
 interface JobApplicationsTabProps {
   applications: JobApplicationItem[];
   isLoading?: boolean;
+  isJobClosed?: boolean;
   onUpdateStatus: (
     applicationId: string,
     status: UpdateJobApplicationStatus | JobApplicationStatus,
@@ -57,15 +53,10 @@ interface JobApplicationsTabProps {
   isUpdatingStatus?: boolean;
 }
 
-interface PendingStatusChange {
-  app: JobApplicationItem;
-  fromStatus: string;
-  toStatus: UpdateJobApplicationStatus;
-}
-
 export function JobApplicationsTab({
   applications,
   isLoading,
+  isJobClosed = false,
   onUpdateStatus,
   isUpdatingStatus,
 }: JobApplicationsTabProps) {
@@ -85,41 +76,9 @@ export function JobApplicationsTab({
     return applications.filter((app) => {
       // 1. Lọc theo trạng thái
       if (statusFilter !== "ALL") {
-        const s = (app.status || "").toUpperCase();
-        const sf = statusFilter.toUpperCase();
-
-        if (
-          (sf === "SUBMITTED" || sf === "APPLIED" || sf === "RECEIVED") &&
-          s !== "SUBMITTED" &&
-          s !== "APPLIED" &&
-          s !== "RECEIVED"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "INTERVIEW" || sf === "INTERVIEWING") &&
-          s !== "INTERVIEW" &&
-          s !== "INTERVIEWING"
-        ) {
-          return false;
-        }
-        if (
-          (sf === "HIRED" || sf === "ACCEPTED") &&
-          s !== "HIRED" &&
-          s !== "ACCEPTED"
-        ) {
-          return false;
-        }
-        if (
-          sf !== "SUBMITTED" &&
-          sf !== "APPLIED" &&
-          sf !== "RECEIVED" &&
-          sf !== "INTERVIEW" &&
-          sf !== "INTERVIEWING" &&
-          sf !== "HIRED" &&
-          sf !== "ACCEPTED" &&
-          s !== sf
-        ) {
+        const normApp = normalizeApplicationStatus(app.status);
+        const normFilter = normalizeApplicationStatus(statusFilter);
+        if (normApp !== normFilter) {
           return false;
         }
       }
@@ -144,15 +103,16 @@ export function JobApplicationsTab({
 
   // Quick stat counters
   const reviewingCount = applications.filter(
-    (a) => (a.status || "").toUpperCase() === "REVIEWING",
+    (a) =>
+      normalizeApplicationStatus(a.status) === APPLICATION_STATUS.REVIEWING,
   ).length;
   const interviewCount = applications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "INTERVIEW" || s === "INTERVIEWING";
+    return (
+      normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING
+    );
   }).length;
   const acceptedCount = applications.filter((a) => {
-    const s = (a.status || "").toUpperCase();
-    return s === "HIRED" || s === "ACCEPTED";
+    return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.HIRED;
   }).length;
 
   const handleOpenConfirmTransition = (
@@ -208,25 +168,23 @@ export function JobApplicationsTab({
                     <img
                       src={profile.avatarUrl}
                       alt={profile.name}
-                      className="size-10 shrink-0 rounded-full border border-slate-200 bg-slate-100 object-cover"
+                      className="size-9 shrink-0 rounded-full border border-border bg-bg object-cover"
                       onError={(e) => {
-                        // Fallback nếu ảnh không load được
                         (e.target as HTMLElement).style.display = "none";
                       }}
                     />
                   ) : (
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-bold text-primary">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-semibold text-primary">
                       {profile.initials}
                     </div>
                   )}
 
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="truncate text-sm font-bold text-slate-800">
+                    <span className="truncate text-xs font-semibold text-text-main sm:text-sm">
                       {profile.name}
                     </span>
-                    <span className="flex items-center gap-1 truncate text-xs text-slate-500">
-                      <Mail className="size-3 shrink-0 text-slate-400" />
-                      <span className="truncate">{profile.email}</span>
+                    <span className="truncate text-xs text-text-muted">
+                      {profile.email}
                     </span>
                   </div>
                 </div>
@@ -238,26 +196,25 @@ export function JobApplicationsTab({
         // Cột 2: Hồ sơ đính kèm (CV)
         columnHelper.display({
           id: "cvDocument",
-          header: "Hồ sơ đính kèm",
+          header: () => <div className="text-center">Hồ sơ CV</div>,
           cell: ({ row }) => {
             const app = row.original;
 
             return (
-              <div className="flex items-center gap-2">
+              <div className="flex justify-center">
                 {app.uploadedCvUrl ? (
                   <a
                     href={app.uploadedCvUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
+                    title="Mở file CV PDF đã tải lên"
+                    className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-white px-3 text-xs font-medium text-text-muted transition-colors hover:border-primary hover:text-primary"
                   >
-                    <FileText className="size-3.5 text-rose-500" />
-                    <span>File CV PDF</span>
-                    <ExternalLink className="size-3 opacity-60" />
+                    <span>Xem CV</span>
+                    <FileText className="size-3" />
                   </a>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700">
-                    <Sparkles className="size-3.5 text-primary" />
+                  <span className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-bg px-3 text-xs font-medium text-text-muted">
                     <span>CV Hệ thống</span>
                   </span>
                 )}
@@ -269,26 +226,27 @@ export function JobApplicationsTab({
         // Cột 3: Thư giới thiệu (Cover Letter)
         columnHelper.display({
           id: "coverLetter",
-          header: "Thư giới thiệu",
+          header: () => <div className="text-center">Thư giới thiệu</div>,
           meta: { className: "hidden md:table-cell" },
           cell: ({ row }) => {
             const app = row.original;
-            if (!app.coverLetter) {
-              return <span className="text-xs text-slate-400">Không có</span>;
+            if (!app.coverLetter || !app.coverLetter.trim()) {
+              return (
+                <div className="flex justify-center text-xs text-text-muted/60">
+                  <span>—</span>
+                </div>
+              );
             }
 
             return (
-              <div className="flex max-w-56 items-center gap-1.5">
-                <p className="truncate text-xs text-slate-600">
-                  {app.coverLetter}
-                </p>
+              <div className="flex justify-center">
                 <Tooltip>
                   <TooltipTrigger
                     render={
                       <button
                         type="button"
                         onClick={() => setSelectedLetterApp(app)}
-                        className="shrink-0 cursor-pointer rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-primary"
+                        className="flex size-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-muted transition-colors hover:border-primary hover:text-primary"
                       >
                         <MessageSquare className="size-3.5" />
                       </button>
@@ -307,7 +265,7 @@ export function JobApplicationsTab({
           cell: ({ row }) => {
             const iso = row.original.appliedAt;
             return (
-              <span className="text-xs font-medium text-slate-700">
+              <span className="text-xs font-medium text-text-main">
                 {iso ? dayjs(iso).format("DD/MM/YYYY HH:mm") : "—"}
               </span>
             );
@@ -318,17 +276,18 @@ export function JobApplicationsTab({
         columnHelper.accessor("status", {
           header: "Trạng thái",
           cell: ({ row }) => {
-            const rawStatus = (
-              row.original.status || "SUBMITTED"
-            ).toUpperCase();
-            const cfg = APPLICATION_STATUS_CONFIG[rawStatus] || {
-              label: rawStatus,
-              badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
-            };
+            const normalizedStatus = normalizeApplicationStatus(
+              row.original.status,
+            );
+            const cfg = APPLICATION_STATUS_CONFIG[normalizedStatus] ||
+              APPLICATION_STATUS_CONFIG[normalizedStatus.toUpperCase()] || {
+                label: normalizedStatus,
+                badgeClass: "bg-bg text-text-muted border-border",
+              };
 
             return (
               <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${cfg.badgeClass}`}
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${cfg.badgeClass}`}
               >
                 {cfg.label}
               </span>
@@ -336,36 +295,24 @@ export function JobApplicationsTab({
           },
         }),
 
-        // Cột 6: Thao tác duyệt hồ sơ theo đúng State Machine
+        // Cột 6: Thao tác duyệt hồ sơ (Kích thước & căn lề đồng đều h-8 w-40)
         columnHelper.display({
           id: "changeStatusAction",
-          header: () => <div className="text-center">Cập nhật trạng thái</div>,
+          header: () => <div className="text-center">Thao tác</div>,
           cell: ({ row }) => {
             const app = row.original;
-            const currentStatus = (app.status || "SUBMITTED").toUpperCase();
-            const nextAllowedOptions =
-              ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
+            const nextAllowedOptions = getAllowedStatusTransitions(
+              app.status,
+              isJobClosed,
+            );
 
-            // Nếu trạng thái đã là Terminal (HIRED, REJECTED, WITHDRAWN)
+            // Nếu trạng thái đã là Terminal (Hired, Rejected, Withdrawn)
             if (nextAllowedOptions.length === 0) {
-              const isHired =
-                currentStatus === "HIRED" || currentStatus === "ACCEPTED";
-              const isRejected = currentStatus === "REJECTED";
-
               return (
                 <div className="flex justify-center">
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-medium ${
-                      isHired
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : isRejected
-                          ? "border-rose-200 bg-rose-50 text-rose-700"
-                          : "border-slate-200 bg-slate-50 text-slate-500"
-                    }`}
-                  >
-                    <CheckCircle2 className="size-3" />
+                  <div className="flex h-8 w-40 items-center justify-center rounded-xl border border-border bg-slate-50 text-xs font-medium text-text-muted select-none">
                     <span>Hoàn tất quy trình</span>
-                  </span>
+                  </div>
                 </div>
               );
             }
@@ -386,10 +333,10 @@ export function JobApplicationsTab({
                 >
                   <Select.Trigger
                     aria-label="Cập nhật trạng thái ứng viên"
-                    className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary focus:outline-none"
+                    className="flex h-8 w-40 cursor-pointer items-center justify-between rounded-xl border border-border bg-white px-3 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <span>Chuyển trạng thái...</span>
-                    <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+                    <span className="truncate">Chuyển trạng thái...</span>
+                    <Select.Icon className="shrink-0 text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                       <ChevronDown className="size-3" />
                     </Select.Icon>
                   </Select.Trigger>
@@ -399,16 +346,17 @@ export function JobApplicationsTab({
                       alignItemWithTrigger={false}
                       sideOffset={4}
                     >
-                      <Select.Popup className="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
+                      <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
                         <Select.List>
                           {nextAllowedOptions.map((opt) => (
                             <Select.Item
                               key={opt.value}
                               value={opt.value}
-                              className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors hover:bg-slate-100 ${
-                                opt.value === "REJECTED"
-                                  ? "text-rose-600 hover:bg-rose-50"
-                                  : "text-slate-700 hover:text-primary"
+                              className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-slate-100 ${
+                                normalizeApplicationStatus(opt.value) ===
+                                APPLICATION_STATUS.REJECTED
+                                  ? "text-status-error hover:bg-status-error/10"
+                                  : "text-text-main hover:text-primary"
                               }`}
                             >
                               <Select.ItemText>{opt.label}</Select.ItemText>
@@ -424,64 +372,64 @@ export function JobApplicationsTab({
           },
         }),
       ]),
-    [isUpdatingStatus],
+    [isUpdatingStatus, isJobClosed],
   );
 
   return (
     <div className="space-y-4">
       {/* 1. Quick Counters */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-white p-4">
           <span className="text-xs font-medium text-text-muted">
             Tổng hồ sơ
           </span>
-          <p className="mt-1 text-xl font-bold text-slate-800">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {applications.length}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-white p-4">
           <span className="text-xs font-medium text-text-muted">
             Đang xem xét
           </span>
-          <p className="mt-1 text-xl font-bold text-sky-700">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {reviewingCount}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-white p-4">
           <span className="text-xs font-medium text-text-muted">
             Mời phỏng vấn
           </span>
-          <p className="mt-1 text-xl font-bold text-amber-700">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {interviewCount}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-2xs">
+        <div className="rounded-2xl border border-border bg-white p-4">
           <span className="text-xs font-medium text-text-muted">
             Đã trúng tuyển
           </span>
-          <p className="mt-1 text-xl font-bold text-emerald-700">
+          <p className="mt-1 text-2xl font-semibold text-text-main">
             {acceptedCount}
           </p>
         </div>
       </div>
 
       {/* 2. Toolbar & Bộ lọc */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-3.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-3.5 sm:flex-row sm:items-center sm:justify-between">
         {/* Tìm kiếm ứng viên */}
         <div className="relative max-w-md flex-1">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="Tìm theo tên ứng viên, email hoặc nội dung thư..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-border bg-slate-50/50 py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+            className="w-full rounded-xl border border-border bg-bg py-2 pr-8 pl-9 text-xs text-text-main transition-colors placeholder:text-text-muted focus:border-primary focus:bg-white focus:outline-none"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-slate-600"
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-text-muted hover:text-text-main"
             >
               <X className="size-3.5" />
             </button>
@@ -489,24 +437,23 @@ export function JobApplicationsTab({
         </div>
 
         {/* Lọc theo trạng thái hồ sơ */}
-        <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5 shadow-2xs">
-          <Filter className="size-3.5 text-slate-400" />
-          <span className="text-xs text-slate-500">Trạng thái:</span>
+        <div className="flex items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-1.5">
+          <Filter className="size-3.5 text-text-muted" />
+          <span className="text-xs text-text-muted">Trạng thái:</span>
           <Select.Root
             items={APPLICATION_STATUS_OPTIONS}
             value={statusFilter}
             onValueChange={(val) => setStatusFilter(val || "ALL")}
           >
             <Select.Trigger
-              aria-label="Lọc hồ sơ theo trạng thái"
-              className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-slate-800 focus:outline-none"
+              aria-label="Lọc theo trạng thái ứng viên"
+              className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-text-main focus:outline-none"
             >
               <Select.Value />
-              <Select.Icon className="text-slate-400 transition-transform duration-200 group-data-popup-open:rotate-180">
+              <Select.Icon className="text-text-muted transition-transform duration-200 group-data-popup-open:rotate-180">
                 <ChevronDown className="size-3.5" />
               </Select.Icon>
             </Select.Trigger>
-
             <Select.Portal>
               <Select.Positioner alignItemWithTrigger={false} sideOffset={4}>
                 <Select.Popup className="z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-md">
@@ -515,7 +462,7 @@ export function JobApplicationsTab({
                       <Select.Item
                         key={opt.value}
                         value={opt.value}
-                        className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-slate-700 transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
+                        className="flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-text-main transition-colors hover:bg-slate-100 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                       >
                         <Select.ItemText>{opt.label}</Select.ItemText>
                         <Select.ItemIndicator
@@ -556,7 +503,7 @@ export function JobApplicationsTab({
           if (!open) setSelectedLetterApp(null);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Thư giới thiệu của ứng viên</DialogTitle>
             <DialogDescription>
@@ -566,9 +513,10 @@ export function JobApplicationsTab({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-            <p className="text-xs leading-relaxed whitespace-pre-line text-slate-700 sm:text-sm">
-              {selectedLetterApp?.coverLetter || "Ứng viên không đính kèm thư giới thiệu."}
+          <div className="max-h-72 overflow-y-auto rounded-xl border border-border bg-bg p-4">
+            <p className="text-xs leading-relaxed whitespace-pre-line text-text-main sm:text-sm">
+              {selectedLetterApp?.coverLetter ||
+                "Ứng viên không đính kèm thư giới thiệu."}
             </p>
           </div>
 
@@ -593,7 +541,7 @@ export function JobApplicationsTab({
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Xác nhận chuyển trạng thái</DialogTitle>
             <DialogDescription>
@@ -605,11 +553,12 @@ export function JobApplicationsTab({
 
           <div className="space-y-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-semibold text-text-main">
                 Ghi chú nội bộ (tùy chọn)
               </label>
-              <p className="mt-0.5 text-[11px] text-slate-400">
-                Lưu lại lý do hoặc thông tin cho vòng xử lý này (tối đa 2,000 ký tự).
+              <p className="mt-0.5 text-[11px] text-text-muted">
+                Lưu lại lý do hoặc thông tin cho vòng xử lý này (tối đa 2,000 ký
+                tự).
               </p>
               <textarea
                 value={transitionNote}
@@ -617,7 +566,7 @@ export function JobApplicationsTab({
                 maxLength={2000}
                 rows={3}
                 placeholder="Ví dụ: Đạt yêu cầu CV, hẹn phỏng vấn kỹ thuật vào thứ 5 tuần tới..."
-                className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+                className="mt-1.5 w-full rounded-xl border border-border bg-bg p-2.5 text-xs text-text-main placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
               />
             </div>
           </div>
@@ -633,13 +582,11 @@ export function JobApplicationsTab({
             </Button>
             <Button
               variant="primary"
-              disabled={isSubmittingTransition}
+              isLoading={isSubmittingTransition}
               onClick={handleConfirmTransition}
               className="px-4! py-1.5! text-xs! font-semibold!"
             >
-              {isSubmittingTransition
-                ? "Đang cập nhật..."
-                : "Xác nhận chuyển"}
+              Xác nhận chuyển
             </Button>
           </div>
         </DialogContent>

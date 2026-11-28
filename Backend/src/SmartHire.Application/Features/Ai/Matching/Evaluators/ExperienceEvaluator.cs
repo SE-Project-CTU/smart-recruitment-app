@@ -5,35 +5,6 @@ using SmartHire.Domain.ValueObjects.Cv;
 namespace SmartHire.Application.Features.Ai.Matching.Evaluators;
 
 public static class ExperienceEvaluator {
-    public static (decimal Score, decimal ActualYears, int? RequiredYears, bool HasBonus, decimal BonusPoints) Evaluate(
-        CvContentDocument? cv,
-        JobPostingDetailData job) {
-        decimal actualYears = CalculateExperienceYears(cv);
-        int? requiredYears = job.ExperienceYears;
-
-        decimal baseScore;
-        if (!requiredYears.HasValue || requiredYears.Value <= 0) {
-            // Job không yêu cầu số năm kinh nghiệm cụ thể
-            baseScore = actualYears > 0 ? 100m : 85m;
-        } else {
-            decimal req = requiredYears.Value;
-            if (actualYears >= req) {
-                baseScore = 100m;
-            } else {
-                decimal ratio = actualYears / req;
-                baseScore = Math.Round(Math.Max(25m, ratio * 100m), 2);
-            }
-        }
-
-        // Kiểm tra Điểm thưởng Ngành nghề (+5% Bonus)
-        bool hasIndustryBonus = CheckIndustryBonus(cv, job);
-        decimal bonusPoints = hasIndustryBonus ? 5.0m : 0.0m;
-
-        decimal finalScore = Math.Clamp(baseScore + bonusPoints, 0m, 100m);
-
-        return (finalScore, actualYears, requiredYears, hasIndustryBonus, bonusPoints);
-    }
-
     public static decimal CalculateExperienceYears(CvContentDocument? cv) {
         if (cv?.Sections.Experience?.Items == null || cv.Sections.Experience.Items.Count == 0) {
             return 0m;
@@ -50,57 +21,57 @@ public static class ExperienceEvaluator {
             if (start.HasValue && end >= start.Value) {
                 int months = ((end.Year - start.Value.Year) * 12) + end.Month - start.Value.Month + 1;
                 totalMonths += Math.Max(1, Math.Min(months, 120));
+            } else if (start.HasValue) {
+                int months = ((DateTime.UtcNow.Year - start.Value.Year) * 12) + DateTime.UtcNow.Month - start.Value.Month + 1;
+                totalMonths += Math.Max(1, Math.Min(months, 120));
             } else {
-                // Fallback nếu không parse được định dạng ngày tháng: ước tính 1 năm cho mỗi mục
-                totalMonths += 12;
+                // Không có ngày tháng cụ thể: kiểm tra nếu là dòng mô tả vị trí thì chỉ ước lượng 3 tháng, không cộng 1 năm
+                var desc = CvTiptapDocument.ExtractPlainText(item.Description);
+                var pos = CvTiptapDocument.ExtractPlainText(item.Position);
+                var comp = CvTiptapDocument.ExtractPlainText(item.Company);
+                if (!string.IsNullOrWhiteSpace(pos) || !string.IsNullOrWhiteSpace(comp)) {
+                    totalMonths += 3;
+                }
             }
         }
 
         decimal years = (decimal)totalMonths / 12m;
-        return Math.Round(Math.Min(years, 20m), 1);
+        return Math.Round(Math.Min(years, 30m), 1);
     }
 
-    private static DateTime? ParseDate(string? text) {
+    public static DateTime? ParseDate(string? text) {
         if (string.IsNullOrWhiteSpace(text)) return null;
 
         var trimmed = text.Trim().ToLowerInvariant();
-        if (trimmed == "hiện tại" || trimmed == "present" || trimmed == "now") {
+        if (trimmed == "hiện tại" || trimmed == "present" || trimmed == "now" || trimmed == "current" || trimmed == "nay") {
             return DateTime.UtcNow;
         }
 
-        // Match MM/yyyy hoặc yyyy
-        var matchYearMonth = Regex.Match(trimmed, @"(\d{1,2})[/.-](\d{4})");
-        if (matchYearMonth.Success) {
-            if (int.TryParse(matchYearMonth.Groups[1].Value, out var m) &&
-                int.TryParse(matchYearMonth.Groups[2].Value, out var y)) {
+        // 1. Dạng yyyy-MM hoặc yyyy/MM hoặc yyyy.MM (e.g. 2026-05, 2025/07)
+        var matchYearFirst = Regex.Match(trimmed, @"\b((?:19|20)\d{2})[-/.](\d{1,2})\b");
+        if (matchYearFirst.Success) {
+            if (int.TryParse(matchYearFirst.Groups[1].Value, out var y) &&
+                int.TryParse(matchYearFirst.Groups[2].Value, out var m)) {
                 return new DateTime(y, Math.Clamp(m, 1, 12), 1);
             }
         }
 
-        var matchYear = Regex.Match(trimmed, @"(\d{4})");
+        // 2. Dạng MM/yyyy hoặc MM-yyyy hoặc MM.yyyy (e.g. 05/2026, 5-2025)
+        var matchMonthFirst = Regex.Match(trimmed, @"\b(\d{1,2})[-/.]((?:19|20)\d{2})\b");
+        if (matchMonthFirst.Success) {
+            if (int.TryParse(matchMonthFirst.Groups[1].Value, out var m) &&
+                int.TryParse(matchMonthFirst.Groups[2].Value, out var y)) {
+                return new DateTime(y, Math.Clamp(m, 1, 12), 1);
+            }
+        }
+
+        // 3. Chỉ có năm yyyy (e.g. 2025, 2026)
+        var matchYear = Regex.Match(trimmed, @"\b((?:19|20)\d{2})\b");
         if (matchYear.Success && int.TryParse(matchYear.Groups[1].Value, out var year)) {
             return new DateTime(year, 1, 1);
         }
 
         return null;
-    }
-
-    private static bool CheckIndustryBonus(CvContentDocument? cv, JobPostingDetailData job) {
-        if (cv?.Sections.Experience?.Items == null || job.Industries == null || job.Industries.Count == 0) {
-            return false;
-        }
-
-        var allExperienceText = string.Join(" ", cv.Sections.Experience.Items.Select(e =>
-            $"{CvTiptapDocument.ExtractPlainText(e.Company)} {CvTiptapDocument.ExtractPlainText(e.Position)} {CvTiptapDocument.ExtractPlainText(e.Description)}"))
-            .ToLowerInvariant();
-
-        foreach (var ind in job.Industries) {
-            if (!string.IsNullOrWhiteSpace(ind.Name) && allExperienceText.Contains(ind.Name.ToLowerInvariant())) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
 

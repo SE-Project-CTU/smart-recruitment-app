@@ -11,13 +11,12 @@ using SmartHire.Application.Features.Ai.Common;
 using SmartHire.Application.Features.Ai.DTOs;
 using SmartHire.Application.Features.Ai.Exceptions;
 using SmartHire.Application.Features.Ai.Mapping;
-using SmartHire.Domain.Enums;
 
 namespace SmartHire.Application.Features.Ai.Commands.EnhanceCvBatch;
 
 public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatchCommand, EnhanceCvBatchResult> {
+    private const int MaxCustomPromptLength = 2000;
     private readonly IGeminiAiService _geminiAiService;
-    private readonly ICvVersionRepository _cvVersionRepository;
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly IDistributedCache _cache;
 
@@ -27,16 +26,21 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
 
     public EnhanceCvBatchCommandHandler(
         IGeminiAiService geminiAiService,
-        ICvVersionRepository cvVersionRepository,
         IJobPostingRepository jobPostingRepository,
         IDistributedCache cache) {
         _geminiAiService = geminiAiService;
-        _cvVersionRepository = cvVersionRepository;
         _jobPostingRepository = jobPostingRepository;
         _cache = cache;
     }
 
     public async Task<EnhanceCvBatchResult> Handle(EnhanceCvBatchCommand request, CancellationToken cancellationToken) {
+        var customPrompt = request.CustomPrompt?.Trim();
+        if (customPrompt?.Length > MaxCustomPromptLength) {
+            throw AiExceptions.Validation("Chỉ dẫn bổ sung quá dài.", [
+                new AppErrorDetail("customPrompt", ValidationReasons.MaxLength, "Chỉ dẫn bổ sung không được vượt quá 2.000 ký tự.")
+            ]);
+        }
+
         if (request.Sections == null || request.Sections.Count == 0) {
             throw AiExceptions.Validation("Dữ liệu yêu cầu không hợp lệ.", [
                 new AppErrorDetail("sections", "REQUIRED", "Danh sách các mục cần tối ưu không được để trống.")
@@ -60,26 +64,7 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
             }
         }
 
-        // 2. Ngữ cảnh CV và ngôn ngữ
-        CvLanguage? cvLanguage = null;
-        if (request.CvVersionId.HasValue && request.CvVersionId.Value != Guid.Empty) {
-            var cvVer = await _cvVersionRepository.GetByVersionIdAsync(request.CvVersionId.Value, cancellationToken);
-            cvLanguage = cvVer?.Language;
-        } else if (request.CvId.HasValue && request.CvId.Value != Guid.Empty) {
-            var cvVer = await _cvVersionRepository.GetLatestByCvIdAsync(request.CvId.Value, cancellationToken);
-            cvLanguage = cvVer?.Language;
-        }
-
-        string resolvedLanguage;
-        if (!string.IsNullOrWhiteSpace(request.Language) && !request.Language.Equals("auto", StringComparison.OrdinalIgnoreCase)) {
-            resolvedLanguage = request.Language.Trim().ToLowerInvariant();
-        } else if (cvLanguage.HasValue) {
-            resolvedLanguage = cvLanguage.Value == CvLanguage.English ? "en" : "vi";
-        } else {
-            resolvedLanguage = "vi";
-        }
-
-        // 3. Chuẩn hóa danh sách các mục
+        // Ngôn ngữ của từng mục được xác định từ content, không dùng metadata CV hoặc language của request.
         var batchSections = request.Sections
             .Where(s => !string.IsNullOrWhiteSpace(s.Content))
             .Select(s => new CvSectionBatchItem(
@@ -98,11 +83,11 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
             Sections: batchSections,
             TargetJobTitle: targetJobTitle,
             JobContext: jobContext,
-            Language: resolvedLanguage
+            CustomPrompt: string.IsNullOrWhiteSpace(customPrompt) ? null : customPrompt
         );
 
         // 4. Kiểm tra Cache
-        var cacheKey = BuildBatchCacheKey(request, resolvedLanguage);
+        var cacheKey = BuildBatchCacheKey(batchRequest);
         try {
             var cachedJson = await _cache.GetStringAsync(cacheKey, cancellationToken);
             if (!string.IsNullOrWhiteSpace(cachedJson)) {
@@ -115,22 +100,25 @@ public sealed class EnhanceCvBatchCommandHandler : IRequestHandler<EnhanceCvBatc
         var result = await _geminiAiService.EnhanceCvBatchAsync(batchRequest, cancellationToken);
         var mapped = AiResultMapper.ToEnhanceCvBatchResult(result);
 
-        // 6. Ghi Cache
-        try {
-            var serialized = JsonSerializer.Serialize(mapped, JsonOptions);
-            await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12)
-            }, cancellationToken);
-        } catch { }
+        // Chỉ cache kết quả AI hợp lệ; fallback do lỗi dịch vụ phải được thử lại ở request sau.
+        if (!result.IsFallback) {
+            try {
+                var serialized = JsonSerializer.Serialize(mapped, JsonOptions);
+                await _cache.SetStringAsync(cacheKey, serialized, new DistributedCacheEntryOptions {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12)
+                }, cancellationToken);
+            } catch { }
+        }
 
         return mapped;
     }
 
-    private static string BuildBatchCacheKey(EnhanceCvBatchCommand request, string language) {
-        var rawKey = $"{request.CvId}|{request.TargetJobId}|{request.TargetJobTitle}|{request.TargetJobDescription}|{language}|{string.Join(";", request.Sections.Select(s => $"{s.SectionType}:{s.Content}"))}";
+    private static string BuildBatchCacheKey(CvBatchEnhanceRequest request) {
+        // Đổi phiên bản cache để không dùng lại kết quả prompt cũ; khóa chứa cả ngữ cảnh JD đã truy xuất.
+        var rawKey = JsonSerializer.Serialize(request, JsonOptions);
         using var sha = SHA256.Create();
         var bytes = Encoding.UTF8.GetBytes(rawKey);
         var hash = sha.ComputeHash(bytes);
-        return $"ai:enhance:batch:{Convert.ToHexString(hash).ToLowerInvariant()}";
+        return $"ai:enhance:batch:v9:{Convert.ToHexString(hash).ToLowerInvariant()}";
     }
 }

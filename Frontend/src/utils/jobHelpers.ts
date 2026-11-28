@@ -14,6 +14,13 @@ export interface SelectOption<T extends string = string> {
   description?: string;
 }
 
+export const EXPERIENCE_RANGE_OPTIONS = [
+  { value: "0-1", label: "0–1 năm" },
+  { value: "2-3", label: "2–3 năm" },
+  { value: "4-5", label: "4–5 năm" },
+  { value: "6+", label: "Trên 5 năm" },
+] as const;
+
 // JobType: Hình thức làm việc (Employment Type)
 export const JOB_TYPE_OPTIONS: SelectOption<JobType>[] = [
   { value: "FullTime", label: "Full-time" },
@@ -83,18 +90,27 @@ export function normalizeJobType(raw?: string | null): JobType | null {
 /**
  * Chuẩn hóa chuỗi raw thành WorkMode hợp lệ (Onsite, Hybrid, Remote)
  */
-export function normalizeWorkMode(raw?: string | null): WorkMode | null {
-  if (!raw) return null;
-  const clean = raw
+export function normalizeWorkMode(
+  raw?: string | number | null,
+): WorkMode | null {
+  if (raw == null) return null;
+  const clean = String(raw)
     .trim()
     .toLowerCase()
-    .replace(/[_\-\s]/g, "");
+    .replace(/[_-\s]/g, "");
   switch (clean) {
+    case "1":
     case "onsite":
+    case "taivanphong":
       return "Onsite";
+    case "2":
     case "hybrid":
+    case "linhhoat":
       return "Hybrid";
+    case "0":
     case "remote":
+    case "lamtuxa":
+    case "tuxa":
       return "Remote";
     default:
       return null;
@@ -287,7 +303,7 @@ export function getJobStatusBadge(status?: JobPostingStatus | string): {
     case "pending_review":
       return { label: "Chờ phê duyệt", variant: "warning" };
     case "closed":
-      return { label: "Đã đóng", variant: "neutral" };
+      return { label: "Đã tạm đóng tuyển dụng", variant: "neutral" };
     case "expired":
       return { label: "Hết hạn", variant: "error" };
     case "rejected":
@@ -426,8 +442,9 @@ export function extractJobDisplayData(job: AnyJob) {
 
   const isCompanyVerified = Boolean(
     ("verificationStatus" in (job.company || {}) &&
-      (job.company as { verificationStatus?: string })?.verificationStatus?.toUpperCase() ===
-        "VERIFIED") ||
+      (
+        job.company as { verificationStatus?: string }
+      )?.verificationStatus?.toUpperCase() === "VERIFIED") ||
     ("isVerified" in (job.company || {}) &&
       Boolean((job.company as { isVerified?: boolean })?.isVerified)),
   );
@@ -460,13 +477,19 @@ export function extractJobDisplayData(job: AnyJob) {
     provinceName;
 
   const rawCreatedAt =
-    ("createdAt" in job && job.createdAt) ||
-    ("createAt" in job && job.createAt) ||
-    "";
+    ("createdAt" in job && typeof (job as { createdAt?: unknown }).createdAt === "string"
+      ? (job as { createdAt: string }).createdAt
+      : "") ||
+    ("createAt" in job && typeof (job as { createAt?: unknown }).createAt === "string"
+      ? (job as { createAt: string }).createAt
+      : "");
 
   const displayTimeAgo = rawCreatedAt ? getTimeAgo(rawCreatedAt) : "Mới đăng";
 
-  const rawDeadline = "deadline" in job ? job.deadline : null;
+  const rawDeadline =
+    "deadline" in job && typeof (job as { deadline?: unknown }).deadline === "string"
+      ? (job as { deadline: string }).deadline
+      : null;
   const formattedDeadline = rawDeadline
     ? new Date(rawDeadline).toLocaleDateString("vi-VN", {
         day: "2-digit",
@@ -556,3 +579,58 @@ export function extractJobDisplayData(job: AnyJob) {
     benefits,
   };
 }
+
+/**
+ * Định dạng chuỗi hoặc số thành chuỗi tiền tệ có dấu phẩy phân tách hàng nghìn (ví dụ: 15000000 -> "15,000,000").
+ * Xử lý an toàn các trường hợp số thực hoặc paste chuỗi có đuôi thập phân (ví dụ: 15,000,000.00 hoặc 15000000.5).
+ */
+export function formatCurrencyInput(
+  value: string | number | null | undefined,
+): string {
+  if (value == null || value === "") return "";
+  let intStr: string;
+
+  if (typeof value === "number") {
+    intStr = String(Math.round(value));
+  } else {
+    const trimmed = String(value).trim();
+    const dotIndex = trimmed.lastIndexOf(".");
+    const commaIndex = trimmed.lastIndexOf(",");
+    // Nếu dấu chấm xuất hiện sau dấu phẩy (chuẩn format en-US thập phân), chỉ lấy phần nguyên trước dấu chấm
+    if (dotIndex !== -1 && dotIndex > commaIndex) {
+      intStr = trimmed.slice(0, dotIndex).replace(/\D/g, "");
+    } else {
+      intStr = trimmed.replace(/\D/g, "");
+    }
+  }
+
+  if (!intStr) return "";
+  return new Intl.NumberFormat("en-US").format(Number(intStr));
+}
+
+/**
+ * Phân tích chuỗi tiền tệ có dấu phẩy thành giá trị số nguyên thuần túy (ví dụ: "15,000,000" -> 15000000).
+ * Bóc tách chính xác phần nguyên nếu có đuôi số thập phân.
+ */
+export function parseCurrencyInput(
+  value: string | number | null | undefined,
+): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? Math.round(value) : null;
+  }
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+
+  const dotIndex = trimmed.lastIndexOf(".");
+  const commaIndex = trimmed.lastIndexOf(",");
+  let intStr = trimmed;
+  if (dotIndex !== -1 && dotIndex > commaIndex) {
+    intStr = trimmed.slice(0, dotIndex);
+  }
+  const digits = intStr.replace(/\D/g, "");
+  if (!digits) return null;
+  const num = Number(digits);
+  return Number.isNaN(num) ? null : num;
+}
+

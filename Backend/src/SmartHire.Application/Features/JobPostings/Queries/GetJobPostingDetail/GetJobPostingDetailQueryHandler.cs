@@ -43,8 +43,25 @@ public sealed class GetJobPostingDetailQueryHandler
         var isPublic = posting.Status == JobPostingStatus.Published
                        && posting.Company.VerificationStatus == CompanyVerificationStatus.Verified
                        && (posting.Deadline == null || posting.Deadline > now);
+
+        var isAdmin = _currentUser.Roles.Contains(RoleNames.Admin);
         
-        if (!isPublic) {
+        Guid? applicationId = null;
+        var hasApplied = false;
+        var isFollowingCompany = false;
+        var isBookmarked = false;
+
+        if (_currentUser.UserId is Guid currentUserId) {
+            applicationId = await _jobApplicationRepository.GetApplicationIdForCandidateAsync(
+                id, currentUserId, cancellationToken);
+            hasApplied = applicationId.HasValue;
+            isFollowingCompany = await _companyRepository.IsFollowingAsync(
+                currentUserId, posting.Company.Id, cancellationToken);
+            isBookmarked = await _jobBookmarkRepository.ExistsAsync(
+                currentUserId, id, cancellationToken);
+        }
+
+        if (!isPublic && !isAdmin && !hasApplied) {
             // Private posting: require a Recruiter with an Active membership in the company
             var userId = _currentUser.UserId;
             
@@ -60,21 +77,6 @@ public sealed class GetJobPostingDetailQueryHandler
             
             if (membership is null || membership.Status != CompanyMembershipStatus.Active)
                 throw JobPostingExceptions.JobPostingForbidden();
-        }
-
-        Guid? applicationId = null;
-        var hasApplied = false;
-        var isFollowingCompany = false;
-        var isBookmarked = false;
-
-        if (_currentUser.UserId is Guid currentUserId) {
-            applicationId = await _jobApplicationRepository.GetApplicationIdForCandidateAsync(
-                id, currentUserId, cancellationToken);
-            hasApplied = applicationId.HasValue;
-            isFollowingCompany = await _companyRepository.IsFollowingAsync(
-                currentUserId, posting.Company.Id, cancellationToken);
-            isBookmarked = await _jobBookmarkRepository.ExistsAsync(
-                currentUserId, id, cancellationToken);
         }
         
         return JobPostingDetailMapper.ToDetailResult(

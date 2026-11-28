@@ -1,11 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Check,
-  ChevronsUpDown,
-  Plus,
-  ShieldCheck,
-} from "lucide-react";
+import { Check, ChevronsUpDown, Plus, ShieldCheck } from "lucide-react";
 import { getLoremAvt } from "@/utils/helper";
 import { useSidebar } from "@/components/ui/sidebar";
 import {
@@ -21,6 +16,11 @@ import { useCompanyStore } from "@/stores/companyStore";
 import { useMyCompanies } from "@/hooks/queries/useCompany";
 import { CreateCompanyModal } from "@/pages/recruiter/company/CreateCompanyModal";
 import { PATHS } from "@/constants/paths";
+import {
+  Tooltip,
+  TooltipPanel,
+  TooltipTrigger,
+} from "@/components/animate-ui/components/base/tooltip";
 import type { CompanyItem } from "@/types/company";
 
 export function WorkspaceSwitcher() {
@@ -40,33 +40,47 @@ export function WorkspaceSwitcher() {
   // Lấy danh sách các công ty mà recruiter tham gia
   const { data: companies = [], isLoading } = useMyCompanies();
 
-  // Khởi tạo & đồng bộ an toàn: tự chọn công ty đầu tiên nếu chưa chọn hoặc id cũ không còn hợp lệ
+  // Tạo key chuỗi ID để tránh re-run effect do reference mảng mới
+  const companiesKey = useMemo(
+    () => companies.map((c) => c.id).join(","),
+    [companies],
+  );
+
+  // Khởi tạo an toàn: chỉ tự động chọn công ty đầu tiên nếu chưa có công ty nào được chọn hoặc ID cũ không còn trong danh sách
   useEffect(() => {
     if (isLoading) return;
 
     if (companies.length === 0) {
-      if (activeCompanyId !== null || activeCompany !== null) {
+      if (activeCompanyId !== null) {
         clearActiveCompany();
+      }
+      if (location.pathname.includes("/recruiter/companies/")) {
+        navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT, { replace: true });
       }
       return;
     }
 
-    const matched = companies.find((c) => c.id === activeCompanyId);
-    if (!matched) {
-      // Nếu chưa có hoặc id lưu không khớp công ty nào trong danh sách, chọn công ty đầu tiên
+    const currentIdValid = companies.some((c) => c.id === activeCompanyId);
+    if (!activeCompanyId || !currentIdValid) {
       setActiveCompany(companies[0]);
-    } else if (
-      !activeCompany ||
-      activeCompany.id !== matched.id ||
-      activeCompany.name !== matched.name ||
-      activeCompany.logoUrl !== matched.logoUrl ||
-      activeCompany.logoFileId !== matched.logoFileId ||
-      activeCompany.verificationStatus !== matched.verificationStatus
-    ) {
-      // Giữ thông tin tóm tắt luôn đồng bộ mới nhất
-      setActiveCompany(matched);
+
+      if (location.pathname.includes("/recruiter/companies/")) {
+        const newPath = location.pathname.replace(
+          /\/recruiter\/companies\/[^/]+/,
+          `/recruiter/companies/${companies[0].id}`,
+        );
+        navigate(newPath, { replace: true });
+      }
     }
-  }, [companies, activeCompanyId, activeCompany, isLoading, setActiveCompany, clearActiveCompany]);
+  }, [
+    companiesKey,
+    activeCompanyId,
+    isLoading,
+    location.pathname,
+    navigate,
+    setActiveCompany,
+    clearActiveCompany,
+  ]);
 
   // Tìm công ty đang hiển thị
   const currentCompany: CompanyItem | null = useMemo(() => {
@@ -89,9 +103,24 @@ export function WorkspaceSwitcher() {
 
     setActiveCompany(company);
 
-    // Nếu đang ở trang quản trị chi tiết công ty, tự động đổi URL sang ID công ty mới
+    // 1. Nếu đang ở trang quản trị chi tiết công ty, tự động đổi URL sang ID công ty mới
     if (location.pathname.includes(PATHS.RECRUITER.COMPANY_MANAGEMENT)) {
-      navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", company.id), {
+      navigate(
+        PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
+          ":companyId",
+          company.id,
+        ),
+        {
+          replace: true,
+        },
+      );
+    }
+    // 2. Nếu đang ở trang con chi tiết/chỉnh sửa tin tuyển dụng của công ty cũ, chuyển về danh sách tin của công ty mới
+    else if (
+      location.pathname.startsWith(PATHS.RECRUITER.JOBS) &&
+      location.pathname !== PATHS.RECRUITER.JOBS
+    ) {
+      navigate(PATHS.RECRUITER.JOBS, {
         replace: true,
       });
     }
@@ -101,7 +130,20 @@ export function WorkspaceSwitcher() {
     setActiveCompany(newCompany);
     setIsCreateModalOpen(false);
     if (location.pathname.includes(PATHS.RECRUITER.COMPANY_MANAGEMENT)) {
-      navigate(PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(":companyId", newCompany.id), {
+      navigate(
+        PATHS.RECRUITER.COMPANAY_MANAGEMENT_OVERVIEW.replace(
+          ":companyId",
+          newCompany.id,
+        ),
+        {
+          replace: true,
+        },
+      );
+    } else if (
+      location.pathname.startsWith(PATHS.RECRUITER.JOBS) &&
+      location.pathname !== PATHS.RECRUITER.JOBS
+    ) {
+      navigate(PATHS.RECRUITER.JOBS, {
         replace: true,
       });
     }
@@ -172,7 +214,7 @@ export function WorkspaceSwitcher() {
                   getLoremAvt(currentCompany?.name || "Doanh nghiệp")
                 }
                 alt={currentCompany?.name || "Doanh nghiệp"}
-                className="size-full object-contain p-0.5"
+                className="size-full object-contain"
                 onError={(e) => {
                   const fallback = getLoremAvt(
                     currentCompany?.name || "Doanh nghiệp",
@@ -188,11 +230,36 @@ export function WorkspaceSwitcher() {
 
             {!isCollapsed && (
               <div className="flex min-w-0 flex-1 flex-col text-left">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate text-xs font-semibold text-text-main">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  {/* Desktop: Truncate + Tooltip */}
+                  <span className="hidden min-w-0 md:inline-flex">
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <span className="truncate text-xs font-semibold text-text-main">
+                            {currentCompany?.name || "Chọn doanh nghiệp"}
+                          </span>
+                        }
+                      />
+                      {currentCompany?.name && (
+                        <TooltipPanel
+                          side="right"
+                          sideOffset={10}
+                          className="wrap-break-words z-60 max-w-xs"
+                        >
+                          {currentCompany.name}
+                        </TooltipPanel>
+                      )}
+                    </Tooltip>
+                  </span>
+
+                  {/* Mobile: Wrap text */}
+                  <span className="wrap-break-words block text-xs leading-snug font-semibold whitespace-normal text-text-main md:hidden">
                     {currentCompany?.name || "Chọn doanh nghiệp"}
                   </span>
-                  {currentCompany?.verificationStatus?.toUpperCase() === "VERIFIED" && (
+
+                  {currentCompany?.verificationStatus?.toUpperCase() ===
+                    "VERIFIED" && (
                     <ShieldCheck className="size-3.5 shrink-0 text-emerald-600" />
                   )}
                 </div>
@@ -235,11 +302,13 @@ export function WorkspaceSwitcher() {
                       : "text-text-main hover:bg-bg-white-blue!"
                   }`}
                 >
-                  <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
                     <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
                       <img
                         key={displayComp.logoUrl || comp.id}
-                        src={displayComp.logoUrl || getLoremAvt(displayComp.name)}
+                        src={
+                          displayComp.logoUrl || getLoremAvt(displayComp.name)
+                        }
                         alt={displayComp.name}
                         className="size-full object-contain p-0.5"
                         onError={(e) => {
@@ -252,8 +321,32 @@ export function WorkspaceSwitcher() {
                         }}
                       />
                     </div>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-xs">{displayComp.name}</span>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      {/* Desktop: Truncate + Tooltip */}
+                      <span className="hidden min-w-0 md:inline-flex">
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <span className="truncate text-xs">
+                                {displayComp.name}
+                              </span>
+                            }
+                          />
+                          <TooltipPanel
+                            side="right"
+                            sideOffset={10}
+                            className="wrap-break-words z-60 max-w-xs"
+                          >
+                            {displayComp.name}
+                          </TooltipPanel>
+                        </Tooltip>
+                      </span>
+
+                      {/* Mobile: Wrap text */}
+                      <span className="wrap-break-words block text-xs leading-snug whitespace-normal md:hidden">
+                        {displayComp.name}
+                      </span>
+
                       <span className="text-[10px] text-text-muted">
                         {getRoleLabel(comp)}
                       </span>

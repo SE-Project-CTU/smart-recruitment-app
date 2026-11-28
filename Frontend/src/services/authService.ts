@@ -2,6 +2,7 @@ import axiosClient from "@/api/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import type {
   ApiResponse,
+  GoogleLoginRequest,
   LoginRequest,
   LoginResult,
   LogoutRequest,
@@ -19,6 +20,18 @@ export const authService = {
   async login(payload: LoginRequest): Promise<ApiResponse<LoginResult>> {
     return await axiosClient.post<never, ApiResponse<LoginResult>>(
       API_ENDPOINTS.AUTH.LOGIN,
+      payload,
+    );
+  },
+
+  /**
+   * Log in or register user with Google Firebase ID token
+   */
+  async loginWithGoogle(
+    payload: GoogleLoginRequest,
+  ): Promise<ApiResponse<LoginResult>> {
+    return await axiosClient.post<never, ApiResponse<LoginResult>>(
+      API_ENDPOINTS.AUTH.GOOGLE,
       payload,
     );
   },

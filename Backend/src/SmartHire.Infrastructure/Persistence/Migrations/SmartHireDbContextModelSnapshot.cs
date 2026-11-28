@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -194,11 +193,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_application_status_histories");
 
-                    b.HasIndex("ApplicationId")
-                        .HasDatabaseName("ix_application_status_histories_application_id");
-
                     b.HasIndex("ChangedBy")
                         .HasDatabaseName("ix_application_status_histories_changed_by");
+
+                    b.HasIndex("ApplicationId", "CreatedAt")
+                        .HasDatabaseName("ix_application_status_histories_application_id_created_at");
 
                     b.ToTable("application_status_histories", (string)null);
                 });
@@ -366,6 +365,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("CompanyId", "InviterId")
                         .HasDatabaseName("ix_company_invitations_company_id_inviter_id");
 
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_company_invitations_company_id_status");
+
                     b.ToTable("company_invitations", (string)null);
                 });
 
@@ -410,6 +412,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CompanyId", "ReviewedBy")
                         .HasDatabaseName("ix_company_join_requests_company_id_reviewed_by");
+
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_company_join_requests_company_id_status");
 
                     b.ToTable("company_join_requests", (string)null);
                 });
@@ -456,6 +461,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_company_memberships_user_id");
+
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_company_memberships_company_id_status");
 
                     b.ToTable("company_memberships", (string)null);
                 });
@@ -845,6 +853,9 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_applications_candidate_id_job_id");
 
+                    b.HasIndex("JobId", "Status")
+                        .HasDatabaseName("ix_applications_job_id_status");
+
                     b.ToTable("applications", null, t =>
                         {
                             t.HasCheckConstraint("ck_applications_exactly_one_cv_source", "(cv_version_id IS NOT NULL) <> (uploaded_cv_file_id IS NOT NULL)");
@@ -978,6 +989,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("education_level");
 
+                    b.Property<decimal>("ExperienceWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.25m)
+                        .HasColumnName("experience_weight");
+
                     b.Property<int?>("ExperienceYears")
                         .HasColumnType("integer")
                         .HasColumnName("experience_years");
@@ -990,6 +1008,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("job_type");
+
+                    b.Property<decimal>("OtherWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.10m)
+                        .HasColumnName("other_weight");
 
                     b.Property<Guid>("ProvinceId")
                         .HasColumnType("uuid")
@@ -1018,6 +1043,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("search_vector")
                         .HasComputedColumnSql("to_tsvector('simple'::regconfig, coalesce(title, ''::text))", true);
 
+                    b.Property<decimal>("SkillWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.40m)
+                        .HasColumnName("skill_weight");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1027,6 +1059,13 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("title");
+
+                    b.Property<decimal>("TitleWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0.25m)
+                        .HasColumnName("title_weight");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1048,8 +1087,8 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_job_postings");
 
-                    b.HasIndex("ProvinceId")
-                        .HasDatabaseName("ix_job_postings_province_id");
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("ix_job_postings_company_id");
 
                     b.HasIndex("SearchVector")
                         .HasDatabaseName("ix_job_postings_search_vector");
@@ -1070,6 +1109,12 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CompanyId", "CreatedBy")
                         .HasDatabaseName("ix_job_postings_company_id_created_by");
+
+                    b.HasIndex("CompanyId", "Status")
+                        .HasDatabaseName("ix_job_postings_company_id_status");
+
+                    b.HasIndex("ProvinceId", "Status")
+                        .HasDatabaseName("ix_job_postings_province_id_status");
 
                     b.ToTable("job_postings", (string)null);
                 });
@@ -1180,6 +1225,10 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_media_files");
+
+                    b.HasIndex("DeletedAt")
+                        .HasDatabaseName("ix_media_files_deleted_at")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.HasIndex("OwnerId")
                         .HasDatabaseName("ix_media_files_owner_id");
@@ -1413,6 +1462,16 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("email");
 
+                    b.Property<string>("ExternalAvatarUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("external_avatar_url");
+
+                    b.Property<string>("FirebaseUid")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("firebase_uid");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1420,7 +1479,6 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                         .HasColumnName("full_name");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
@@ -1447,6 +1505,11 @@ namespace SmartHire.Infrastructure.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("FirebaseUid")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_firebase_uid")
+                        .HasFilter("firebase_uid IS NOT NULL");
 
                     b.HasIndex("Phone")
                         .IsUnique()

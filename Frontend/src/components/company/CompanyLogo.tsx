@@ -1,12 +1,19 @@
 import { getLoremAvt } from "@/utils/helper";
+import { cn } from "@/lib/utils";
 
 export interface CompanyLogoProps {
   logoUrl?: string | null;
   name: string;
   size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
-export function CompanyLogo({ logoUrl, name, size = "md" }: CompanyLogoProps) {
+export function CompanyLogo({
+  logoUrl,
+  name,
+  size = "md",
+  className,
+}: CompanyLogoProps) {
   const sizeMap = {
     sm: "size-10 text-sm",
     md: "size-14 text-base",
@@ -17,7 +24,11 @@ export function CompanyLogo({ logoUrl, name, size = "md" }: CompanyLogoProps) {
 
   return (
     <div
-      className={`${sizeMap[size]} shrink-0 overflow-hidden rounded-lg border border-border bg-white`}
+      className={cn(
+        sizeMap[size],
+        "shrink-0 overflow-hidden rounded-lg border border-border bg-white",
+        className,
+      )}
     >
       <img
         src={logoUrl || fallbackSrc}

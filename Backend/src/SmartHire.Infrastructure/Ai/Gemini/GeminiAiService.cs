@@ -189,6 +189,10 @@ public sealed class GeminiAiService : IGeminiAiService {
             if (!response.IsSuccessStatusCode) {
                 var errorText = await response.Content.ReadAsStringAsync(cts.Token);
 
+                _logger.LogWarning(
+                    "Gemini Batch Enhance generateContent returned HTTP {StatusCode} for model {Model} (prompt length: {PromptLength} characters).",
+                    (int)response.StatusCode, model, systemPrompt.Length);
+
                 if (IsQuotaExceeded(response.StatusCode, errorText)) {
                     _logger.LogWarning("Gemini API Quota Exceeded (429) during Batch Enhance: {Error}", errorText);
                     throw AiExceptions.AiQuotaExceeded(ExtractQuotaErrorMessage(errorText));
@@ -200,6 +204,9 @@ public sealed class GeminiAiService : IGeminiAiService {
                     response = await SendGeminiJsonAsync(fallbackUrl, payload, cts.Token);
 
                     if (!response.IsSuccessStatusCode) {
+                        _logger.LogWarning(
+                            "Gemini Batch Enhance fallback generateContent returned HTTP {StatusCode} for model {Model}.",
+                            (int)response.StatusCode, DefaultActiveFallbackModel);
                         return GeminiPrompts.CreateFallbackBatchEnhancement(request);
                     }
                 } else {
@@ -218,12 +225,14 @@ public sealed class GeminiAiService : IGeminiAiService {
             var parsedSections = parsed?.Sections ?? new List<CvBatchSectionItemJson>();
 
             var results = new List<CvSectionEnhancedResult>();
+            var hasIncompleteSections = false;
             foreach (var reqSec in request.Sections) {
                 var matched = parsedSections.FirstOrDefault(s =>
                     string.Equals(s.SectionType, reqSec.SectionType, StringComparison.OrdinalIgnoreCase));
 
                 var enhancedContent = matched?.EnhancedContent?.Trim();
                 if (string.IsNullOrWhiteSpace(enhancedContent)) {
+                    hasIncompleteSections = true;
                     enhancedContent = reqSec.Content;
                 }
 
@@ -231,12 +240,12 @@ public sealed class GeminiAiService : IGeminiAiService {
                     SectionType: reqSec.SectionType,
                     OriginalContent: reqSec.Content,
                     EnhancedContent: enhancedContent,
-                    SuggestedKeywords: (IReadOnlyList<string>?)matched?.SuggestedKeywords ?? new[] { reqSec.SectionType },
-                    Improvements: (IReadOnlyList<string>?)matched?.Improvements ?? new[] { "Chuẩn Google XYZ & Few-Shot Mẫu Vàng" }
+                    Improvements: (IReadOnlyList<string>?)matched?.Improvements ?? Array.Empty<string>(),
+                    AdditionalSuggestions: (IReadOnlyList<string>?)matched?.AdditionalSuggestions ?? Array.Empty<string>()
                 ));
             }
 
-            return new CvBatchEnhanceResult(results);
+            return new CvBatchEnhanceResult(results, IsFallback: hasIncompleteSections);
         } catch (AppException) {
             throw;
         } catch (Exception ex) {
@@ -402,6 +411,7 @@ public sealed class GeminiAiService : IGeminiAiService {
         string cvText,
         string jobText,
         decimal score,
+        decimal experienceScore,
         CancellationToken cancellationToken = default) {
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) {
             return GeminiPrompts.CreateFallbackMatchAnalysis(score);
@@ -414,7 +424,7 @@ public sealed class GeminiAiService : IGeminiAiService {
             var model = NormalizeModelName(_options.Model);
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
-            var prompt = GeminiPrompts.BuildMatchAnalysisPrompt(cvText, jobText, score);
+            var prompt = GeminiPrompts.BuildMatchAnalysisPrompt(cvText, jobText, score, experienceScore);
 
             var payload = new {
                 contents = new[] {

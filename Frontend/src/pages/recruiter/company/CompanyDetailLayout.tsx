@@ -31,7 +31,6 @@ export function CompanyDetailLayout() {
   const navigate = useNavigate();
 
   const activeCompanyId = useCompanyStore((s) => s.activeCompanyId);
-  const activeCompany = useCompanyStore((s) => s.activeCompany);
   const setActiveCompany = useCompanyStore((s) => s.setActiveCompany);
 
   const {
@@ -41,21 +40,41 @@ export function CompanyDetailLayout() {
     refetch: refreshCompany,
   } = useCompanyDetail(companyId);
 
-  // Tự động đồng bộ Active Company trong store nếu truy cập trực tiếp bằng URL của công ty hoặc thông tin cập nhật
+  // Tự động đồng bộ Active Company trong store khi truy cập trực tiếp qua URL (chỉ khi là thành viên Active)
   useEffect(() => {
     if (!company) return;
-    if (company.id !== activeCompanyId) {
-      setActiveCompany(company);
-    } else if (
-      !activeCompany ||
-      activeCompany.name !== company.name ||
-      activeCompany.logoUrl !== company.logoUrl ||
-      activeCompany.logoFileId !== company.logoFileId ||
-      activeCompany.verificationStatus !== company.verificationStatus
+    const current = useCompanyStore.getState().activeCompany;
+    if (
+      company.id !== activeCompanyId ||
+      !current ||
+      current.name !== company.name ||
+      current.logoUrl !== company.logoUrl ||
+      current.verificationStatus !== company.verificationStatus ||
+      current.membership?.role !== company.membership?.role
     ) {
       setActiveCompany(company);
+    } else {
+      const currentActive = useCompanyStore.getState().activeCompany;
+      if (
+        !currentActive ||
+        currentActive.name !== company.name ||
+        currentActive.logoUrl !== company.logoUrl ||
+        currentActive.logoFileId !== company.logoFileId ||
+        currentActive.verificationStatus !== company.verificationStatus ||
+        currentActive.membership?.role !== company.membership?.role
+      ) {
+        setActiveCompany(company);
+      }
     }
-  }, [company, activeCompanyId, activeCompany, setActiveCompany]);
+  }, [
+    company?.id,
+    company?.name,
+    company?.logoUrl,
+    company?.verificationStatus,
+    company?.membership?.role,
+    activeCompanyId,
+    setActiveCompany,
+  ]);
 
   if (isLoading) {
     return (
@@ -68,26 +87,32 @@ export function CompanyDetailLayout() {
     );
   }
 
-  if (error || !company) {
+  const isMemberActive = company?.membership?.status === "Active";
+
+  if (error || !company || !isMemberActive) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-surface py-20 text-center">
-        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-status-error">
           <AlertCircle className="size-7" />
         </div>
         <h2 className="text-lg font-bold text-text-main">
-          {error?.message || "Doanh nghiệp không tồn tại"}
+          {error?.message ||
+            (company && !isMemberActive
+              ? "Bạn không còn là thành viên của doanh nghiệp này"
+              : "Doanh nghiệp không tồn tại")}
         </h2>
         <p className="mt-1.5 text-xs text-text-muted">
-          Vui lòng kiểm tra lại đường dẫn hoặc quay về trang tổng quan tuyển
-          dụng.
+          {company && !isMemberActive
+            ? "Tài khoản của bạn đã rời hoặc bị quản trị viên loại bỏ khỏi doanh nghiệp này."
+            : "Vui lòng kiểm tra lại đường dẫn hoặc quay về trang quản lý doanh nghiệp."}
         </p>
         <button
-          onClick={() => navigate(PATHS.RECRUITER.DASHBOARD)}
+          onClick={() => navigate(PATHS.RECRUITER.COMPANY_MANAGEMENT)}
           type="button"
           className="hover:bg-primary-hover mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white"
         >
           <ArrowLeft className="size-4" />
-          Về trang tổng quan
+          Về quản lý doanh nghiệp
         </button>
       </div>
     );
@@ -205,33 +230,33 @@ export function CompanyDetailLayout() {
       </div>
 
       {/* 3. Thanh Navigation Tabs */}
-      <div className="flex border-b border-border">
-        <nav className="flex space-x-1 sm:space-x-3" aria-label="Tabs">
+      <div className="no-scrollbar flex overflow-x-auto border-b border-border">
+        <nav className="flex space-x-1 sm:space-x-2" aria-label="Tabs">
           <NavLink
             to="overview"
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                 isActive
                   ? "border-primary text-primary"
-                  : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                  : "border-transparent text-text-muted hover:border-border hover:text-text-main"
               }`
             }
           >
-            <Building2 className="size-4" />
+            <Building2 className="size-4 shrink-0 sm:size-4.5" />
             <span>Tổng quan</span>
           </NavLink>
 
           <NavLink
             to="members"
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+              `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                 isActive
                   ? "border-primary text-primary"
-                  : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                  : "border-transparent text-text-muted hover:border-border hover:text-text-main"
               }`
             }
           >
-            <Users className="size-4" />
+            <Users className="size-4 shrink-0 sm:size-4.5" />
             <span>Đội ngũ</span>
           </NavLink>
           {/* CHỈ HIỂN THỊ TAB YÊU CẦU GIA NHẬP VÀ CẬP NHẬT NẾU LÀ OWNER */}
@@ -240,28 +265,28 @@ export function CompanyDetailLayout() {
               <NavLink
                 to="invitations"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                     isActive
                       ? "border-primary text-primary"
-                      : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                      : "border-transparent text-text-muted hover:border-border hover:text-text-main"
                   }`
                 }
               >
-                <CheckCheck className="size-4" />
+                <CheckCheck className="size-4 shrink-0 sm:size-4.5" />
                 <span>Yêu cầu gia nhập</span>
               </NavLink>
 
               <NavLink
                 to="settings"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                  `inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:px-4 sm:py-3 sm:text-sm ${
                     isActive
                       ? "border-primary text-primary"
-                      : "border-transparent text-text-muted hover:border-slate-300 hover:text-text-main"
+                      : "border-transparent text-text-muted hover:border-border hover:text-text-main"
                   }`
                 }
               >
-                <Settings className="size-4" />
+                <Settings className="size-4 shrink-0 sm:size-4.5" />
                 <span>Cập nhật thông tin</span>
               </NavLink>
             </>

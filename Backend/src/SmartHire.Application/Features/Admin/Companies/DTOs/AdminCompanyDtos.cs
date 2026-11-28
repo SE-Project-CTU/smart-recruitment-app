@@ -4,7 +4,8 @@ public sealed record AdminCompanyOwnerDto(
     Guid Id,
     string FullName,
     string Email,
-    string? Phone
+    string? Phone,
+    string? AvatarUrl = null
 );
 
 public sealed record AdminCompanyItemDto(

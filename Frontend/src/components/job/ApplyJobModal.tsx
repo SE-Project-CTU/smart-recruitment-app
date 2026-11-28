@@ -78,6 +78,14 @@ export function ApplyJobModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [coverLetter, setCoverLetter] = useState<string>("");
+
+  const isJobClosed = Boolean(
+    currentJob &&
+      "status" in currentJob &&
+      typeof (currentJob as { status?: unknown }).status === "string" &&
+      ((currentJob as { status: string }).status.toLowerCase() === "closed" ||
+        (currentJob as { status: string }).status.toLowerCase() === "expired"),
+  );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const handleClose = useCallback(() => {
@@ -142,6 +150,13 @@ export function ApplyJobModal({
       return;
     }
 
+    if (isJobClosed) {
+      toast.warning({
+        description: "Vị trí tuyển dụng này đã nhận đủ số lượng nhân sự hoặc đã đóng.",
+      });
+      return;
+    }
+
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(currentJob.id)) {
@@ -166,8 +181,12 @@ export function ApplyJobModal({
         }
 
         try {
-          const versionsResult = await cvService.getCvVersions(effectiveSelectedCvId);
-          const latestVersion = Array.isArray(versionsResult) ? (versionsResult as unknown as Array<{ id: string }>)[0] : versionsResult?.items?.[0];
+          const versionsResult = await cvService.getCvVersions(
+            effectiveSelectedCvId,
+          );
+          const latestVersion = Array.isArray(versionsResult)
+            ? (versionsResult as unknown as Array<{ id: string }>)[0]
+            : versionsResult?.items?.[0];
           if (!latestVersion?.id) {
             toast.error({
               description:
@@ -249,11 +268,11 @@ export function ApplyJobModal({
     "Doanh nghiệp tuyển dụng";
 
   const modalNode = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-4">
       {/* Lớp phủ */}
       <div
         onClick={!isSubmitting ? handleClose : undefined}
-        className="fixed inset-0 bg-black/10 transition-opacity"
+        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
         aria-hidden="true"
       />
 
@@ -262,14 +281,14 @@ export function ApplyJobModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-job-title"
-        className="relative z-10 flex max-h-[92vh] w-full max-w-xl flex-col rounded-2xl border border-border bg-white shadow-2xl transition-all sm:max-w-2xl"
+        className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col rounded-2xl border border-border bg-surface shadow-2xl transition-all sm:max-w-2xl"
       >
         {/* Nút đóng */}
         <button
           type="button"
           onClick={handleClose}
           disabled={isSubmitting}
-          className="absolute top-4 right-4 z-20 flex size-8 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main"
+          className="absolute top-4 right-4 z-20 flex size-8 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-bg hover:text-text-main"
           aria-label="Đóng cửa sổ"
         >
           <X className="size-4" />
@@ -278,7 +297,7 @@ export function ApplyJobModal({
         {/* Phần đầu */}
         <div className="border-b border-border p-4 pr-12 text-left sm:p-6 sm:pb-4">
           <div className="flex items-start gap-3.5">
-            <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-1.5 shadow-2xs">
+            <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-surface p-1.5 shadow-2xs">
               <img
                 src={companyLogoUrl || getLoremAvt(companyName)}
                 alt={companyName}
@@ -311,7 +330,7 @@ export function ApplyJobModal({
         {/* Nội dung */}
         <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
           {/* Thông tin liên hệ */}
-          <section className="rounded-xl border border-border bg-slate-50/60 p-3.5">
+          <section className="rounded-xl border border-border bg-bg p-3.5">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
                 Thông tin người ứng tuyển
@@ -359,20 +378,20 @@ export function ApplyJobModal({
           {/* Phương thức nộp CV */}
           <section className="space-y-3">
             <h3 className="text-xs font-semibold tracking-wider text-text-muted uppercase">
-              Hồ sơ CV ứng tuyển <span className="text-rose-500">*</span>
+              Hồ sơ CV ứng tuyển <span className="text-status-error">*</span>
             </h3>
 
-            <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-slate-100/70 p-1">
+            <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-bg p-1">
               <button
                 type="button"
                 onClick={() => setCvMethod("online")}
                 className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition-all ${
                   effectiveCvMethod === "online"
-                    ? "bg-white text-text-main shadow-2xs"
+                    ? "bg-surface text-text-main shadow-2xs"
                     : "text-text-muted hover:text-text-main"
                 }`}
               >
-                <FileCheck className="size-4 text-emerald-600" />
+                <FileCheck className="size-4 text-status-success" />
                 <span>CV trực tuyến ({cvList.length})</span>
               </button>
               <button
@@ -380,7 +399,7 @@ export function ApplyJobModal({
                 onClick={() => setCvMethod("upload")}
                 className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition-all ${
                   effectiveCvMethod === "upload"
-                    ? "bg-white text-text-main shadow-2xs"
+                    ? "bg-surface text-text-main shadow-2xs"
                     : "text-text-muted hover:text-text-main"
                 }`}
               >
@@ -406,7 +425,7 @@ export function ApplyJobModal({
                           className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3 transition-all ${
                             isSelected
                               ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                              : "border-border bg-white hover:border-slate-300"
+                              : "border-border bg-surface hover:border-primary/40"
                           }`}
                         >
                           <div className="flex min-w-0 items-center gap-2.5">
@@ -414,7 +433,7 @@ export function ApplyJobModal({
                               className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${
                                 isSelected
                                   ? "border-primary bg-primary text-white"
-                                  : "border-slate-300"
+                                  : "border-border"
                               }`}
                             >
                               {isSelected && (
@@ -437,7 +456,7 @@ export function ApplyJobModal({
 
                           <div className="flex shrink-0 items-center gap-2">
                             {cv.isPublic && (
-                              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                              <span className="rounded-full bg-status-success/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
                                 Công khai
                               </span>
                             )}
@@ -450,7 +469,7 @@ export function ApplyJobModal({
                                   "_blank",
                                 );
                               }}
-                              className="cursor-pointer rounded-md p-1.5 text-text-muted hover:bg-slate-100 hover:text-text-main"
+                              className="cursor-pointer rounded-md p-1.5 text-text-muted hover:bg-bg hover:text-text-main"
                               title="Xem trước CV"
                             >
                               <Eye className="size-3.5" />
@@ -500,7 +519,7 @@ export function ApplyJobModal({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-slate-50/50 p-6 text-center transition-colors hover:border-primary/50 hover:bg-slate-50"
+                    className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg/50 p-6 text-center transition-colors hover:border-primary/50 hover:bg-bg"
                   >
                     <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <UploadCloud className="size-5" />
@@ -515,9 +534,9 @@ export function ApplyJobModal({
                 ) : (
                   <Attachment
                     state={uploadStatus === "uploading" ? "uploading" : "done"}
-                    className="w-full rounded-xl border border-border bg-white p-3 shadow-2xs"
+                    className="w-full rounded-xl border border-border bg-surface p-3 shadow-2xs"
                   >
-                    <AttachmentMedia className="rounded-lg bg-rose-50 text-rose-600">
+                    <AttachmentMedia className="rounded-lg bg-status-error/10 text-status-error">
                       <FileText className="size-5" />
                     </AttachmentMedia>
                     <AttachmentContent>
@@ -534,7 +553,7 @@ export function ApplyJobModal({
                       <AttachmentAction
                         type="button"
                         variant="ghost"
-                        className="size-7 cursor-pointer rounded-lg p-0 text-text-muted transition-colors hover:bg-rose-50 hover:text-rose-600"
+                        className="size-7 cursor-pointer rounded-lg p-0 text-text-muted transition-colors hover:bg-status-error/10 hover:text-status-error"
                         onClick={handleRemoveFile}
                         title="Gỡ file này"
                       >
@@ -567,7 +586,7 @@ export function ApplyJobModal({
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
               placeholder="Viết lời chào ngắn hoặc chia sẻ lý do bạn là ứng viên phù hợp với vị trí này..."
-              className="w-full resize-none rounded-xl border border-border bg-white p-3 text-xs text-text-main transition-colors outline-none placeholder:text-text-muted/60 focus:border-primary focus:ring-1 focus:ring-primary/20"
+              className="w-full resize-none rounded-xl border border-border bg-surface p-3 text-xs text-text-main transition-colors outline-none placeholder:text-text-muted/60 focus:border-primary focus:ring-1 focus:ring-primary/20"
             />
           </section>
         </div>
@@ -590,11 +609,12 @@ export function ApplyJobModal({
             isLoading={isSubmitting}
             disabled={
               isSubmitting ||
+              isJobClosed ||
               (effectiveCvMethod === "online" && !effectiveSelectedCvId) ||
               (effectiveCvMethod === "upload" && !uploadedFile)
             }
           >
-            <span>Nộp hồ sơ ngay</span>
+            <span>{isJobClosed ? "Đã nhận đủ hồ sơ" : "Nộp hồ sơ ngay"}</span>
           </Button>
         </div>
       </div>

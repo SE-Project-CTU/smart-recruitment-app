@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { AlertCircle, ChevronDown, MapPin } from "lucide-react";
 import { Select } from "@animate-ui/react/primitives/base-ui/select";
 import { useProvinces, useWards } from "@/hooks/queries/useCatalog";
@@ -20,7 +21,7 @@ export interface LocationSelectorProps {
   showDetailedLocation?: boolean;
 }
 
-export function LocationSelector({
+export const LocationSelector = memo(function LocationSelector({
   provinceId,
   wardId = "",
   detailedLocation = "",
@@ -252,6 +253,6 @@ export function LocationSelector({
       )}
     </div>
   );
-}
+});
 
 export default LocationSelector;

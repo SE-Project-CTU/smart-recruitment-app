@@ -15,14 +15,17 @@ public sealed class RerankJobsRealtimeQueryHandler
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly ICvVersionRepository _cvVersionRepository;
     private readonly ISmartHireMatchEngine _matchEngine;
+    private readonly IExperienceVectorMatchScorer _experienceVectorMatchScorer;
 
     public RerankJobsRealtimeQueryHandler(
         IJobPostingRepository jobPostingRepository,
         ICvVersionRepository cvVersionRepository,
-        ISmartHireMatchEngine matchEngine) {
+        ISmartHireMatchEngine matchEngine,
+        IExperienceVectorMatchScorer experienceVectorMatchScorer) {
         _jobPostingRepository = jobPostingRepository;
         _cvVersionRepository = cvVersionRepository;
         _matchEngine = matchEngine;
+        _experienceVectorMatchScorer = experienceVectorMatchScorer;
     }
 
     public async Task<IReadOnlyList<RealtimeRecommendedJobDto>> Handle(
@@ -45,7 +48,7 @@ public sealed class RerankJobsRealtimeQueryHandler
         // Lấy danh sách việc làm Published từ Database (Hỗ trợ phân trang và danh mục phong phú đến 500 jobs)
         var limit = request.Limit is > 0 and <= 500 ? request.Limit.Value : 100;
         var criteria = new JobPostingSearchCriteria(
-            new JobPostingSearchFilterCriteria(null, null, null, null, null, null, null, null, null, null, null),
+            new JobPostingSearchFilterCriteria(null, null, null, null, null, null, null, null, null, null, null, [], [], false),
             new JobPostingSearchSortCriteria(JobPostingSortField.CreatedAt, SortDirection.Desc),
             new PaginationCriteria(1, limit),
             DateTimeOffset.UtcNow
@@ -66,9 +69,9 @@ public sealed class RerankJobsRealtimeQueryHandler
         }
 
         // Đánh giá và Xếp hạng bằng SmartHire In-House Match Engine (Thuần In-Memory, < 10ms)
-        var rankedResults = cvVersion != null
-            ? _matchEngine.EvaluateBatch(cvVersion.Content, detailedJobs)
-            : _matchEngine.EvaluateBatchFromText(cvText!, detailedJobs);
+        var cvDocument = cvVersion?.Content ?? SmartHireMatchEngine.BuildSimulatedDocumentFromText(cvText!);
+        var experienceScores = await _experienceVectorMatchScorer.ScoreBatchAsync(cvDocument, detailedJobs, cancellationToken);
+        var rankedResults = _matchEngine.EvaluateBatch(cvDocument, detailedJobs, experienceScores);
 
         // Trả về danh sách đã được sắp xếp theo đúng điểm số giảm dần
         var detailedJobsMap = detailedJobs.ToDictionary(j => j.Id);

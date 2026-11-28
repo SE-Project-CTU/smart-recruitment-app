@@ -1,4 +1,4 @@
-﻿namespace SmartHire.Application.Common.Errors;
+namespace SmartHire.Application.Common.Errors;
 
 public static class AuthErrorCodes {
     public const string EmailAlreadyExists = "AUTH_EMAIL_ALREADY_EXISTS";
@@ -16,4 +16,10 @@ public static class AuthErrorCodes {
     public const string CurrentAccountNotFound = "AUTH_CURRENT_ACCOUNT_NOT_FOUND";
     public const string AvatarFileNotFound = "AUTH_AVATAR_FILE_NOT_FOUND";
     public const string AvatarFileNotOwned = "AUTH_AVATAR_FILE_NOT_OWNED";
+    public const string InvalidGoogleToken = "AUTH_INVALID_GOOGLE_TOKEN";
+    public const string GoogleEmailNotVerified = "AUTH_GOOGLE_EMAIL_NOT_VERIFIED";
+    public const string GoogleRoleRequired = "AUTH_GOOGLE_ROLE_REQUIRED";
+    public const string GoogleRoleMismatch = "AUTH_GOOGLE_ROLE_MISMATCH";
+    public const string InvalidRole = "AUTH_INVALID_ROLE";
+    public const string PasswordNotSet = "AUTH_PASSWORD_NOT_SET";
 }

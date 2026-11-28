@@ -5,5 +5,5 @@ public interface IGeminiAiService {
     Task<CvBatchEnhanceResult> EnhanceCvBatchAsync(CvBatchEnhanceRequest request, CancellationToken cancellationToken = default);
     IAsyncEnumerable<string> StreamEnhanceCvAsync(CvEnhanceRequest request, CancellationToken cancellationToken = default);
     Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default);
-    Task<MatchAnalysisResult> GenerateAnalysisExplanationAsync(string cvText, string jobText, decimal score, CancellationToken cancellationToken = default);
+    Task<MatchAnalysisResult> GenerateAnalysisExplanationAsync(string cvText, string jobText, decimal score, decimal experienceScore, CancellationToken cancellationToken = default);
 }

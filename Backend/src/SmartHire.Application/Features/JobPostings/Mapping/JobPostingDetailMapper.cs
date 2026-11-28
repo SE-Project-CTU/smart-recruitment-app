@@ -51,7 +51,8 @@ public static class JobPostingDetailMapper
         hasApplied,
         applicationId,
         isFollowingCompany,
-        isBookmarked);
+        isBookmarked,
+        data.MatchingWeights);
 
     public static JobPostingResult ToJobPostingResult(JobPostingDetailData data) => new(
         data.Id,
@@ -88,7 +89,8 @@ public static class JobPostingDetailMapper
         data.Industries.Select(i => new IndustrySummary(i.Id, i.Name)).ToArray(),
         data.Skills.Select(s => new SkillSummary(s.Id, s.Name)).ToArray(),
         data.CreatedAt,
-        data.UpdatedAt);
+        data.UpdatedAt,
+        data.MatchingWeights);
 
     private static string MapStatus(JobPostingStatus status) => status switch {
         JobPostingStatus.Published => "PUBLISHED",

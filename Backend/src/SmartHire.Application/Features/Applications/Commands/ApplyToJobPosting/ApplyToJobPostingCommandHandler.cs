@@ -1,12 +1,17 @@
 using System.Text.Json;
 using MediatR;
+using Microsoft.Extensions.Caching.Distributed;
+using SmartHire.Application.Abstractions.Notifications;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Features.Ai.Matching;
+using SmartHire.Application.Features.Ai.Matching.Models;
 using SmartHire.Application.Features.Applications.DTOs;
 using SmartHire.Application.Features.Applications.Exceptions;
+using SmartHire.Application.Features.Notifications.Constants;
+using SmartHire.Application.Features.Notifications.Mapping;
 using SmartHire.Domain.Entities;
 using SmartHire.Domain.Enums;
 
@@ -25,7 +30,12 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
     private readonly ICvEmbeddingRepository _cvEmbeddingRepository;
     private readonly IJobEmbeddingRepository _jobEmbeddingRepository;
     private readonly ISmartHireMatchEngine _matchEngine;
+    private readonly IExperienceVectorMatchScorer _experienceVectorMatchScorer;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly INotificationDispatcher? _notificationDispatcher;
+    private readonly IDistributedCache? _distributedCache;
+    private readonly ICompanyRepository? _companyRepository;
+    private readonly INotificationRepository? _notificationRepository;
 
     public ApplyToJobPostingCommandHandler(
         ICurrentUser currentUser,
@@ -37,7 +47,12 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         ICvEmbeddingRepository cvEmbeddingRepository,
         IJobEmbeddingRepository jobEmbeddingRepository,
         ISmartHireMatchEngine matchEngine,
-        IUnitOfWork unitOfWork) {
+        IExperienceVectorMatchScorer experienceVectorMatchScorer,
+        IUnitOfWork unitOfWork,
+        INotificationDispatcher? notificationDispatcher = null,
+        IDistributedCache? distributedCache = null,
+        ICompanyRepository? companyRepository = null,
+        INotificationRepository? notificationRepository = null) {
         _currentUser = currentUser;
         _jobPostingRepository = jobPostingRepository;
         _applicationRepository = applicationRepository;
@@ -47,7 +62,12 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         _cvEmbeddingRepository = cvEmbeddingRepository;
         _jobEmbeddingRepository = jobEmbeddingRepository;
         _matchEngine = matchEngine;
+        _experienceVectorMatchScorer = experienceVectorMatchScorer;
         _unitOfWork = unitOfWork;
+        _notificationDispatcher = notificationDispatcher;
+        _distributedCache = distributedCache;
+        _companyRepository = companyRepository;
+        _notificationRepository = notificationRepository;
     }
 
     public async Task<ApplyJobResult> Handle(
@@ -66,6 +86,15 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
             posting.Company.VerificationStatus != CompanyVerificationStatus.Verified ||
             (posting.Deadline is not null && posting.Deadline <= now)) {
             throw ApplicationExceptions.JobNotAcceptingApplications();
+        }
+
+        var reservedCount = await _applicationRepository.CountReservedQuotaAsync(jobPostingId, cancellationToken);
+        if (reservedCount >= posting.Vacancies) {
+            if (posting.Status == JobPostingStatus.Published) {
+                posting.Close(now);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            throw ApplicationExceptions.JobNotAcceptingApplications("Vị trí tuyển dụng này đã nhận đủ số lượng nhân sự.");
         }
 
         if (await _applicationRepository.ExistsForCandidateAsync(jobPostingId, candidateId, cancellationToken)) {
@@ -104,44 +133,51 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         var initialHistory = ApplicationStatusHistory.Create(application, candidateId, null, now);
         application.StatusHistories.Add(initialHistory);
 
+        MatchEngineResult? applicationMatchResult = null;
+        if (request.CvVersionId is Guid matchCvVersionId && cvVersion?.Content is not null) {
+            var jobDetail = await _jobPostingRepository.GetDetailByIdAsync(jobPostingId, cancellationToken);
+            if (jobDetail is not null) {
+                decimal? semanticVectorSimilarity = null;
+                try {
+                    var cvEmb = await _cvEmbeddingRepository.GetByCvVersionIdAsync(matchCvVersionId, cancellationToken);
+                    var jobEmb = await _jobEmbeddingRepository.GetByJobIdAsync(jobPostingId, cancellationToken);
+                    if (cvEmb?.Embedding != null && jobEmb?.Embedding != null) {
+                        semanticVectorSimilarity = TryComputeCosineSimilarity(cvEmb.Embedding, jobEmb.Embedding);
+                    }
+                } catch {
+                    // Skill matching can continue without the optional whole-document semantic signal.
+                }
+
+                var experienceScore = await _experienceVectorMatchScorer.ScoreAsync(cvVersion.Content, jobDetail, cancellationToken);
+                applicationMatchResult = _matchEngine.Evaluate(
+                    cvVersion.Content,
+                    jobDetail,
+                    experienceScore,
+                    semanticVectorSimilarity: semanticVectorSimilarity);
+            }
+        }
+
         try {
             await _unitOfWork.ExecuteInTransactionAsync(async ct => {
                 await _applicationRepository.AddAsync(application, ct);
+                // Lấy ID do database cấp trước khi tạo kết quả chấm điểm tham chiếu đến đơn.
+                await _unitOfWork.SaveChangesAsync(ct);
 
-                if (request.CvVersionId is Guid cvVerId && cvVersion?.Content is not null) {
-                    var jobDetail = await _jobPostingRepository.GetDetailByIdAsync(jobPostingId, ct);
-                    if (jobDetail is not null) {
-                        decimal? semanticVectorSimilarity = null;
-                        try {
-                            var cvEmb = await _cvEmbeddingRepository.GetByCvVersionIdAsync(cvVerId, ct);
-                            var jobEmb = await _jobEmbeddingRepository.GetByJobIdAsync(jobPostingId, ct);
-                            if (cvEmb?.Embedding != null && jobEmb?.Embedding != null) {
-                                semanticVectorSimilarity = TryComputeCosineSimilarity(cvEmb.Embedding, jobEmb.Embedding);
-                            }
-                        } catch {
-                            // Graceful degradation: nếu chưa có vector, Match Engine vẫn chạy chuẩn xác theo Lexical + Fuzzy
-                        }
-
-                        var matchResult = _matchEngine.Evaluate(
-                            cvVersion.Content,
-                            jobDetail,
-                            semanticVectorSimilarity: semanticVectorSimilarity);
-
-                        var analysisJson = JsonSerializer.Serialize(new {
-                            matchResult.Score,
-                            matchResult.Breakdown,
-                            matchResult.MatchingSkills,
-                            matchResult.MissingSkills,
-                            matchResult.Summary
-                        });
-                        var aiMatchResult = AiMatchResult.Create(
-                            application.Id,
-                            cvVerId,
-                            (decimal)matchResult.Score,
-                            analysisJson,
-                            now);
-                        await _aiMatchResultRepository.AddAsync(aiMatchResult, ct);
-                    }
+                if (request.CvVersionId is Guid cvVerId && applicationMatchResult is not null) {
+                    var analysisJson = JsonSerializer.Serialize(new {
+                        applicationMatchResult.Score,
+                        applicationMatchResult.Breakdown,
+                        applicationMatchResult.MatchingSkills,
+                        applicationMatchResult.MissingSkills,
+                        applicationMatchResult.Summary
+                    });
+                    var aiMatchResult = AiMatchResult.Create(
+                        application.Id,
+                        cvVerId,
+                        applicationMatchResult.Score,
+                        analysisJson,
+                        now);
+                    await _aiMatchResultRepository.AddAsync(aiMatchResult, ct);
                 }
 
                 await _unitOfWork.SaveChangesAsync(ct);
@@ -154,6 +190,139 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
                 "ix_applications_candidate_id_job_id",
                 StringComparison.OrdinalIgnoreCase)) {
             throw ApplicationExceptions.DuplicateApplication();
+        }
+
+        var companyId = posting.CompanyId;
+        var savedNotifications = new List<Notification>();
+
+        // 1. Lưu / gộp thông báo vào Database cho các thành viên Active của công ty (kể cả khi đang burst)
+        if (_notificationRepository is not null) {
+            try {
+                IReadOnlyList<Guid> recipientIds = _companyRepository is not null
+                    ? await _companyRepository.GetActiveMemberUserIdsAsync(companyId, cancellationToken)
+                    : Array.Empty<Guid>();
+
+                if (recipientIds.Count > 0) {
+                    await _unitOfWork.ExecuteInTransactionAsync(async ct => {
+                        await _notificationRepository.AcquireJobApplicationAggregateLockAsync(jobPostingId, ct);
+
+                        var existingUnread = await _notificationRepository.GetUnreadByRecipientsAndResourceAsync(
+                            recipientIds,
+                            NotificationType.JobApplicationReceived,
+                            "JobPosting",
+                            jobPostingId,
+                            ct);
+
+                        var existingByRecipient = existingUnread
+                            .GroupBy(n => n.RecipientId)
+                            .ToDictionary(g => g.Key, g => g.First());
+
+                        var newNotifications = new List<Notification>();
+                        const string notifTitle = "Hồ sơ ứng tuyển mới";
+
+                        foreach (var recipientId in recipientIds) {
+                            if (existingByRecipient.TryGetValue(recipientId, out var existing)) {
+                                var nextCount = ExtractApplicationCount(existing.Payload) + 1;
+                                var aggregatedBody = $"Đã có {nextCount} ứng viên nộp hồ sơ vào vị trí \"{posting.Title}\".";
+                                var aggregatedPayload = BuildApplicationPayload(application.Id, jobPostingId, nextCount);
+                                existing.AggregateUpdate(notifTitle, aggregatedBody, aggregatedPayload, now);
+                                savedNotifications.Add(existing);
+                            } else {
+                                var singleBody = $"Có ứng viên vừa nộp hồ sơ vào vị trí \"{posting.Title}\".";
+                                var singlePayload = BuildApplicationPayload(application.Id, jobPostingId, 1);
+                                var created = Notification.Create(
+                                    recipientId: recipientId,
+                                    type: NotificationType.JobApplicationReceived,
+                                    title: notifTitle,
+                                    body: singleBody,
+                                    payload: singlePayload,
+                                    resourceType: "JobPosting",
+                                    resourceId: jobPostingId,
+                                    now: now);
+                                newNotifications.Add(created);
+                                savedNotifications.Add(created);
+                            }
+                        }
+
+                        if (newNotifications.Count > 0) {
+                            await _notificationRepository.AddRangeAsync(newNotifications, ct);
+                        }
+
+                        await _unitOfWork.SaveChangesAsync(ct);
+                        return true;
+                    }, cancellationToken);
+                }
+            }
+            catch {
+                savedNotifications.Clear();
+                // Nuốt lỗi thông báo để không bao giờ làm gián đoạn đơn ứng tuyển đã nộp thành công
+            }
+        }
+
+        // 2. Phát realtime qua SignalR (chống bão toast trong cửa sổ 10 giây)
+        if (_notificationDispatcher is not null) {
+            try {
+                var throttleKey = $"notify_burst:company:{companyId:D}:job:{jobPostingId:D}";
+                bool isThrottled = false;
+
+                if (_distributedCache is not null) {
+                    var cached = await _distributedCache.GetStringAsync(throttleKey, cancellationToken);
+                    if (!string.IsNullOrEmpty(cached)) {
+                        isThrottled = true;
+                    }
+                    else {
+                        // Cửa sổ chống bão thông báo, burst traffic 10 giây
+                        await _distributedCache.SetStringAsync(
+                            throttleKey,
+                            "1",
+                            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) },
+                            cancellationToken);
+                    }
+                }
+
+                if (!isThrottled) {
+                    // Đơn đầu tiên trong cửa sổ 10s: phát đúng bản ghi của từng thành viên thay vì dùng chung DTO của 1 người
+                    if (savedNotifications.Count > 0) {
+                        foreach (var notification in savedNotifications) {
+                            await _notificationDispatcher.DispatchAsync(
+                                notification.RecipientId,
+                                NotificationResultMapper.ToDto(notification),
+                                cancellationToken);
+                        }
+                    } else if (_notificationRepository is null) {
+                        var fallbackDto = new {
+                            id = Guid.NewGuid(),
+                            type = NotificationType.JobApplicationReceived.ToString(),
+                            title = "Hồ sơ ứng tuyển mới",
+                            body = $"Có ứng viên vừa nộp hồ sơ vào vị trí \"{posting.Title}\".",
+                            payload = BuildApplicationPayload(application.Id, jobPostingId, 1),
+                            resourceType = "JobPosting",
+                            resourceId = jobPostingId,
+                            createdAt = application.AppliedAt,
+                            isRead = false
+                        };
+
+                        await _notificationDispatcher.DispatchToCompanyAsync(companyId, fallbackDto, cancellationToken);
+                    }
+                }
+                else {
+                    // Khi có lượng lớn ứng viên nộp dồn dập trong 10s:
+                    // Chỉ bắn sự kiện tăng bộ đếm nhẹ để UI nhảy số badge + cập nhật chuông, không gây bão toast
+                    await _notificationDispatcher.DispatchToGroupAsync(
+                        NotificationGroups.Company(companyId),
+                        "ApplicationCounterUpdated",
+                        new {
+                            jobId = jobPostingId,
+                            companyId = companyId,
+                            delta = 1,
+                            timestamp = DateTimeOffset.UtcNow
+                        },
+                        cancellationToken);
+                }
+            }
+            catch {
+                // Nuốt lỗi thông báo để không bao giờ làm gián đoạn đơn ứng tuyển đã nộp thành công
+            }
         }
 
         return new ApplyJobResult(
@@ -180,5 +349,29 @@ public sealed class ApplyToJobPostingCommandHandler : IRequestHandler<ApplyToJob
         double denom = Math.Sqrt(normA) * Math.Sqrt(normB);
         if (denom <= 0) return null;
         return (decimal)Math.Clamp(dot / denom, 0.0, 1.0);
+    }
+
+    private static string BuildApplicationPayload(Guid applicationId, Guid jobId, int count) {
+        return JsonSerializer.Serialize(new {
+            applicationId,
+            jobId,
+            count
+        });
+    }
+
+    private static int ExtractApplicationCount(string? payloadJson) {
+        if (string.IsNullOrWhiteSpace(payloadJson)) return 1;
+        try {
+            using var doc = JsonDocument.Parse(payloadJson);
+            if (doc.RootElement.TryGetProperty("count", out var countProp) &&
+                countProp.TryGetInt32(out var count) &&
+                count > 0) {
+                return count;
+            }
+        }
+        catch {
+            // ignore parse error
+        }
+        return 1;
     }
 }

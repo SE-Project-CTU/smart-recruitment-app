@@ -24,7 +24,7 @@ builder.Services.AddHangfireBackgroundJobs(builder.Configuration);
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 
-builder.Services.AddApiServices();
+builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddAppCors(builder.Configuration);
 builder.Services.AddAppOpenApi();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();

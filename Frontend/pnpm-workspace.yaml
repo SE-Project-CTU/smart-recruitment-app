@@ -1,5 +1,7 @@
 allowBuilds:
+  '@firebase/util': false
   esbuild: true
+  protobufjs: false
 minimumReleaseAgeExclude:
   - "@animate-ui/react@2.0.0"
 overrides:

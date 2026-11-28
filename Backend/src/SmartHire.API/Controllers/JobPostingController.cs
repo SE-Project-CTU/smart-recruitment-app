@@ -53,7 +53,10 @@ public sealed class JobPostingController : ControllerBase {
                 filter.JobLevel,
                 filter.JobType,
                 filter.WorkMode,
-                filter.ExperienceYears),
+                filter.ExperienceYears,
+                filter.IndustryIds,
+                filter.ExperienceRanges,
+                filter.SalaryNegotiableOnly),
             new JobPostingSearchSort(
                 sort.Sort,
                 sort.Direction),
@@ -93,7 +96,11 @@ public sealed class JobPostingController : ControllerBase {
             request.SalaryNegotiable,
             request.Deadline,
             request.IndustryIds,
-            request.SkillIds), cancellationToken);
+            request.SkillIds,
+            request.SkillWeight,
+            request.ExperienceWeight,
+            request.TitleWeight,
+            request.OtherWeight), cancellationToken);
         
         return StatusCode(StatusCodes.Status201Created, _responseFactory.Success(result));
     }
@@ -186,7 +193,12 @@ public sealed class JobPostingController : ControllerBase {
             request.IndustryIds,
             request.IndustryIdsProvided,
             request.SkillIds,
-            request.SkillIdsProvided);
+            request.SkillIdsProvided,
+            request.SkillWeight,
+            request.ExperienceWeight,
+            request.TitleWeight,
+            request.OtherWeight,
+            request.MatchingWeightsProvided);
 
         var result = await _sender.Send(command, cancellationToken);
         return Ok(_responseFactory.Success(result));

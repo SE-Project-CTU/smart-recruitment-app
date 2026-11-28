@@ -11,3 +11,5 @@ export { default as Office } from "./office.png";
 export { default as EmptyState } from "./Empty-amico.svg";
 export { default as EmptyStreet } from "./Empty street-rafiki.svg";
 export { default as ResumeHolder } from "./resume2.png";
+export { default as ContactSupportIllustration } from "./contact-support-amico.svg";
+export { default as MessageSentIllustration } from "./message-sent-pana.svg";

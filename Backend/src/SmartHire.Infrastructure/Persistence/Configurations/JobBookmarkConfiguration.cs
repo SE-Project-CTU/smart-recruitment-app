@@ -7,6 +7,7 @@ namespace SmartHire.Infrastructure.Persistence.Configurations;
 public class JobBookmarkConfiguration : IEntityTypeConfiguration<JobBookmark> {
     public void Configure(EntityTypeBuilder<JobBookmark> builder) {
         builder.HasKey(x => new { x.UserId, x.JobPostingId });
+        builder.HasIndex(x => x.JobPostingId);
         
         builder.HasOne(x => x.User)
             .WithMany(x => x.JobBookmarks)

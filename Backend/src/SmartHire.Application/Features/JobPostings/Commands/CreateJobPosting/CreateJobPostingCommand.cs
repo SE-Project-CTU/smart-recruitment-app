@@ -23,4 +23,8 @@ public sealed record CreateJobPostingCommand(
     bool? SalaryNegotiable,
     DateTimeOffset? Deadline,
     IReadOnlyList<Guid>? IndustryIds,
-    IReadOnlyList<Guid>? SkillIds) : IRequest<JobPostingResult>;
+    IReadOnlyList<Guid>? SkillIds,
+    decimal? SkillWeight = null,
+    decimal? ExperienceWeight = null,
+    decimal? TitleWeight = null,
+    decimal? OtherWeight = null) : IRequest<JobPostingResult>;

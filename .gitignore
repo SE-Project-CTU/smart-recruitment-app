@@ -12,6 +12,12 @@
 *.env
 !*.env.example
 
+# Firebase credentials & client config JSON (never commit)
+*firebase-adminsdk*.json
+firebase-service-account*.json
+firebase*.config.json
+firebaseConfig*.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -455,3 +461,12 @@ FodyWeavers.xsd
 *.msp
 
 .docs
+
+# Temporary workspace files & Agent Plans
+temp/
+plans/
+*.plan.md
+
+# Local AI / Agent tooling cache
+.codegraph/
+.impeccable/config.local.json

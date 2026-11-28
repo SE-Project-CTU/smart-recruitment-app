@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using SmartHire.Application.Abstractions.Persistence;
 using SmartHire.Application.Abstractions.Security;
 using SmartHire.Application.Common.Errors;
@@ -52,7 +52,9 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         
         var user = await _userRepository.GetByEmailWithRolesAsync(email!, cancellationToken);
         
-        if (user is null || !_passwordHasher.Verify(password!, user.PasswordHash)) {
+        if (user is null ||
+            string.IsNullOrEmpty(user.PasswordHash) ||
+            !_passwordHasher.Verify(password!, user.PasswordHash)) {
             List<AppErrorDetail> details = new() {
                 new AppErrorDetail(
                     "credentials",
@@ -120,7 +122,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
                         user.Id,
                         user.Email,
                         user.Phone,
-                        user.AvatarFile?.FileUrl,
+                        user.GetAvatarUrl(),
                         user.FullName,
                         roleNames,
                         user.Status.ToString()

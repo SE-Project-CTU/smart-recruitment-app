@@ -15,6 +15,7 @@ interface CvBuilderSidebarPanelProps {
  * - Animation width 320 -> 0 mượt mà với ease cubic-bezier.
  * - Header có tiêu đề tab động và nút ChevronLeft thu gọn.
  * - Thân panel cuộn nội dung độc lập, không nhảy chiều cao.
+ * - Cho phép chọn văn bản (select-text) tự nhiên trên toàn bộ nội dung của panel.
  */
 export const CvBuilderSidebarPanel: React.FC<CvBuilderSidebarPanelProps> = ({
   isOpen,
@@ -35,9 +36,9 @@ export const CvBuilderSidebarPanel: React.FC<CvBuilderSidebarPanelProps> = ({
           className="h-full shrink-0 overflow-hidden bg-surface"
         >
           {/* Khung nội dung con cố định chiều rộng 320px để tránh text wrap dồn dòng khi animate width */}
-          <div className="flex h-full w-80 max-w-[320px] min-w-[320px] flex-col overflow-hidden">
+          <div className="flex h-full w-80 max-w-[320px] min-w-[320px] flex-col overflow-hidden select-text">
             {/* Header của Panel */}
-            <div className="flex h-13 shrink-0 items-center justify-between border-b border-border/70 px-4">
+            <div className="flex h-13 shrink-0 items-center justify-between border-b border-border/70 px-4 select-none">
               <span className="truncate text-xs font-bold tracking-wider text-text-main uppercase">
                 {currentTab.title}
               </span>
@@ -53,7 +54,7 @@ export const CvBuilderSidebarPanel: React.FC<CvBuilderSidebarPanelProps> = ({
             </div>
 
             {/* Nội dung chi tiết active tab (Cuộn độc lập bên trong panel, không nhảy chiều cao) */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 select-text">
               <ActiveComponent />
             </div>
           </div>

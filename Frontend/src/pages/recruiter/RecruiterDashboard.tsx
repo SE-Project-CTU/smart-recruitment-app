@@ -32,7 +32,7 @@ import {
 } from "@/components/evilcharts/charts/echarts-pie-chart";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { CreateCompanyModal } from "./company/CreateCompanyModal";
-import { CandidateTable } from "./candidate/CandidateTable";
+import { CandidateTable, ApplicationCvPreviewDialog } from "./candidate";
 import { EmptyStreet } from "@/assets/images/decoration";
 import { useWeather, getWeatherInfo } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
@@ -46,7 +46,10 @@ import {
 import { PATHS } from "@/constants/paths";
 import { getTimeOfDayGreeting } from "@/utils/helper";
 import {
+  APPLICATION_STATUS,
+  normalizeApplicationStatus,
   resolveCandidateProfile,
+  type PendingStatusChange,
   type RecruiterCandidateApplicationItem,
   type UpdateJobApplicationStatus,
 } from "@/types/application";
@@ -61,12 +64,6 @@ import {
 } from "@/components/ui/dialog";
 
 dayjs.locale("vi");
-
-interface PendingStatusChange {
-  app: RecruiterCandidateApplicationItem;
-  fromStatus: string;
-  toStatus: UpdateJobApplicationStatus;
-}
 
 const trendChartConfig: ChartConfig = {
   applications: {
@@ -137,6 +134,8 @@ export default function RecruiterDashboard() {
   // Modal xem thư giới thiệu & thay đổi trạng thái ứng viên
   const [selectedLetterApp, setSelectedLetterApp] =
     useState<RecruiterCandidateApplicationItem | null>(null);
+  const [selectedCvApp, setSelectedCvApp] =
+    useState<RecruiterCandidateApplicationItem | null>(null);
   const [pendingChange, setPendingChange] =
     useState<PendingStatusChange | null>(null);
   const [transitionNote, setTransitionNote] = useState("");
@@ -169,7 +168,15 @@ export default function RecruiterDashboard() {
     isLoading: isLoadingJobs,
     isError: isErrorJobs,
     refetch: refetchJobs,
-  } = useCompanyJobPostings(activeCompanyId);
+  } = useCompanyJobPostings(activeCompanyId, { pageSize: 100 });
+
+  const closedJobIds = useMemo(() => {
+    return new Set(
+      (jobResponse?.items || [])
+        .filter((j) => (j.status || "").toUpperCase() === "CLOSED")
+        .map((j) => j.id),
+    );
+  }, [jobResponse]);
 
   const {
     data: applications,
@@ -181,32 +188,23 @@ export default function RecruiterDashboard() {
   const isLoadingData =
     isLoadingCompanies || isLoadingJobs || isLoadingApplications;
 
-  // Tự động đồng bộ và chọn doanh nghiệp hoạt động nếu chưa có hoặc dữ liệu server thay đổi
+  // Tự động đồng bộ và chọn doanh nghiệp hoạt động nếu chưa có hoặc id lưu không còn tồn tại
   useEffect(() => {
     if (isLoadingCompanies) return;
 
     if (companies.length === 0) {
-      if (activeCompany !== null || activeCompanyId !== null) {
+      if (activeCompanyId !== null) {
         clearActiveCompany();
       }
       return;
     }
 
     const found = companies.find((c) => c.id === activeCompanyId);
-    if (found) {
-      if (
-        found.verificationStatus !== activeCompany?.verificationStatus ||
-        found.name !== activeCompany?.name ||
-        found.logoUrl !== activeCompany?.logoUrl
-      ) {
-        setActiveCompany(found);
-      }
-    } else {
+    if (!found) {
       setActiveCompany(companies[0]);
     }
   }, [
     companies,
-    activeCompany,
     activeCompanyId,
     isLoadingCompanies,
     setActiveCompany,
@@ -238,24 +236,22 @@ export default function RecruiterDashboard() {
   // Hồ sơ mới nộp (Submitted / Received)
   const newApplications = useMemo(() => {
     return allApplications.filter((a) => {
-      const s = (a.status || "").toUpperCase();
-      return s === "SUBMITTED" || s === "RECEIVED";
+      const s = normalizeApplicationStatus(a.status);
+      return s === APPLICATION_STATUS.SUBMITTED || s === APPLICATION_STATUS.RECEIVED;
     });
   }, [allApplications]);
 
   // 3. Mời phỏng vấn (Interview / Interviewing)
   const interviewingApplications = useMemo(() => {
     return allApplications.filter((a) => {
-      const s = (a.status || "").toUpperCase();
-      return s === "INTERVIEW" || s === "INTERVIEWING";
+      return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.INTERVIEWING;
     });
   }, [allApplications]);
 
   // 4. Đã tuyển dụng (Hired / Accepted)
   const hiredApplications = useMemo(() => {
     return allApplications.filter((a) => {
-      const s = (a.status || "").toUpperCase();
-      return s === "HIRED" || s === "ACCEPTED";
+      return normalizeApplicationStatus(a.status) === APPLICATION_STATUS.HIRED;
     });
   }, [allApplications]);
 
@@ -298,21 +294,33 @@ export default function RecruiterDashboard() {
     let rejected = 0;
 
     for (const app of allApplications) {
-      const s = (app.status || "").toUpperCase();
-      if (s === "SUBMITTED" || s === "RECEIVED") {
-        submitted++;
-      } else if (s === "REVIEWING" || s === "SHORTLISTED" || s === "APPROVED") {
-        reviewing++;
-      } else if (s === "INTERVIEW" || s === "INTERVIEWING") {
-        interviewing++;
-      } else if (s === "OFFERED") {
-        offered++;
-      } else if (s === "HIRED" || s === "ACCEPTED") {
-        hired++;
-      } else if (s === "REJECTED" || s === "WITHDRAWN") {
-        rejected++;
-      } else {
-        submitted++;
+      const s = normalizeApplicationStatus(app.status);
+      switch (s) {
+        case APPLICATION_STATUS.SUBMITTED:
+        case APPLICATION_STATUS.RECEIVED:
+          submitted++;
+          break;
+        case APPLICATION_STATUS.REVIEWING:
+        case APPLICATION_STATUS.SHORTLISTED:
+        case APPLICATION_STATUS.APPROVED:
+          reviewing++;
+          break;
+        case APPLICATION_STATUS.INTERVIEWING:
+          interviewing++;
+          break;
+        case APPLICATION_STATUS.OFFERED:
+          offered++;
+          break;
+        case APPLICATION_STATUS.HIRED:
+          hired++;
+          break;
+        case APPLICATION_STATUS.REJECTED:
+        case APPLICATION_STATUS.WITHDRAWN:
+          rejected++;
+          break;
+        default:
+          submitted++;
+          break;
       }
     }
 
@@ -365,7 +373,7 @@ export default function RecruiterDashboard() {
     app: RecruiterCandidateApplicationItem,
     targetStatus: UpdateJobApplicationStatus,
   ) => {
-    const currentStatus = (app.status || "SUBMITTED").toUpperCase();
+    const currentStatus = normalizeApplicationStatus(app.status);
     setPendingChange({
       app,
       fromStatus: currentStatus,
@@ -671,7 +679,7 @@ export default function RecruiterDashboard() {
                     <span className="text-xs font-semibold tracking-wider text-text-muted uppercase">
                       {item.title}
                     </span>
-                    <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                    <div className="flex size-9 items-center justify-center rounded-xl bg-bg-white-blue text-secondary-dark transition-colors group-hover:bg-primary group-hover:text-white">
                       <item.icon className="size-4" />
                     </div>
                   </div>
@@ -746,7 +754,7 @@ export default function RecruiterDashboard() {
                 <EChartsAreaChart.Grid />
                 <EChartsAreaChart.XAxis
                   dataKey="month"
-                  tickFormatter={(val) => val}
+                  tickFormatter={(val: string) => val}
                 />
                 <EChartsAreaChart.Tooltip />
                 <EChartsAreaChart.Area
@@ -804,9 +812,9 @@ export default function RecruiterDashboard() {
                   <EChartsPieChart.Tooltip />
                   <EChartsPieChart.Pie
                     isClickable
-                    innerRadius={60}
-                    paddingAngle={-25}
-                    cornerRadius={99}
+                    innerRadius={65}
+                    paddingAngle={applicationStatusData.length > 1 ? 3 : 0}
+                    cornerRadius={4}
                   />
                 </EChartsPieChart>
 
@@ -1000,12 +1008,14 @@ export default function RecruiterDashboard() {
             <CandidateTable
               data={recentCandidates}
               onReadCoverLetter={(app) => setSelectedLetterApp(app)}
+              onPreviewCv={setSelectedCvApp}
               onRequestChangeStatus={handleOpenConfirmTransition}
               onViewJobDetail={(jobId) =>
                 navigate(PATHS.RECRUITER.JOB_DETAIL.replace(":id", jobId))
               }
               isUpdatingStatus={updateStatusMutation.isPending}
               emptyMessage={`Doanh nghiệp "${activeCompany.name}" hiện chưa có hồ sơ ứng tuyển nào.`}
+              closedJobIds={closedJobIds}
             />
           )}
         </div>
@@ -1021,7 +1031,7 @@ export default function RecruiterDashboard() {
           if (!open) setSelectedLetterApp(null);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Thư giới thiệu của ứng viên</DialogTitle>
             <DialogDescription>
@@ -1031,7 +1041,7 @@ export default function RecruiterDashboard() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-80 overflow-y-auto rounded-xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-700 sm:text-sm">
+          <div className="max-h-80 overflow-y-auto rounded-xl border border-border bg-bg p-4 text-xs leading-relaxed text-text-main sm:text-sm">
             {selectedLetterApp?.coverLetter ||
               "Ứng viên không đính kèm thư giới thiệu."}
           </div>
@@ -1057,7 +1067,7 @@ export default function RecruiterDashboard() {
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Xác nhận thay đổi trạng thái</DialogTitle>
             <DialogDescription>
@@ -1071,7 +1081,7 @@ export default function RecruiterDashboard() {
             <div>
               <label
                 htmlFor="transition-note"
-                className="text-xs font-semibold text-slate-700"
+                className="text-xs font-semibold text-text-main"
               >
                 Ghi chú nội bộ (Tùy chọn)
               </label>
@@ -1081,7 +1091,7 @@ export default function RecruiterDashboard() {
                 placeholder="Nhập ghi chú hoặc lý do chuyển trạng thái hồ sơ..."
                 value={transitionNote}
                 onChange={(e) => setTransitionNote(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-border bg-slate-50/50 p-3 text-xs text-text-main transition-colors placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none"
+                className="mt-1.5 w-full rounded-xl border border-border bg-bg p-3 text-xs text-text-main transition-colors placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
               />
             </div>
 
@@ -1106,6 +1116,12 @@ export default function RecruiterDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Xem CV Ứng Viên */}
+      <ApplicationCvPreviewDialog
+        application={selectedCvApp}
+        onClose={() => setSelectedCvApp(null)}
+      />
 
       {/* Modal Tạo doanh nghiệp mới */}
       <CreateCompanyModal

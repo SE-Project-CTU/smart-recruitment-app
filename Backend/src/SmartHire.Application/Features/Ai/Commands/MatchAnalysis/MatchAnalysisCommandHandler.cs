@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
 using SmartHire.Application.Abstractions.Ai;
@@ -13,6 +14,7 @@ using SmartHire.Application.Features.Ai.Mapping;
 using SmartHire.Application.Features.Ai.Matching;
 using SmartHire.Application.Features.Ai.Matching.Models;
 using SmartHire.Domain.Entities;
+using SmartHire.Domain.Enums;
 using SmartHire.Domain.ValueObjects.Cv;
 
 namespace SmartHire.Application.Features.Ai.Commands.MatchAnalysis;
@@ -23,6 +25,7 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
     private readonly ICvEmbeddingRepository _cvEmbeddingRepository;
     private readonly IJobEmbeddingRepository _jobEmbeddingRepository;
     private readonly ISmartHireMatchEngine _matchEngine;
+    private readonly IExperienceVectorMatchScorer _experienceVectorMatchScorer;
     private readonly IGeminiAiService _geminiAiService;
     private readonly IDistributedCache _cache;
 
@@ -32,6 +35,7 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
         ICvEmbeddingRepository cvEmbeddingRepository,
         IJobEmbeddingRepository jobEmbeddingRepository,
         ISmartHireMatchEngine matchEngine,
+        IExperienceVectorMatchScorer experienceVectorMatchScorer,
         IGeminiAiService geminiAiService,
         IDistributedCache cache) {
         _jobPostingRepository = jobPostingRepository;
@@ -39,6 +43,7 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
         _cvEmbeddingRepository = cvEmbeddingRepository;
         _jobEmbeddingRepository = jobEmbeddingRepository;
         _matchEngine = matchEngine;
+        _experienceVectorMatchScorer = experienceVectorMatchScorer;
         _geminiAiService = geminiAiService;
         _cache = cache;
     }
@@ -98,7 +103,7 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
         }
 
         // Cache Key phụ thuộc Hash nội dung thực tế (Tự động vô hiệu hóa khi CV chỉnh sửa)
-        var cacheKey = $"match:{jobKeyPart}:cvhash:{cvHash}";
+        var cacheKey = $"match-v2:{jobKeyPart}:cvhash:{cvHash}";
         try {
             var cachedJson = await _cache.GetStringAsync(cacheKey, cancellationToken);
             if (!string.IsNullOrWhiteSpace(cachedJson)) {
@@ -127,6 +132,10 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
 
         // Đánh giá độ tương thích bằng SmartHire In-House Match Engine (Thuần In-Memory, < 5ms)
         string rawSkillsText = SmartHireMatchEngine.ExtractSkillsBlock(cvText);
+        var experienceCv = !string.IsNullOrWhiteSpace(request.CvText)
+            ? SmartHireMatchEngine.BuildSimulatedDocumentFromText(cvText)
+            : cvVersion?.Content ?? SmartHireMatchEngine.BuildSimulatedDocumentFromText(cvText);
+        var experienceScore = await _experienceVectorMatchScorer.ScoreAsync(experienceCv, jobDetail, cancellationToken);
 
         MatchEngineResult engineResult;
         if (!string.IsNullOrWhiteSpace(request.CvText)) {
@@ -135,17 +144,20 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
             engineResult = _matchEngine.Evaluate(
                 simulatedDoc,
                 jobDetail,
+                experienceScore,
                 rawCvSkillsText: rawSkillsText,
                 semanticVectorSimilarity: semanticVectorSimilarity);
         } else if (cvVersion != null) {
             engineResult = _matchEngine.Evaluate(
                 cvVersion.Content,
                 jobDetail,
+                experienceScore,
                 semanticVectorSimilarity: semanticVectorSimilarity);
         } else {
             engineResult = _matchEngine.EvaluateFromText(
                 cvText,
                 jobDetail,
+                experienceScore,
                 semanticVectorSimilarity: semanticVectorSimilarity);
         }
 
@@ -156,6 +168,7 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
                 cvText,
                 jobText,
                 engineResult.Score,
+                engineResult.Breakdown.ExperienceScore,
                 cancellationToken);
 
             result = new MatchAnalysisResultDto(
@@ -164,7 +177,8 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
                 MatchingSkills: engineResult.MatchingSkills,
                 MissingSkills: engineResult.MissingSkills,
                 Strengths: explanation.Strengths.Count > 0 ? explanation.Strengths : BuildDefaultStrengths(engineResult),
-                Recommendations: explanation.Recommendations.Count > 0 ? explanation.Recommendations : BuildDefaultRecommendations(engineResult)
+                Recommendations: explanation.Recommendations.Count > 0 ? explanation.Recommendations : BuildDefaultRecommendations(engineResult),
+                Breakdown: engineResult.Breakdown
             );
         } catch {
             // Khi Gemini hết quota hoặc lỗi mạng: KHÔNG CRASH 500, trả về điểm số thật kèm nhận xét từ Engine
@@ -174,7 +188,8 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
                 MatchingSkills: engineResult.MatchingSkills,
                 MissingSkills: engineResult.MissingSkills,
                 Strengths: BuildDefaultStrengths(engineResult),
-                Recommendations: BuildDefaultRecommendations(engineResult)
+                Recommendations: BuildDefaultRecommendations(engineResult),
+                Breakdown: engineResult.Breakdown
             );
         }
 
@@ -190,6 +205,22 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
     }
 
     private static JobPostingDetailData BuildSimulatedJobDetail(string jobText) {
+        int? expYears = null;
+        var expMatch = Regex.Match(jobText, @"\b(\d{1,2})\s*(?:năm|nam|year|years)\s*(?:kinh nghiệm|kinh nghiem|experience)?", RegexOptions.IgnoreCase);
+        if (expMatch.Success && int.TryParse(expMatch.Groups[1].Value, out var expVal)) {
+            expYears = expVal;
+        }
+
+        EducationLevel? eduLevel = null;
+        var lowerJob = jobText.ToLowerInvariant();
+        if (lowerJob.Contains("đại học") || lowerJob.Contains("cử nhân") || lowerJob.Contains("kỹ sư") || lowerJob.Contains("bachelor") || lowerJob.Contains("university")) {
+            eduLevel = EducationLevel.Bachelor;
+        } else if (lowerJob.Contains("cao đẳng") || lowerJob.Contains("college")) {
+            eduLevel = EducationLevel.College;
+        } else if (lowerJob.Contains("thạc sĩ") || lowerJob.Contains("master") || lowerJob.Contains("tiến sĩ") || lowerJob.Contains("phd")) {
+            eduLevel = EducationLevel.Postgraduate;
+        }
+
         return new JobPostingDetailData(
             Id: Guid.Empty,
             Creator: new CreatorReadModel(Guid.Empty, "Recruiter", "recruiter@smarthire.vn", null),
@@ -197,9 +228,9 @@ public sealed class MatchAnalysisCommandHandler : IRequestHandler<MatchAnalysisC
             Description: jobText,
             Requirements: jobText,
             Benefits: null,
-            ExperienceYears: null,
+            ExperienceYears: expYears,
             JobLevel: null,
-            EducationLevel: null,
+            EducationLevel: eduLevel,
             Vacancies: 1,
             WorkMode: SmartHire.Domain.Enums.WorkMode.Onsite,
             JobType: SmartHire.Domain.Enums.JobType.FullTime,

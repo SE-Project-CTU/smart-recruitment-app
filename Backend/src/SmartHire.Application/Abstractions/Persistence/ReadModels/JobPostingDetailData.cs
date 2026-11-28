@@ -1,4 +1,5 @@
 using SmartHire.Domain.Enums;
+using SmartHire.Domain.ValueObjects;
 
 namespace SmartHire.Application.Abstractions.Persistence.ReadModels;
 
@@ -25,7 +26,8 @@ public sealed record JobPostingDetailData(
     IReadOnlyList<IndustryReadModel> Industries,
     IReadOnlyList<SkillReadModel> Skills,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    JobMatchingWeights? MatchingWeights = null);
 
 public sealed record CreatorReadModel(
     Guid Id,

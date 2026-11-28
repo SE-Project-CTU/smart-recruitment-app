@@ -1,4 +1,6 @@
-﻿import type { CVItem } from "@/types/cv";
+import type { CVItem } from "@/types/cv";
+import type { BaseJobSummary } from "@/types/job";
+import type { ApplicationStatus } from "@/types/application";
 
 export const isLoggedIn = false;
 
@@ -11,7 +13,10 @@ export interface TestimonialItem {
   comment: string;
 }
 
-export interface CompanyItem {
+/**
+ * @deprecated Dữ liệu mock cho UI trước khi có API Company. Khuyến nghị dùng CompanyItem từ @/types/company.
+ */
+export interface MockCompanyItem {
   id: string;
   name: string;
   taxCode: string;
@@ -26,8 +31,10 @@ export interface CompanyItem {
   createdAt: string;
   updatedAt: string;
 }
+/** @deprecated Dùng MockCompanyItem */
+export type CompanyItem = MockCompanyItem;
 
-export interface MockJobPosting {
+export interface MockJobPosting extends Partial<BaseJobSummary> {
   id: string;
   company: {
     id: string;
@@ -69,9 +76,6 @@ export interface MockJobPosting {
   aiMatchScore?: number; // Điểm gợi ý tương thích ảo cho Dashboard
 }
 
-export type ApplicationStatus =
-  "APPLIED" | "REVIEWING" | "INTERVIEW" | "OFFERED" | "ACCEPTED" | "REJECTED";
-
 export interface MockApplication {
   id: string;
   jobId: string;
@@ -79,7 +83,7 @@ export interface MockApplication {
   cvVersionId: string | null;
   uploadedCvUrl: string | null;
   coverLetter: string;
-  status: ApplicationStatus;
+  status: ApplicationStatus | string;
   appliedAt: string;
   updatedAt: string;
   job: MockJobPosting;
@@ -117,12 +121,17 @@ export const MOCK_INDUSTRY_HIERARCHY: IndustryGroup[] = [
   },
 ];
 
-export interface LocationGroup {
+/**
+ * @deprecated Dữ liệu mock phân cấp địa lý. Khuyến nghị dùng LocationGroup từ components/LocationCombobox.
+ */
+export interface MockLocationGroup {
   province: string;
   wards: string[];
 }
+/** @deprecated Dùng MockLocationGroup */
+export type LocationGroup = MockLocationGroup;
 
-export const MOCK_LOCATION_HIERARCHY: LocationGroup[] = [
+export const MOCK_LOCATION_HIERARCHY: MockLocationGroup[] = [
   {
     province: "TP. Hồ Chí Minh",
     wards: ["Phường Bến Nghé", "Phường Tân Phú", "Phường Thảo Điền"],

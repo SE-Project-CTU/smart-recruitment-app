@@ -139,7 +139,7 @@ export const CreateCvFromTemplateModal: React.FC<
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-6 shadow-xl">
+      <div className="w-[calc(100vw-2rem)] sm:w-full sm:max-w-md rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xl">
         <CreateCvModalForm
           key={template.id}
           template={template}

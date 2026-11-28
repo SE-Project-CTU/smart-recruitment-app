@@ -12,20 +12,30 @@ public sealed class SearchJobPostingsQueryHandler
     private readonly IJobPostingRepository _jobPostingRepository;
     private readonly ILocationCatalogRepository _locationRepository;
     private readonly ICompanyRepository _companyRepository;
+    private readonly IIndustryCatalogRepository _industryRepository;
     
     public SearchJobPostingsQueryHandler(
         IJobPostingRepository jobPostingRepository,
         ILocationCatalogRepository locationRepository,
-        ICompanyRepository companyRepository) {
+        ICompanyRepository companyRepository,
+        IIndustryCatalogRepository industryRepository) {
         _jobPostingRepository = jobPostingRepository;
         _locationRepository = locationRepository;
         _companyRepository = companyRepository;
+        _industryRepository = industryRepository;
     }
     
     public async Task<SearchJobPostingsPage> Handle(
         SearchJobPostingsQuery request,
         CancellationToken cancellationToken) {
         var criteria = SearchJobPostingsQueryValidator.Validate(request);
+        if (criteria.Filter.IndustryIds.Count > 0) {
+            var activeIds = await _industryRepository.GetActiveIndustryIdsAsync(
+                criteria.Filter.IndustryIds, cancellationToken);
+            var missingIds = criteria.Filter.IndustryIds.Where(id => !activeIds.Contains(id)).ToArray();
+            if (missingIds.Length > 0)
+                throw JobPostingExceptions.IndustryNotFound(missingIds);
+        }
         
         if (criteria.Filter.CompanyId is Guid companyId) {
             var company = await _companyRepository.GetByIdAsync(companyId, cancellationToken);

@@ -31,6 +31,17 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   AUTH_CURRENT_ACCOUNT_NOT_FOUND: "Không tìm thấy tài khoản hiện tại.",
   AUTH_AVATAR_FILE_NOT_FOUND: "Không tìm thấy ảnh đại diện.",
   AUTH_AVATAR_FILE_NOT_OWNED: "Ảnh đại diện không thuộc tài khoản hiện tại.",
+  AUTH_INVALID_GOOGLE_TOKEN:
+    "Phiên xác thực Google không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.",
+  AUTH_GOOGLE_EMAIL_NOT_VERIFIED:
+    "Email Google của bạn chưa được xác minh. Vui lòng sử dụng tài khoản đã xác minh.",
+  AUTH_GOOGLE_ROLE_REQUIRED:
+    "Vui lòng chọn vai trò Ứng viên hoặc Nhà tuyển dụng để hoàn tất đăng ký.",
+  AUTH_GOOGLE_ROLE_MISMATCH:
+    "Email Google này đã được đăng ký với một vai trò khác. Vui lòng đăng nhập ở đúng tài khoản hoặc chọn đúng vai trò.",
+  AUTH_INVALID_ROLE: "Vai trò được chọn không hợp lệ.",
+  AUTH_PASSWORD_NOT_SET:
+    "Tài khoản này đăng nhập bằng Google và chưa thiết lập mật khẩu riêng.",
   MEDIA_FILE_NOT_FOUND: "Không tìm thấy tệp.",
   MEDIA_FILE_FORBIDDEN: "Bạn không có quyền truy cập tệp này.",
   MEDIA_FILE_STORAGE_ERROR: "Không thể lưu tệp. Vui lòng thử lại.",
@@ -69,7 +80,7 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   COMPANY_LOGO_ALREADY_IN_USE:
     "Logo này đã được gán cho một doanh nghiệp khác.",
   MAX_OWNED_COMPANIES_REACHED:
-    "Bạn đã đạt giới hạn tối đa số doanh nghiệp được sở hữu.",
+    "Nhà tuyển dụng đã đạt giới hạn tối đa tham gia hoặc sở hữu doanh nghiệp.",
   INVITEE_ROLE_REQUIRED:
     "Tài khoản được mời phải có vai trò Nhà tuyển dụng (Recruiter).",
   INVALID_JOB_POSTING_DATA:
@@ -88,6 +99,9 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   JOB_ALREADY_BOOKMARKED: "Tin tuyển dụng này đã được lưu vào danh sách quan tâm của bạn.",
   JOB_BOOKMARK_NOT_FOUND: "Tin tuyển dụng chưa được lưu trong danh sách quan tâm.",
   CANNOT_BOOKMARK_UNPUBLISHED_JOB: "Chỉ có thể lưu các tin tuyển dụng đang công khai.",
+  JOB_POSTING_UNAUTHORIZED: "Vui lòng đăng nhập để xem thông tin tin tuyển dụng này.",
+  JOB_POSTING_CONFLICT: "Trạng thái tin tuyển dụng đã có sự thay đổi. Vui lòng tải lại trang.",
+  INDUSTRY_GROUP_NOT_FOUND: "Không tìm thấy nhóm ngành tương ứng.",
   // CV Error Codes
   CV_CANDIDATE_ROLE_REQUIRED: "Chỉ ứng viên mới có quyền quản lý hồ sơ CV.",
   CV_NOT_FOUND: "Không tìm thấy hồ sơ CV.",
@@ -156,6 +170,31 @@ export const API_ERROR_MESSAGES: Record<string, string> = {
   ADMIN_CV_TEMPLATE_NOT_FOUND: "Không tìm thấy mẫu CV tiêu chuẩn.",
   ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS:
     "Mã định danh (code) của mẫu CV này đã tồn tại.",
+
+  // Admin Notification Error Codes
+  ADMIN_NOTIFICATION_NOT_FOUND: "Không tìm thấy thông báo hệ thống.",
+  ADMIN_NOTIFICATION_TITLE_REQUIRED: "Tiêu đề thông báo không được để trống.",
+  ADMIN_NOTIFICATION_BODY_REQUIRED: "Nội dung thông báo không được để trống.",
+  ADMIN_NOTIFICATION_PAYLOAD_TOO_LARGE:
+    "Dữ liệu đính kèm thông báo vượt quá độ dài cho phép (tối đa 512 ký tự).",
+  ADMIN_NOTIFICATION_TARGET_REQUIRED: "Vui lòng chọn đối tượng nhận thông báo.",
+  ADMIN_NOTIFICATION_INVALID_TARGET_ROLE: "Vai trò nhận thông báo không hợp lệ.",
+  ADMIN_NOTIFICATION_RECIPIENT_NOT_FOUND:
+    "Không tìm thấy người nhận thông báo hợp lệ.",
+  ADMIN_NOTIFICATION_DISPATCH_FAILED:
+    "Gửi thông báo thời gian thực thất bại. Vui lòng thử lại sau.",
+  ADMIN_NOTIFICATION_FAILED: "Không thể tạo thông báo. Vui lòng thử lại sau.",
+
+  // AI Error Codes
+  AI_SERVICE_UNAVAILABLE: "Dịch vụ AI đang bận hoặc tạm thời gián đoạn. Vui lòng thử lại sau.",
+  AI_QUOTA_EXCEEDED: "Hạn ngạch gọi dịch vụ AI tạm thời vượt quá giới hạn. Vui lòng thử lại sau.",
+  RESOURCE_EXHAUSTED: "Dịch vụ AI đang quá tải yêu cầu. Vui lòng thử lại sau ít phút.",
+  AI_JOB_NOT_FOUND: "Không tìm thấy tin tuyển dụng tương ứng.",
+  AI_CV_NOT_FOUND: "Chưa có nội dung hồ sơ CV để thực hiện gợi ý việc làm.",
+  NO_CV_EMBEDDING_FOUND: "Chưa thể trích xuất đặc trưng hồ sơ CV. Vui lòng cập nhật thêm thông tin.",
+  REFRESH_COOLDOWN_ACTIVE: "Bạn vừa làm mới gợi ý. Vui lòng chờ một chút trước khi thử lại.",
+  AI_MATCH_RESULT_NOT_FOUND: "Chưa có kết quả phân tích độ phù hợp.",
+  CONVERSATION_NOT_FOUND: "Không tìm thấy cuộc trò chuyện với trợ lý AI.",
 };
 
 export const FIELD_LABELS: Record<string, string> = {
@@ -171,7 +210,11 @@ export const FIELD_LABELS: Record<string, string> = {
   website: "website",
   description: "mô tả",
   title: "tiêu đề tin tuyển dụng",
+  company: "doanh nghiệp",
   companyId: "doanh nghiệp",
+  memberId: "thành viên",
+  member: "thành viên",
+  logoFileId: "ảnh logo",
   provinceId: "tỉnh/thành phố",
   wardId: "phường/xã",
   groupId: "nhóm ngành",
@@ -198,6 +241,10 @@ export const FIELD_LABELS: Record<string, string> = {
   code: "mã định danh",
   isCentrallyGoverned: "trực thuộc trung ương",
   isCommune: "xã/thị trấn",
+  targetRole: "đối tượng nhận thông báo",
+  targetType: "phạm vi gửi thông báo",
+  notificationType: "loại thông báo",
+  expiresAt: "thời hạn thông báo",
 };
 
 export const HTTP_STATUS_MESSAGES: Record<number, string> = {

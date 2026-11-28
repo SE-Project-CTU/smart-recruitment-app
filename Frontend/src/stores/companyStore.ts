@@ -96,7 +96,6 @@ export const useCompanyStore = create<CompanyStoreState>((set, get) => ({
       prev?.id === newId &&
       prev?.name === company?.name &&
       prev?.logoUrl === company?.logoUrl &&
-      prev?.logoFileId === company?.logoFileId &&
       prev?.verificationStatus === company?.verificationStatus &&
       prev?.membership?.role === company?.membership?.role
     ) {

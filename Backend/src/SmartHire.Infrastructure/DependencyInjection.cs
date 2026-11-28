@@ -52,6 +52,8 @@ public static class DependencyInjection {
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
         services.AddSingleton<IAccessTokenGenerator, JwtAccessTokenGenerator>();
+        services.Configure<FirebaseOptions>(configuration.GetSection(FirebaseOptions.SectionName));
+        services.AddSingleton<IFirebaseTokenVerifier, FirebaseTokenVerifier>();
         
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();

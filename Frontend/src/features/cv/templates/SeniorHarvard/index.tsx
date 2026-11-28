@@ -22,6 +22,7 @@ import { CvTiptapReadOnlyView } from "../../builder/components/CvTiptapReadOnlyV
 import { DEFAULT_CV_FONT_ID, getCvFontFamilyCss } from "../../constants/fonts";
 import type { CvTemplateProps, CvFieldRenderer } from "../types";
 import { getCvTemplateMetadata } from "../templateMetadata";
+import { useCvHighlightStore } from "@/stores/cvHighlightStore";
 
 const THIS_TEMPLATE_CODE = "senior_harvard";
 const THIS_MAIN_AREA_ID = "main";
@@ -54,6 +55,9 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
   onReorderSections,
   onToggleSectionVisibility,
 }) => {
+  const highlightSectionKey = useCvHighlightStore(
+    (s) => s.highlightSectionKey,
+  );
   if (!content || !content.profile || !content.sections) {
     return (
       <div className="flex h-96 items-center justify-center rounded-xl border border-dashed border-border bg-surface text-sm text-text-muted">
@@ -283,10 +287,18 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                     isDragDisabled={isReadOnly}
                   >
                     {(dragProvided, snapshot) => {
+                      const isActiveSuggestion = Boolean(
+                        !isReadOnly &&
+                          highlightSectionKey &&
+                          sectionKey.toLowerCase() ===
+                            highlightSectionKey.toLowerCase(),
+                      );
+
                       const card = (
                         <div
                           ref={dragProvided.innerRef}
                           {...dragProvided.draggableProps}
+                          data-section-key={sectionKey}
                           style={
                             snapshot.isDragging
                               ? {
@@ -309,7 +321,11 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                                   }
                                 : dragProvided.draggableProps.style
                           }
-                          className={`group relative rounded-sm px-2 hover:ring-1 hover:ring-slate-300 ${
+                          className={`group relative rounded-lg px-2 scroll-mt-8 transition-all duration-200 ${
+                            isActiveSuggestion
+                              ? "border-2 border-primary ring-2 ring-primary/20 bg-blue-50/10 shadow-xs"
+                              : "hover:ring-1 hover:ring-slate-300"
+                          } ${
                             snapshot.isDragging
                               ? "cv-page-container text-slate-900 z-50 bg-white opacity-95 shadow-2xl ring-2 ring-primary/40"
                               : ""
@@ -326,6 +342,7 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
                                 sectionKey as FixedSectionKey,
                               )
                             }
+                            sectionKey={sectionKey}
                           />
                           {renderSectionContent(sectionKey)}
                         </div>
@@ -346,11 +363,27 @@ export const SeniorHarvardTemplate: React.FC<CvTemplateProps> = ({
         </DragDropContext>
       ) : (
         <div className="space-y-2">
-          {visibleSections.map((sectionKey) => (
-            <div key={sectionKey} className="relative rounded-sm px-2">
-              {renderSectionContent(sectionKey)}
-            </div>
-          ))}
+          {visibleSections.map((sectionKey) => {
+            const isActiveSuggestion = Boolean(
+              !isReadOnly &&
+                highlightSectionKey &&
+                sectionKey.toLowerCase() ===
+                  highlightSectionKey.toLowerCase(),
+            );
+            return (
+              <div
+                key={sectionKey}
+                data-section-key={sectionKey}
+                className={`relative rounded-lg px-2 scroll-mt-8 transition-all duration-200 ${
+                  isActiveSuggestion
+                    ? "border-2 border-primary ring-2 ring-primary/20 bg-blue-50/10 shadow-xs"
+                    : ""
+                }`}
+              >
+                {renderSectionContent(sectionKey)}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

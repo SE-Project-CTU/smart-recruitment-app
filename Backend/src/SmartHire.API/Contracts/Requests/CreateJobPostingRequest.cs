@@ -69,4 +69,16 @@ public sealed class CreateJobPostingRequest {
     [Required(ErrorMessage = "At least one skill is required.")]
     [MinLength(1, ErrorMessage = "At least one skill is required.")]
     public IReadOnlyList<Guid>? SkillIds { get; init; }
+
+    [Range(0, 100, ErrorMessage = "Skill weight must be between 0 and 100.")]
+    public decimal? SkillWeight { get; init; }
+
+    [Range(0, 100, ErrorMessage = "Experience weight must be between 0 and 100.")]
+    public decimal? ExperienceWeight { get; init; }
+
+    [Range(0, 100, ErrorMessage = "Title weight must be between 0 and 100.")]
+    public decimal? TitleWeight { get; init; }
+
+    [Range(0, 100, ErrorMessage = "Other weight must be between 0 and 100.")]
+    public decimal? OtherWeight { get; init; }
 }

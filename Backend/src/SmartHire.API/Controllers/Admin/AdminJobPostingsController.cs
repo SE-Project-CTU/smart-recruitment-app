@@ -48,16 +48,17 @@ public sealed class AdminJobPostingsController : ControllerBase {
     }
 
     /// <summary>
-    /// Duyệt hoặc từ chối tin tuyển dụng
+    /// Duyệt, từ chối hoặc đóng tin tuyển dụng
     /// </summary>
     [HttpPatch("{id:guid}/moderation")]
     public async Task<IActionResult> ModerateJobPosting(
         [FromRoute] Guid id,
         [FromBody] ReviewJobModerationRequest request,
         CancellationToken cancellationToken = default) {
-        if (!Enum.TryParse<JobPostingStatus>(request.Status, true, out var status)) {
+        if (!Enum.TryParse<JobPostingStatus>(request.Status, true, out var status) ||
+            (status != JobPostingStatus.Published && status != JobPostingStatus.Rejected && status != JobPostingStatus.Closed)) {
             throw AdminExceptions.Validation("Invalid job posting status.", [
-                new AppErrorDetail("status", ValidationReasons.NotAllowed, $"Status '{request.Status}' is invalid. Allowed: 'Published', 'Rejected'.")
+                new AppErrorDetail("status", ValidationReasons.NotAllowed, $"Status '{request.Status}' is invalid. Allowed: 'Published', 'Rejected', 'Closed'.")
             ]);
         }
 

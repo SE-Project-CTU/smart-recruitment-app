@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
+import { CvPreviewWorkspace, CV_PRINT_PAGE_STYLE } from "@/features/cv";
 import { useNavigate } from "react-router-dom";
 import { FilePlus2, Plus } from "lucide-react";
 import { Button, CVCard } from "@/components/common";
@@ -6,7 +8,7 @@ import {
   useMyCvs,
   useToggleCvPublic,
   useDeleteCv,
-  useUpdateCv,
+  useCvDetail,
 } from "@/hooks/queries/useCv";
 import { PATHS } from "@/constants/paths";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +26,6 @@ import {
 
 export default function CandidateCvManagementPage() {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const { data: cvData, isLoading: isLoadingCvs } = useMyCvs();
   const cvs = cvData?.items ?? [];
@@ -32,12 +33,10 @@ export default function CandidateCvManagementPage() {
   const { mutateAsync: togglePublic, isPending: isTogglingPublic } =
     useToggleCvPublic();
   const { mutateAsync: deleteCv, isPending: isDeletingCv } = useDeleteCv();
-  const { mutateAsync: updateCv, isPending: isUpdatingCv } = useUpdateCv();
 
-  // State modals
+  // State modal xóa CV
   const [cvToDelete, setCvToDelete] = useState<CVItem | null>(null);
-  const [cvToRename, setCvToRename] = useState<CVItem | null>(null);
-  const [renameTitle, setRenameTitle] = useState("");
+  const [cvToDownload, setCvToDownload] = useState<CVItem | null>(null);
 
   // Xử lý bật/tắt công khai
   const handleTogglePublic = async (cv: CVItem, nextIsPublic: boolean) => {
@@ -59,38 +58,8 @@ export default function CandidateCvManagementPage() {
     }
   };
 
-  // Xác nhận đổi tên CV
-  const handleConfirmRename = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cvToRename || !renameTitle.trim()) return;
-    try {
-      await updateCv({
-        id: cvToRename.id,
-        payload: { title: renameTitle.trim() },
-      });
-      setCvToRename(null);
-    } catch {
-      // Đã xử lý lỗi ở hook
-    }
-  };
-
-  // Tải file CV
-  const handleDownloadCv = (cv: CVItem) => {
-    const previewFileUrl = cv.previewFile?.url;
-
-    if (previewFileUrl) {
-      window.open(previewFileUrl, "_blank");
-    } else {
-      toast({
-        title: "Tải file CV",
-        description:
-          "Hệ thống đang đồng bộ định dạng PDF. Bạn có thể xem trước nội dung trực tiếp.",
-      });
-    }
-  };
-
   return (
-    <div className="min-h-full space-y-8 pb-12">
+    <div className="space-y-8">
       {/* Section: Danh sách CV của bạn */}
       <section className="flex flex-col gap-6 rounded-2xl bg-bg">
         <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -115,32 +84,30 @@ export default function CandidateCvManagementPage() {
         </div>
 
         {isLoadingCvs ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap gap-5">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="aspect-3/4 animate-pulse rounded-2xl border border-border bg-surface/50"
+                className="aspect-3/4 w-full sm:w-[calc(50%-10px)] lg:w-[calc((100%-40px)/3)] xl:w-[calc(25%-15px)] animate-pulse rounded-2xl border border-border bg-surface/50"
               />
             ))}
           </div>
         ) : cvs.length > 0 ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap gap-5">
             {cvs.map((cv) => (
               <CVCard
                 key={cv.id}
                 cv={cv}
+                className="w-full sm:w-[calc(50%-10px)] lg:w-[calc((100%-40px)/3)] xl:w-[calc(25%-15px)]"
                 onClick={(item) => {
                   navigate(`${PATHS.CANDIDATE.PREVIEW_CV}?id=${item.id}`);
                 }}
                 onTogglePublic={handleTogglePublic}
                 isTogglingPublic={isTogglingPublic}
-                onDownload={handleDownloadCv}
+                onDownload={setCvToDownload}
+                isDownloading={cvToDownload?.id === cv.id}
                 onEdit={(item) => {
                   navigate(`${PATHS.EDIT_CV}?id=${item.id}`);
-                }}
-                onRename={(item) => {
-                  setCvToRename(item);
-                  setRenameTitle(item.title);
                 }}
                 onDelete={(item) => setCvToDelete(item)}
               />
@@ -174,43 +141,8 @@ export default function CandidateCvManagementPage() {
         )}
       </section>
 
-      {/* Modal: Đổi tên CV */}
-      {cvToRename && (
-        <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-          <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6 shadow-xl">
-            <h3 className="text-base font-bold text-text-main">Đổi tên CV</h3>
-            <p className="mt-1 text-xs text-text-muted">
-              Nhập tên mới để bạn dễ dàng quản lý các phiên bản CV.
-            </p>
-
-            <form onSubmit={handleConfirmRename} className="mt-4 space-y-4">
-              <input
-                type="text"
-                required
-                value={renameTitle}
-                onChange={(e) => setRenameTitle(e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-text-main focus:border-primary focus:outline-none"
-              />
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => setCvToRename(null)}
-                  disabled={isUpdatingCv}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  isLoading={isUpdatingCv}
-                >
-                  Lưu thay đổi
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {cvToDownload && (
+        <CvPdfDownload key={cvToDownload.id} cvId={cvToDownload.id} onDone={() => setCvToDownload(null)} />
       )}
 
       {/* AlertDialog: Xác nhận xóa CV */}
@@ -246,6 +178,45 @@ export default function CandidateCvManagementPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function CvPdfDownload({ cvId, onDone }: { cvId: string; onDone: () => void }) {
+  const printRef = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+  const { toast } = useToast();
+  const { data, isError } = useCvDetail(cvId);
+  const print = useReactToPrint({
+    contentRef: printRef,
+    pageStyle: CV_PRINT_PAGE_STYLE,
+    documentTitle: data?.title ? `SmartHire_CV_${data.title}` : "SmartHire_CV",
+    onAfterPrint: onDone,
+    onPrintError: () => {
+      toast({ title: "Không thể tải CV", description: "Vui lòng thử lại." });
+      onDone();
+    },
+  });
+
+  useEffect(() => {
+    if (!data || started.current) return;
+    const frame = requestAnimationFrame(() => {
+      started.current = true;
+      print();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [data, print]);
+
+  useEffect(() => {
+    if (!isError) return;
+    toast({ title: "Không thể tải CV", description: "Vui lòng thử lại." });
+    onDone();
+  }, [isError, onDone, toast]);
+
+  if (!data) return null;
+  return (
+    <div className="hidden">
+      <CvPreviewWorkspace content={data.content} layout={data.layout} contentRef={printRef} className="p-0!" />
     </div>
   );
 }

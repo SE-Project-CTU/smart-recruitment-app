@@ -116,6 +116,14 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
         CancellationToken cancellationToken) =>
         ApplyJobFilters(jobId, status).CountAsync(cancellationToken);
 
+    public Task<int> CountReservedQuotaAsync(
+        Guid jobId,
+        CancellationToken cancellationToken) =>
+        dbContext.Applications
+            .AsNoTracking()
+            .Where(a => a.JobId == jobId && (a.Status == ApplicationStatus.Offered || a.Status == ApplicationStatus.Hired))
+            .CountAsync(cancellationToken);
+
     public Task<ApplicationDetailData?> GetDetailByIdAsync(
         Guid applicationId,
         CancellationToken cancellationToken) =>
@@ -154,7 +162,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     application.Candidate.FullName,
                     application.Candidate.Email,
                     application.Candidate.Phone,
-                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : application.Candidate.ExternalAvatarUrl),
                 application.Job.CompanyId,
                 application.CvVersionId,
                 application.CvVersion,
@@ -191,7 +199,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     history.ChangedByUser.Id,
                     history.ChangedByUser.FullName,
                     history.ChangedByUser.Email,
-                    history.ChangedByUser.AvatarFile != null ? history.ChangedByUser.AvatarFile.FileUrl : null,
+                    history.ChangedByUser.AvatarFile != null ? history.ChangedByUser.AvatarFile.FileUrl : history.ChangedByUser.ExternalAvatarUrl,
                     history.ChangedBy == history.Application.CandidateId
                         ? RoleNames.Candidate
                         : history.ChangedByUser.UserRoles
@@ -239,7 +247,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     application.Candidate.FullName,
                     application.Candidate.Email,
                     application.Candidate.Phone,
-                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : application.Candidate.ExternalAvatarUrl),
                 application.CvVersionId,
                 application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
                 application.CoverLetter,
@@ -303,6 +311,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                 application.Id,
                 application.JobId,
                 application.Job.Title,
+                application.Job.Status,
                 application.Job.CompanyId,
                 application.Job.Company.Name,
                 application.Job.Company.LogoFile != null ? application.Job.Company.LogoFile.FileUrl : null,
@@ -311,7 +320,7 @@ public sealed class JobApplicationRepository(SmartHireDbContext dbContext) : IJo
                     application.Candidate.FullName,
                     application.Candidate.Email,
                     application.Candidate.Phone,
-                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : null),
+                    application.Candidate.AvatarFile != null ? application.Candidate.AvatarFile.FileUrl : application.Candidate.ExternalAvatarUrl),
                 application.CvVersionId,
                 application.UploadedCvFile == null ? null : application.UploadedCvFile.FileUrl,
                 application.CoverLetter,

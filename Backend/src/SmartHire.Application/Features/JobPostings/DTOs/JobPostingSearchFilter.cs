@@ -11,4 +11,7 @@ public sealed record JobPostingSearchFilter(
     string? JobLevel = null,
     string? JobType = null,
     string? WorkMode = null,
-    int? ExperienceYears = null);
+    int? ExperienceYears = null,
+    IReadOnlyList<Guid>? IndustryIds = null,
+    IReadOnlyList<string>? ExperienceRanges = null,
+    bool? SalaryNegotiableOnly = null);

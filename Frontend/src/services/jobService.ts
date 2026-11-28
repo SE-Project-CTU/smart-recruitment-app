@@ -23,10 +23,10 @@ export const jobService = {
   async createJobPosting(
     payload: CreateJobPostingPayload,
   ): Promise<JobPostingResult> {
-    const response = await axiosClient.post<never, ApiResponse<JobPostingResult>>(
-      API_ENDPOINTS.JOB_POSTING.CREATE,
-      payload,
-    );
+    const response = await axiosClient.post<
+      never,
+      ApiResponse<JobPostingResult>
+    >(API_ENDPOINTS.JOB_POSTING.CREATE, payload);
     return response.data;
   },
 
@@ -64,10 +64,25 @@ export const jobService = {
     items: JobPostingSearchItem[];
     meta: PaginationMeta;
   }> {
+    const query = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (
+          value === undefined ||
+          value === null ||
+          value === "" ||
+          value === false
+        )
+          return;
+        if (Array.isArray(value))
+          value.forEach((item) => query.append(key, String(item)));
+        else query.set(key, String(value));
+      });
+    }
     const response = await axiosClient.get<
       never,
       ApiPagedResponse<JobPostingSearchItem>
-    >(API_ENDPOINTS.JOB_POSTING.SEARCH, { params });
+    >(`${API_ENDPOINTS.JOB_POSTING.SEARCH}${query.size ? `?${query}` : ""}`);
 
     return {
       items: response.data || [],

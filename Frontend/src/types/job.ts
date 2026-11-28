@@ -58,6 +58,37 @@ export interface CompanySummary {
 export type SearchJobCompanySummary = CompanySummary;
 
 /**
+ * Định nghĩa tóm tắt thông tin Job tối thiểu/chuẩn hóa cho Card, Drawer, Modal
+ */
+export interface BaseJobSummary {
+  id: string;
+  title: string;
+  company?: CompanySummary | {
+    id?: string;
+    name?: string;
+    logoUrl?: string | null;
+    logoFileUrl?: string | null;
+    verificationStatus?: string | null;
+  } | null;
+  companyName?: string;
+  companyLogoUrl?: string | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryNegotiable?: boolean | null;
+  salaryRange?: string | null;
+  currency?: string | null;
+  jobType?: JobType | string | null;
+  workMode?: WorkMode | string | null;
+  jobLevel?: JobLevel | string | null;
+  location?: {
+    provinceName?: string | null;
+    wardName?: string | null;
+    detailedLocation?: string | null;
+  } | null;
+  provinceName?: string | null;
+}
+
+/**
  * Thông tin Người tạo tin (Recruiter Membership)
  */
 export interface JobPostingCreatorResult {
@@ -73,6 +104,13 @@ export interface JobPostingCreatorResult {
 /**
  * DTO tin tuyển dụng tiêu chuẩn (Dùng cho Create, Update, Company JobList)
  */
+export interface JobMatchingWeights {
+  skillWeight: number;
+  experienceWeight: number;
+  titleWeight: number;
+  otherWeight: number;
+}
+
 export interface JobPostingResult {
   id: string;
   company: CompanySummary;
@@ -99,6 +137,7 @@ export interface JobPostingResult {
   skills: SkillSummary[];
   createdAt: string;
   updatedAt: string;
+  matchingWeights?: JobMatchingWeights | null;
 
   // Flattened helpers tiện ích cho component
   companyId?: string;
@@ -108,6 +147,10 @@ export interface JobPostingResult {
   wardId?: string | null;
   industryIds?: string[];
   skillIds?: string[];
+  skillWeight?: number;
+  experienceWeight?: number;
+  titleWeight?: number;
+  otherWeight?: number;
 }
 
 /**
@@ -225,6 +268,10 @@ export interface CreateJobPostingPayload {
   deadline: string;
   industryIds: string[];
   skillIds: string[];
+  skillWeight?: number;
+  experienceWeight?: number;
+  titleWeight?: number;
+  otherWeight?: number;
 }
 
 /**
@@ -250,6 +297,10 @@ export interface UpdateJobPostingPayload {
   deadline?: string;
   industryIds?: string[];
   skillIds?: string[];
+  skillWeight?: number;
+  experienceWeight?: number;
+  titleWeight?: number;
+  otherWeight?: number;
 }
 
 /**
@@ -274,6 +325,9 @@ export interface SearchJobPostingsRequest {
   jobType?: JobType;
   workMode?: WorkMode;
   experienceYears?: number;
+  industryIds?: string[];
+  experienceRanges?: string[];
+  salaryNegotiableOnly?: boolean;
   page?: number;
   pageSize?: number;
   sort?: "createdAt" | "salaryMax";
@@ -290,37 +344,36 @@ export const JOB_STATUS_CONFIG: Record<
 > = {
   Published: {
     label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   PendingReview: {
     label: "Chờ duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   Closed: {
     label: "Đã đóng",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   Expired: {
     label: "Hết hạn",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 
   // Fallbacks chữ hoa tương thích code cũ
   PUBLISHED: {
     label: "Đang nhận hồ sơ",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: "bg-status-success/10 text-status-success border-status-success/20",
   },
   CLOSED: {
     label: "Đã đóng",
-    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
   PENDING_REVIEW: {
     label: "Chờ duyệt",
-    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeClass: "bg-status-warning/10 text-status-warning border-status-warning/20",
   },
   EXPIRED: {
     label: "Hết hạn",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeClass: "bg-bg text-text-muted border-border",
   },
 };
-

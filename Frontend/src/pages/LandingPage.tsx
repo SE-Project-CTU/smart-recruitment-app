@@ -7,9 +7,9 @@ import {
   Rectangle_2,
   Rectangle_3,
 } from "@/assets/images/decoration";
-import { SmartHire_default, SmartHire_text_only } from "@/assets/images/logo";
 import {
   Button,
+  Footer,
   GradientBackground,
   GradientGridBackground,
 } from "@/components/common";
@@ -31,16 +31,39 @@ import {
 import { useEffect, useState } from "react";
 import TestimonialCard from "@/components/TestimonialCard";
 import { testimonialData } from "@/constants/mockData";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PATHS } from "@/constants/paths";
 
 const HeroSection = () => {
   const navigate = useNavigate();
   return (
-    <section className="overflow-bg-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg-white-blue pt-28 pb-16 lg:pt-32">
-      <div className="container mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
+    <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg-white-blue pt-28 pb-16 lg:pt-32">
+      {/* Background Gradient Waves từ React Bits */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {/* <GradientWaves
+          horizonColor="#1b3b6f"
+          waveColor="#38bdf8"
+          crestColor="#e0f2fe"
+          backgroundColor="transparent"
+          lightMode={true}
+          speed={0.45}
+          amplitude={2.8}
+          relief={1.2}
+          sheen={0.4}
+          parallaxStrength={0.7}
+          mouseInteraction={false}
+          swellOnClick={false}
+          forceMotion={true}
+          quality="high"
+          className="size-full"
+        /> */}
+        {/* Lớp gradient tinh tế chuyển tiếp mềm mại ở đáy Hero section */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-bg-white-blue to-transparent" />
+      </div>
+
+      <div className="pointer-events-none relative z-10 container mx-auto max-w-350 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-12 lg:flex-row lg:gap-60">
-          <div className="z-10 flex w-full flex-col gap-6 text-center lg:w-1/2 lg:gap-8 lg:text-left">
+          <div className="pointer-events-auto z-10 flex w-full flex-col gap-6 text-center lg:w-1/2 lg:gap-8 lg:text-left">
             <h1 className="text-4xl leading-tight font-bold sm:text-5xl lg:text-6xl xl:text-7xl">
               <span>Make your career </span>
               <span className="mt-2 block">
@@ -83,7 +106,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="relative z-10 mt-10 flex justify-center lg:mt-0">
+          <div className="pointer-events-auto relative z-10 mt-10 flex justify-center lg:mt-0">
             <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
               <img
                 src={HumanImage}
@@ -460,12 +483,14 @@ const CTA = () => {
               <Button className="border-none! bg-status-active! px-6! py-3! text-sm font-semibold text-primary-dark! transition-all hover:opacity-90 sm:text-base!">
                 Bắt đầu ngay
               </Button>
-              <Button
-                variant="outline"
-                className="border-white/40! px-6! py-3! text-sm text-white! hover:bg-white/10! sm:text-base!"
-              >
-                Liên hệ
-              </Button>
+              <Link to={PATHS.CONTACT}>
+                <Button
+                  variant="outline"
+                  className="border-white/40! px-6! py-3! text-sm text-white! hover:bg-white/10! sm:text-base!"
+                >
+                  Liên hệ
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -484,172 +509,6 @@ const CTA = () => {
   );
 };
 
-const Footer = () => {
-  return (
-    <footer className="text-text w-full overflow-hidden border-t border-stone-200/80 bg-white pt-20 pb-6">
-      <div className="container mx-auto px-6 sm:px-10 lg:px-16">
-        <div className="grid grid-cols-1 gap-12 pb-16 md:grid-cols-2 lg:grid-cols-5 lg:gap-16">
-          <div className="space-y-5 lg:col-span-2">
-            <div className="flex items-center gap-2">
-              <img
-                src={SmartHire_default}
-                alt="SmartHire Logo"
-                className="h-10 w-auto object-contain"
-              />
-            </div>
-            <p className="max-w-xl text-sm leading-relaxed text-text-muted md:text-base">
-              Nền tảng công nghệ việc làm và tạo CV thế hệ mới, ứng dụng trí tuệ
-              nhân tạo giúp gắn kết nhân tài và tổ chức nhanh chóng, hiệu quả và
-              tối ưu chi phí.
-            </p>
-            <div className="space-y-2 pt-2 text-xs text-text-muted sm:text-sm">
-              <p>
-                <strong className="text-text font-semibold">Hotline:</strong>{" "}
-                1900 3268 (8:00 - 18:00 Thứ 2 - Thứ 6)
-              </p>
-              <p>
-                <strong className="text-text font-semibold">Email:</strong>{" "}
-                support@smarthire.vn
-              </p>
-              <p>
-                <strong className="text-text font-semibold">Trụ sở:</strong>{" "}
-                Tầng 12, Tòa nhà Sheraton, đường 30/4, Ninh Kiều, Cần Thơ
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-text text-xs font-bold tracking-wider uppercase">
-              Dành Cho Ứng Viên
-            </h3>
-            <ul className="space-y-3 text-sm text-text-muted">
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Tạo CV AI chuẩn ATS
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Tìm việc làm IT & Tech
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Tìm việc làm Marketing
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Thư viện mẫu CV đẹp
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Kiểm tra điểm ATS của CV
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-text text-xs font-bold tracking-wider uppercase">
-              Nhà Tuyển Dụng
-            </h3>
-            <ul className="space-y-3 text-sm text-text-muted">
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Đăng tin tuyển dụng
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Tìm hồ sơ nhân tài AI
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Giải pháp ATS Doanh nghiệp
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Báo cáo thị trường lương
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Liên hệ tư vấn HR
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-text text-xs font-bold tracking-wider uppercase">
-              Về SmartHire
-            </h3>
-            <ul className="space-y-3 text-sm text-text-muted">
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Giới thiệu nền tảng
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Blog & Cẩm nang nghề nghiệp
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Chính sách bảo mật dữ liệu
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Điều khoản sử dụng
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-primary">
-                  Trung tâm trợ giúp (FAQs)
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-stone-200/70 pt-8 text-xs text-text-muted sm:flex-row sm:text-sm">
-          <p>
-            © 2026 SmartHire Inc. Nền tảng tuyển dụng thông minh. Mọi quyền được
-            bảo lưu.
-          </p>
-          <div className="flex flex-wrap justify-center gap-6 font-medium">
-            <a href="#" className="transition-colors hover:text-primary">
-              Quyền riêng tư
-            </a>
-            <a href="#" className="transition-colors hover:text-primary">
-              Điều khoản
-            </a>
-            <a href="#" className="transition-colors hover:text-primary">
-              Bảo mật
-            </a>
-            <a href="#" className="transition-colors hover:text-primary">
-              Sitemap
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div className="pointer-events-none mt-12 flex w-full justify-center px-4 opacity-95 select-none">
-        <img
-          src={SmartHire_text_only}
-          alt="SmartHire Brand"
-          className="h-auto w-full max-w-350 object-contain"
-        />
-      </div>
-    </footer>
-  );
-};
 function LandingPage() {
   return (
     <div className="w-full bg-bg">

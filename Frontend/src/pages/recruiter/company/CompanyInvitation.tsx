@@ -10,13 +10,12 @@ import {
   XCircle,
   Search,
   RotateCw,
-  ChevronLeft,
-  ChevronRight,
   Eye,
 } from "lucide-react";
 import dayjs from "dayjs";
 import {
   Button,
+  DashboardPagination,
   DataTable,
   type DataTableFeatures,
   UserAvatar,
@@ -97,7 +96,7 @@ export function CompanyInvitation() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // Lấy dữ liệu theo tab (lazy fetch) để tránh gọi cùng lúc 4 requests khi mount
+  // Lấy toàn bộ dữ liệu lời mời và tính toán counts theo tab qua 1 API call duy nhất
   const {
     items,
     byStatus,
@@ -105,7 +104,7 @@ export function CompanyInvitation() {
     isLoading: isLoadingInvitations,
     isFetching: isFetchingInvitations,
     refetch: refetchInvitations,
-  } = useMyCompanyInvitationsAll(activeTab);
+  } = useMyCompanyInvitationsAll();
 
   const isLoading = isLoadingInvitations;
   const isFetching = isFetchingInvitations;
@@ -487,7 +486,7 @@ export function CompanyInvitation() {
       <div className="rounded-2xl bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Danh sách các tab trạng thái */}
-          <div className="flex flex-wrap items-center gap-1 border-b border-slate-100 pb-2 lg:border-b-0 lg:pb-0">
+          <div className="no-scrollbar flex items-center gap-1 overflow-x-auto border-b border-border pb-2 lg:border-b-0 lg:pb-0">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.key;
               const count = counts[tab.key] ?? 0;
@@ -500,10 +499,10 @@ export function CompanyInvitation() {
                     setActiveTab(tab.key);
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+                  className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-all ${
                     isActive
                       ? "bg-secondary-light text-primary"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      : "text-text-muted hover:bg-bg hover:text-text-main"
                   }`}
                 >
                   <span>{tab.label}</span>
@@ -511,7 +510,7 @@ export function CompanyInvitation() {
                     className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors ${
                       isActive
                         ? "bg-primary text-white"
-                        : "bg-slate-100 text-slate-600"
+                        : "bg-bg text-text-muted"
                     }`}
                   >
                     {count < 10 && count > 0 ? `0${count}` : count}
@@ -565,71 +564,14 @@ export function CompanyInvitation() {
         </div>
 
         {/* Thanh phân trang */}
-        {totalPages > 1 && (
-          <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row">
-            <span className="text-xs text-slate-500">
-              Hiển thị{" "}
-              <span className="font-semibold text-slate-700">
-                {(currentPage - 1) * pageSize + 1}
-              </span>{" "}
-              -{" "}
-              <span className="font-semibold text-slate-700">
-                {Math.min(currentPage * pageSize, totalItems)}
-              </span>{" "}
-              trong tổng số{" "}
-              <span className="font-semibold text-slate-700">{totalItems}</span>{" "}
-              lời mời
-            </span>
-
-            <div className="flex items-center gap-1">
-              <Button
-                variant="secondary"
-                icon={ChevronLeft}
-                iconSize={14}
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="h-8! px-2.5! text-xs! font-medium!"
-              >
-                Trước
-              </Button>
-
-              <div className="flex items-center gap-1 px-1">
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const pageNum = idx + 1;
-                  const isCurrent = pageNum === currentPage;
-                  return (
-                    <button
-                      key={pageNum}
-                      type="button"
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`size-8 rounded-lg text-xs font-semibold transition-colors ${
-                        isCurrent
-                          ? "bg-primary text-white"
-                          : "text-slate-600 hover:bg-slate-100"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant="secondary"
-                icon={ChevronRight}
-                iconPosition="right"
-                iconSize={14}
-                disabled={currentPage >= totalPages}
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                className="h-8! px-2.5! text-xs! font-medium!"
-              >
-                Tiếp
-              </Button>
-            </div>
-          </div>
-        )}
+        <DashboardPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          entityLabel="lời mời"
+        />
       </div>
 
       {/* Modal xác nhận từ chối lời mời */}

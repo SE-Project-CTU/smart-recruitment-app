@@ -8,6 +8,7 @@ using SmartHire.Api.Factories;
 using SmartHire.Application.Common.Errors;
 using SmartHire.Application.Common.Exceptions;
 using SmartHire.Application.Common.Security;
+using SmartHire.Application.Features.Auth.GoogleLogin;
 using SmartHire.Application.Features.Auth.Login;
 using SmartHire.Application.Features.Auth.Logout;
 using SmartHire.Application.Features.Auth.Refresh;
@@ -100,15 +101,30 @@ public sealed class AuthController : ControllerBase {
         );
         
         SetRefreshTokenCookie(result.RefreshToken);
-        
-        var response = new LoginResponse(
-            result.AccessToken,
-            result.TokenType,
-            result.ExpiresIn,
-            result.User
+        return Ok(_responseFactory.Success(ToLoginResponse(result)));
+    }
+
+    [AllowAnonymous]
+    [HttpPost("google")]
+    public async Task<IActionResult> LoginWithGoogle(
+        [FromBody] GoogleLoginRequest? request,
+        CancellationToken cancellationToken
+    ) {
+        if (request is null) {
+            throw new AppException(
+                AppErrorKind.BadRequest,
+                CommonErrorCodes.InvalidRequestBody,
+                "Request body is required."
+            );
+        }
+
+        var result = await _sender.Send(
+            new GoogleLoginCommand(request.IdToken, request.Role),
+            cancellationToken
         );
-        
-        return Ok(_responseFactory.Success(response));
+
+        SetRefreshTokenCookie(result.RefreshToken);
+        return Ok(_responseFactory.Success(ToLoginResponse(result)));
     }
     
     [AllowAnonymous]
@@ -155,6 +171,9 @@ public sealed class AuthController : ControllerBase {
         return NoContent();
     }
     
+    private static LoginResponse ToLoginResponse(LoginResult result) =>
+        new(result.AccessToken, result.TokenType, result.ExpiresIn, result.User);
+
     private void SetRefreshTokenCookie(string refreshToken) {
         var cookieOptions = new CookieOptions {
             HttpOnly = true,

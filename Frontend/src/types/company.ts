@@ -40,6 +40,7 @@ export interface CompanyMemberUser {
 
 export interface CompanyMember {
   id: string;
+  membershipId?: string;
   user: CompanyMemberUser;
   role: CompanyMemberRole;
   status: CompanyMembershipStatus;
@@ -174,6 +175,7 @@ export interface CompanyApplicationListItem {
   id: string;
   jobId: string;
   jobTitle: string;
+  jobStatus?: string;
   companyId: string;
   companyName: string;
   company?: {

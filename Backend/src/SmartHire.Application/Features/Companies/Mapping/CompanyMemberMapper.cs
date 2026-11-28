@@ -13,7 +13,7 @@ public static class CompanyMemberMapper {
                 membership.User.Id,
                 membership.User.FullName,
                 membership.User.Email,
-                membership.User.AvatarFile?.FileUrl),
+                membership.User.GetAvatarUrl()),
             membership.Role.ToString(),
             membership.Status.ToString(),
             membership.JoinedAt);

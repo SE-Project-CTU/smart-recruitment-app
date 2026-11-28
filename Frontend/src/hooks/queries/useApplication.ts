@@ -13,19 +13,25 @@ import type { ApplyJobPayload } from "@/types/application";
  * Hook Query: Lấy danh sách các đơn ứng tuyển của Candidate
  * Dữ liệu đã tự động tích hợp Job & Company info và phòng chống N+1 Query
  */
-export const useMyApplications = (params?: {
-  status?: string;
-  page?: number;
-  pageSize?: number;
-  sort?: string;
-  direction?: string;
-}) => {
+export const useMyApplications = (
+  params?: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+    sort?: string;
+    direction?: string;
+  },
+  options?: { enabled?: boolean },
+) => {
   const user = useAuthStore((state) => state.user);
+  const isCandidate = Boolean(
+    user?.roles?.some((role) => role.toLowerCase() === "candidate"),
+  );
 
   return useQuery({
     queryKey: ["applications", "my", user?.id, params],
     queryFn: () => applicationService.getMyApplications(params),
-    enabled: Boolean(user?.id),
+    enabled: Boolean(user?.id) && isCandidate && (options?.enabled ?? true),
     staleTime: 60 * 1000, // 1 phút
   });
 };
@@ -56,6 +62,29 @@ export const useApplicationStatusHistory = (applicationId?: string) => {
 };
 
 /**
+ * Hook Query: Lấy toàn bộ ID các tin ứng tuyển mà Candidate đã nộp (dưới dạng Set để tra cứu O(1))
+ */
+export const useMyAppliedJobIds = (options?: { enabled?: boolean }) => {
+  const user = useAuthStore((state) => state.user);
+  const isCandidate = Boolean(
+    user?.roles?.some((role) => role.toLowerCase() === "candidate"),
+  );
+
+  return useQuery({
+    queryKey: ["applications", "my-applied-job-ids", user?.id],
+    queryFn: async () => {
+      const res = await applicationService.getMyApplications({
+        page: 1,
+        pageSize: 100,
+      });
+      return new Set<string>((res?.items ?? []).map((app) => app.jobId));
+    },
+    enabled: Boolean(user?.id) && isCandidate && (options?.enabled ?? true),
+    staleTime: 60 * 1000,
+  });
+};
+
+/**
  * Hook Mutation: Nộp đơn ứng tuyển vào một JD
  */
 export const useApplyJob = () => {
@@ -72,6 +101,9 @@ export const useApplyJob = () => {
     onSuccess: (_, variables) => {
       // Invalidate danh sách đơn nộp của candidate
       queryClient.invalidateQueries({ queryKey: ["applications", "my"] });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "my-applied-job-ids"],
+      });
       // Invalidate chi tiết JD và applications của JD đó
       queryClient.invalidateQueries({
         queryKey: ["job-postings", "detail", variables.jobId],
@@ -84,6 +116,45 @@ export const useApplyJob = () => {
       const message = getApiErrorMessage(
         err,
         "Nộp hồ sơ ứng tuyển thất bại",
+      );
+      toast.error({ description: message });
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Ứng viên rút đơn ứng tuyển
+ */
+export const useWithdrawApplication = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      applicationId,
+      reason,
+    }: {
+      applicationId: string;
+      reason?: string;
+    }) => applicationService.withdrawApplication(applicationId, reason),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["applications", "my"] });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "my-applied-job-ids"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "detail", variables.applicationId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", "history", variables.applicationId],
+      });
+      toast.success({
+        description: "Rút hồ sơ ứng tuyển thành công.",
+      });
+    },
+    onError: (err: unknown) => {
+      const message = getApiErrorMessage(
+        err,
+        "Không thể rút hồ sơ ứng tuyển. Vui lòng thử lại.",
       );
       toast.error({ description: message });
     },

@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/stores/authStore";
-import type { LoginRequest, RegisterRequest } from "@/types/auth";
+import type {
+  GoogleLoginRequest,
+  LoginRequest,
+  RegisterRequest,
+} from "@/types/auth";
 import { accountService } from "@/services/accountService";
 import { useEffect } from "react";
 import type {
@@ -28,6 +32,23 @@ export const useLogin = () => {
     },
     onSuccess: (data) => {
       // Tự động lưu vào Zustand store, Cookies và LocalStorage
+      setAuth(data);
+    },
+  });
+};
+
+/**
+ * Hook Mutation: Xử lý Đăng nhập / Đăng ký bằng Google (Firebase)
+ */
+export const useGoogleLogin = () => {
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  return useMutation({
+    mutationFn: async (payload: GoogleLoginRequest) => {
+      const response = await authService.loginWithGoogle(payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
       setAuth(data);
     },
   });

@@ -103,6 +103,14 @@ const getProblemValidationMessages = (value: unknown): string[] => {
 const getErrorPayload = (error: unknown): unknown =>
   isAxiosError(error) ? error.response?.data : error;
 
+export const getApiErrorCode = (error: unknown): string | null => {
+  const payload = getErrorPayload(error);
+  if (!isRecord(payload)) return null;
+  const nestedError = payload.error ?? payload.Error;
+  const errorBody = isRecord(nestedError) ? nestedError : payload;
+  return getString(errorBody, "code", "Code");
+};
+
 export const getApiErrorMessage = (
   error: unknown,
   fallbackMessage: string,
@@ -265,6 +273,9 @@ export const getApiFieldErrors = (error: unknown): Record<string, string> => {
       result.name = API_ERROR_MESSAGES.ADMIN_SKILL_NAME_ALREADY_EXISTS;
     } else if (code === "ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS" && !result.code) {
       result.code = API_ERROR_MESSAGES.ADMIN_CV_TEMPLATE_CODE_ALREADY_EXISTS;
+    } else if (code === "MAX_OWNED_COMPANIES_REACHED") {
+      result.general = API_ERROR_MESSAGES.MAX_OWNED_COMPANIES_REACHED;
+      result.company = API_ERROR_MESSAGES.MAX_OWNED_COMPANIES_REACHED;
     }
   }
 

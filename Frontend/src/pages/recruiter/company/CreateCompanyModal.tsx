@@ -147,6 +147,13 @@ export function CreateCompanyModal({
       errors.address = "Vui lòng nhập địa chỉ trụ sở chính.";
     } else if (address.length < 5) {
       errors.address = "Địa chỉ phải có ít nhất 5 ký tự.";
+    } else if (address.length > 500) {
+      errors.address = "Địa chỉ không được vượt quá 500 ký tự.";
+    }
+
+    const desc = formData.description?.trim();
+    if (desc && desc.length > 2000) {
+      errors.description = `Mô tả doanh nghiệp không được vượt quá 2,000 ký tự (hiện có ${desc.length} ký tự).`;
     }
 
     const website = formData.website?.trim();
@@ -181,25 +188,24 @@ export function CreateCompanyModal({
       onClose();
     } catch (err: unknown) {
       const apiErrors = getApiFieldErrors(err);
+      const msg = getApiErrorMessage(
+        err,
+        "Có lỗi xảy ra khi tạo doanh nghiệp. Vui lòng thử lại.",
+      );
       if (Object.keys(apiErrors).length > 0) {
         setFieldErrors(apiErrors);
-      } else {
-        const msg = getApiErrorMessage(
-          err,
-          "Có lỗi xảy ra khi tạo doanh nghiệp. Vui lòng thử lại.",
-        );
-        toast.add({
-          type: "destructive",
-          title: "Tạo doanh nghiệp thất bại",
-          description: msg,
-        });
       }
+      toast.add({
+        type: "destructive",
+        title: "Tạo doanh nghiệp thất bại",
+        description: msg,
+      });
     }
   };
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs duration-200">
-      <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-surface p-6 sm:p-7">
+      <div className="relative max-h-[90vh] w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-5 sm:w-full sm:max-w-xl sm:p-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -217,16 +223,23 @@ export function CreateCompanyModal({
           <button
             onClick={onClose}
             type="button"
-            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text-main"
+            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg hover:text-text-main"
           >
             <X className="size-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-2">
+          {(fieldErrors.general || fieldErrors.company) && (
+            <div className="animate-in fade-in flex items-center gap-2 rounded-xl border border-status-error/30 bg-status-error/10 p-3 text-xs font-medium text-status-error">
+              <AlertCircle className="size-4 shrink-0 text-status-error" />
+              <span>{fieldErrors.general || fieldErrors.company}</span>
+            </div>
+          )}
+
           {/* Logo Upload Section */}
           <div className="rounded-xl border border-border bg-bg/50 p-3.5">
-            <label className="mb-2 block text-xs font-semibold text-text-main">
+            <label className="mb-2 block text-left text-xs font-semibold text-text-main">
               Logo doanh nghiệp (Không bắt buộc)
             </label>
             <div className="flex items-center gap-4">
@@ -266,7 +279,7 @@ export function CreateCompanyModal({
                     icon={Trash2}
                     disabled={isUploadingLogo}
                     onClick={handleRemoveLogo}
-                    className="border-rose-200! px-3! py-1.5! text-xs! text-rose-600! ring-rose-200! hover:bg-rose-50! hover:text-rose-700!"
+                    className="border-status-error/30! px-3! py-1.5! text-xs! text-status-error! ring-status-error/20! hover:bg-status-error/10! hover:text-status-error!"
                   >
                     Gỡ
                   </Button>
@@ -285,22 +298,28 @@ export function CreateCompanyModal({
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-4 text-left sm:grid-cols-2">
             {/* Tên doanh nghiệp */}
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Tên doanh nghiệp <span className="text-status-error">*</span>
-              </label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-text-main">
+                  Tên doanh nghiệp <span className="text-status-error">*</span>
+                </label>
+                <span className="text-[11px] text-text-muted">
+                  {formData.name.length}/200
+                </span>
+              </div>
               <input
                 type="text"
                 name="name"
+                maxLength={200}
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Ví dụ: Công ty Cổ phần Công nghệ SmartHire"
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.name
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -328,7 +347,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.taxCode
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -356,7 +375,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.email
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -384,7 +403,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.phone
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -412,7 +431,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.website
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -441,7 +460,7 @@ export function CreateCompanyModal({
                 className={cn(
                   "w-full rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.address
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
@@ -457,19 +476,25 @@ export function CreateCompanyModal({
 
             {/* Giới thiệu về doanh nghiệp */}
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-semibold text-text-main">
-                Giới thiệu về doanh nghiệp
-              </label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-text-main">
+                  Giới thiệu về doanh nghiệp
+                </label>
+                <span className="text-[11px] text-text-muted">
+                  {(formData.description || "").length}/2000
+                </span>
+              </div>
               <textarea
                 name="description"
                 rows={3}
+                maxLength={2000}
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Mô tả ngắn về sứ mệnh, lĩnh vực hoạt động, văn hóa công ty..."
                 className={cn(
                   "w-full resize-none rounded-xl border bg-bg px-3.5 py-2.5 text-sm text-text-main transition-colors outline-none placeholder:text-text-muted focus:ring-1",
                   fieldErrors.description
-                    ? "border-rose-400 focus:border-status-error focus:ring-status-error/20"
+                    ? "border-status-error focus:border-status-error focus:ring-status-error/20"
                     : "border-border focus:border-primary focus:ring-primary/20",
                 )}
               />
