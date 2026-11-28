@@ -90,24 +90,20 @@ export function CompanyMembersTab() {
 
   const handleTransferOwnership = async () => {
     if (!transferTarget || transferTarget.status !== "Active") return;
+    const targetName = transferTarget.user.fullName;
     try {
       setTransferError(null);
       await transferOwnership({
         companyId: company.id,
         newOwnerId: transferTarget.user.id,
       });
-      const successMsg = `Đã chuyển quyền Chủ sở hữu cho ${transferTarget.user.fullName}!`;
-      setTransferMessage(successMsg);
+      setTransferTarget(null);
       toast.add({
         type: "success",
         title: "Chuyển quyền thành công",
-        description: successMsg,
+        description: `Đã chuyển quyền Chủ sở hữu cho ${targetName}!`,
       });
-      setTimeout(async () => {
-        setTransferTarget(null);
-        setTransferMessage(null);
-        await refreshCompany();
-      }, 1500);
+      await refreshCompany();
     } catch (err: unknown) {
       const errorMsg = getApiErrorMessage(
         err,
@@ -127,6 +123,7 @@ export function CompanyMembersTab() {
     const targetMemberId =
       removeTarget.membershipId || removeTarget.id || removeTarget.user.id;
     if (!targetMemberId) return;
+    const targetName = removeTarget.user.fullName;
 
     try {
       setRemoveError(null);
@@ -134,16 +131,11 @@ export function CompanyMembersTab() {
         companyId: company.id,
         memberId: targetMemberId,
       });
-      toast.add({
-        type: "success",
-        title: "Đã xóa thành viên",
-        description: `Đã loại bỏ ${removeTarget.user.fullName} khỏi công ty thành công.`,
-      });
       setRemoveTarget(null);
       toast.add({
         type: "success",
         title: "Xóa thành viên thành công",
-        description: `Đã xóa thành viên ${targetName} khỏi công ty!`,
+        description: `Đã loại bỏ ${targetName} khỏi công ty thành công.`,
       });
       await refetchMembers();
     } catch (err: unknown) {
