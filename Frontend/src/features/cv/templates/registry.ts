@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { SeniorHarvardTemplate } from "./SeniorHarvard";
 import { ClassicHarvardTemplate } from "./ClassicHarvard";
 import { SidebarClassicTemplate } from "./SidebarClassic";
+import { MinimalistCvTemplate } from "./MinimalistCv";
 import type { CvTemplateProps } from "./types";
 import type { CvTemplateCode } from "@/types/cv";
 import {
@@ -34,6 +35,7 @@ export const TEMPLATE_REGISTRY: Record<
   senior_harvard: SeniorHarvardTemplate,
   classic_harvard: ClassicHarvardTemplate,
   sidebar_classic: SidebarClassicTemplate,
+  minimalist_cv: MinimalistCvTemplate,
 };
 
 export function getCvTemplateComponent(

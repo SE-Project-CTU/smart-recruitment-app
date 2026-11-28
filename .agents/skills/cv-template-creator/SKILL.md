@@ -3,7 +3,7 @@ name: cv-template-creator
 description: End-to-end protocol to create and register a new CV template from a mockup image. Covers visual breakdown, cross-stack schema inspection, Cloudinary admin upload via Backend API, idempotent SQL seeding, and Frontend Code-driven Registry integration with Tiptap WYSIWYG, DnD, AI highlight store, dual primary colors, conditional avatar crop upload, and React performance memoization.
 when_to_use: "When asked to create, add, or implement a new CV template from an image, mockup, or specification. Follows the Code-driven Registry + Admin Metadata architecture. NOT for modifying existing template styles or general CV builder fixes."
 allowed-tools: Read, Write, Edit, Grep, Glob, run_command
-version: 1.3.1
+version: 1.3.2
 effort: medium
 ---
 
@@ -112,15 +112,19 @@ Execute the 6 phases sequentially. Verify every acceptance checkbox in the curre
   $apiPort = if ($env:API_HOST_PORT) { $env:API_HOST_PORT } else { "5190" }
   $apiBaseUrl = if ($env:VITE_API_BASE_URL) { $env:VITE_API_BASE_URL.TrimEnd('/') } else { "http://localhost:$apiPort/api/v1" }
 
+  # Note: Execute in pwsh (PowerShell 7+) or use curl.exe; never invoke legacy powershell.exe 5.1 (lacks -Form and hangs in background).
+  $correlationId = [guid]::NewGuid().ToString()
+
   # 2. Authenticate as Admin (halting if Backend is unreachable)
   $loginBody = @{
       email    = $adminEmail
       password = $adminPassword
-  } | ConvertTo-Json
+  } | ConvertTo-Json -Compress
 
   try {
       $loginRes = Invoke-RestMethod -Uri "$apiBaseUrl/auth/login" `
-          -Method Post -Body $loginBody -ContentType "application/json" -ErrorAction Stop
+          -Method Post -Headers @{ "X-Correlation-ID" = $correlationId } `
+          -Body $loginBody -ContentType "application/json" -TimeoutSec 15 -ErrorAction Stop
   } catch {
       throw "Failed to authenticate against $apiBaseUrl/auth/login. Ensure the Backend server is running and credentials in Backend/.env are valid. Do NOT call Cloudinary API directly."
   }
@@ -128,14 +132,16 @@ Execute the 6 phases sequentially. Verify every acceptance checkbox in the curre
   $adminToken = $loginRes.data.tokens.accessToken
 
   # 3. Upload template mockup image via Backend Media Controller
+  # If using curl.exe instead of pwsh Invoke-RestMethod -Form, explicitly pass MIME type (e.g., ';type=image/webp')
+  # because curl defaults to 'application/octet-stream', which Backend rejects as INVALID_FORMAT.
   $imagePath = "temp\cv-templates\<file_name>.<ext>"
   $form = @{
       file = Get-Item $imagePath
   }
 
   $uploadRes = Invoke-RestMethod -Uri "$apiBaseUrl/media/upload/image" `
-      -Method Post -Headers @{ Authorization = "Bearer $adminToken" } `
-      -Form $form -ErrorAction Stop
+      -Method Post -Headers @{ Authorization = "Bearer $adminToken"; "X-Correlation-ID" = $correlationId } `
+      -Form $form -TimeoutSec 30 -ErrorAction Stop
 
   $thumbnailFileId = $uploadRes.data.id
   # Preserve $thumbnailFileId (GUID) for the SQL seed step

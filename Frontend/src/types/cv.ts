@@ -265,7 +265,8 @@ export interface CvDefaultStyle {
 export type CvTemplateCode =
   | "senior_harvard"
   | "classic_harvard"
-  | "sidebar_classic";
+  | "sidebar_classic"
+  | "minimalist_cv";
 
 export interface CvTiptapDocumentMetadata {
   version: string;

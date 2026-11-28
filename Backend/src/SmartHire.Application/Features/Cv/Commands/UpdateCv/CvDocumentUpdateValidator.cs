@@ -17,7 +17,8 @@ public static partial class CvDocumentUpdateValidator {
         new(StringComparer.OrdinalIgnoreCase) {
             ["senior_harvard"] = new(StringComparer.Ordinal) { "main" },
             ["classic_harvard"] = new(StringComparer.Ordinal) { "main" },
-            ["sidebar_classic"] = new(StringComparer.Ordinal) { "main", "sidebar" }
+            ["sidebar_classic"] = new(StringComparer.Ordinal) { "main", "sidebar" },
+            ["minimalist_cv"] = new(StringComparer.Ordinal) { "main", "sidebar" }
         };
     
     [GeneratedRegex(RequestValidationPatterns.VietnamesePhone)]

@@ -38,7 +38,7 @@ export default function CandidateCvTemplatesPage() {
       name: t.name,
       description: t.description,
       thumbnailUrl: t.thumbnailUrl,
-      badge: "Chuẩn ATS",
+      // badge: "Chuẩn ATS",
     }));
   }, [templates]);
 

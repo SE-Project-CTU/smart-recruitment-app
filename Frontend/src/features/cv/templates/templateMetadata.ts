@@ -71,6 +71,35 @@ export const CV_TEMPLATE_METADATA: Record<CvTemplateCode, CvTemplateMetadata> = 
       ],
     },
   },
+  minimalist_cv: {
+    code: "minimalist_cv",
+    name: "Minimalist CV",
+    supportedAreaIds: ["main", "sidebar"] as const,
+    defaultLayout: {
+      version: "1.0",
+      areas: [
+        {
+          id: "main",
+          sections: [
+            "objective",
+            "education",
+            "experience",
+            "projects",
+            "awards",
+          ],
+        },
+        {
+          id: "sidebar",
+          sections: [
+            "skills",
+            "certifications",
+            "additionalInfo",
+            "interests",
+          ],
+        },
+      ],
+    },
+  },
 };
 
 export const DEFAULT_TEMPLATE_CODE: CvTemplateCode = "senior_harvard";
