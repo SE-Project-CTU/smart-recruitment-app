@@ -117,9 +117,18 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
       [layout?.areas, supportedAreaIds],
     );
 
+    const isRenderableInArea = useCallback(
+      (areaId: string, key: string): boolean =>
+        isSectionVisible(key) && !(areaId === MAIN_AREA_ID && key === "objective"),
+      [isSectionVisible],
+    );
+
     const visibleMainSections = useMemo(
-      () => (mainArea?.sections || []).filter(isSectionVisible),
-      [mainArea?.sections, isSectionVisible],
+      () =>
+        (mainArea?.sections || []).filter((k) =>
+          isRenderableInArea(MAIN_AREA_ID, k),
+        ),
+      [mainArea?.sections, isRenderableInArea],
     );
 
     const visibleSidebarSections = useMemo(
@@ -140,17 +149,19 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
           const targetArea = layout?.areas?.find((a) => a.id === sourceAreaId);
           if (!targetArea) return;
 
-          const currentVisible = targetArea.sections.filter(isSectionVisible);
+          const currentVisible = targetArea.sections.filter((k) =>
+            isRenderableInArea(sourceAreaId, k),
+          );
           const [moved] = currentVisible.splice(sourceIndex, 1);
           if (!moved) return;
           currentVisible.splice(destIndex, 0, moved);
 
-          const hiddenSections = targetArea.sections.filter(
-            (k) => !isSectionVisible(k),
+          const remainingSections = targetArea.sections.filter(
+            (k) => !isRenderableInArea(sourceAreaId, k),
           );
           onReorderAreaSections?.(sourceAreaId, [
+            ...remainingSections,
             ...currentVisible,
-            ...hiddenSections,
           ]);
           return;
         }
@@ -169,7 +180,7 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
       [
         isReadOnly,
         layout?.areas,
-        isSectionVisible,
+        isRenderableInArea,
         onReorderAreaSections,
         onMoveSectionBetweenAreas,
       ],
@@ -180,7 +191,9 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
         const targetArea = layout?.areas?.find((a) => a.id === areaId);
         if (!targetArea) return;
 
-        const visible = targetArea.sections.filter(isSectionVisible);
+        const visible = targetArea.sections.filter((k) =>
+          isRenderableInArea(areaId, k),
+        );
         const targetIndex =
           direction === "up" ? visibleIndex - 1 : visibleIndex + 1;
         if (targetIndex < 0 || targetIndex >= visible.length) return;
@@ -188,12 +201,12 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
         const [moved] = visible.splice(visibleIndex, 1);
         visible.splice(targetIndex, 0, moved);
 
-        const hiddenSections = targetArea.sections.filter(
-          (k) => !isSectionVisible(k),
+        const remainingSections = targetArea.sections.filter(
+          (k) => !isRenderableInArea(areaId, k),
         );
-        onReorderAreaSections?.(areaId, [...visible, ...hiddenSections]);
+        onReorderAreaSections?.(areaId, [...remainingSections, ...visible]);
       },
-      [layout?.areas, isSectionVisible, onReorderAreaSections],
+      [layout?.areas, isRenderableInArea, onReorderAreaSections],
     );
 
     const renderSectionContent = useCallback(
@@ -317,7 +330,11 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
                             ...dragProvided.draggableProps.style,
                             ...(snapshot.isDragging ? cssVars : undefined),
                           }}
-                          className={`group/section relative rounded-sm transition-all duration-300 ${
+                          className={`group relative rounded-sm transition-all duration-300 ${
+                            !isReadOnly
+                              ? "hover:ring-1 hover:ring-slate-200/80"
+                              : ""
+                          } ${
                             snapshot.isDragging
                               ? "z-50 bg-white/95 p-2 shadow-lg ring-1 ring-slate-200"
                               : ""
@@ -382,6 +399,8 @@ export const MinimalistCvTemplate: React.FC<CvTemplateProps> = React.memo(
       >
         <ProfileHeader
           profile={profile}
+          objectiveSection={sections.objective}
+          isObjectiveHighlighted={highlightSectionKey === "objective"}
           isReadOnly={isReadOnly}
           renderField={renderField}
         />
