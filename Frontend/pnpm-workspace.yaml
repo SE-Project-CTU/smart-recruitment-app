@@ -6,6 +6,9 @@ minimumReleaseAgeExclude:
   - "@animate-ui/react@2.0.0"
 overrides:
   follow-redirects: 1.16.2
+  '@firebase/firestore>@grpc/grpc-js': '1.13.6'
+  websocket-driver: '0.8.0'
+  websocket-extensions: '0.2.0'
 supportedArchitectures:
   os:
     - current
